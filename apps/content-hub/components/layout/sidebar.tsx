@@ -14,6 +14,7 @@ import {
   FolderTree,
   GraduationCap,
   LogOut,
+  Tag,
 } from "lucide-react";
 
 const navigation = [
@@ -23,6 +24,7 @@ const navigation = [
   { name: "Submódulos", href: "/submodules", icon: FolderTree },
   { name: "Aulas", href: "/lessons", icon: FileText },
   { name: "Usuários", href: "/users", icon: Users },
+  { name: "Categorias", href: "/categories", icon: Tag },
 ];
 
 export function Sidebar() {
