@@ -1,6 +1,6 @@
 {
-    "buildCommand": "cd ../.. && corepack enable && corepack prepare pnpm@9.15.0 --activate && pnpm install && pnpm --filter @code-legends/frontend build",
+    "buildCommand": "cd ../.. && corepack enable && corepack prepare pnpm@8.15.6 --activate && pnpm install && pnpm --filter @code-legends/frontend build",
     "outputDirectory": ".next",
-    "installCommand": "cd ../.. && corepack enable && corepack prepare pnpm@9.15.0 --activate && pnpm install",
+    "installCommand": "cd ../.. && corepack enable && corepack prepare pnpm@8.15.6 --activate && pnpm install",
     "framework": "nextjs"
 }
