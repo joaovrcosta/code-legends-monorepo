@@ -1,0 +1,291 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Course {
+  id              String           @id @default(cuid())
+  title           String
+  slug            String           @unique
+  active          Boolean          @default(true)
+  thumbnail       String?
+  colorHex        String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  releaseAt       DateTime?        @default(now())
+  isFree          Boolean          @default(false)
+  subscriptions   Int              @default(0)
+  level           String
+  icon            String?
+  tags            String[]
+  description     String
+  instructorId    String
+  instructor      User             @relation("CourseInstructor", fields: [instructorId], references: [id])
+  modules         Module[]
+  userCourses     UserCourse[]
+  Certificate     Certificate[]
+  favoriteCourses FavoriteCourse[]
+  activeUsers     User[]           @relation("ActiveCourse")
+
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique  // "Front-end", "Design"
+  slug        String   @unique  // "front-end", "design"
+  description String?
+  icon        String?
+  color       String?  // Para UI (#FF5733)
+  order       Int      @default(0)  // Ordenação
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  courses     Course[]
+}
+
+
+model Module {
+  id                 String               @id @default(cuid())
+  title              String
+  slug               String               @unique
+  courseId           String
+  groups             Group[]
+  course             Course               @relation(fields: [courseId], references: [id])
+  userCourses        UserCourse[]
+  userModuleProgress UserModuleProgress[]
+  unlockedModules    UnlockedModule[]
+}
+
+model Group {
+  id       Int      @id @default(autoincrement())
+  title    String
+  moduleId String
+  module   Module   @relation(fields: [moduleId], references: [id])
+  lessons  Lesson[]
+}
+
+model Lesson {
+  id             Int            @id @default(autoincrement())
+  title          String
+  description    String
+  type           String
+  slug           String         @unique
+  url            String?
+  isFree         Boolean        @default(false)
+  video_url      String?
+  video_duration String?
+  locked         Boolean        @default(false)
+  completed      Boolean        @default(false)
+  completedAt    DateTime?
+  submoduleId    Int
+  order          Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  authorId       String
+  author         User           @relation("LessonAuthor", fields: [authorId], references: [id])
+  submodule      Group          @relation(fields: [submoduleId], references: [id])
+  userCourses    UserCourse[]
+  userProgress   UserProgress[]
+}
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  name           String
+  password       String
+  avatar         String?
+  slug           String?       @unique
+  bio            String?
+  expertise      String[]      @default([])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  birth_date     DateTime?
+  born_in        String?
+  document       String?
+  foreign_phone  String?
+  fullname       String?
+  gender         String?
+  marital_status MaritalStatus @default(SINGLE)
+  role           Role          @default(STUDENT)
+  occupation     String?
+  phone          String?
+  rg             String?
+  Address        Address?
+  onboardingCompleted Boolean @default(false)
+  onboardingGoal     String?
+  onboardingCareer   String?
+  totalXp            Int      @default(0)      // XP total acumulado pelo usuário
+  level              Int      @default(1)      // Nível atual do usuário
+  xpToNextLevel      Int      @default(100)    // XP necessário para alcançar o próximo nível
+
+  // Relações como aluno
+  userCourses     UserCourse[]
+  userProgress    UserProgress[]
+  Certificate     Certificate[]
+  favoriteCourses FavoriteCourse[]
+  activeCourseId  String?
+  activeCourse    Course?          @relation("ActiveCourse", fields: [activeCourseId], references: [id])
+
+  // Relações como instrutor
+  coursesAsInstructor Course[] @relation("CourseInstructor")
+  lessonsAsAuthor     Lesson[] @relation("LessonAuthor")
+  
+  // Histórico de XP
+  xpHistory           UserXpHistory[]
+}
+
+model UserCourse {
+  id                 String               @id @default(cuid())
+  userId             String
+  courseId           String
+  enrolledAt         DateTime             @default(now())
+  lastAccessedAt     DateTime             @default(now())
+  isCompleted        Boolean              @default(false)
+  completedAt        DateTime?
+  currentModuleId    String?
+  currentTaskId      Int?
+  progress           Float                @default(0.0)
+  course             Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  currentModule      Module?              @relation(fields: [currentModuleId], references: [id])
+  currentTask        Lesson?              @relation(fields: [currentTaskId], references: [id])
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userModuleProgress UserModuleProgress[]
+  userProgress       UserProgress[]
+  unlockedModules    UnlockedModule[]
+
+  @@unique([userId, courseId])
+}
+
+model UserProgress {
+  id           String     @id @default(cuid())
+  userId       String
+  taskId       Int
+  userCourseId String
+  isCompleted  Boolean    @default(false)
+  completedAt  DateTime?
+  timeSpent    Int        @default(0)
+  lastPosition Int?
+  attempts     Int        @default(0)
+  score        Float?
+  notes        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  task         Lesson     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userCourse   UserCourse @relation(fields: [userCourseId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId])
+}
+
+model UserModuleProgress {
+  id             String     @id @default(cuid())
+  userId         String
+  moduleId       String
+  userCourseId   String
+  isCompleted    Boolean    @default(false)
+  completedAt    DateTime?
+  progress       Float      @default(0.0)
+  tasksCompleted Int        @default(0)
+  totalTasks     Int        @default(0)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  module         Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  userCourse     UserCourse @relation(fields: [userCourseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, moduleId])
+}
+
+model UnlockedModule {
+  id           String   @id @default(cuid())
+  userId       String
+  moduleId     String
+  userCourseId String
+  unlockedAt   DateTime @default(now())
+  module       Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  userCourse   UserCourse @relation(fields: [userCourseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, moduleId, userCourseId])
+}
+
+model Address {
+  id              String  @id
+  userId          String  @unique
+  country         String?
+  foreign_country Boolean @default(false)
+  postal_code     String?
+  street_name     String?
+  number          String?
+  complement      String?
+  neighborhood    String?
+  city            String?
+  state           String?
+  foreign_address String?
+  User            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Certificate {
+  id         String               @id @default(cuid())
+  userId     String
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId   String
+  course     Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  templateId String?
+  template   CertificateTemplate? @relation(fields: [templateId], references: [id])
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+}
+
+model CertificateTemplate {
+  id           String        @id @default(cuid())
+  name         String
+  description  String
+  certificates Certificate[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model FavoriteCourse {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+}
+
+model UserXpHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  xpAmount    Int                    // Quantidade de XP ganha
+  source      String                  // Origem: "lesson_completed", "quiz_passed", "module_completed", etc.
+  sourceId    Int?                    // ID da lição/quiz/módulo que gerou o XP (opcional)
+  description String?                 // Descrição opcional: "Completou lição: Introdução ao React"
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+}
+
+enum Role {
+  INSTRUCTOR
+  ADMIN
+  STUDENT
+}

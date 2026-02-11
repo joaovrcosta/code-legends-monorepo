@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Executa lint e fix automático de imports não usados
+npm run lint:fix
+
+# Adiciona os arquivos corrigidos ao stage
+git add -A

@@ -1,0 +1,225 @@
+"use client";
+
+import Image, { StaticImageData } from "next/image";
+import Link from "next/link";
+import reactIcon from "../../../public/react-course-icon.svg";
+import {
+  ArrowUpRight,
+  ChartNoAxesColumnIncreasing,
+  ScrollText,
+} from "lucide-react";
+import { Check, Plus, Star } from "@phosphor-icons/react/dist/ssr";
+import { enrollInCourse } from "@/actions/course";
+import { useState } from "react";
+import { useEnrolledCoursesStore } from "@/stores/enrolled-courses-store";
+
+// Componente para o botão de enroll
+function EnrollButton({
+  courseId,
+  onEnrollSuccess,
+}: {
+  courseId?: string;
+  onEnrollSuccess?: () => void;
+}) {
+  const [isLoading, setIsLoading] = useState(false);
+  const refreshEnrolledCourses = useEnrolledCoursesStore(
+    (state) => state.refreshEnrolledCourses
+  );
+
+  const handleEnroll = async () => {
+    if (!courseId || isLoading) return;
+
+    try {
+      setIsLoading(true);
+      await enrollInCourse(courseId);
+      onEnrollSuccess?.();
+
+      // Atualiza apenas a lista de cursos inscritos sem recarregar toda a página
+      await refreshEnrolledCourses();
+    } catch (error) {
+      console.error("Erro ao inscrever:", error);
+      alert(
+        error instanceof Error ? error.message : "Erro ao inscrever no curso"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleEnroll}
+      disabled={!courseId || isLoading}
+      className="bg-gray-gradient-first rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <div className="flex items-center justify-center w-8 h-8 hover:bg-[#25252A] rounded-full cursor-pointer hover:text-[#35BED5]">
+        <Plus size={28} className="text-white hover:text-[#35BED5]" />
+      </div>
+    </button>
+  );
+}
+
+function getStatusInfo(status?: CatalogCardProps["status"]) {
+  switch (status) {
+    case "in-progress":
+      return {
+        label: "Em progresso...",
+        className: "text-[#007e97]",
+        icon: (isFavorite?: boolean) => (
+          <Star
+            size={20}
+            weight="fill"
+            className={isFavorite ? "text-[#35BED5]" : "text-gray-600"}
+          />
+        ),
+      };
+    case "completed":
+      return {
+        label: "Concluído",
+        className: "text-green-600",
+        icon: (isFavorite?: boolean) => (
+          <Star
+            size={20}
+            weight="fill"
+            className={isFavorite ? "text-[#35BED5]" : "text-gray-600"}
+          />
+        ),
+      };
+    case "career":
+    case "continue":
+      return {
+        label: "Curso atual",
+        className: "text-white",
+        icon: (isFavorite?: boolean) => (
+          <Star
+            size={20}
+            weight="fill"
+            className={isFavorite ? "text-[#35BED5]" : "text-gray-600"}
+          />
+        ),
+      };
+    case "not-started":
+    default:
+      return {
+        label: "Curso",
+        className: "text-gray-500",
+        icon: (isFavorite?: boolean) => (
+          <Star
+            size={20}
+            weight="fill"
+            className={isFavorite ? "text-[#35BED5]" : "text-gray-600"}
+          />
+        ),
+      };
+  }
+}
+
+interface CatalogCardProps {
+  name: string;
+  image?: string | StaticImageData;
+  url: string;
+  color: string;
+  className?: string;
+  isCurrent?: boolean;
+  isFavorite?: boolean;
+  status?: "in-progress" | "completed" | "not-started" | "career" | "continue";
+  tags?: string[];
+  courseId?: string;
+  isEnrolled?: boolean;
+  onEnrollSuccess?: () => void;
+  level?: "beginner" | "intermediate" | "advanced";
+}
+
+export function CatalogCard({
+  name,
+  image,
+  url,
+  status,
+  className,
+  isCurrent,
+  courseId,
+  onEnrollSuccess,
+  isEnrolled,
+  level,
+}: CatalogCardProps) {
+  const imageSrc = image || reactIcon;
+
+  const { label, className: statusClass } = getStatusInfo(status);
+  return (
+    <div
+      className={`relative shadow-2xl w-full rounded-[16px] transition-colors duration-300 cursor-pointer hover:border-[#3f3f48]
+    ${
+      isCurrent
+        ? "bg-blue-gradient-second border-[#35BED5]"
+        : "bg-gray-gradient border-[#25252A]"
+    }
+    border hover:shadow-[inset_0_-20px_20px_rgba(255,255,255,0.025)] ${className}`}
+    >
+      {label && (
+        <div className="flex items-center justify-between rounded-t-[20px] pr-4 pl-4 pt-4 pb-0">
+          <div
+            className={`text-white ${statusClass} rounded-full px-2 border ${
+              isCurrent ? "border-white" : "border-[#25252A]"
+            }`}
+          >
+            <p className="text-sm">{label}</p>
+          </div>
+        </div>
+      )}
+
+      <div className="p-4">
+        <Image
+          src={imageSrc}
+          alt={name}
+          width={80}
+          height={80}
+          className="-mb-4"
+        />
+        <div className="px-4 pt-4">
+          <div className="flex items-center space-x-1">
+            <span className={`font-semibold bg-clip-text text-lg text-white`}>
+              {name}
+            </span>
+            <ArrowUpRight />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pr-4 pl-4 pb-4">
+        <div className="flex items-center gap-2  text-green-500 text-xs">
+          <ChartNoAxesColumnIncreasing size={16} />
+          <p className="">
+            Para{" "}
+            {level === "beginner"
+              ? "Iniciantes"
+              : level === "intermediate"
+              ? "Intermediários"
+              : "Avançados"}
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          <div className="flex items-center justify-center w-8 h-8 hover:bg-[#25252A] rounded-full cursor-pointer hover:text-[#35BED5]">
+            <Link href={url}>
+              <ScrollText size={20} className="text-gray-600" />
+            </Link>
+          </div>
+
+          {isEnrolled ? (
+            <div className="flex items-center justify-center w-8 h-8 rounded-full cursor-pointer hover:text-[#35BED5]">
+              <Check
+                size={20}
+                className="text-green-500 hover:text-[#35BED5]"
+              />
+            </div>
+          ) : (
+            <EnrollButton
+              courseId={courseId}
+              onEnrollSuccess={onEnrollSuccess}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: code-legends-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: code_legends
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - code-legends-network
+
+  adminer:
+    image: adminer:4.8.1
+    container_name: code-legends-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - code-legends-network
+
+volumes:
+  postgres_data:
+
+networks:
+  code-legends-network:
+    driver: bridge

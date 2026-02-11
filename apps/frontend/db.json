@@ -1,0 +1,63 @@
+{
+  "courses": [
+    {
+      "name": "ReactJS",
+      "description": "Aprenda a construir interfaces de usuário com ReactJS",
+      "courseModules": [
+        {
+          "moduleName": "Fundamentos do React",
+          "submodules": [
+            {
+              "submoduleName": "Iniciando com ReactJS",
+              "tasks": [
+                {
+                  "id": 1,
+                  "title": "Introdução",
+                  "category": "ReactJS",
+                  "image": "completeTaskRight",
+                  "completed": true,
+                  "url": "/classroom/reactjs/chapter/iniciando-com-react/introducao"
+                },
+                {
+                  "id": 2,
+                  "title": "Fundamentos do ReactJS",
+                  "category": "ReactJS",
+                  "image": "completeTaskLeft",
+                  "completed": true,
+                  "url": "/classroom/reactjs/chapter/iniciando-com-react/fundamentos-do-react"
+                },
+                {
+                  "id": 3,
+                  "title": "CSS Modules",
+                  "category": "ReactJS",
+                  "image": "incompleteTaskLeft",
+                  "completed": false,
+                  "url": "/classroom/reactjs/chapter/iniciando-com-react/bundles-compilers"
+                },
+                {
+                  "id": 4,
+                  "title": "Criando um projeto React",
+                  "category": "ReactJS",
+                  "image": "incompleteTaskRight",
+                  "completed": false,
+                  "locked": true,
+                  "url": "/classroom/reactjs/chapter/iniciando-com-react/criando-projeto-react"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "VueJS",
+      "description": "Aprenda a construir interfaces de usuário com VueJS",
+      "courseModules": []
+    },
+    {
+      "name": "Angular",
+      "description": "Aprenda a construir interfaces de usuário com Angular",
+      "courseModules": []
+    }
+  ]
+}
