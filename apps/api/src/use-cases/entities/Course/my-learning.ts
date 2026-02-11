@@ -25,7 +25,7 @@ export class MyLearningUseCase {
     private userCourseRepository: IUserCourseRepository,
     private usersRepository: IUsersRepository,
     private userProgressRepository: IUserProgressRepository
-  ) {}
+  ) { }
 
   async execute({ userId }: MyLearningRequest): Promise<MyLearningResponse> {
     // Verificar se o usuário existe
@@ -34,34 +34,73 @@ export class MyLearningUseCase {
       throw new UserNotFoundError();
     }
 
-    // Buscar todos os cursos inscritos do usuário
+    // Buscar todos os cursos inscritos do usuário (já inclui course com instructor e category)
     const userCourses = await this.userCourseRepository.findByUserId(userId);
 
-    const inProgress: CourseItem[] = [];
-    const completed: CourseItem[] = [];
+    // Se não houver cursos, retornar arrays vazios
+    if (userCourses.length === 0) {
+      return {
+        inProgress: [],
+        completed: [],
+      };
+    }
 
-    // Processar cada curso
-    for (const userCourse of userCourses) {
-      // Buscar progressos do usuário neste curso
-      const userProgresses = await this.userProgressRepository.findByUserCourse(
-        userCourse.id
-      );
+    // Extrair IDs para queries em batch
+    const userCourseIds = userCourses.map((uc) => uc.id);
+    const courseIds = userCourses.map((uc) => uc.courseId);
 
-      // Buscar todos os módulos do curso com grupos e aulas para contar lições
-      const modules = await prisma.module.findMany({
-        where: { courseId: userCourse.courseId },
-        include: {
-          groups: {
-            include: {
-              lessons: {
-                select: {
-                  id: true,
-                },
+    // Buscar TODOS os progressos de uma vez (fora do loop)
+    const allUserProgresses = await prisma.userProgress.findMany({
+      where: {
+        userCourseId: { in: userCourseIds },
+      },
+    });
+
+    // Buscar TODOS os módulos de uma vez (fora do loop)
+    const allModules = await prisma.module.findMany({
+      where: {
+        courseId: { in: courseIds },
+      },
+      include: {
+        groups: {
+          include: {
+            lessons: {
+              select: {
+                id: true,
               },
             },
           },
         },
-      });
+      },
+    });
+
+    // Criar Maps para indexação O(1) em memória
+    // Map<userCourseId, UserProgress[]>
+    const progressMap = new Map<string, (typeof allUserProgresses)[0][]>();
+    for (const progress of allUserProgresses) {
+      const existing = progressMap.get(progress.userCourseId) || [];
+      existing.push(progress);
+      progressMap.set(progress.userCourseId, existing);
+    }
+
+    // Map<courseId, Module[]>
+    const modulesMap = new Map<string, (typeof allModules)[0][]>();
+    for (const module of allModules) {
+      const existing = modulesMap.get(module.courseId) || [];
+      existing.push(module);
+      modulesMap.set(module.courseId, existing);
+    }
+
+    const inProgress: CourseItem[] = [];
+    const completed: CourseItem[] = [];
+
+    // Processar cada curso (agora usando dados em memória)
+    for (const userCourse of userCourses) {
+      // Buscar progressos do usuário neste curso (do Map)
+      const userProgresses = progressMap.get(userCourse.id) || [];
+
+      // Buscar todos os módulos do curso (do Map)
+      const modules = modulesMap.get(userCourse.courseId) || [];
 
       // Calcular progresso do curso
       const allLessons: Array<{ id: number }> = [];
@@ -81,15 +120,9 @@ export class MyLearningUseCase {
         totalLessons > 0 ? completedLessons / totalLessons : 0;
       const isCompleted = courseProgress === 1 || userCourse.isCompleted;
 
-      // Buscar informações do curso
-      const course = await prisma.course.findUnique({
-        where: { id: userCourse.courseId },
-        select: {
-          id: true,
-          title: true,
-          icon: true,
-        },
-      });
+      // Usar o course que já vem no findByUserId (não precisa buscar novamente)
+      // Type assertion: findByUserId retorna UserCourse com course incluído
+      const course = (userCourse as any).course;
 
       if (course) {
         const courseItem: CourseItem = {
