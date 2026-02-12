@@ -1,6 +1,6 @@
 {
-    "buildCommand": "corepack enable && corepack prepare pnpm@9.1.0 --activate && cd ../.. && pnpm install && pnpm --filter @code-legends/api exec -- prisma generate && cd apps/frontend && pnpm build",
-    "outputDirectory": ".next",
-    "installCommand": "corepack enable && corepack prepare pnpm@9.1.0 --activate && cd ../.. && pnpm install",
+    "buildCommand": "corepack enable && corepack prepare pnpm@9.1.0 --activate && pnpm install && pnpm --filter @code-legends/api exec -- prisma generate && pnpm --filter @code-legends/frontend build",
+    "outputDirectory": "apps/frontend/.next",
+    "installCommand": "corepack enable && corepack prepare pnpm@9.1.0 --activate && pnpm install",
     "framework": "nextjs"
 }

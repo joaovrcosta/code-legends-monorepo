@@ -1,6 +1,7 @@
 {
   "name": "@code-legends/frontend",
   "version": "0.1.0",
+  "packageManager": "pnpm@9.1.0",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV=development next dev -p 3000",
@@ -9,7 +10,7 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "server": "json-server --watch db.json --port 3001",
-    "prepare": "pnpm exec husky || npx husky || true"
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
