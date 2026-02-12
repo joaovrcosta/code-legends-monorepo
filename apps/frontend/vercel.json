@@ -1,0 +1,6 @@
+{
+    "buildCommand": "cd ../.. && corepack enable && corepack prepare pnpm@9.1.0 --activate && pnpm install && pnpm --filter @code-legends/api exec -- prisma generate && pnpm --filter @code-legends/frontend build",
+    "outputDirectory": ".next",
+    "installCommand": "cd ../.. && corepack enable && corepack prepare pnpm@9.1.0 --activate && pnpm install",
+    "framework": "nextjs"
+}

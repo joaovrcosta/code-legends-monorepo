@@ -16,7 +16,7 @@
     "test:e2e": "vitest run --dir src/http",
     "test:ui": "vitest --ui",
     "seed": "tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "pnpm exec prisma generate || npx prisma generate || true"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
