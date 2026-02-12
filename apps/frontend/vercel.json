@@ -1,6 +1,6 @@
 {
     "installCommand": "cd ../.. && pnpm install",
-    "buildCommand": "cd ../.. && pnpm --filter @code-legends/frontend build",
-    "outputDirectory": ".next",
+    "buildCommand": "turbo run build --filter=@code-legends/frontend",
+    "outputDirectory": "apps/frontend/.next",
     "framework": "nextjs"
 }
