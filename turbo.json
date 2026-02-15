@@ -9,6 +9,12 @@
         "dist/**",
         ".next/**",
         "build/**"
+      ],
+      "env": [
+        "AUTH_SECRET",
+        "NODE_ENV",
+        "AUTH_URL",
+        "ENABLE_EXPERIMENTAL_COREPACK"
       ]
     },
     "dev": {
