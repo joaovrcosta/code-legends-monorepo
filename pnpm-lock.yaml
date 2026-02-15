@@ -240,7 +240,7 @@ importers:
         specifier: ^3
         version: 3.3.3
       '@tailwindcss/postcss':
-        specifier: ^4.0.0
+        specifier: ^4
         version: 4.1.18
       '@types/bcryptjs':
         specifier: ^2.4.6
