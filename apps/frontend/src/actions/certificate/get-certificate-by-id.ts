@@ -2,9 +2,6 @@
 
 import type { CertificateVerifyResponse } from "@/types/certificate";
 
-/**
- * Busca um certificado por ID para verificação (rota pública)
- */
 export async function getCertificateById(
   certificateId: string
 ): Promise<CertificateVerifyResponse | null> {
