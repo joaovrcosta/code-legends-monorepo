@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body {
   font-family: Poppins, Helvetica, sans-serif;
@@ -34,6 +36,7 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -64,12 +67,13 @@ body {
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    @apply border-border;
   }
+
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    @apply bg-background text-foreground;
   }
+
   .custom-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -81,12 +85,11 @@ body {
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
-    outline-color: hsl(var(--ring) / 0.5);
+    @apply border-border outline-ring/50;
   }
+
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    @apply bg-background text-foreground;
   }
 }
 
