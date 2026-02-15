@@ -9,11 +9,18 @@ const nextConfig: NextConfig = {
       "xesque.rocketseat.dev",
     ],
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       "@": path.resolve(__dirname, "./src"),
     };
+
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+      };
+    }
+
     return config;
   },
 };
