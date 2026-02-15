@@ -1,8 +1,11 @@
+import tailwindcss from "tailwindcss";
+import autoprefixer from "autoprefixer";
+
 /** @type {import('postcss-load-config').Config} */
 const config = {
   plugins: [
-    require("tailwindcss"),
-    require("autoprefixer"),
+    tailwindcss,
+    autoprefixer,
   ],
 };
 
