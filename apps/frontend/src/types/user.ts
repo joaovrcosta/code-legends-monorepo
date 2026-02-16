@@ -1,8 +1,4 @@
-import type {
-  UserPublicDTO,
-  UserPrivateDTO,
-  UserFullDTO,
-} from "@code-legends/shared-types";
+import type { UserPrivateDTO } from "@code-legends/shared-types";
 
 export type { UserPublicDTO, UserPrivateDTO, UserFullDTO } from "@code-legends/shared-types";
 

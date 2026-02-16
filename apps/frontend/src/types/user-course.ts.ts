@@ -1,6 +1,6 @@
-import type { CourseDTO, CategoryDTO, UserPublicDTO } from "@code-legends/shared-types";
+import type { CourseDTO, UserPublicDTO } from "@code-legends/shared-types";
 
-export type { CourseDTO, CategoryDTO, UserPublicDTO } from "@code-legends/shared-types";
+export type { CourseDTO, UserPublicDTO } from "@code-legends/shared-types";
 
 export type Instructor = Omit<UserPublicDTO, "createdAt" | "updatedAt"> & {
   createdAt?: string | Date;
