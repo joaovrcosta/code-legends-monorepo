@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 export default function UseCasesPage() {
   return (
     <div className="py-4">

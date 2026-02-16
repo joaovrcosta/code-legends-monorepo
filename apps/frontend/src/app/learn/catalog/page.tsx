@@ -6,6 +6,8 @@ import { getUserEnrolledList } from "@/actions/progress";
 import { listCourses } from "@/actions/course";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Catálogo de Cursos - Code Legends",
   description: "Explore todos os cursos disponíveis e encontre o próximo passo na sua jornada de programação.",

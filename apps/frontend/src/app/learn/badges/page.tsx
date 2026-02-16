@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/tooltip";
 import { Question, Sticker } from "@phosphor-icons/react/dist/ssr";
 
+export const dynamic = "force-dynamic";
+
 export default function BadgePage() {
   return (
     <div className="py-4 lg:px-12 px-0">

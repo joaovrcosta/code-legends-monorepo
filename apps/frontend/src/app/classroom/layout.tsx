@@ -3,6 +3,8 @@ import ClassroomHeader from "@/components/classroom/header";
 import { getActiveCourse } from "@/actions/user/get-active-course";
 import { getUserEnrolledList } from "@/actions/progress";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Sala de Aula - Code Legends",
   description: "Assista às aulas e continue aprendendo programação.",

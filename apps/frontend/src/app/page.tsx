@@ -9,6 +9,8 @@ import { CurrentCourses } from "@/components/home/current-courses";
 import { RecommendationsCarousel } from "@/components/home/recommendations-carousel";
 import { HomePageWrapper } from "@/components/home/home-page-wrapper";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Início - Code Legends",
   description: "Dashboard principal com suas trilhas, recomendações e progresso de aprendizado.",

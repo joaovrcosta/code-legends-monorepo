@@ -4,6 +4,7 @@ import LearnHeader from "@/components/learn/header";
 import { getActiveCourse } from "@/actions/user/get-active-course";
 import { getUserEnrolledList } from "@/actions/progress";
 
+export const dynamic = "force-dynamic";
 
 export default async function AccountLayout({
   children,

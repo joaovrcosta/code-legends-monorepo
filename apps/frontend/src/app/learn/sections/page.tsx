@@ -2,6 +2,8 @@ import { listModulesProgress } from "@/actions/course";
 import { getActiveCourse } from "@/actions/user";
 import { ModulesListWrapper } from "@/components/learn/modules-list-wrapper";
 
+export const dynamic = "force-dynamic";
+
 export default async function SectionsPage() {
   const activeCourse = await getActiveCourse();
 

@@ -18,6 +18,8 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Code Legends - Aprenda Programação do Zero",
   description: "Plataforma de ensino de programação com cursos completos de front-end, back-end e desenvolvimento full-stack.",
