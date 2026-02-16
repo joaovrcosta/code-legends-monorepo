@@ -42,7 +42,10 @@
     "tailwind-scrollbar-hide": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "3.21.4",
-    "zustand": "^5.0.3"
+    "zustand": "^5.0.3",
+    "autoprefixer": "^10.4.24",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.19"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
@@ -53,14 +56,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.24",
     "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
     "eslint-plugin-unused-imports": "^4.3.0",
     "husky": "^9.1.7",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.19",
     "typescript": "^5"
   }
 }
