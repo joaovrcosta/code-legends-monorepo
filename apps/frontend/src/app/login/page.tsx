@@ -154,7 +154,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => signIn("google", { callbackUrl: "/" })}
-                    className="w-full h-[42px] gap-2 text-white bg-[#1a1a1e] border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
+                    className="w-full h-[52px] gap-2 text-white bg-[#1a1a1e] border border-[#25252a] rounded-[32px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
                     aria-label="Login com Google"
                   >
                     <svg
@@ -183,20 +183,19 @@ export default function LoginPage() {
                     <span className="font-medium">Google</span>
                   </button>
 
-                  {/* Apple */}
-                  <button
+                  {/* <button
                     type="button"
                     className="w-full gap-2 text-white h-[42px] bg-[#1a1a1e] border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
                     aria-label="Login com Apple"
                   >
                     <GithubLogoIcon className="w-4 h-4 " weight="fill" />
                     <span className="font-medium">GitHub</span>
-                  </button>
+                  </button> */}
                 </div>
               </div>
 
 
-              <DividerWithText text="OU INSCREVA-SE COM" />
+              <DividerWithText text="INSCREVA-SE AQUI" />
 
               <div className="flex flex-col items-center space-y-4 mt-4 mb-3">
                 <Link href="/signup" className="w-full">
