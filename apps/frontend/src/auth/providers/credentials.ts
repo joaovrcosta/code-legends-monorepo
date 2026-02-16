@@ -65,7 +65,7 @@ export const credentialsProvider = Credentials({
                 onboardingGoal: data.onboardingGoal ?? null,
                 onboardingCareer: data.onboardingCareer ?? null,
             };
-        } catch (error) {
+        } catch {
             return null;
         }
     },

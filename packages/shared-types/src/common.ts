@@ -1,4 +1,15 @@
-export type { Role, CertificateTemplate } from "@prisma/client";
+export enum Role {
+    INSTRUCTOR = "INSTRUCTOR",
+    ADMIN = "ADMIN",
+    STUDENT = "STUDENT",
+}
+export interface CertificateTemplate {
+    id: string;
+    name: string;
+    description: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
 
 export interface Address {
     id: string;

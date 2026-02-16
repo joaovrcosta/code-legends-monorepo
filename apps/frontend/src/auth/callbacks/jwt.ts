@@ -56,9 +56,9 @@ async function refreshAccessToken(token: TokenWithRefresh): Promise<TokenWithRef
             } else if (userResponse.status === 401 || userResponse.status === 404) {
                 throw new Error("UserNotFound");
             }
-        } catch (error) {
-            if ((error as Error).message === "UserNotFound") {
-                throw error;
+        } catch (err) {
+            if ((err as Error).message === "UserNotFound") {
+                throw err;
             }
         }
 
@@ -70,7 +70,7 @@ async function refreshAccessToken(token: TokenWithRefresh): Promise<TokenWithRef
             ...onboardingData,
             error: undefined,
         };
-    } catch (error) {
+    } catch {
         return {
             ...token,
             error: "RefreshAccessTokenError",
@@ -78,7 +78,36 @@ async function refreshAccessToken(token: TokenWithRefresh): Promise<TokenWithRef
     }
 }
 
-export async function jwtCallback({ token, user, account, trigger, session }: any) {
+interface JwtCallbackParams {
+  token: TokenWithRefresh;
+  user?: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    accessToken?: string;
+    refreshToken?: string;
+    accessTokenExpires?: number;
+    onboardingCompleted?: boolean;
+    onboardingGoal?: string | null;
+    onboardingCareer?: string | null;
+  };
+  account?: {
+    provider?: string;
+    providerAccountId?: string;
+  } | null;
+  trigger?: "update" | "signIn" | "signUp";
+  session?: {
+    user?: {
+      id?: string;
+      name?: string;
+      email?: string;
+      image?: string;
+    };
+  };
+}
+
+export async function jwtCallback({ token, user, account, trigger, session }: JwtCallbackParams) {
     // Se for login inicial
     if (user) {
         // Se for login Google
@@ -194,7 +223,7 @@ export async function jwtCallback({ token, user, account, trigger, session }: an
             } else if (userResponse.status === 401 || userResponse.status === 404) {
                 return { ...tokenWithRefresh, error: "RefreshAccessTokenError" };
             }
-        } catch (error) {
+        } catch {
             // Ignora erro no update manual
         }
         return updatedToken;
@@ -229,7 +258,7 @@ export async function jwtCallback({ token, user, account, trigger, session }: an
                 } else if (userResponse.status === 401 || userResponse.status === 404) {
                     return { ...tokenWithRefresh, error: "RefreshAccessTokenError" };
                 }
-            } catch (error) {
+            } catch {
                 // Ignora erro no check periódico
             }
         }

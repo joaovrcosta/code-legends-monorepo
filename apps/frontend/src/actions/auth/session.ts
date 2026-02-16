@@ -3,6 +3,7 @@
 import { auth } from "@/auth/authSetup";
 import { redirect } from "next/navigation";
 import type { User } from "@/types/user";
+import { Role } from "@code-legends/shared-types";
 
 /**
  * Obtém a sessão atual do usuário usando NextAuth
@@ -14,8 +15,24 @@ export async function getCurrentSession(): Promise<User | null> {
     return null;
   }
 
-  // Cast para any para acessar propriedades customizadas do token (onboarding, role, etc)
-  const extendedUser = session.user as any;
+  // Cast para acessar propriedades customizadas do token (onboarding, role, etc)
+  interface ExtendedUser {
+    id?: string;
+    name?: string;
+    email?: string;
+    image?: string | null;
+    role?: string;
+    onboardingCompleted?: boolean;
+    onboardingGoal?: string | null;
+    onboardingCareer?: string | null;
+  }
+  const extendedUser = session.user as ExtendedUser;
+
+  // Validar e converter role para o tipo Role
+  const roleValue = extendedUser.role;
+  const validRole = roleValue && Object.values(Role).includes(roleValue as Role)
+    ? (roleValue as Role)
+    : Role.STUDENT;
 
   return {
     id: extendedUser.id || "",
@@ -24,7 +41,7 @@ export async function getCurrentSession(): Promise<User | null> {
     avatar: extendedUser.image || null,
 
     // Dados Críticos: Lendo do token em vez de hardcoded
-    role: extendedUser.role || "STUDENT",
+    role: validRole,
     onboardingCompleted: extendedUser.onboardingCompleted ?? false,
     onboardingGoal: extendedUser.onboardingGoal || null,
     onboardingCareer: extendedUser.onboardingCareer || null,
@@ -57,9 +74,13 @@ export async function requireAuth(): Promise<User> {
 /**
  * Obtém o token de acesso da sessão atual
  */
+interface SessionWithToken {
+  accessToken?: string;
+}
+
 export async function getAuthToken(): Promise<string | null> {
   const session = await auth();
-  return (session as any)?.accessToken || null;
+  return (session as unknown as SessionWithToken)?.accessToken || null;
 }
 
 // Funções deprecadas mantidas para compatibilidade

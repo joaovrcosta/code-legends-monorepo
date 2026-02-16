@@ -14,7 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { signIn } from "next-auth/react";
-import { GitBranchIcon, GithubLogoIcon } from "@phosphor-icons/react/dist/ssr";
+import { GithubLogoIcon } from "@phosphor-icons/react/dist/ssr";
 
 const loginSchema = z.object({
   email: z

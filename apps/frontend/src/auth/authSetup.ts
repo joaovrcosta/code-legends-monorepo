@@ -4,6 +4,7 @@ import { googleProvider } from "./providers/google";
 import { jwtCallback } from "./callbacks/jwt";
 import { sessionCallback } from "./callbacks/session";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
   providers: [
     credentialsProvider,
