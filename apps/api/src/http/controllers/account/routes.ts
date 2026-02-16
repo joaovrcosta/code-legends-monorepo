@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { create } from "./create.controller";
 import { authenticate } from "./authenticate.controller";
+import { googleAuth } from "./google-auth.controller";
 import { profile } from "./profile.controller";
 import { refreshToken } from "./refresh-token.controller";
 import { getOnboardingStatus } from "./get-onboarding-status.controller";
@@ -18,6 +19,7 @@ import { verifyInstructorOrAdmin } from "../../middlewares/verify-instructor-or-
 export async function usersRoutes(app: FastifyInstance) {
   app.post("/users", create);
   app.post("/users/auth", authenticate);
+  app.post("/users/auth/google", googleAuth);
   app.post("/token/refresh", refreshToken);
 
   // Rotas autenticadas

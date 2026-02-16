@@ -9,56 +9,111 @@ datasource db {
 }
 
 model Course {
-  id              String           @id @default(cuid())
-  title           String
-  slug            String           @unique
-  active          Boolean          @default(true)
-  thumbnail       String?
-  colorHex        String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  releaseAt       DateTime?        @default(now())
-  isFree          Boolean          @default(false)
-  subscriptions   Int              @default(0)
-  level           String
-  icon            String?
-  tags            String[]
-  description     String
-  instructorId    String
-  instructor      User             @relation("CourseInstructor", fields: [instructorId], references: [id])
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  active        Boolean   @default(true)
+  thumbnail     String?
+  colorHex      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  releaseAt     DateTime? @default(now())
+  isFree        Boolean   @default(false)
+  subscriptions Int       @default(0)
+  level         String
+  icon          String?
+  description   String
+
+  instructorId String
+  instructor   User   @relation("CourseInstructor", fields: [instructorId], references: [id])
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  tags Tag[] @relation("CourseToTag")
+
   modules         Module[]
   userCourses     UserCourse[]
   Certificate     Certificate[]
   favoriteCourses FavoriteCourse[]
   activeUsers     User[]           @relation("ActiveCourse")
+}
 
-  categoryId  String?
-  category    Category? @relation(fields: [categoryId], references: [id])
+model Tag {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  courses Course[] @relation("CourseToTag")
 }
 
 model Category {
   id          String   @id @default(cuid())
-  name        String   @unique  // "Front-end", "Design"
-  slug        String   @unique  // "front-end", "design"
+  name        String   @unique
+  slug        String   @unique
   description String?
   icon        String?
-  color       String?  // Para UI (#FF5733)
-  order       Int      @default(0)  // Ordenação
+  color       String?
+  order       Int      @default(0)
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
   courses     Course[]
 }
 
+model User {
+  id                  String        @id @default(cuid())
+  email               String        @unique
+  name                String
+  password            String?
+  avatar              String?
+  slug                String?       @unique
+  bio                 String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  birth_date          DateTime?
+  born_in             String?
+  document            String?
+  foreign_phone       String?
+  fullname            String?
+  gender              String?
+  marital_status      MaritalStatus @default(SINGLE)
+  role                Role          @default(STUDENT)
+  occupation          String?
+  phone               String?
+  rg                  String?
+  onboardingCompleted Boolean       @default(false)
+  onboardingGoal      String?
+  onboardingCareer    String?
+  totalXp             Int           @default(0)
+  level               Int           @default(1)
+  xpToNextLevel       Int           @default(100)
+
+  expertise Expertise[] @relation("UserToExpertise")
+
+  Address             Address?
+  userCourses         UserCourse[]
+  userProgress        UserProgress[]
+  Certificate         Certificate[]
+  favoriteCourses     FavoriteCourse[]
+  activeCourseId      String?
+  activeCourse        Course?          @relation("ActiveCourse", fields: [activeCourseId], references: [id])
+  coursesAsInstructor Course[]         @relation("CourseInstructor")
+  lessonsAsAuthor     Lesson[]         @relation("LessonAuthor")
+  xpHistory           UserXpHistory[]
+}
+
+model Expertise {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[] @relation("UserToExpertise")
+}
 
 model Module {
   id                 String               @id @default(cuid())
   title              String
   slug               String               @unique
   courseId           String
-  groups             Group[]
   course             Course               @relation(fields: [courseId], references: [id])
+  groups             Group[]
   userCourses        UserCourse[]
   userModuleProgress UserModuleProgress[]
   unlockedModules    UnlockedModule[]
@@ -94,52 +149,6 @@ model Lesson {
   submodule      Group          @relation(fields: [submoduleId], references: [id])
   userCourses    UserCourse[]
   userProgress   UserProgress[]
-}
-
-model User {
-  id             String        @id @default(cuid())
-  email          String        @unique
-  name           String
-  password       String
-  avatar         String?
-  slug           String?       @unique
-  bio            String?
-  expertise      String[]      @default([])
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  birth_date     DateTime?
-  born_in        String?
-  document       String?
-  foreign_phone  String?
-  fullname       String?
-  gender         String?
-  marital_status MaritalStatus @default(SINGLE)
-  role           Role          @default(STUDENT)
-  occupation     String?
-  phone          String?
-  rg             String?
-  Address        Address?
-  onboardingCompleted Boolean @default(false)
-  onboardingGoal     String?
-  onboardingCareer   String?
-  totalXp            Int      @default(0)      // XP total acumulado pelo usuário
-  level              Int      @default(1)      // Nível atual do usuário
-  xpToNextLevel      Int      @default(100)    // XP necessário para alcançar o próximo nível
-
-  // Relações como aluno
-  userCourses     UserCourse[]
-  userProgress    UserProgress[]
-  Certificate     Certificate[]
-  favoriteCourses FavoriteCourse[]
-  activeCourseId  String?
-  activeCourse    Course?          @relation("ActiveCourse", fields: [activeCourseId], references: [id])
-
-  // Relações como instrutor
-  coursesAsInstructor Course[] @relation("CourseInstructor")
-  lessonsAsAuthor     Lesson[] @relation("LessonAuthor")
-  
-  // Histórico de XP
-  xpHistory           UserXpHistory[]
 }
 
 model UserCourse {
@@ -204,19 +213,19 @@ model UserModuleProgress {
 }
 
 model UnlockedModule {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   userId       String
   moduleId     String
   userCourseId String
-  unlockedAt   DateTime @default(now())
-  module       Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  unlockedAt   DateTime   @default(now())
+  module       Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   userCourse   UserCourse @relation(fields: [userCourseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, moduleId, userCourseId])
 }
 
 model Address {
-  id              String  @id
+  id              String  @id @default(cuid())
   userId          String  @unique
   country         String?
   foreign_country Boolean @default(false)
@@ -263,25 +272,25 @@ model FavoriteCourse {
   @@unique([userId, courseId])
 }
 
+model UserXpHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  xpAmount    Int
+  source      String
+  sourceId    Int?
+  description String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+}
+
 enum MaritalStatus {
   SINGLE
   MARRIED
   DIVORCED
   WIDOWED
-}
-
-model UserXpHistory {
-  id          String   @id @default(cuid())
-  userId      String
-  xpAmount    Int                    // Quantidade de XP ganha
-  source      String                  // Origem: "lesson_completed", "quiz_passed", "module_completed", etc.
-  sourceId    Int?                    // ID da lição/quiz/módulo que gerou o XP (opcional)
-  description String?                 // Descrição opcional: "Completou lição: Introdução ao React"
-  createdAt   DateTime  @default(now())
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([userId, createdAt])
 }
 
 enum Role {

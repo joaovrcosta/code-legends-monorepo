@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { makeCreateUserUseCase } from "../../../utils/factories/make-create-user-use-case";
+import { toUserPrivateDTO } from "../../dtos/user.dto";
 
 export async function create(request: FastifyRequest, reply: FastifyReply) {
   const createUserBodySchema = z.object({
@@ -24,7 +25,9 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
       avatar: avatar || null,
     });
 
-    return reply.status(201).send({ user });
+    const userDTO = toUserPrivateDTO(user);
+
+    return reply.status(201).send({ user: userDTO });
   } catch (error) {
     return reply.status(500).send({ message: "Internal server error" });
   }

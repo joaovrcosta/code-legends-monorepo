@@ -18,8 +18,6 @@ export async function start(request: FastifyRequest, reply: FastifyReply) {
       courseId: id,
     });
 
-    console.log("userCourse", userCourse);
-
     return reply.status(200).send({
       userCourse,
     });

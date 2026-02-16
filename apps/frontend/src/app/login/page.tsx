@@ -13,6 +13,7 @@ import { loginUser } from "@/actions/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { signIn } from "next-auth/react";
 
 const loginSchema = z.object({
   email: z
@@ -153,6 +154,7 @@ export default function LoginPage() {
                   {/* Google */}
                   <button
                     type="button"
+                    onClick={() => signIn("google", { callbackUrl: "/" })}
                     className="w-full h-[42px] bg-[#1a1a1e] border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
                     aria-label="Login com Google"
                   >

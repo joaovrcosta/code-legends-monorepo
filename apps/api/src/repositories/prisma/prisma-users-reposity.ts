@@ -6,13 +6,15 @@ import bcrypt from "bcryptjs";
 interface CreateUserData {
   name: string;
   email: string;
-  password: string;
+  password?: string | null;
   avatar?: string | null;
 }
 
 export class PrismaUsersRepository implements IUsersRepository {
   async create(data: CreateUserData): Promise<User> {
-    const hashedPassword = await bcrypt.hash(data.password, 6);
+    const hashedPassword = data.password
+      ? await bcrypt.hash(data.password, 6)
+      : null;
 
     const user = await prisma.user.create({
       data: {

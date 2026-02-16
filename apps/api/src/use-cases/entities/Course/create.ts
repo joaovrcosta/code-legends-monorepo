@@ -31,7 +31,7 @@ export class CreateCourseUseCase {
     private courseRepository: ICourseRepository,
     private usersRepository: IUsersRepository,
     private categoryRepository: ICategoryRepository
-  ) {}
+  ) { }
 
   async execute(data: CreateCourseRequest): Promise<CreateCourseResponse> {
     // Verificar se o curso já existe
@@ -45,8 +45,6 @@ export class CreateCourseUseCase {
 
     // Verificar se o instrutor existe
     const instructor = await this.usersRepository.findById(data.instructorId);
-
-    console.log("instructor", instructor);
 
     if (!instructor) {
       throw new InstructorNotFoundError();

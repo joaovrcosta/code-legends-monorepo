@@ -3,7 +3,7 @@ import { User, Role } from "@prisma/client";
 interface CreateUserData {
   name: string;
   email: string;
-  password: string;
+  password?: string | null;
   avatar?: string | null;
 }
 

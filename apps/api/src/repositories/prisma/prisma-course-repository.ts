@@ -55,7 +55,7 @@ export class PrismaCourseRepository implements ICourseRepository {
         tags: data.tags ?? [],
         isFree: data.isFree ?? false,
         active: data.active ?? true,
-        releaseAt: data.releaseAt ?? new Date(),
+        releaseAt: data.releaseAt ?? null,
       },
     });
 

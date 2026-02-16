@@ -75,10 +75,14 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
 
     if (
       error instanceof Error &&
-      error.message === "User is not an instructor"
+      (error.message === "User is not an instructor or admin" ||
+        error.message === "User is not an instructor")
     ) {
       return reply.status(403).send({ message: error.message });
     }
+
+    // Log do erro para debug em desenvolvimento
+    console.error("Error creating course:", error);
 
     return reply.status(500).send({ message: "Internal server error" });
   }

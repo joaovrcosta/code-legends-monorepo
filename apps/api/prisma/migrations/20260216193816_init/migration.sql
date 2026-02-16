@@ -19,12 +19,19 @@ CREATE TABLE "Course" (
     "subscriptions" INTEGER NOT NULL DEFAULT 0,
     "level" TEXT NOT NULL,
     "icon" TEXT,
-    "tags" TEXT[],
     "description" TEXT NOT NULL,
     "instructorId" TEXT NOT NULL,
     "categoryId" TEXT,
 
     CONSTRAINT "Course_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Tag" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "Tag_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -41,6 +48,47 @@ CREATE TABLE "Category" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "password" TEXT,
+    "avatar" TEXT,
+    "slug" TEXT,
+    "bio" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "birth_date" TIMESTAMP(3),
+    "born_in" TEXT,
+    "document" TEXT,
+    "foreign_phone" TEXT,
+    "fullname" TEXT,
+    "gender" TEXT,
+    "marital_status" "MaritalStatus" NOT NULL DEFAULT 'SINGLE',
+    "role" "Role" NOT NULL DEFAULT 'STUDENT',
+    "occupation" TEXT,
+    "phone" TEXT,
+    "rg" TEXT,
+    "onboardingCompleted" BOOLEAN NOT NULL DEFAULT false,
+    "onboardingGoal" TEXT,
+    "onboardingCareer" TEXT,
+    "totalXp" INTEGER NOT NULL DEFAULT 0,
+    "level" INTEGER NOT NULL DEFAULT 1,
+    "xpToNextLevel" INTEGER NOT NULL DEFAULT 100,
+    "activeCourseId" TEXT,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Expertise" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "Expertise_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -83,40 +131,6 @@ CREATE TABLE "Lesson" (
     "authorId" TEXT NOT NULL,
 
     CONSTRAINT "Lesson_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "User" (
-    "id" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "avatar" TEXT,
-    "slug" TEXT,
-    "bio" TEXT,
-    "expertise" TEXT[] DEFAULT ARRAY[]::TEXT[],
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "birth_date" TIMESTAMP(3),
-    "born_in" TEXT,
-    "document" TEXT,
-    "foreign_phone" TEXT,
-    "fullname" TEXT,
-    "gender" TEXT,
-    "marital_status" "MaritalStatus" NOT NULL DEFAULT 'SINGLE',
-    "role" "Role" NOT NULL DEFAULT 'STUDENT',
-    "occupation" TEXT,
-    "phone" TEXT,
-    "rg" TEXT,
-    "onboardingCompleted" BOOLEAN NOT NULL DEFAULT false,
-    "onboardingGoal" TEXT,
-    "onboardingCareer" TEXT,
-    "totalXp" INTEGER NOT NULL DEFAULT 0,
-    "level" INTEGER NOT NULL DEFAULT 1,
-    "xpToNextLevel" INTEGER NOT NULL DEFAULT 100,
-    "activeCourseId" TEXT,
-
-    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -246,8 +260,27 @@ CREATE TABLE "UserXpHistory" (
     CONSTRAINT "UserXpHistory_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "_CourseToTag" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_CourseToTag_AB_pkey" PRIMARY KEY ("A","B")
+);
+
+-- CreateTable
+CREATE TABLE "_UserToExpertise" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_UserToExpertise_AB_pkey" PRIMARY KEY ("A","B")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Course_slug_key" ON "Course"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Tag_name_key" ON "Tag"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Category_name_key" ON "Category"("name");
@@ -256,16 +289,19 @@ CREATE UNIQUE INDEX "Category_name_key" ON "Category"("name");
 CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Module_slug_key" ON "Module"("slug");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Lesson_slug_key" ON "Lesson"("slug");
-
--- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_slug_key" ON "User"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Expertise_name_key" ON "Expertise"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Module_slug_key" ON "Module"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Lesson_slug_key" ON "Lesson"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "UserCourse_userId_courseId_key" ON "UserCourse"("userId", "courseId");
@@ -291,11 +327,20 @@ CREATE INDEX "UserXpHistory_userId_idx" ON "UserXpHistory"("userId");
 -- CreateIndex
 CREATE INDEX "UserXpHistory_userId_createdAt_idx" ON "UserXpHistory"("userId", "createdAt");
 
+-- CreateIndex
+CREATE INDEX "_CourseToTag_B_index" ON "_CourseToTag"("B");
+
+-- CreateIndex
+CREATE INDEX "_UserToExpertise_B_index" ON "_UserToExpertise"("B");
+
 -- AddForeignKey
 ALTER TABLE "Course" ADD CONSTRAINT "Course_instructorId_fkey" FOREIGN KEY ("instructorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Course" ADD CONSTRAINT "Course_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "User" ADD CONSTRAINT "User_activeCourseId_fkey" FOREIGN KEY ("activeCourseId") REFERENCES "Course"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Module" ADD CONSTRAINT "Module_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -308,9 +353,6 @@ ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_authorId_fkey" FOREIGN KEY ("authorI
 
 -- AddForeignKey
 ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_submoduleId_fkey" FOREIGN KEY ("submoduleId") REFERENCES "Group"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_activeCourseId_fkey" FOREIGN KEY ("activeCourseId") REFERENCES "Course"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UserCourse" ADD CONSTRAINT "UserCourse_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -365,3 +407,15 @@ ALTER TABLE "FavoriteCourse" ADD CONSTRAINT "FavoriteCourse_courseId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "UserXpHistory" ADD CONSTRAINT "UserXpHistory_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_CourseToTag" ADD CONSTRAINT "_CourseToTag_A_fkey" FOREIGN KEY ("A") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_CourseToTag" ADD CONSTRAINT "_CourseToTag_B_fkey" FOREIGN KEY ("B") REFERENCES "Tag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_UserToExpertise" ADD CONSTRAINT "_UserToExpertise_A_fkey" FOREIGN KEY ("A") REFERENCES "Expertise"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_UserToExpertise" ADD CONSTRAINT "_UserToExpertise_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
