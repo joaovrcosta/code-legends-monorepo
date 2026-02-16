@@ -58,7 +58,7 @@ export function MyCatalogCarousel({
               <PersonalCatalog
                 name={enrolledCourse.course.title}
                 image={
-                  enrolledCourse.course.icon || enrolledCourse.course.thumbnail
+                  enrolledCourse.course.icon || enrolledCourse.course.thumbnail || ""
                 }
                 url={`/classroom/${enrolledCourse.course.slug}`}
                 color="blue"

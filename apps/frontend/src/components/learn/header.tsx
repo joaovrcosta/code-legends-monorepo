@@ -224,13 +224,15 @@ export default function LearnHeader({
                     onClick={() => setIsSearchModalOpen(false)}
                   >
                     <div className="flex items-center gap-4 p-4 mb-3 rounded-lg border border-[#25252A] hover:border-[#35BED5] hover:bg-[#1A1A1E] transition-colors cursor-pointer">
-                      <Image
-                        src={course.icon}
-                        alt={course.title}
-                        width={48}
-                        height={48}
-                        className="rounded-lg"
-                      />
+                      {course.icon && (
+                        <Image
+                          src={course.icon}
+                          alt={course.title}
+                          width={48}
+                          height={48}
+                          className="rounded-lg"
+                        />
+                      )}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-white font-semibold text-sm truncate">
                           {course.title}
@@ -239,9 +241,11 @@ export default function LearnHeader({
                           {course.description}
                         </p>
                         <div className="flex items-center gap-2 mt-2">
-                          <span className="text-[#35BED5] text-xs">
-                            {course.instructor.name}
-                          </span>
+                          {course.instructor && (
+                            <span className="text-[#35BED5] text-xs">
+                              {course.instructor.name}
+                            </span>
+                          )}
                           {course.level && (
                             <>
                               <span className="text-white/40 text-xs">•</span>

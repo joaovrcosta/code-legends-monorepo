@@ -1,36 +1,26 @@
-export interface Certificate {
-  id: string;
-  userId: string;
-  courseId: string;
-  completedAt: string | Date;
+import type {
+  CertificatePublicDTO,
+  CertificatePrivateDTO,
+} from "@code-legends/shared-types";
+
+export type { CertificatePublicDTO, CertificatePrivateDTO } from "@code-legends/shared-types";
+
+export type Certificate = Omit<CertificatePrivateDTO, "createdAt" | "updatedAt"> & {
   createdAt: string | Date;
-  course: {
-    id: string;
-    title: string;
-    slug: string;
-    icon?: string;
-  };
-}
+  updatedAt: string | Date;
+  completedAt?: string | Date;
+};
 
 export type CertificateResponse = Certificate[];
 
 export interface CertificateVerifyResponse {
-  certificate: {
-    id: string;
+  certificate: Omit<CertificatePublicDTO, "createdAt" | "updatedAt"> & {
     createdAt: string | Date;
+    updatedAt: string | Date;
     user: {
       name: string;
-      email: string;
+      email?: string;
     };
-    course: {
-      id: string;
-      title: string;
-      slug: string;
-      instructor: {
-        name: string;
-      };
-    };
-    template: string | null;
   };
   verified: boolean;
 }

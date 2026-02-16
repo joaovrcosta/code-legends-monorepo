@@ -247,12 +247,14 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             </div>
           </button>
           <div className="lg:block lg:mr-6 mr-0 flex items-center justify-center">
-            <Image
-              src={course.icon}
-              alt={course.title}
-              width={120}
-              height={120}
-            />
+            {course.icon && (
+              <Image
+                src={course.icon}
+                alt={course.title}
+                width={120}
+                height={120}
+              />
+            )}
           </div>
           <div className="flex flex-col items-center lg:items-start">
             <div className="flex flex-col">
@@ -495,23 +497,25 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
           </ul>
           <div className="mt-4 h-full">
             <p className="text-[12px] text-muted-foreground">INSTRUTOR</p>
-            <div className="flex items-center gap-3 mt-4">
-              <Avatar className="h-[32px] w-[32px]">
-                <AvatarImage src={course.instructor.avatar} />
-                <AvatarFallback>
-                  {course.instructor.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <p className="text-white text-sm">{course.instructor.name}</p>
-                <p className="text-xs text-[#929191] italic leading-tight">Educator</p>
+            {course.instructor && (
+              <div className="flex items-center gap-3 mt-4">
+                <Avatar className="h-[32px] w-[32px]">
+                  <AvatarImage src={course.instructor.avatar || ""} />
+                  <AvatarFallback>
+                    {course.instructor.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <p className="text-white text-sm">{course.instructor.name}</p>
+                  <p className="text-xs text-[#929191] italic leading-tight">Educator</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>

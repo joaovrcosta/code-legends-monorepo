@@ -52,14 +52,14 @@ export function RecommendationsCarousel({
                         >
                             <RecomendationCard
                                 name={course.title}
-                                image={course.icon || course.thumbnail}
+                                image={course.icon || course.thumbnail || ""}
                                 url={`/learn/paths/${course.slug}`}
                                 color={getColorByLevel(course.level)}
                                 status="not-started"
                                 isCurrent={false}
                                 tags={course.tags}
                                 courseId={course.id}
-                                level={course.level}
+                                level={course.level as "beginner" | "intermediate" | "advanced"}
                             />
                         </CarouselItem>
                     ))}

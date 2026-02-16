@@ -178,12 +178,14 @@ function ChooseCourseContent() {
                   : "border-[#25252A] bg-[#1A1A1E] hover:border-[#3A3A3F]"
               }`}
             >
-              <Image
-                src={course.icon}
-                alt={course.title}
-                width={40}
-                height={40}
-              />
+              {course.icon && (
+                <Image
+                  src={course.icon}
+                  alt={course.title}
+                  width={40}
+                  height={40}
+                />
+              )}
               <span className="text-white text-sm">{course.title}</span>
             </button>
           ))}

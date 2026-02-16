@@ -1,28 +1,19 @@
-export type Instructor = {
-  id: string;
-  name: string;
-  avatar: string;
+import type { CourseDTO, CategoryDTO, UserPublicDTO } from "@code-legends/shared-types";
+
+export type { CourseDTO, CategoryDTO, UserPublicDTO } from "@code-legends/shared-types";
+
+export type Instructor = Omit<UserPublicDTO, "createdAt" | "updatedAt"> & {
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
 };
 
-export type Course = {
-  id: string;
-  title: string;
-  slug: string;
-  active: boolean;
-  thumbnail: string;
-  createdAt: string;
-  updatedAt: string;
-  releaseAt: string;
-  isFree: boolean;
-  subscriptions: number;
+export type Course = Omit<CourseDTO, "createdAt" | "updatedAt" | "releaseAt"> & {
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  releaseAt: string | Date | null;
   level: "beginner" | "intermediate" | "advanced";
+  thumbnail: string;
   icon: string;
-  tags: string[];
-  description: string;
-  instructorId: string;
-  categoryId: string | null;
-  instructor: Instructor;
-  category: unknown | null;
 };
 
 export type FavoriteCourse = {
@@ -55,36 +46,10 @@ export type UserEnrolledListResponse = {
   userCourses: EnrolledCourse[];
 };
 
-export type InstructorWithSlug = {
-  id: string;
-  name: string;
-  avatar: string;
-  slug: string | null;
-};
+export type InstructorWithSlug = UserPublicDTO;
 
-export type CourseWithCount = {
-  id: string;
-  title: string;
-  slug: string;
-  active: boolean;
-  thumbnail: string;
-  createdAt: string;
-  updatedAt: string;
-  releaseAt: string;
-  isFree: boolean;
-  subscriptions: number;
-  level: "beginner" | "intermediate" | "advanced";
-  icon: string;
-  tags: string[];
-  description: string;
-  instructorId: string;
-  categoryId: string | null;
-  instructor: InstructorWithSlug;
-  category: unknown | null;
+export type CourseWithCount = CourseDTO & {
   isEnrolled: boolean;
-  _count: {
-    userCourses: number;
-  };
 };
 
 export type CoursesListResponse = {

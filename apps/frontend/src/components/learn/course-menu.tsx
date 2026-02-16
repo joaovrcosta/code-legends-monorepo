@@ -43,7 +43,7 @@ export function CourseDropdownMenu({
   // Fecha o dropdown durante o resize para evitar reposicionamento constante do Popper
   useEffect(() => {
     let timeoutRef: NodeJS.Timeout | null = null;
-    
+
     const handleResize = () => {
       // Fecha o dropdown imediatamente ao detectar resize
       if (open) {
@@ -60,7 +60,7 @@ export function CourseDropdownMenu({
     };
 
     window.addEventListener("resize", debouncedHandleResize);
-    
+
     return () => {
       window.removeEventListener("resize", debouncedHandleResize);
       if (timeoutRef) {
@@ -76,9 +76,8 @@ export function CourseDropdownMenu({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <div
-          className={`bg-gray-gradient-first items-center border py-3 px-4 gap-2 rounded-[12px] hover:bg-[#25252A] cursor-pointer flex max-h-[42px] transition-colors ${
-            open ? "border-[#00C8FF]" : "border-[#25252A]"
-          }`}
+          className={`bg-gray-gradient-first items-center border py-3 px-4 gap-2 rounded-[12px] hover:bg-[#25252A] cursor-pointer flex max-h-[42px] transition-colors ${open ? "border-[#00C8FF]" : "border-[#25252A]"
+            }`}
         >
           {currentActiveCourse?.icon ? (
             <Image
@@ -155,24 +154,27 @@ export function CourseDropdownMenu({
                 return (
                   <DropdownMenuItem
                     key={enrolledCourse.id}
-                    className={`pl-2 pr-4 w-full min-w-[352px] text-white border-none rounded-[20px] ${
-                      isChanging
-                        ? "opacity-50 cursor-not-allowed"
-                        : "cursor-pointer"
-                    }`}
+                    className={`pl-2 pr-4 w-full min-w-[352px] text-white border-none rounded-[20px] ${isChanging
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer"
+                      }`}
                     onClick={handleCourseClick}
                   >
                     <div className="flex items-center gap-3">
-                      <Image
-                        src={
-                          enrolledCourse.course.icon ||
-                          enrolledCourse.course.thumbnail
-                        }
-                        alt={enrolledCourse.course.title}
-                        width={70}
-                        height={70}
-                        className="object-contain h-[70px] w-[70px]"
-                      />
+                      {(enrolledCourse.course.icon ||
+                        enrolledCourse.course.thumbnail) && (
+                          <Image
+                            src={
+                              enrolledCourse.course.icon ||
+                              enrolledCourse.course.thumbnail ||
+                              ""
+                            }
+                            alt={enrolledCourse.course.title}
+                            width={70}
+                            height={70}
+                            className="object-contain h-[70px] w-[70px]"
+                          />
+                        )}
                       <div className="flex flex-col flex-1">
                         <span className="text-sm">
                           {enrolledCourse.course.title}

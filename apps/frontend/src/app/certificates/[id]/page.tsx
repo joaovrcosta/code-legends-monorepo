@@ -139,9 +139,11 @@ export default async function CertificatePage({
               <div>
                 <p className="text-muted-foreground text-sm mb-1">Estudante</p>
                 <p className="text-white">{certificate.user.name}</p>
-                <p className="text-muted-foreground text-xs mt-1">
-                  {certificate.user.email}
-                </p>
+                {certificate.user.email && (
+                  <p className="text-muted-foreground text-xs mt-1">
+                    {certificate.user.email}
+                  </p>
+                )}
               </div>
               <div>
                 <p className="text-muted-foreground text-sm mb-1">Curso</p>

@@ -31,13 +31,15 @@ export function KeepLearningCard({ course, progress }: KeepLearningCardProps) {
         >
             <div className={`flex items-center gap-4 px-4 py-2 bg-[#151517] rounded-[20px] border border-[#25252A] transition-opacity ${isLoading ? "opacity-50" : ""}`}>
                 <div>
-                    <Image
-                        src={course.course.icon}
-                        alt={course.course.title}
-                        width={32}
-                        height={32}
-                        className="object-cover h-14 w-14"
-                    />
+                    {course.course.icon && (
+                        <Image
+                            src={course.course.icon}
+                            alt={course.course.title}
+                            width={32}
+                            height={32}
+                            className="object-cover h-14 w-14"
+                        />
+                    )}
                 </div>
 
                 <div className="flex-1 min-w-0">
