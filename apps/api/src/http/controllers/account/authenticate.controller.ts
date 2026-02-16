@@ -44,18 +44,21 @@ export async function authenticate(
       }
     );
 
-    return reply
-      .setCookie("refreshToken", refreshToken, {
-        path: "/",
-        secure: env.COOKIE_SECURE,
-        sameSite: "strict",
-        httpOnly: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
-      })
-      .status(200)
-      .send({
-        token,
-      });
+    reply.setCookie("refreshToken", refreshToken, {
+      path: "/",
+      secure: env.COOKIE_SECURE,
+      sameSite: "strict",
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+    });
+
+    return reply.status(200).send({
+      token,
+      refreshToken,
+      onboardingCompleted: user.onboardingCompleted ?? false,
+      onboardingGoal: user.onboardingGoal ?? null,
+      onboardingCareer: user.onboardingCareer ?? null,
+    });
   } catch (err) {
     if (err instanceof InvalidCredentialsError) {
       return reply.status(400).send({ message: err.message });

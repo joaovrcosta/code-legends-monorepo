@@ -2,14 +2,14 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
 interface TokenWithRefresh {
-  id?: string;
+  id: string;
   name?: string;
   email?: string;
   picture?: string;
+  accessToken: string;
   refreshToken?: string;
-  accessToken?: string;
-  accessTokenExpires?: number;
-  onboardingCompleted?: boolean;
+  accessTokenExpires: number;
+  onboardingCompleted: boolean;
   onboardingGoal?: string | null;
   onboardingCareer?: string | null;
   lastOnboardingCheck?: number;
@@ -17,7 +17,7 @@ interface TokenWithRefresh {
   [key: string]: unknown;
 }
 
-async function refreshAccessToken(token: TokenWithRefresh) {
+async function refreshAccessToken(token: TokenWithRefresh): Promise<TokenWithRefresh> {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/token/refresh`,
@@ -33,15 +33,25 @@ async function refreshAccessToken(token: TokenWithRefresh) {
     );
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error("❌ Erro da API:", errorData);
-      throw new Error(`Refresh token inválido: ${response.status}`);
+      if (response.status === 429) {
+        return token;
+      }
+      throw new Error("RefreshAccessTokenError");
     }
 
-    const refreshedTokens = await response.json();
-    const newAccessToken = refreshedTokens.token;
+    const data = await response.json();
+    const newAccessToken = data.token;
 
-    // Buscar dados atualizados do usuário com o novo token
+    if (!newAccessToken) {
+      throw new Error("Token not found");
+    }
+
+    let onboardingData = {
+      onboardingCompleted: token.onboardingCompleted,
+      onboardingGoal: token.onboardingGoal,
+      onboardingCareer: token.onboardingCareer
+    };
+
     try {
       const userResponse = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/me`,
@@ -49,47 +59,35 @@ async function refreshAccessToken(token: TokenWithRefresh) {
           headers: {
             Authorization: `Bearer ${newAccessToken}`,
           },
-          next: { revalidate: 30 }, // Cache de 10 segundos para reduzir requisições
+          next: { revalidate: 30 },
         }
       );
 
-      // Se a API retornar 401 ou 404, o usuário foi excluído
-      if (userResponse.status === 401 || userResponse.status === 404) {
-        console.error(
-          "❌ Usuário não encontrado após refresh - forçando logout"
-        );
-        throw new Error(`Usuário não encontrado: ${userResponse.status}`);
-      }
-
       if (userResponse.ok) {
         const userData = await userResponse.json();
-        return {
-          ...token,
-          accessToken: newAccessToken,
-          accessTokenExpires: Date.now() + 10 * 60 * 1000, // 10 minutos
+        onboardingData = {
           onboardingCompleted: userData.user.onboardingCompleted ?? false,
           onboardingGoal: userData.user.onboardingGoal ?? null,
-          onboardingCareer: userData.user.onboardingCareer ?? null,
-          error: undefined,
+          onboardingCareer: userData.user.onboardingCareer ?? null
         };
+      } else if (userResponse.status === 401 || userResponse.status === 404) {
+        throw new Error("UserNotFound");
       }
     } catch (error) {
-      console.error("Erro ao buscar dados atualizados do usuário:", error);
-      // Se o erro for de usuário não encontrado, propagar o erro para invalidar o token
-      if (error instanceof Error && error.message.includes("não encontrado")) {
+      if ((error as Error).message === "UserNotFound") {
         throw error;
       }
     }
 
-    // Se não conseguir buscar dados atualizados, retornar token renovado sem atualizar onboarding
     return {
       ...token,
       accessToken: newAccessToken,
-      accessTokenExpires: Date.now() + 10 * 60 * 1000, // 10 minutos
+      refreshToken: data.refreshToken ?? token.refreshToken,
+      accessTokenExpires: Date.now() + 10 * 60 * 1000,
+      ...onboardingData,
       error: undefined,
     };
   } catch (error) {
-    console.error("❌ Erro ao renovar token:", (error as Error).message);
     return {
       ...token,
       error: "RefreshAccessTokenError",
@@ -97,8 +95,8 @@ async function refreshAccessToken(token: TokenWithRefresh) {
   }
 }
 
-// @ts-expect-error - NextAuth v5 beta tem incompatibilidades de tipos
-export const { handlers, signIn, signOut, auth } = NextAuth({
+// A CORREÇÃO ESTÁ AQUI ABAIXO: (NextAuth as any)
+export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
   providers: [
     Credentials({
       name: "Credentials",
@@ -112,7 +110,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         try {
-          // Autenticar na API externa
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/users/auth`,
             {
@@ -124,7 +121,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 email: credentials.email,
                 password: credentials.password,
               }),
-              credentials: "include",
             }
           );
 
@@ -134,22 +130,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           const data = await response.json();
           const token = data.token;
-
-          // Extrair refreshToken do cookie da resposta
-          const cookies = response.headers.get("set-cookie");
-          let refreshToken = null;
-          if (cookies) {
-            const match = cookies.match(/refreshToken=([^;]+)/);
-            if (match) {
-              refreshToken = match[1];
-            }
-          }
+          const refreshToken = data.refreshToken;
 
           if (!token) {
             return null;
           }
 
-          // Buscar dados do usuário usando o token
           const userResponse = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333"}/me`,
             {
@@ -165,8 +151,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           const userData = await userResponse.json();
 
-          // Retornar usuário com tokens, tempo de expiração e dados de onboarding
-          // O backend retorna onboardingCompleted, onboardingGoal e onboardingCareer na resposta do login
           return {
             id: userData.user.id,
             name: userData.user.name,
@@ -174,13 +158,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             image: userData.user.avatar,
             accessToken: token,
             refreshToken: refreshToken,
-            accessTokenExpires: Date.now() + 10 * 60 * 1000, // 10 minutos
+            accessTokenExpires: Date.now() + 10 * 60 * 1000,
             onboardingCompleted: data.onboardingCompleted ?? false,
             onboardingGoal: data.onboardingGoal ?? null,
             onboardingCareer: data.onboardingCareer ?? null,
           };
         } catch (error) {
-          console.error("Erro ao autenticar:", error);
           return null;
         }
       },
@@ -190,205 +173,132 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: "/login",
   },
   callbacks: {
-    async jwt({
-      token,
-      user,
-      trigger,
-    }: {
-      token: TokenWithRefresh;
-      user?: unknown;
-      trigger?: string;
-    }) {
-      // Login inicial - armazenar todos os dados
+    async jwt({ token, user, trigger, session }: any) {
       if (user) {
-        const userData = user as {
-          id: string;
-          name: string;
-          email: string;
-          image?: string;
-          accessToken: string;
-          refreshToken?: string;
-          accessTokenExpires: number;
-          onboardingCompleted?: boolean;
-          onboardingGoal?: string | null;
-          onboardingCareer?: string | null;
-        };
         return {
-          id: userData.id,
-          name: userData.name,
-          email: userData.email,
-          picture: userData.image,
-          accessToken: userData.accessToken,
-          refreshToken: userData.refreshToken,
-          accessTokenExpires: userData.accessTokenExpires,
-          onboardingCompleted: userData.onboardingCompleted ?? false,
-          onboardingGoal: userData.onboardingGoal ?? null,
-          onboardingCareer: userData.onboardingCareer ?? null,
+          ...token,
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          picture: user.image,
+          accessToken: user.accessToken,
+          refreshToken: user.refreshToken,
+          accessTokenExpires: user.accessTokenExpires,
+          onboardingCompleted: user.onboardingCompleted,
+          onboardingGoal: user.onboardingGoal,
+          onboardingCareer: user.onboardingCareer,
+          lastOnboardingCheck: Date.now(),
         };
       }
 
-      // Se o trigger for "update", buscar dados atualizados do usuário
-      // Usar cache: "no-store" para garantir dados sempre atualizados quando há atualização manual
-      if (trigger === "update" && token.accessToken) {
+      const tokenWithRefresh = token as TokenWithRefresh;
+
+      if (trigger === "update" && session) {
+        const updatedToken = {
+          ...tokenWithRefresh,
+          ...session.user,
+        };
+
         try {
           const userResponse = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333"}/me`,
             {
               headers: {
-                Authorization: `Bearer ${token.accessToken}`,
+                Authorization: `Bearer ${updatedToken.accessToken}`,
               },
-              cache: "no-store", // Sem cache quando há atualização manual (ex: completar onboarding)
+              cache: "no-store",
             }
           );
 
-          // Se a API retornar 401 ou 404, o usuário foi excluído ou o token é inválido
-          if (userResponse.status === 401 || userResponse.status === 404) {
-            console.error(
-              "❌ Usuário não encontrado ou token inválido - forçando logout"
-            );
-            return {
-              ...token,
-              error: "RefreshAccessTokenError",
-            };
-          }
-
           if (userResponse.ok) {
             const userData = await userResponse.json();
-            return {
-              ...token,
-              onboardingCompleted: userData.user.onboardingCompleted ?? false,
-              onboardingGoal: userData.user.onboardingGoal ?? null,
-              onboardingCareer: userData.user.onboardingCareer ?? null,
-              lastOnboardingCheck: 0, // Resetar para forçar verificação imediata na próxima requisição
-            };
+            updatedToken.onboardingCompleted = userData.user.onboardingCompleted ?? false;
+            updatedToken.onboardingGoal = userData.user.onboardingGoal ?? null;
+            updatedToken.onboardingCareer = userData.user.onboardingCareer ?? null;
+            updatedToken.lastOnboardingCheck = 0;
+          } else if (userResponse.status === 401 || userResponse.status === 404) {
+            return { ...tokenWithRefresh, error: "RefreshAccessTokenError" };
           }
         } catch (error) {
-          console.error("Erro ao buscar dados atualizados do usuário:", error);
+          // Ignora erro no update manual
         }
+        return updatedToken;
       }
 
-      // Token ainda válido - verificar dados de onboarding com intervalos otimizados
-      // Para reduzir carga na API, verificamos com intervalos diferentes:
-      // - Onboarding incompleto: a cada 10 segundos (para detectar mudanças rapidamente)
-      // - Onboarding completo: a cada 60 segundos (para reduzir requisições)
-      if (
-        token.accessTokenExpires &&
-        Date.now() < token.accessTokenExpires &&
-        token.accessToken
-      ) {
-        const isOnboardingCompleted = token.onboardingCompleted ?? false;
-
-        // Definir intervalos de verificação baseados no status de onboarding
-        const checkInterval = isOnboardingCompleted ? 60000 : 10000; // 60s completo, 10s incompleto
-
-        // Verificar apenas se passou o intervalo desde a última verificação
-        const shouldUpdateOnboarding =
-          !token.lastOnboardingCheck ||
-          Date.now() - token.lastOnboardingCheck > checkInterval;
+      if (tokenWithRefresh.accessTokenExpires && Date.now() < tokenWithRefresh.accessTokenExpires - 60 * 1000) {
+        const isOnboardingCompleted = tokenWithRefresh.onboardingCompleted ?? false;
+        const checkInterval = isOnboardingCompleted ? 60000 : 10000;
+        const shouldUpdateOnboarding = !tokenWithRefresh.lastOnboardingCheck || Date.now() - tokenWithRefresh.lastOnboardingCheck > checkInterval;
 
         if (shouldUpdateOnboarding) {
           try {
             const userResponse = await fetch(
-              `${
-                process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333"
-              }/me`,
+              `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333"}/me`,
               {
                 headers: {
-                  Authorization: `Bearer ${token.accessToken}`,
+                  Authorization: `Bearer ${tokenWithRefresh.accessToken}`,
                 },
-                next: { revalidate: 30 }, // Cache de 10 segundos para reduzir requisições
+                next: { revalidate: 30 },
               }
             );
-
-            // Se a API retornar 401 ou 404, o usuário foi excluído ou o token é inválido
-            if (userResponse.status === 401 || userResponse.status === 404) {
-              console.error(
-                "❌ Usuário não encontrado ou token inválido - forçando logout"
-              );
-              return {
-                ...token,
-                error: "RefreshAccessTokenError",
-              };
-            }
 
             if (userResponse.ok) {
               const userData = await userResponse.json();
               return {
-                ...token,
+                ...tokenWithRefresh,
                 onboardingCompleted: userData.user.onboardingCompleted ?? false,
                 onboardingGoal: userData.user.onboardingGoal ?? null,
                 onboardingCareer: userData.user.onboardingCareer ?? null,
                 lastOnboardingCheck: Date.now(),
               };
+            } else if (userResponse.status === 401 || userResponse.status === 404) {
+              return { ...tokenWithRefresh, error: "RefreshAccessTokenError" };
             }
           } catch (error) {
-            console.error("Erro ao verificar dados de onboarding:", error);
+            // Ignora erro no check periódico
           }
         }
+        return tokenWithRefresh;
       }
 
-      // Token ainda válido - retornar sem alterações
-      if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {
-        return token;
-      }
-
-      // Token expirado - tentar renovar
-      console.log("⏰ Access token expirado, tentando renovar...");
-      const refreshedToken = await refreshAccessToken(token);
-
-      if (refreshedToken.error) {
-        console.error("💥 Falha ao renovar token - usuário será deslogado");
-      }
-
-      return refreshedToken;
+      const refreshed = await refreshAccessToken(tokenWithRefresh);
+      return refreshed;
     },
-    async session({
-      session,
-      token,
-    }: {
-      session: {
-        user: { id?: string; name?: string; email?: string; image?: string };
-        accessToken?: string;
-        error?: string;
-        onboardingCompleted?: boolean;
-        onboardingGoal?: string | null;
-        onboardingCareer?: string | null;
-      };
-      token: TokenWithRefresh;
-    }) {
-      // Se houver erro de refresh token, retornar sessão vazia mas com estrutura consistente
-      // Isso evita problemas de hidratação
-      if (token?.error === "RefreshAccessTokenError") {
+
+    async session({ session, token }: any) {
+      const t = token as TokenWithRefresh;
+
+      if (t.error === "RefreshAccessTokenError") {
         return {
           ...session,
+          error: "RefreshAccessTokenError",
+          accessToken: undefined,
           user: {
             id: undefined,
-            name: undefined,
-            email: undefined,
-            image: undefined,
-          },
-          accessToken: undefined,
-          error: "RefreshAccessTokenError",
+          }
         };
       }
 
-      if (token) {
-        session.user.id = token.id as string;
-        session.user.name = token.name as string;
-        session.user.email = token.email as string;
-        session.user.image = token.picture as string | undefined;
-        session.accessToken = token.accessToken;
-        session.error = token.error as string | undefined;
-        session.onboardingCompleted = token.onboardingCompleted ?? false;
-        session.onboardingGoal = token.onboardingGoal ?? null;
-        session.onboardingCareer = token.onboardingCareer ?? null;
+      if (session.user) {
+        session.user.id = t.id;
+        session.user.name = t.name;
+        session.user.email = t.email;
+        session.user.image = t.picture;
+        (session.user as any).onboardingCompleted = t.onboardingCompleted;
+        (session.user as any).onboardingGoal = t.onboardingGoal;
+        (session.user as any).onboardingCareer = t.onboardingCareer;
       }
+      (session as any).accessToken = t.accessToken;
+      (session as any).onboardingCompleted = t.onboardingCompleted ?? false;
+      (session as any).onboardingGoal = t.onboardingGoal;
+      (session as any).onboardingCareer = t.onboardingCareer;
+
       return session;
     },
   },
   session: {
     strategy: "jwt",
-    maxAge: 7 * 24 * 60 * 60, // 7 dias
+    maxAge: 7 * 24 * 60 * 60,
   },
   secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
 });
