@@ -8,9 +8,6 @@ declare module "next-auth" {
     };
     accessToken?: string;
     error?: string;
-    onboardingCompleted?: boolean;
-    onboardingGoal?: string | null;
-    onboardingCareer?: string | null;
   }
 
   interface User {
@@ -19,11 +16,8 @@ declare module "next-auth" {
     email: string;
     image?: string;
     accessToken?: string;
-    // refreshToken removido - está apenas no cookie httpOnly (não acessível via JavaScript)
+    refreshToken?: string;
     accessTokenExpires?: number;
-    onboardingCompleted?: boolean;
-    onboardingGoal?: string | null;
-    onboardingCareer?: string | null;
   }
 }
 
@@ -34,12 +28,8 @@ declare module "next-auth/jwt" {
     email: string;
     picture?: string;
     accessToken?: string;
-    // refreshToken removido - está apenas no cookie httpOnly (não acessível via JavaScript)
+    refreshToken?: string;
     accessTokenExpires?: number;
     error?: string;
-    onboardingCompleted?: boolean;
-    onboardingGoal?: string | null;
-    onboardingCareer?: string | null;
-    lastOnboardingCheck?: number;
   }
 }

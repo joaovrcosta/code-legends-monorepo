@@ -20,7 +20,6 @@ export async function authenticateUser(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-        credentials: "include", // Importante: envia cookies automaticamente (incluindo refreshToken httpOnly)
         cache: "no-store",
       }
     );
