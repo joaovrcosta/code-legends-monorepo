@@ -23,7 +23,11 @@
   "packageManager": "pnpm@9.15.9",
   "pnpm": {
     "overrides": {
-      "zod": "3.21.4"
+      "zod": "3.21.4",
+      "glob": "^11.0.0",
+      "inflight": "^1.0.6",
+      "source-map": "^0.7.4",
+      "superagent": "^10.0.0"
     }
   }
 }
