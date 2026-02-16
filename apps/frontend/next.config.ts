@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["@code-legends/shared-types"],
   images: {
     domains: [
       "github.com",
