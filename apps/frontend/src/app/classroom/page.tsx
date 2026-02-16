@@ -164,7 +164,7 @@ export default function ClassroomPage() {
     };
 
     loadLessons();
-  }, [activeCourse?.id, setLessonsForPage, lessons.length, router]);
+  }, [activeCourse?.id, setLessonsForPage, lessons.length, router, fetchActiveCourse]);
 
   // Memoiza cálculos de navegação
   const { hasNextLesson, hasPreviousLesson, nextLesson, previousLesson, isNextLessonLocked } = useMemo(() => {

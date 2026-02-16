@@ -14,7 +14,7 @@ type Props = {
 };
 
 export function LessonPlatformIcon({
-    size = 90,
+    size: _size = 90,
     completed = false,
     disabled = false,
     className,
@@ -24,10 +24,6 @@ export function LessonPlatformIcon({
     const svgRaw = completed ? PLATFORM_COMPLETED_SVG : PLATFORM_DEFAULT_SVG;
 
     const svg = useMemo(() => prefixSvgIds(svgRaw, `lp-${uid}`), [svgRaw, uid]);
-
-    // proporção: ambos têm height 58; widths 97 e 96
-    const baseW = completed ? 97 : 96;
-    // const height = Math.round((size * 58) / baseW);
 
     return (
         <span
