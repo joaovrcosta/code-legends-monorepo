@@ -6,7 +6,7 @@ interface TokenWithRefresh {
   name?: string;
   email?: string;
   picture?: string;
-  refreshToken?: string;
+  // refreshToken removido - está apenas no cookie httpOnly (não acessível via JavaScript)
   accessToken?: string;
   accessTokenExpires?: number;
   onboardingCompleted?: boolean;
@@ -19,6 +19,7 @@ interface TokenWithRefresh {
 
 async function refreshAccessToken(token: TokenWithRefresh) {
   try {
+    // Usar apenas cookie httpOnly - não enviar refreshToken no body
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/token/refresh`,
       {
@@ -26,9 +27,8 @@ async function refreshAccessToken(token: TokenWithRefresh) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          refreshToken: token.refreshToken,
-        }),
+        credentials: "include", // Importante: envia cookies automaticamente (incluindo refreshToken httpOnly)
+        // Body removido - refreshToken está apenas no cookie
       }
     );
 
@@ -135,15 +135,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const data = await response.json();
           const token = data.token;
 
-          // Extrair refreshToken do cookie da resposta
-          const cookies = response.headers.get("set-cookie");
-          let refreshToken = null;
-          if (cookies) {
-            const match = cookies.match(/refreshToken=([^;]+)/);
-            if (match) {
-              refreshToken = match[1];
-            }
-          }
+          // refreshToken está no cookie httpOnly e será enviado automaticamente nas requisições
+          // Não é possível (e não é necessário) ler cookies httpOnly via JavaScript
 
           if (!token) {
             return null;
@@ -167,13 +160,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           // Retornar usuário com tokens, tempo de expiração e dados de onboarding
           // O backend retorna onboardingCompleted, onboardingGoal e onboardingCareer na resposta do login
+          // refreshToken não é armazenado no JWT - está apenas no cookie httpOnly
           return {
             id: userData.user.id,
             name: userData.user.name,
             email: userData.user.email,
             image: userData.user.avatar,
             accessToken: token,
-            refreshToken: refreshToken,
+            // refreshToken removido - está apenas no cookie httpOnly
             accessTokenExpires: Date.now() + 10 * 60 * 1000, // 10 minutos
             onboardingCompleted: data.onboardingCompleted ?? false,
             onboardingGoal: data.onboardingGoal ?? null,
@@ -207,7 +201,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: string;
           image?: string;
           accessToken: string;
-          refreshToken?: string;
+          // refreshToken removido - está apenas no cookie httpOnly
           accessTokenExpires: number;
           onboardingCompleted?: boolean;
           onboardingGoal?: string | null;
@@ -219,7 +213,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: userData.email,
           picture: userData.image,
           accessToken: userData.accessToken,
-          refreshToken: userData.refreshToken,
+          // refreshToken removido - está apenas no cookie httpOnly
           accessTokenExpires: userData.accessTokenExpires,
           onboardingCompleted: userData.onboardingCompleted ?? false,
           onboardingGoal: userData.onboardingGoal ?? null,
@@ -289,8 +283,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (shouldUpdateOnboarding) {
           try {
             const userResponse = await fetch(
-              `${
-                process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333"
+              `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333"
               }/me`,
               {
                 headers: {
