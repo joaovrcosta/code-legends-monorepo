@@ -181,9 +181,6 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.1.8
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      autoprefixer:
-        specifier: ^10.4.24
-        version: 10.4.24(postcss@8.5.6)
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.3
@@ -214,9 +211,6 @@ importers:
       next-auth:
         specifier: ^5.0.0-beta.29
         version: 5.0.0-beta.30(next@15.1.9(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)
-      postcss:
-        specifier: ^8.5.6
-        version: 8.5.6
       react:
         specifier: ^19.0.0
         version: 19.2.0
@@ -235,9 +229,6 @@ importers:
       tailwind-scrollbar-hide:
         specifier: ^2.0.0
         version: 2.0.0(tailwindcss@3.4.19)
-      tailwindcss:
-        specifier: ^3.4.19
-        version: 3.4.19
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.19)
@@ -272,6 +263,9 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.3(@types/react@19.2.14)
+      autoprefixer:
+        specifier: ^10.4.24
+        version: 10.4.24(postcss@8.5.6)
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
@@ -287,6 +281,12 @@ importers:
       husky:
         specifier: ^9.1.7
         version: 9.1.7
+      postcss:
+        specifier: ^8.5.6
+        version: 8.5.6
+      tailwindcss:
+        specifier: ^3.4.19
+        version: 3.4.19
       typescript:
         specifier: ^5
         version: 5.9.3
