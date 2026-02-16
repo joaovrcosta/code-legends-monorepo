@@ -1,39 +1,9 @@
 import { Course, Category, User } from "@prisma/client";
-import { UserPublicDTO, toUserPublicDTO } from "./user.dto";
+import type { CourseDTO, CategoryDTO } from "@code-legends/shared-types";
+import { toUserPublicDTO } from "./user.dto";
 
-/**
- * DTO para Course com relações básicas
- */
-export interface CourseDTO {
-  id: string;
-  title: string;
-  slug: string;
-  active: boolean;
-  thumbnail: string | null;
-  colorHex: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  releaseAt: Date | null;
-  isFree: boolean;
-  subscriptions: number;
-  level: string;
-  icon: string | null;
-  tags: string[];
-  description: string;
-  instructorId: string;
-  categoryId: string | null;
-  instructor?: UserPublicDTO;
-  category?: {
-    id: string;
-    name: string;
-    slug: string;
-    color: string | null;
-    icon: string | null;
-  } | null;
-  _count?: {
-    userCourses: number;
-  };
-}
+// Re-exportar tipos do pacote compartilhado para manter compatibilidade
+export type { CourseDTO, CategoryDTO } from "@code-legends/shared-types";
 
 /**
  * Converte Course do Prisma para DTO

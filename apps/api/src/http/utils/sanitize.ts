@@ -1,14 +1,22 @@
 import { User, Role } from "@prisma/client";
-import {
+import type {
   UserPublicDTO,
   UserPrivateDTO,
   UserFullDTO,
+  CourseDTO,
+  CertificatePublicDTO,
+  CertificatePrivateDTO,
+} from "@code-legends/shared-types";
+import {
   toUserPublicDTO,
   toUserPrivateDTO,
   toUserFullDTO,
 } from "../dtos/user.dto";
-import { CourseDTO, toCourseDTO } from "../dtos/course.dto";
-import { CertificatePublicDTO, CertificatePrivateDTO, toCertificatePublicDTO, toCertificatePrivateDTO } from "../dtos/certificate.dto";
+import { toCourseDTO } from "../dtos/course.dto";
+import {
+  toCertificatePublicDTO,
+  toCertificatePrivateDTO,
+} from "../dtos/certificate.dto";
 
 /**
  * Determina qual nível de DTO usar baseado no contexto da requisição

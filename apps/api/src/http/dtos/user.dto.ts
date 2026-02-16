@@ -1,50 +1,16 @@
-import { User, Address, Role } from "@prisma/client";
+import { User, Address } from "@prisma/client";
+import type {
+  UserPublicDTO,
+  UserPrivateDTO,
+  UserFullDTO,
+} from "@code-legends/shared-types";
 
-/**
- * DTO para dados públicos de usuário (visível para qualquer pessoa)
- */
-export interface UserPublicDTO {
-  id: string;
-  name: string;
-  avatar: string | null;
-  slug: string | null;
-  bio: string | null;
-  expertise: string[];
-  role: Role;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-/**
- * DTO para dados privados de usuário (visível apenas para o próprio usuário ou admin)
- */
-export interface UserPrivateDTO extends UserPublicDTO {
-  email: string;
-  onboardingCompleted: boolean;
-  onboardingGoal: string | null;
-  onboardingCareer: string | null;
-  totalXp: number;
-  level: number;
-  xpToNextLevel: number;
-}
-
-/**
- * DTO para dados completos de usuário (apenas para admin ou próprio usuário)
- * Inclui campos sensíveis como documentos e endereço
- */
-export interface UserFullDTO extends UserPrivateDTO {
-  birth_date: Date | null;
-  born_in: string | null;
-  document: string | null;
-  foreign_phone: string | null;
-  fullname: string | null;
-  gender: string | null;
-  marital_status: string;
-  occupation: string | null;
-  phone: string | null;
-  rg: string | null;
-  address: Address | null;
-}
+// Re-exportar tipos do pacote compartilhado para manter compatibilidade
+export type {
+  UserPublicDTO,
+  UserPrivateDTO,
+  UserFullDTO,
+} from "@code-legends/shared-types";
 
 /**
  * Converte User do Prisma para DTO público

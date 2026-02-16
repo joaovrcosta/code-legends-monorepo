@@ -1,42 +1,16 @@
 import { Certificate, Course, User, CertificateTemplate } from "@prisma/client";
-import { UserPublicDTO, toUserPublicDTO } from "./user.dto";
-import { CourseDTO, toCourseDTO } from "./course.dto";
+import type {
+  CertificatePublicDTO,
+  CertificatePrivateDTO,
+} from "@code-legends/shared-types";
+import { toUserPublicDTO } from "./user.dto";
+import { toCourseDTO } from "./course.dto";
 
-/**
- * DTO para Certificate público (verificação pública)
- */
-export interface CertificatePublicDTO {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-  user: {
-    name: string;
-  };
-  course: {
-    id: string;
-    title: string;
-    slug: string;
-    instructor: {
-      name: string;
-    };
-  };
-  template: CertificateTemplate | null;
-}
-
-/**
- * DTO para Certificate privado (apenas para o dono ou admin)
- */
-export interface CertificatePrivateDTO {
-  id: string;
-  userId: string;
-  courseId: string;
-  templateId: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  user: UserPublicDTO;
-  course: CourseDTO;
-  template: CertificateTemplate | null;
-}
+// Re-exportar tipos do pacote compartilhado para manter compatibilidade
+export type {
+  CertificatePublicDTO,
+  CertificatePrivateDTO,
+} from "@code-legends/shared-types";
 
 /**
  * Converte Certificate do Prisma para DTO público (verificação)

@@ -42,7 +42,8 @@
     "tailwind-scrollbar-hide": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "3.21.4",
-    "zustand": "^5.0.3"
+    "zustand": "^5.0.3",
+    "@code-legends/shared-types": "workspace:*"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
