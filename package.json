@@ -31,7 +31,8 @@
       "glob": "^11.0.0",
       "inflight": "^1.0.6",
       "source-map": "^0.7.4",
-      "superagent": "^10.0.0"
+      "superagent": "^10.0.0",
+      "eslint-plugin-react-hooks": "^5.2.0"
     }
   }
 }
