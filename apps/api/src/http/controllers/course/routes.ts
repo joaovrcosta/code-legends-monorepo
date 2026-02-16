@@ -4,6 +4,7 @@ import { list } from "./list.controller";
 import { listRecent } from "./list-recent.controller";
 import { listPopular } from "./list-popular.controller";
 import { getBySlug } from "./get-by-slug.controller";
+import { getById } from "./get-by-id.controller";
 import { search } from "./search.controller";
 import { update } from "./update.controller";
 import { remove } from "./delete.controller";
@@ -29,6 +30,7 @@ export async function courseRoutes(app: FastifyInstance) {
   app.get("/courses/search", { onRequest: [verifyJWTOptional] }, search); // Busca cursos por nome - Suporta ?q=termo - isEnrolled incluído se autenticado
   app.get("/courses/recent", listRecent); // Suporta ?limit=10
   app.get("/courses/popular", listPopular); // Suporta ?limit=10
+  app.get("/courses/by-id/:id", getById); // Busca por ID (para content hub) - deve vir antes de /courses/:slug
   app.get("/courses/:slug", getBySlug);
 
   app.post("/courses", { onRequest: [verifyInstructorOrAdmin] }, create);

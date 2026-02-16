@@ -8,11 +8,26 @@ export function toCourseDTO(
   course: Course & {
     instructor?: User;
     category?: Category | null;
+    tags?: Array<{ name: string }> | string[];
     _count?: {
       userCourses: number;
     };
   }
 ): CourseDTO {
+  // Converter tags da relação para array de strings se necessário
+  let tags: string[] = [];
+  if (course.tags) {
+    if (Array.isArray(course.tags) && course.tags.length > 0) {
+      // Se já é array de strings, usar diretamente
+      if (typeof course.tags[0] === "string") {
+        tags = course.tags as string[];
+      } else {
+        // Se é array de objetos com name, mapear
+        tags = (course.tags as Array<{ name: string }>).map((tag) => tag.name);
+      }
+    }
+  }
+
   return {
     id: course.id,
     title: course.title,
@@ -27,7 +42,7 @@ export function toCourseDTO(
     subscriptions: course.subscriptions,
     level: course.level,
     icon: course.icon,
-    tags: course.tags,
+    tags,
     description: course.description,
     instructorId: course.instructorId,
     categoryId: course.categoryId,

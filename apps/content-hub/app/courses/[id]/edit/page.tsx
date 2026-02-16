@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCourseById, updateCourse, type UpdateCourseData } from "@/actions/course";
 import { listCategories } from "@/actions/category";
 import { listInstructors } from "@/actions/user";
+import { listTags } from "@/actions/tag/list-tags";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
@@ -27,6 +28,9 @@ export default function EditCoursePage() {
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [instructors, setInstructors] = useState<Array<{ id: string; name: string; avatar?: string | null }>>([]);
+  const [tagInput, setTagInput] = useState("");
+  const [tagSuggestions, setTagSuggestions] = useState<Array<{ id: string; name: string }>>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [formData, setFormData] = useState<UpdateCourseData>({
     title: "",
     slug: "",
@@ -37,16 +41,16 @@ export default function EditCoursePage() {
     thumbnail: "",
     icon: "",
     colorHex: "",
+    tags: [],
     isFree: false,
     active: true,
   });
 
-  // Gera slug automaticamente quando o título mudar
   useEffect(() => {
     if (formData.title && !slugManuallyEdited) {
       setFormData((prev) => ({
         ...prev,
-        slug: generateSlug(formData.title),
+        slug: generateSlug(formData.title || ""),
       }));
     }
   }, [formData.title, slugManuallyEdited]);
@@ -56,6 +60,26 @@ export default function EditCoursePage() {
     loadInstructors();
     loadCourse();
   }, [courseId]);
+
+  useEffect(() => {
+    const searchTags = async () => {
+      if (tagInput.trim().length > 0) {
+        const { tags } = await listTags(tagInput.trim());
+        // Filtrar tags que já foram adicionadas
+        const availableTags = tags.filter(
+          (tag) => !formData.tags?.includes(tag.name)
+        );
+        setTagSuggestions(availableTags);
+        setShowSuggestions(availableTags.length > 0);
+      } else {
+        setTagSuggestions([]);
+        setShowSuggestions(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchTags, 300); // Debounce de 300ms
+    return () => clearTimeout(timeoutId);
+  }, [tagInput, formData.tags]);
 
   const loadCategories = async () => {
     try {
@@ -100,6 +124,7 @@ export default function EditCoursePage() {
         thumbnail: course.thumbnail || "",
         icon: course.icon || "",
         colorHex: course.colorHex || "",
+        tags: course.tags || [],
         isFree: course.isFree,
         active: course.active,
       });
@@ -218,7 +243,7 @@ export default function EditCoursePage() {
                   <InstructorSelect
                     id="instructorId"
                     instructors={instructors}
-                    value={formData.instructorId}
+                    value={formData.instructorId || ""}
                     onChange={(value) =>
                       setFormData({ ...formData, instructorId: value })
                     }
@@ -288,6 +313,100 @@ export default function EditCoursePage() {
                   rows={4}
                   required
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tags">Tags</Label>
+                <div className="space-y-2 relative">
+                  <div className="flex gap-2">
+                    <div className="flex-1 relative">
+                      <Input
+                        id="tagInput"
+                        placeholder="Digite uma tag e pressione Enter"
+                        value={tagInput}
+                        onChange={(e) => {
+                          setTagInput(e.target.value);
+                          setShowSuggestions(true);
+                        }}
+                        onFocus={() => {
+                          if (tagSuggestions.length > 0) {
+                            setShowSuggestions(true);
+                          }
+                        }}
+                        onBlur={() => {
+                          // Delay para permitir clique nas sugestões
+                          setTimeout(() => setShowSuggestions(false), 200);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const tagValue = tagInput.trim();
+                            if (tagValue && !formData.tags?.includes(tagValue)) {
+                              setFormData({
+                                ...formData,
+                                tags: [...(formData.tags || []), tagValue],
+                              });
+                              setTagInput("");
+                              setShowSuggestions(false);
+                            }
+                          } else if (e.key === "Escape") {
+                            setShowSuggestions(false);
+                          }
+                        }}
+                      />
+                      {showSuggestions && tagSuggestions.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto">
+                          {tagSuggestions.map((tag) => (
+                            <button
+                              key={tag.id}
+                              type="button"
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 focus:outline-none"
+                              onClick={() => {
+                                if (!formData.tags?.includes(tag.name)) {
+                                  setFormData({
+                                    ...formData,
+                                    tags: [...(formData.tags || []), tag.name],
+                                  });
+                                }
+                                setTagInput("");
+                                setShowSuggestions(false);
+                              }}
+                            >
+                              {tag.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {formData.tags && formData.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {formData.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm"
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData({
+                                ...formData,
+                                tags: formData.tags?.filter((_, i) => i !== index) || [],
+                              });
+                            }}
+                            className="ml-1 hover:text-blue-600 dark:hover:text-blue-300"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Pressione Enter para adicionar uma tag
+                  </p>
+                </div>
               </div>
 
               <div className="flex items-center gap-4">

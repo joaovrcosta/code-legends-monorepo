@@ -41,22 +41,33 @@ interface FindAllFilters {
 
 export class PrismaCourseRepository implements ICourseRepository {
   async create(data: CreateCourseData): Promise<Course> {
+    const courseData: any = {
+      title: data.title,
+      slug: data.slug,
+      description: data.description,
+      level: data.level,
+      instructorId: data.instructorId,
+      categoryId: data.categoryId ?? null,
+      thumbnail: data.thumbnail ?? null,
+      icon: data.icon ?? null,
+      colorHex: data.colorHex ?? null,
+      isFree: data.isFree ?? false,
+      active: data.active ?? true,
+      releaseAt: data.releaseAt ?? null,
+    };
+
+    // Se houver tags, conecta ou cria elas
+    if (data.tags && data.tags.length > 0) {
+      courseData.tags = {
+        connectOrCreate: data.tags.map((tagName) => ({
+          where: { name: tagName },
+          create: { name: tagName },
+        })),
+      };
+    }
+
     const course = await prisma.course.create({
-      data: {
-        title: data.title,
-        slug: data.slug,
-        description: data.description,
-        level: data.level,
-        instructorId: data.instructorId,
-        categoryId: data.categoryId ?? null,
-        thumbnail: data.thumbnail ?? null,
-        icon: data.icon ?? null,
-        colorHex: data.colorHex ?? null,
-        tags: data.tags ?? [],
-        isFree: data.isFree ?? false,
-        active: data.active ?? true,
-        releaseAt: data.releaseAt ?? null,
-      },
+      data: courseData,
     });
 
     return course;
@@ -120,6 +131,11 @@ export class PrismaCourseRepository implements ICourseRepository {
             icon: true,
           },
         },
+        tags: {
+          select: {
+            name: true,
+          },
+        },
         _count: {
           select: {
             userCourses: true,
@@ -131,7 +147,11 @@ export class PrismaCourseRepository implements ICourseRepository {
       },
     });
 
-    return courses;
+    // Converter tags da relação para array de strings
+    return courses.map((course) => ({
+      ...course,
+      tags: course.tags.map((tag) => tag.name),
+    })) as Course[];
   }
 
   async findRecent(limit: number = 10): Promise<Course[]> {
@@ -235,10 +255,23 @@ export class PrismaCourseRepository implements ICourseRepository {
             icon: true,
           },
         },
+        tags: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
-    return course;
+    if (!course) {
+      return null;
+    }
+
+    // Converter tags da relação para array de strings
+    return {
+      ...course,
+      tags: course.tags.map((tag) => tag.name),
+    } as Course;
   }
 
   async findBySlug(slug: string): Promise<Course | null> {
@@ -264,10 +297,23 @@ export class PrismaCourseRepository implements ICourseRepository {
             icon: true,
           },
         },
+        tags: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
-    return course;
+    if (!course) {
+      return null;
+    }
+
+    // Converter tags da relação para array de strings
+    return {
+      ...course,
+      tags: course.tags.map((tag) => tag.name),
+    } as Course;
   }
 
   async searchByName(name: string): Promise<Course[]> {
@@ -312,11 +358,63 @@ export class PrismaCourseRepository implements ICourseRepository {
   }
 
   async update(id: string, data: UpdateCourseData): Promise<Course> {
+    const updateData: any = {};
+
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.slug !== undefined) updateData.slug = data.slug;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.level !== undefined) updateData.level = data.level;
+    if (data.isFree !== undefined) updateData.isFree = data.isFree;
+    if (data.active !== undefined) updateData.active = data.active;
+
+    if (data.categoryId !== undefined) {
+      updateData.categoryId = data.categoryId;
+    }
+    if (data.thumbnail !== undefined) {
+      updateData.thumbnail = data.thumbnail;
+    }
+    if (data.icon !== undefined) {
+      updateData.icon = data.icon;
+    }
+    if (data.colorHex !== undefined) {
+      updateData.colorHex = data.colorHex;
+    }
+    if (data.releaseAt !== undefined) {
+      updateData.releaseAt = data.releaseAt;
+    }
+
+
+    if (data.tags !== undefined) {
+      if (data.tags.length === 0) {
+        updateData.tags = {
+          set: [],
+        };
+      } else {
+        const tagIds = await Promise.all(
+          data.tags.map(async (tagName) => {
+            const existingTag = await prisma.tag.findUnique({
+              where: { name: tagName },
+            });
+            if (existingTag) {
+              return existingTag.id;
+            }
+            const newTag = await prisma.tag.create({
+              data: { name: tagName },
+            });
+            return newTag.id;
+          })
+        );
+        updateData.tags = {
+          set: tagIds.map((id) => ({ id })),
+        };
+      }
+    }
+
     const course = await prisma.course.update({
       where: {
         id,
       },
-      data,
+      data: updateData,
       include: {
         instructor: {
           select: {
