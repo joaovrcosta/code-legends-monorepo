@@ -11,7 +11,7 @@ export async function getCompletedCourses(): Promise<CompletedCoursesResponse> {
     const token = await getAuthToken();
 
     if (!token) {
-      console.error("Token de autenticação não encontrado");
+      // Usuário não autenticado - comportamento esperado
       return { courses: [] };
     }
 

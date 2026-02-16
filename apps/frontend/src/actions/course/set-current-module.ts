@@ -14,7 +14,7 @@ export async function setCurrentModule(
     const token = await getAuthToken();
 
     if (!token) {
-      console.error("Token de autenticação não encontrado");
+      // Usuário não autenticado - comportamento esperado
       return { success: false, error: "Token de autenticação não encontrado" };
     }
 

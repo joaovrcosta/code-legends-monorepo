@@ -22,7 +22,7 @@ export async function getMyLearning(): Promise<MyLearningResponse> {
     const token = await getAuthToken();
 
     if (!token) {
-      console.error("Token de autenticação não encontrado");
+      // Usuário não autenticado - comportamento esperado
       return { inProgress: [], completed: [] };
     }
 

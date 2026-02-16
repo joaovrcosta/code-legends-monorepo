@@ -14,7 +14,7 @@ export async function getCourseRoadmap(
     const token = await getAuthToken();
 
     if (!token) {
-      console.error("Token de autenticação não encontrado");
+      // Usuário não autenticado - comportamento esperado
       return null;
     }
 
@@ -64,7 +64,7 @@ export async function getCourseRoadmapFresh(
     const token = await getAuthToken();
 
     if (!token) {
-      console.error("Token de autenticação não encontrado");
+      // Usuário não autenticado - comportamento esperado
       return null;
     }
 

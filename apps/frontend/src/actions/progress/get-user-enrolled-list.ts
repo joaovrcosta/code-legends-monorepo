@@ -11,7 +11,6 @@ export async function getUserEnrolledList(): Promise<UserEnrolledListResponse> {
     const token = await getAuthToken();
 
     if (!token) {
-      console.error("Token de autenticação não encontrado");
       return { userCourses: [] };
     }
 

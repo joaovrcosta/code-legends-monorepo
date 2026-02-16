@@ -14,7 +14,7 @@ export async function getActiveCourse(): Promise<ActiveCourse | null> {
     const token = await getAuthToken();
 
     if (!token) {
-      console.error("Token de autenticação não encontrado");
+      // Usuário não autenticado - comportamento esperado
       return null;
     }
 

@@ -24,7 +24,7 @@ export async function continueNextModule(
     const token = await getAuthToken();
 
     if (!token) {
-      console.error("Token de autenticação não encontrado");
+      // Usuário não autenticado - comportamento esperado
       return { success: false, error: "Token de autenticação não encontrado" };
     }
 

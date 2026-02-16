@@ -47,7 +47,7 @@ export async function getLessonBySlug(
     const token = await getAuthToken();
 
     if (!token) {
-      console.error("Token de autenticação não encontrado");
+      // Usuário não autenticado - comportamento esperado
       return null;
     }
 

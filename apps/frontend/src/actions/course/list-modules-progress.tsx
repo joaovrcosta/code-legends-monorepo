@@ -17,7 +17,7 @@ export async function listModulesProgress(
     const token = await getAuthToken();
 
     if (!token) {
-      console.error("Token de autenticação não encontrado");
+      // Usuário não autenticado - comportamento esperado
       return null;
     }
 
@@ -25,7 +25,7 @@ export async function listModulesProgress(
     const url = new URL(
       `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/modules/with-progress`
     );
-    
+
     if (currentModule) {
       url.searchParams.append("currentModule", currentModule);
     }

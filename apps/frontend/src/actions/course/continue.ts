@@ -15,7 +15,7 @@ export async function continueCourse(
     const token = await getAuthToken();
 
     if (!token) {
-      console.error("Token de autenticação não encontrado");
+      // Usuário não autenticado - comportamento esperado
       throw new Error("Token de autenticação não encontrado");
     }
 
