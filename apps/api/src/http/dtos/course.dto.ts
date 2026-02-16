@@ -2,12 +2,8 @@ import { Course, Category, User } from "@prisma/client";
 import type { CourseDTO, CategoryDTO } from "@code-legends/shared-types";
 import { toUserPublicDTO } from "./user.dto";
 
-// Re-exportar tipos do pacote compartilhado para manter compatibilidade
 export type { CourseDTO, CategoryDTO } from "@code-legends/shared-types";
 
-/**
- * Converte Course do Prisma para DTO
- */
 export function toCourseDTO(
   course: Course & {
     instructor?: User;
@@ -38,12 +34,12 @@ export function toCourseDTO(
     instructor: course.instructor ? toUserPublicDTO(course.instructor) : undefined,
     category: course.category
       ? {
-          id: course.category.id,
-          name: course.category.name,
-          slug: course.category.slug,
-          color: course.category.color,
-          icon: course.category.icon,
-        }
+        id: course.category.id,
+        name: course.category.name,
+        slug: course.category.slug,
+        color: course.category.color,
+        icon: course.category.icon,
+      }
       : null,
     _count: course._count,
   };

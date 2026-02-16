@@ -1,20 +1,18 @@
-import { Certificate, Course, User, CertificateTemplate } from "@prisma/client";
+import { Certificate, Course, User, CertificateTemplate, Category } from "@prisma/client";
 import type {
   CertificatePublicDTO,
   CertificatePrivateDTO,
+  UserPublicDTO,
+  CourseDTO,
 } from "@code-legends/shared-types";
 import { toUserPublicDTO } from "./user.dto";
 import { toCourseDTO } from "./course.dto";
 
-// Re-exportar tipos do pacote compartilhado para manter compatibilidade
 export type {
   CertificatePublicDTO,
   CertificatePrivateDTO,
 } from "@code-legends/shared-types";
 
-/**
- * Converte Certificate do Prisma para DTO público (verificação)
- */
 export function toCertificatePublicDTO(
   certificate: Certificate & {
     user?: User;
@@ -43,15 +41,12 @@ export function toCertificatePublicDTO(
   };
 }
 
-/**
- * Converte Certificate do Prisma para DTO privado
- */
 export function toCertificatePrivateDTO(
   certificate: Certificate & {
     user?: User;
     course?: Course & {
       instructor?: User;
-      category?: { id: string; name: string; slug: string; color: string | null; icon: string | null } | null;
+      category?: Category | null;
     };
     template?: CertificateTemplate | null;
   }

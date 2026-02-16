@@ -5,16 +5,12 @@ import type {
   UserFullDTO,
 } from "@code-legends/shared-types";
 
-// Re-exportar tipos do pacote compartilhado para manter compatibilidade
 export type {
   UserPublicDTO,
   UserPrivateDTO,
   UserFullDTO,
 } from "@code-legends/shared-types";
 
-/**
- * Converte User do Prisma para DTO público
- */
 export function toUserPublicDTO(user: User): UserPublicDTO {
   return {
     id: user.id,
@@ -29,9 +25,6 @@ export function toUserPublicDTO(user: User): UserPublicDTO {
   };
 }
 
-/**
- * Converte User do Prisma para DTO privado
- */
 export function toUserPrivateDTO(user: User): UserPrivateDTO {
   return {
     ...toUserPublicDTO(user),
@@ -45,10 +38,6 @@ export function toUserPrivateDTO(user: User): UserPrivateDTO {
   };
 }
 
-/**
- * Converte User do Prisma para DTO completo (inclui campos sensíveis)
- * Use apenas quando o usuário solicitante for o próprio usuário ou admin
- */
 export function toUserFullDTO(user: User & { Address?: Address | null }): UserFullDTO {
   return {
     ...toUserPrivateDTO(user),
