@@ -6,6 +6,8 @@ import { Key } from "@phosphor-icons/react/dist/ssr";
 import { Mail, Lock, Eye, EyeOff, X } from "lucide-react";
 import { getUserFromAPI } from "@/actions/user/get-user-from-api";
 import { unlinkGoogle } from "@/actions/user/unlink-google";
+import { createRequest } from "@/actions/request/create-request";
+import { verifyPassword } from "@/actions/auth/verify-password";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,6 +36,7 @@ export default function AccountAccessPage() {
   const [password, setPassword] = useState("");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchUserData() {
@@ -209,7 +212,10 @@ export default function AccountAccessPage() {
                 Alterar email
               </DialogTitle>
               <button
-                onClick={() => setShowEmailModal(false)}
+                onClick={() => {
+                  setShowEmailModal(false);
+                  setError(null);
+                }}
                 className="text-muted-foreground hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -221,6 +227,27 @@ export default function AccountAccessPage() {
           </DialogHeader>
 
           <div className="space-y-6 py-4">
+            {/* Box de Erro */}
+            {error && (
+              <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <X className="w-5 h-5 text-red-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-red-400 mb-1">Erro na validação</h4>
+                    <p className="text-sm text-red-300">{error}</p>
+                  </div>
+                  <button
+                    onClick={() => setError(null)}
+                    className="flex-shrink-0 text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Email Atual */}
             <div className="flex items-center gap-3 p-3 bg-[#1A1A1E] rounded-lg border border-[#25252A]">
               <Mail className="w-5 h-5 text-[#00C8FF] flex-shrink-0" />
@@ -294,6 +321,7 @@ export default function AccountAccessPage() {
                 setNewEmail("");
                 setPassword("");
                 setReason("");
+                setError(null);
               }}
               className="bg-transparent border-[#25252A] text-muted-foreground hover:text-white rounded-[12px] h-[52px]"
             >
@@ -302,18 +330,56 @@ export default function AccountAccessPage() {
             <Button
               onClick={async () => {
                 if (!newEmail || !password || !reason) {
-                  alert("Por favor, preencha todos os campos");
+                  setError("Por favor, preencha todos os campos");
                   return;
                 }
+
+                setError(null);
                 setSubmitting(true);
-                // TODO: Implementar chamada à API
-                console.log("Solicitar alteração:", { newEmail, password, reason });
-                alert("Solicitação de alteração enviada! Nossa equipe validará em breve.");
-                setShowEmailModal(false);
-                setNewEmail("");
-                setPassword("");
-                setReason("");
-                setSubmitting(false);
+
+                try {
+                  // Primeiro, validar a senha (sem enviá-la na solicitação)
+                  const passwordVerification = await verifyPassword(password);
+
+                  if (!passwordVerification.success) {
+                    setError(
+                      passwordVerification.message ||
+                      "Senha incorreta. Verifique e tente novamente."
+                    );
+                    setSubmitting(false);
+                    return;
+                  }
+
+                  // Senha válida - criar solicitação SEM incluir a senha
+                  const requestData = {
+                    newEmail,
+                    reason,
+                    // NÃO incluímos a senha aqui por segurança
+                  };
+
+                  const result = await createRequest({
+                    type: "EMAIL_CHANGE",
+                    title: "Solicitação de alteração de email",
+                    description: reason,
+                    data: JSON.stringify(requestData),
+                  });
+
+                  if (result.success) {
+                    alert("Solicitação de alteração enviada! Nossa equipe validará em breve.");
+                    setShowEmailModal(false);
+                    setNewEmail("");
+                    setPassword("");
+                    setReason("");
+                    setError(null);
+                  } else {
+                    setError(result.message || "Erro ao enviar solicitação. Tente novamente.");
+                  }
+                } catch (error) {
+                  console.error("Erro ao criar solicitação:", error);
+                  setError("Erro ao enviar solicitação. Tente novamente.");
+                } finally {
+                  setSubmitting(false);
+                }
               }}
               disabled={submitting || !newEmail || !password || !reason}
               className="bg-[#00c8ff] text-white hover:opacity-90 rounded-[12px] h-[52px]"

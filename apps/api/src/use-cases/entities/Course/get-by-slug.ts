@@ -13,7 +13,7 @@ interface GetCourseBySlugResponse {
 }
 
 export class GetCourseBySlugUseCase {
-  constructor(private courseRepository: ICourseRepository) {}
+  constructor(private courseRepository: ICourseRepository) { }
 
   async execute({
     slug,

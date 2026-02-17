@@ -13,7 +13,7 @@ interface GetCourseByIdResponse {
 }
 
 export class GetCourseByIdUseCase {
-  constructor(private courseRepository: ICourseRepository) {}
+  constructor(private courseRepository: ICourseRepository) { }
 
   async execute({
     id,

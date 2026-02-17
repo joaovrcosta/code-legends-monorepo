@@ -15,6 +15,7 @@ import {
   GraduationCap,
   LogOut,
   Tag,
+  MessageSquare,
 } from "lucide-react";
 
 const navigation = [
@@ -25,6 +26,7 @@ const navigation = [
   { name: "Aulas", href: "/lessons", icon: FileText },
   { name: "Usuários", href: "/users", icon: Users },
   { name: "Categorias", href: "/categories", icon: Tag },
+  { name: "Solicitações", href: "/requests", icon: MessageSquare },
 ];
 
 export function Sidebar() {
