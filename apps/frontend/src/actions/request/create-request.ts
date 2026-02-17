@@ -9,10 +9,25 @@ export interface CreateRequestData {
   data?: string;
 }
 
+export interface Request {
+  id: string;
+  userId: string;
+  type: string;
+  status: string;
+  title: string | null;
+  description: string | null;
+  data: string | null;
+  response: string | null;
+  respondedBy: string | null;
+  respondedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CreateRequestResponse {
   success: boolean;
   message: string;
-  request?: any;
+  request?: Request;
 }
 
 export async function createRequest(

@@ -46,8 +46,8 @@ export default function AccountAccessPage() {
         if (user) {
           const userDataToSet = {
             email: user.email,
-            googleId: (user as any).googleId || null,
-            hasPassword: (user as any).hasPassword ?? false,
+            googleId: user.googleId ?? null,
+            hasPassword: user.hasPassword ?? false,
           };
           console.log("📦 Dados processados:", userDataToSet);
           setUserData(userDataToSet);
@@ -85,7 +85,7 @@ export default function AccountAccessPage() {
       } else {
         alert(result.message || "Erro ao desvincular conta Google");
       }
-    } catch (error) {
+    } catch {
       alert("Erro ao desvincular conta Google");
     } finally {
       setUnlinking(false);

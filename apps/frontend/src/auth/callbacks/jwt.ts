@@ -131,6 +131,15 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
                 );
 
                 if (!response.ok) {
+                    // Se for erro 403 (usuário não encontrado e criação bloqueada)
+                    if (response.status === 403) {
+                        // Consome a resposta para evitar warning
+                        await response.json().catch(() => ({}));
+                        // Lança erro que o NextAuth reconhece
+                        const authError = new Error("OAuthAccountNotLinked") as Error & { type?: string };
+                        authError.type = "OAuthAccountNotLinked";
+                        throw authError;
+                    }
                     return null;
                 }
 
@@ -174,6 +183,13 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
                 };
             } catch (error) {
                 console.error("Erro ao autenticar com Google:", error);
+                // Se for erro de usuário não encontrado, lança erro que o NextAuth pode capturar
+                if (error instanceof Error && error.message.includes("não encontrada")) {
+                    // Lança um erro que o NextAuth reconhece como OAuthAccountNotLinked
+                    const authError = new Error("OAuthAccountNotLinked") as Error & { type?: string };
+                    authError.type = "OAuthAccountNotLinked";
+                    throw authError;
+                }
                 return null;
             }
         }

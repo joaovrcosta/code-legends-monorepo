@@ -6,6 +6,7 @@ interface AuthenticateGoogleRequestDTO {
   name: string;
   avatar?: string | null;
   googleId: string;
+  canAssociateProvider?: boolean;
 }
 
 interface AuthenticateGoogleResponse {
@@ -14,13 +15,14 @@ interface AuthenticateGoogleResponse {
 }
 
 export class AuthenticateGoogleUseCase {
-  constructor(private userRepository: IUsersRepository) {}
+  constructor(private userRepository: IUsersRepository) { }
 
   async execute({
     email,
     name,
     avatar,
     googleId,
+    canAssociateProvider = true,
   }: AuthenticateGoogleRequestDTO): Promise<AuthenticateGoogleResponse> {
     // Verifica se o usuário já existe
     let user = await this.userRepository.findByEmail(email);
@@ -33,6 +35,11 @@ export class AuthenticateGoogleUseCase {
       }
       user = await this.userRepository.update(user.id, updateData);
       return { user, isNewUser: false };
+    }
+
+    // Usuário não existe - verifica se pode associar provider
+    if (!canAssociateProvider) {
+      throw new Error("USER_NOT_FOUND");
     }
 
     // Usuário não existe - cria novo com Google vinculado

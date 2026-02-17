@@ -26,6 +26,23 @@ const envSchema = z.object({
       z.boolean()
     )
     .default(process.env.NODE_ENV === "production"),
+  CAN_ASSOCIATE_PROVIDER: z
+    .preprocess(
+      (val) => {
+        if (val === undefined || val === null) {
+          return true; // Por padrão permite associar provider
+        }
+        if (typeof val === "boolean") {
+          return val;
+        }
+        if (typeof val === "string") {
+          return val === "true" || val === "1";
+        }
+        return true;
+      },
+      z.boolean()
+    )
+    .default(true),
 });
 
 const _env = envSchema.safeParse(process.env);

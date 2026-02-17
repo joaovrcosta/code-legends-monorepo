@@ -26,6 +26,7 @@ export async function googleAuth(
       name,
       avatar: picture || null,
       googleId,
+      canAssociateProvider: env.CAN_ASSOCIATE_PROVIDER,
     });
 
     const token = await reply.jwtSign(
@@ -75,6 +76,12 @@ export async function googleAuth(
       onboardingCareer: user.onboardingCareer ?? null,
     });
   } catch (err) {
+    if ((err as Error).message === "USER_NOT_FOUND") {
+      return reply.status(403).send({ 
+        message: "Conta não encontrada. Apenas usuários já cadastrados podem associar sua conta ao Google.",
+        code: "USER_NOT_FOUND"
+      });
+    }
     return reply.status(500).send({ message: "Internal server error" });
   }
 }

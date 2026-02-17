@@ -7,13 +7,14 @@ import { Input } from "@/components/ui/input";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { Crown } from "lucide-react";
 import DividerWithText from "@/components/divider-with-text";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { loginUser } from "@/actions/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
 const loginSchema = z.object({
   email: z
@@ -30,6 +31,22 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const searchParams = useSearchParams();
+
+  // Verifica se há erro na query string (vindo do NextAuth)
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      // Mapeia códigos de erro do NextAuth para mensagens amigáveis
+      const errorMessages: Record<string, string> = {
+        "OAuthAccountNotLinked": "Conta não encontrada. Apenas usuários já cadastrados podem associar sua conta ao Google.",
+        "Configuration": "Erro de configuração. Entre em contato com o suporte.",
+        "AccessDenied": "Acesso negado. Verifique suas permissões.",
+        "Verification": "Erro na verificação. Tente novamente.",
+      };
+      setError(errorMessages[errorParam] || "Erro ao fazer login. Tente novamente.");
+    }
+  }, [searchParams]);
 
   const {
     register,
@@ -152,7 +169,17 @@ export default function LoginPage() {
                   {/* Google */}
                   <button
                     type="button"
-                    onClick={() => signIn("google", { callbackUrl: "/" })}
+                    onClick={async () => {
+                      try {
+                        setError("");
+                        await signIn("google", { callbackUrl: "/" });
+                      } catch (err) {
+                        const errorMessage = err instanceof Error 
+                          ? err.message 
+                          : "Erro ao fazer login com Google";
+                        setError(errorMessage);
+                      }
+                    }}
                     className="w-full h-[52px] gap-2 text-white bg-[#1a1a1e] border border-[#25252a] rounded-[32px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
                     aria-label="Login com Google"
                   >
