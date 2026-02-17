@@ -18,15 +18,28 @@ import {
   GraduationCap,
   Calendar,
   Question,
-  CertificateIcon,
+  Lock,
+  Play,
 } from "@phosphor-icons/react/dist/ssr";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { getCompletedCourses } from "@/actions/course/completed";
 import { useActiveCourseStore } from "@/stores/active-course-store";
+import Image from "next/image";
+import { ChevronRight } from "lucide-react";
 
-export function CourseOverview() {
+interface CourseOverviewProps {
+  tags?: string[];
+  currentLesson?: {
+    id: number;
+    title: string;
+    duration: string | null;
+    progress: number;
+  } | null;
+}
+
+export function CourseOverview({ tags = [], currentLesson = null }: CourseOverviewProps) {
   const [showMore, setShowMore] = useState(false);
   const [isCourseCompleted, setIsCourseCompleted] = useState(false);
   const { activeCourse } = useActiveCourseStore();
@@ -83,6 +96,93 @@ export function CourseOverview() {
   return (
     <div className="flex lg:flex-row flex-col gap-8 mt-8">
       <div className="w-full max-w-[1240px] space-y-4">
+
+        <Card className="p-0 text-whit bg-gray-gradient rounded-[20px]">
+          <CardHeader className="px-4 py-6 border-b border-[#25252A]">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold bg-blue-gradient-500 bg-clip-text text-transparent">
+                  Continue de onde parou
+                </h3>
+              </div>
+            </div>
+          </CardHeader>
+          <div className="px-4 py-6">
+            {currentLesson ? (
+              <div className="group relative flex flex-col md:flex-row gap-6 bg-[#25252b] rounded-[20px] p-4 border border-transparent hover:border-[#00C8FF]/30 transition-all duration-300 hover:shadow-lg hover:shadow-[#00C8FF]/10 cursor-pointer">
+
+                {/* 1. Thumbnail com Overlay de Play e Efeito de Zoom */}
+                <div className="relative h-[200px] md:w-[320px] w-full shrink-0 rounded-xl overflow-hidden">
+                  {/* Imagem de fundo */}
+                  <Image
+                    src="/thumbnail-react.webp"
+                    alt="React Logo"
+                    fill // Usa fill para ocupar o container pai
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+
+                  {/* Overlay Escuro no Hover */}
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
+
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <div className="bg-white/10 backdrop-blur-md p-4 rounded-full border border-white/20">
+                      <Play className="w-8 h-8 text-white fill-current" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Informações e Ações */}
+                <div className="flex flex-col justify-between flex-1 py-1">
+                  <div>
+                    {/* Cabeçalho Pequeno: Módulo ou Categoria */}
+                    <div className="flex items-center gap-2 mb-2 mt-2">
+                      <span className="px-2 py-0.5 rounded text-xs font-medium bg-[#00C8FF]/10 text-[#00C8FF]">
+                        Módulo 01
+                      </span>
+                      <span className="text-xs text-[#C4C4CC] flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> {currentLesson?.duration || "0m 0s"} restantes
+                      </span>
+                    </div>
+
+                    {/* Título Principal */}
+                    <h4 className="text-2xl font-semibold text-white mb-2 leading-tight group-hover:text-[#00C8FF] transition-colors">
+                      {currentLesson?.title}
+                    </h4>
+
+                    <p className="text-sm text-[#8D8D99] line-clamp-2">
+                      Nesta aula vamos aprender os conceitos fundamentais sobre...
+                    </p>
+                  </div>
+
+                  {/* Área Inferior: Progresso e Botão de Ação */}
+                  <div className="mt-6">
+                    <div className="flex justify-between text-xs text-[#C4C4CC] mb-2 font-medium">
+                      <span>Progresso da aula</span>
+                      <span>{currentLesson?.progress || 0}%</span>
+                    </div>
+
+                    {/* Barra de Progresso */}
+                    <div className="w-full h-1.5 bg-[#25252A] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#00C8FF] to-[#00FF88] shadow-[0_0_10px_rgba(0,200,255,0.5)] transition-all duration-500 ease-out"
+                        style={{ width: `${currentLesson?.progress || 0}%` }}
+                      />
+                    </div>
+
+                    {/* Call to Action (CTA) Móvel ou Botão "Continuar" */}
+                    <div className="mt-4 flex md:hidden items-center text-[#00C8FF] text-sm font-semibold">
+                      Continuar assistindo <ChevronRight className="w-4 h-4 ml-1" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-[#20232a] rounded-lg p-8 text-center text-[#C4C4CC]">
+                <p className="text-center">Nenhuma aula em progresso</p>
+              </div>
+            )}
+          </div>
+        </Card>
         {/* Section 1: O que você aprenderá */}
         <Card className="p-0 text-whit bg-gray-gradient rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">
@@ -116,9 +216,8 @@ export function CourseOverview() {
                 {showMore ? "Mostrar menos" : "Mostrar mais"}
                 <CaretDown
                   size={16}
-                  className={`transition-transform ${
-                    showMore ? "rotate-180" : ""
-                  }`}
+                  className={`transition-transform ${showMore ? "rotate-180" : ""
+                    }`}
                 />
               </button>
             )}
@@ -238,9 +337,8 @@ export function CourseOverview() {
                   {showMoreBio ? "Ler menos" : "Ler mais"}
                   <CaretDown
                     size={16}
-                    className={`transition-transform ${
-                      showMoreBio ? "rotate-180" : ""
-                    }`}
+                    className={`transition-transform ${showMoreBio ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
               </div>
@@ -361,26 +459,42 @@ export function CourseOverview() {
             <div>
               <p className="text-xs text-[#C4C4CC] mb-2">Tecnologias</p>
               <div className="flex flex-wrap gap-2 mt-1">
-                <span className="px-4 py-2 text-xs bg-[#1A1A1E] rounded-full text-[#ffffff] font-semibold ">
-                  ReactJS
-                </span>
-                <span className="px-4 py-2 text-xs bg-[#1A1A1E] rounded-full text-[#ffffff] font-semibold ">
-                  Typescript
-                </span>
-                <span className="px-4 py-2 text-xs bg-[#1A1A1E] rounded-full text-[#ffffff] font-semibold ">
-                  NextJS
-                </span>
+                {tags.length > 0 ? (
+                  tags.map((tag: string, index: number) => (
+                    <span
+                      key={index}
+                      className="px-4 py-2 text-xs bg-[#1A1A1E] rounded-full text-[#ffffff] font-semibold"
+                    >
+                      {tag}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-[#7e7e89]">Nenhuma tag disponível</span>
+                )}
               </div>
             </div>
 
-            <div className="mt-4">
-              <Button
-                className="w-full bg-gray-gradient-first hover:opacity-90 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 hover:shadow-[0_0_12px_#1a1a1a] h-[42px]"
-                disabled
-              >
-                <CertificateIcon size={18} className="mr-2" />
-                Emitir certificado
-              </Button>
+            <div className="mt-4 relative">
+              <div className="relative">
+                <Image src="/certificate-image.png" alt="Certificado" width={500} height={100} />
+                {isCourseCompleted ? (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-[20px]">
+                    <Button
+                      asChild
+                      className="bg-[#00C8FF] hover:bg-[#00a8d4] text-white font-semibold"
+                    >
+                      <Link href="/account/certificates">
+                        Gerar Certificado
+                      </Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="absolute inset-0 bg-black/25 backdrop-blur-sm flex items-center justify-center rounded-[20px]">
+                    <Lock size={24} className="text-white mr-2" />
+                    <span className="text-white text-lg font-semibold">Bloqueado</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </Card>

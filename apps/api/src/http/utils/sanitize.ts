@@ -50,8 +50,8 @@ export function sanitizeUsers(
   return users.map((user) => sanitizeUser(user, context));
 }
 
-export function sanitizeCourse(course: any): CourseDTO {
-  return toCourseDTO(course);
+export function sanitizeCourse(course: any, totalDuration?: string | null): CourseDTO {
+  return toCourseDTO(course, totalDuration);
 }
 
 export function sanitizeCourses(courses: any[]): CourseDTO[] {

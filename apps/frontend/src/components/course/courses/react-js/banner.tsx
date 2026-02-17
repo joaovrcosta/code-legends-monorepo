@@ -215,7 +215,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                 : mounted && isCheckingEnrollment
                   ? "Verificando..."
                   : mounted && isEnrolled
-                    ? "Iniciar"
+                    ? "Continuar"
                     : "Inscrever"}
             </Button>
           </div>
@@ -396,7 +396,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                   }
                 }}
                 disabled={isLoading || isCheckingEnrollment}
-                className="max-w-[220px] w-full h-[50px] text-lg bg-blue-gradient-500 transition-all rounded-[12px] duration-300 hover:shadow-[0_0_12px_#00C8FF] font-semibold disabled:opacity-50"
+                className="lg:w-fit w-full h-[50px] text-lg bg-blue-gradient-500 transition-all rounded-[12px] duration-300 hover:shadow-[0_0_12px_#00C8FF] font-medium disabled:opacity-50"
                 suppressHydrationWarning
               >
                 <PlayIcon weight="fill" />{" "}
@@ -405,7 +405,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                   : mounted && isCheckingEnrollment
                     ? "Verificando..."
                     : mounted && isEnrolled
-                      ? "Iniciar"
+                      ? "Continuar"
                       : "Inscrever-se"}
               </Button>
               <div className="flex gap-4">
@@ -482,7 +482,9 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             <li className="flex w-full items-center gap-3 py-4  border-b border-[#25252A]">
               <VideoCameraIcon size={24} className="text-[#00C8FF]" />
               <p className="whitespace-nowrap text-[#a5a5a6] text-sm">
-                <strong className="text-[#c0c0d1]">+19h</strong> de contéudo
+                <strong className="text-[#c0c0d1]">
+                  {course.totalDuration ? `+${course.totalDuration}` : "0h"}
+                </strong> de conteúdo
               </p>
             </li>
             <li className="flex w-full items-center gap-3 py-4  border-b border-[#25252A]">

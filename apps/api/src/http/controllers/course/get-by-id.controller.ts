@@ -14,10 +14,10 @@ export async function getById(request: FastifyRequest, reply: FastifyReply) {
   try {
     const getCourseByIdUseCase = makeGetCourseByIdUseCase();
 
-    const { course } = await getCourseByIdUseCase.execute({ id });
+    const { course, totalDuration } = await getCourseByIdUseCase.execute({ id });
 
     // Sanitizar curso para garantir que dados de instrutor sejam públicos apenas
-    const sanitized = sanitizeCourse(course);
+    const sanitized = sanitizeCourse(course, totalDuration);
 
     return reply.status(200).send({ course: sanitized });
   } catch (error) {
@@ -25,6 +25,7 @@ export async function getById(request: FastifyRequest, reply: FastifyReply) {
       return reply.status(404).send({ message: error.message });
     }
 
+    console.error("Erro ao buscar curso por ID:", error);
     return reply.status(500).send({ message: "Internal server error" });
   }
 }

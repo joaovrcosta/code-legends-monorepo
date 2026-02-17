@@ -55,8 +55,16 @@ export type CourseRoadmap = {
   isLastLessonCompleted?: boolean;
 };
 
+export type CurrentLesson = {
+  id: number;
+  title: string;
+  duration: string | null;
+  progress: number;
+};
+
 export type RoadmapResponse = {
   course: CourseRoadmap;
+  currentLesson?: CurrentLesson | null;
   modules: Module[];
 };
 

@@ -15,7 +15,9 @@ import { LearnHeader } from "@/components/learn/learn-header";
 import { LessonsContent } from "@/components/learn/lessons-content";
 import { CertificateIcon, Lock } from "@phosphor-icons/react/dist/ssr";
 import { PrimaryButton } from "../ui/primary-button";
+import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface LearnPageContentProps {
   initialRoadmap: RoadmapResponse;
@@ -46,11 +48,11 @@ export function LearnPageContent({
     moduleUnlockedTimestamp,
   } = useCourseModalStore();
 
-  // Usa o activeCourse do store se disponível, senão usa o das props
+  console.log(activeCourse);
+
   const { activeCourse: storeActiveCourse } = useActiveCourseStore();
   const currentActiveCourse = storeActiveCourse || activeCourse;
 
-  // Função para buscar o roadmap atualizado
   const fetchRoadmap = useCallback(async () => {
     if (!currentActiveCourse?.id) return null;
 
@@ -69,9 +71,9 @@ export function LearnPageContent({
 
   const fetchModulesProgress = useCallback(async () => {
     if (!currentActiveCourse?.slug) return;
-  
+
     try {
-      const currentModuleId = roadmap?.course?.currentModuleId; 
+      const currentModuleId = roadmap?.course?.currentModuleId;
       const modulesData = await listModulesProgress(
         currentActiveCourse.slug,
         currentModuleId
@@ -272,7 +274,7 @@ export function LearnPageContent({
   useEffect(() => {
     const loadNewRoadmap = async () => {
       if (!currentActiveCourse?.id) return;
-      
+
       // Verifica se o curso mudou comparando com o último curso conhecido
       if (lastActiveCourseIdRef.current && lastActiveCourseIdRef.current !== currentActiveCourse.id) {
         // Curso mudou, recarrega o roadmap
@@ -413,7 +415,7 @@ export function LearnPageContent({
   // Fecha popovers durante o resize para evitar reposicionamento constante do Popper
   useEffect(() => {
     let timeoutRef: NodeJS.Timeout | null = null;
-    
+
     const handleResize = () => {
       // Fecha o popover imediatamente ao detectar resize
       if (openPopover !== null) {
@@ -430,7 +432,7 @@ export function LearnPageContent({
     };
 
     window.addEventListener("resize", debouncedHandleResize);
-    
+
     return () => {
       window.removeEventListener("resize", debouncedHandleResize);
       if (timeoutRef) {
@@ -441,7 +443,7 @@ export function LearnPageContent({
 
   const handleUnlockNext = async () => {
     if (!nextLockedModule || !currentActiveCourse?.id) return;
-    
+
     try {
       const result = await continueNextModule(currentActiveCourse.id);
       if (result.success && result.data) {
@@ -481,7 +483,7 @@ export function LearnPageContent({
             currentClass={currentClass}
             courseTitle={roadmap?.course?.title || "Curso"}
             lessonTitle={currentLessonTitle}
-            onToggleModules={() => {}}
+            onToggleModules={() => { }}
             loadingModules={false}
           />
           <LessonsContent
@@ -496,19 +498,30 @@ export function LearnPageContent({
             taskRefs={taskRefs}
           />
           <div className="flex items-center justify-between flex-col border border-[#25252A] lg:border-b-[1px] lg:border-r-[1px] lg:border-l-[1px] border-l-0 border-r-0 border-b-0 lg:rounded-[20px] rounded-none p-8 w-full max-w-[412px]">
-            <div className="flex items-center justify-between p-2 bg-[#1a1a1e] rounded-lg mb-4">
-              <span
-                className={
-                  nextLockedModule?.canUnlock
-                    ? "text-xs font-bold bg-blue-gradient-500 bg-clip-text text-transparent bg-[#1a1a1e]"
-                    : "text-xs font-bold text-zinc-500"
-                }
-              >
-                {nextLockedModule ? "A SEGUIR" : "CERTIFICADO"}
-              </span>
-            </div>
+            {(nextLockedModule || currentActiveCourse?.isCompleted === true) && (
+              <div className="flex items-center justify-between p-2 bg-[#1a1a1e] rounded-lg mb-4">
+                <span
+                  className={
+                    nextLockedModule?.canUnlock
+                      ? "text-xs font-bold bg-blue-gradient-500 bg-clip-text text-transparent bg-[#1a1a1e]"
+                      : "text-xs font-bold text-zinc-500"
+                  }
+                >
+                  {nextLockedModule ? "A SEGUIR" : "CERTIFICADO"}
+                </span>
+              </div>
+            )}
             <div className="flex items-center justify-between gap-2 flex-col w-full">
-              {nextLockedModule ? (
+              {allLessons.length === 0 ? (
+                <>
+                  <p className="text-muted-foreground text-center">
+                    Curso em construção...
+                  </p>
+                  <Button asChild className="w-full mt-3 px-6 h-[48px] rounded-full border border-[#25252A] text-sm flex items-center justify-center text-white ease-linear duration-150 bg-blue-gradient-first">
+                    <Link href="/learn/catalog">Procurar outro curso</Link>
+                  </Button>
+                </>
+              ) : nextLockedModule ? (
                 <>
                   <div className="flex items-center text-center justify-between gap-2 text-2xl mb-4">
                     {nextLockedModule?.locked ? <Lock size={24} weight="fill" /> : ""}
@@ -523,22 +536,24 @@ export function LearnPageContent({
                   </button>
                 </>
               ) : (
-                <>
-                  <h3 className="text-2xl text-center">
-                    Parabéns! Você completou o curso!
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Gere seu certificado de conclusão
-                  </p>
-                  <PrimaryButton
-                    variant="secondary"
-                    onClick={() => {}}
-                    className="h-[48px]"
-                  >
-                    Gerar certificado
-                    <CertificateIcon size={18} className="mr-2" weight="fill" />
-                  </PrimaryButton>
-                </>
+                currentActiveCourse?.isCompleted === true ? (
+                  <>
+                    <h3 className="text-2xl text-center">
+                      Parabéns! Você completou o curso!
+                    </h3>
+                    <p className="text-muted-foreground">
+                      Gere seu certificado de conclusão
+                    </p>
+                    <PrimaryButton
+                      variant="secondary"
+                      onClick={() => { }}
+                      className="h-[48px]"
+                    >
+                      Gerar certificado
+                      <CertificateIcon size={18} className="mr-2" weight="fill" />
+                    </PrimaryButton>
+                  </>
+                ) : null
               )}
             </div>
           </div>

@@ -1,11 +1,13 @@
 import { getCourseBySlug } from "@/actions/course/get-course-by-slug";
 import { getUserCourseProgress } from "@/actions/progress/get-course-progress";
+import { getCourseRoadmap } from "@/actions/course/roadmap";
 import { CourseBanner } from "@/components/course/courses/react-js/banner";
 import { CourseContent } from "@/components/course/courses/react-js/content";
 import { CourseOverview } from "@/components/course/courses/react-js/overview";
 import { CourseProjects } from "@/components/course/courses/react-js/projects";
 import { Tabs } from "@/components/ui/tabs";
 import { notFound } from "next/navigation";
+import { getAuthToken } from "@/actions/auth/session";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +24,18 @@ export default async function CoursePage({
   }
 
   const userProgress = await getUserCourseProgress(course.slug);
+  
+  // Buscar roadmap para obter a lição atual
+  let currentLesson = null;
+  try {
+    const token = await getAuthToken();
+    if (token) {
+      const roadmap = await getCourseRoadmap(course.id);
+      currentLesson = roadmap?.currentLesson || null;
+    }
+  } catch (error) {
+    console.error("Erro ao buscar roadmap:", error);
+  }
 
   const myLearningTabs = [
     {
@@ -29,7 +43,7 @@ export default async function CoursePage({
       label: "Programa de Estudos",
       content: (
         <div>
-          <CourseOverview />
+          <CourseOverview tags={course.tags || []} currentLesson={currentLesson} />
         </div>
       ),
     },

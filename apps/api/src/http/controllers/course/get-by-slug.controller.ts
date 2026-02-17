@@ -14,10 +14,10 @@ export async function getBySlug(request: FastifyRequest, reply: FastifyReply) {
   try {
     const getCourseBySlugUseCase = makeGetCourseBySlugUseCase();
 
-    const { course } = await getCourseBySlugUseCase.execute({ slug });
+    const { course, totalDuration } = await getCourseBySlugUseCase.execute({ slug });
 
     // Sanitizar curso para garantir que dados de instrutor sejam públicos apenas
-    const sanitized = sanitizeCourse(course);
+    const sanitized = sanitizeCourse(course, totalDuration);
 
     return reply.status(200).send({ course: sanitized });
   } catch (error) {
@@ -25,6 +25,7 @@ export async function getBySlug(request: FastifyRequest, reply: FastifyReply) {
       return reply.status(404).send({ message: error.message });
     }
 
+    console.error("Erro ao buscar curso por slug:", error);
     return reply.status(500).send({ message: "Internal server error" });
   }
 }

@@ -28,6 +28,7 @@ export interface CourseDTO {
     categoryId: string | null;
     instructor?: UserPublicDTO;
     category?: CategoryDTO | null;
+    totalDuration?: string | null; // Duração total do curso em formato legível (ex: "19h 30min")
     _count?: {
         userCourses: number;
     };

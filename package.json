@@ -22,7 +22,7 @@
     "husky": "^9.1.7",
     "postcss": "8.4.35",
     "tailwindcss": "3.4.19",
-    "turbo": "^2.8.5"
+    "turbo": "^2.8.9"
   },
   "packageManager": "pnpm@9.15.9",
   "pnpm": {

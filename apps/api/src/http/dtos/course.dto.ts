@@ -12,7 +12,8 @@ export function toCourseDTO(
     _count?: {
       userCourses: number;
     };
-  }
+  },
+  totalDuration?: string | null
 ): CourseDTO {
   // Converter tags da relação para array de strings se necessário
   let tags: string[] = [];
@@ -56,6 +57,7 @@ export function toCourseDTO(
         icon: course.category.icon,
       }
       : null,
+    totalDuration: totalDuration ?? null,
     _count: course._count,
   };
 }

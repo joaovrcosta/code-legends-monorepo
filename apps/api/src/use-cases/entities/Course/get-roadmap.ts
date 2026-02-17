@@ -4,6 +4,33 @@ import { IUserProgressRepository } from "../../../repositories/user-progress-rep
 import { CourseNotFoundError } from "../../errors/course-not-found";
 import { prisma } from "../../../lib/prisma";
 
+// Função auxiliar para converter duração em segundos
+function parseDurationToSeconds(duration: string | null): number {
+  if (!duration) return 0;
+
+  const trimmed = duration.trim();
+
+  // Formato "Xm Ys" (ex: "12m 30s")
+  const minutesSecondsMatch = trimmed.match(/(\d+)m\s*(\d+)s/);
+  if (minutesSecondsMatch) {
+    const minutes = parseInt(minutesSecondsMatch[1], 10);
+    const seconds = parseInt(minutesSecondsMatch[2], 10);
+    return minutes * 60 + seconds;
+  }
+
+  // Formato "HH:MM:SS" ou "MM:SS"
+  const parts = trimmed.split(":").map(Number);
+  if (parts.length === 3) {
+    // HH:MM:SS
+    return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  } else if (parts.length === 2) {
+    // MM:SS
+    return parts[0] * 60 + parts[1];
+  }
+
+  return 0;
+}
+
 interface RoadmapLesson {
   id: number;
   title: string;
@@ -56,6 +83,12 @@ interface GetRoadmapResponse {
     canUnlockNextModule?: boolean; // Se pode desbloquear o próximo módulo
     isLastLessonCompleted?: boolean; // Se a última lição do módulo atual está completa
   };
+  currentLesson?: {
+    id: number;
+    title: string;
+    duration: string | null;
+    progress: number;
+  } | null;
   modules: RoadmapModule[];
 }
 
@@ -64,7 +97,7 @@ export class GetRoadmapUseCase {
     private courseRepository: ICourseRepository,
     private userCourseRepository: IUserCourseRepository,
     private userProgressRepository: IUserProgressRepository
-  ) {}
+  ) { }
 
   async execute({
     userId,
@@ -155,7 +188,7 @@ export class GetRoadmapUseCase {
     // Se não houver progresso, SEMPRE usar a primeira lição (curso resetado ou novo)
     // Se houver progresso, usar o currentTaskId se ele existir na lista de lessons
     let validCurrentTaskId: number | null = null;
-    
+
     if (!hasProgress) {
       // Sem progresso = curso resetado ou novo, sempre começar da primeira lesson
       validCurrentTaskId = allLessons[0]?.id ?? null;
@@ -316,7 +349,7 @@ export class GetRoadmapUseCase {
     // Calcular se a última lição do módulo atual está completa
     let isLastLessonCompleted = false;
     let currentClass: number | null = null;
-    
+
     if (currentModule) {
       // Encontrar todas as lições do módulo atual
       const currentModuleLessons: Array<{
@@ -384,6 +417,49 @@ export class GetRoadmapUseCase {
       instructor?: { name: string };
     };
 
+    // Encontrar a lição atual para retornar informações detalhadas
+    let currentLessonInfo: {
+      id: number;
+      title: string;
+      duration: string | null;
+      progress: number;
+    } | null = null;
+
+    if (validCurrentTaskId) {
+      // Buscar a lição atual nos módulos
+      for (const module of modules) {
+        for (const group of module.groups) {
+          const lesson = group.lessons.find((l) => l.id === validCurrentTaskId);
+          if (lesson) {
+            // Buscar progresso específico desta lição
+            const userProgress = userProgresses.find((p) => p.taskId === lesson.id);
+            const isCompleted = userProgress?.isCompleted ?? false;
+
+            // Calcular progresso (0% se não iniciada, 100% se completa, ou usar timeSpent se disponível)
+            let progress = 0;
+            if (isCompleted) {
+              progress = 100;
+            } else if (userProgress?.timeSpent && lesson.video_duration) {
+              // Calcular progresso baseado no tempo assistido
+              const durationSeconds = parseDurationToSeconds(lesson.video_duration);
+              if (durationSeconds > 0) {
+                progress = Math.min(100, Math.round((userProgress.timeSpent / durationSeconds) * 100));
+              }
+            }
+
+            currentLessonInfo = {
+              id: lesson.id,
+              title: lesson.title,
+              duration: lesson.video_duration,
+              progress,
+            };
+            break;
+          }
+        }
+        if (currentLessonInfo) break;
+      }
+    }
+
     return {
       course: {
         id: course.id,
@@ -402,6 +478,7 @@ export class GetRoadmapUseCase {
         canUnlockNextModule,
         isLastLessonCompleted,
       },
+      currentLesson: currentLessonInfo,
       modules: roadmapModules,
     };
   }
