@@ -21,7 +21,7 @@ export default async function AccountPage() {
     redirect("/login");
   }
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full mt-8">
       <div className="lg:flex hidden items-center space-x-2 px-4 py-8 mt-8">
         <Avatar className="h-[52px] w-[52px]">
           <AvatarImage src={user.avatar || ""} />

@@ -108,9 +108,9 @@ export default function AccountAccessPage() {
     );
   }
   return (
-    <div className="flex justify-center mt-8 w-full">
+    <div className="w-full mt-8">
       {/* Estilo do Card original: bg-[#121214] e borda escura */}
-      <Card className="bg-[#121214] border-[#25252a] lg:p-8 p-4 w-full text-zinc-100">
+      <Card className="bg-[#121214] border-[#25252a] lg:p-8 p-4 text-zinc-100">
 
         {/* Cabeçalho com o estilo "Gradient" e Coroa */}
         <CardHeader className="px-0 pt-0 pb-8">

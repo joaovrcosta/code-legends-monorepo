@@ -24,9 +24,9 @@ export default async function AccountLayout({
         initialActiveCourse={activeCourse}
       />
 
-      <div className="max-w-[1560px] mx-auto flex lg:mt-[78px] mt-[63px] lg:gap-10 gap-2 lg:flex flex-col lg:flex-row items-start px-4 pb-20">
+      <div className="max-w-[1560px] mx-auto flex lg:mt-[78px] mt-[63px] lg:gap-10 gap-4 lg:flex-row flex-col items-start px-4 pb-20">
         <AccountAsideMenu />
-        <main className="w-full">{children}</main>
+        <main className="w-full lg:flex-1 min-w-0">{children}</main>
       </div>
       <FooterFixed />
     </>

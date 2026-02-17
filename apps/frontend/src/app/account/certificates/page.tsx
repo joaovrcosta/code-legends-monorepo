@@ -15,7 +15,7 @@ export default async function AccountCertificatesPage() {
   const completedCoursesList = completedCourses.courses || [];
 
   return (
-    <div className="space-y-4 mt-9">
+    <div className="space-y-4 w-full mt-8">
       <Card className="bg-[#121214] border-[#25252a] lg:p-10 p-4">
         <CardHeader>
           <div className="flex items-center space-x-2">
