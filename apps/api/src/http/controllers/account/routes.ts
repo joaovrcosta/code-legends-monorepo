@@ -12,6 +12,7 @@ import { getById } from "./get-by-id.controller";
 import { listInstructors } from "./list-instructors.controller";
 import { getAccountOverview, updateAccountData } from "./account-overview.controller";
 import { remove } from "./delete.controller";
+import { unlinkGoogle } from "./unlink-google.controller";
 import { verifyJWT } from "../../middlewares/verify-jwt";
 import { verifyAdmin } from "../../middlewares/verify-admin";
 import { verifyInstructorOrAdmin } from "../../middlewares/verify-instructor-or-admin";
@@ -27,6 +28,7 @@ export async function usersRoutes(app: FastifyInstance) {
   app.get("/users/onboarding/status", { onRequest: [verifyJWT] }, getOnboardingStatus);
   app.post("/users/onboarding", { onRequest: [verifyJWT] }, updateOnboarding);
   app.post("/users/onboarding/complete", { onRequest: [verifyJWT] }, completeOnboarding);
+  app.delete("/users/unlink-google", { onRequest: [verifyJWT] }, unlinkGoogle);
 
   // Rotas protegidas - apenas ADMIN
   app.get("/users", { onRequest: [verifyAdmin] }, listUsers);

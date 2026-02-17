@@ -62,8 +62,8 @@ export function AccountAsideMenu() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -40 }}
                     transition={{
-                      duration: 0.5,
-                      delay: index * 0.15,
+                      duration: 0.1,
+                      delay: index * 0.02,
                       ease: [0.16, 1, 0.3, 1]
                     }}
                   >
@@ -78,8 +78,8 @@ export function AccountAsideMenu() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{
-                      duration: 1,
-                      delay: index * 0.15 + 0.1,
+                      duration: 0.15,
+                      delay: index * 0.02 + 0.02,
                       ease: [0.16, 1, 0.3, 1]
                     }}
                   >

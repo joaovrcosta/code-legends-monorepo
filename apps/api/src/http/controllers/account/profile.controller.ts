@@ -21,6 +21,8 @@ export async function profile(request: FastifyRequest, reply: FastifyReply) {
         onboardingCompleted: user.onboardingCompleted ?? false,
         onboardingGoal: user.onboardingGoal,
         onboardingCareer: user.onboardingCareer,
+        googleId: (user as any).googleId || null,
+        hasPassword: !!user.password,
       },
     });
   } catch (error) {

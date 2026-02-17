@@ -56,6 +56,7 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "password" TEXT,
+    "googleId" TEXT,
     "avatar" TEXT,
     "slug" TEXT,
     "bio" TEXT,
@@ -290,6 +291,9 @@ CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_googleId_key" ON "User"("googleId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_slug_key" ON "User"("slug");

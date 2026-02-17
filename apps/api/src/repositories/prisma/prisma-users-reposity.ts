@@ -8,6 +8,7 @@ interface CreateUserData {
   email: string;
   password?: string | null;
   avatar?: string | null;
+  googleId?: string | null;
 }
 
 export class PrismaUsersRepository implements IUsersRepository {

@@ -19,7 +19,7 @@ export async function getUserFromAPI(): Promise<User | null> {
   }
 
   try {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/users/me`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/me`;
     console.log("🔍 Buscando dados do usuário em:", url);
 
     const response = await fetch(url, {
@@ -40,6 +40,7 @@ export async function getUserFromAPI(): Promise<User | null> {
 
     const data: UserMeResponse = await response.json();
     console.log("✅ Usuário obtido com sucesso:", data.user.email);
+    console.log("✅ Dados completos do usuário:", JSON.stringify(data.user, null, 2));
     return data.user;
   } catch (error) {
     console.error("❌ Erro ao buscar dados do usuário da API:", error);

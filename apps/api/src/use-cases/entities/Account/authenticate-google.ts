@@ -26,19 +26,22 @@ export class AuthenticateGoogleUseCase {
     let user = await this.userRepository.findByEmail(email);
 
     if (user) {
-      // Usuário existe - apenas atualiza dados se necessário
+      // Usuário existe - atualiza dados se necessário e vincula Google
+      const updateData: any = { googleId };
       if (!user.avatar && avatar) {
-        user = await this.userRepository.update(user.id, { avatar });
+        updateData.avatar = avatar;
       }
+      user = await this.userRepository.update(user.id, updateData);
       return { user, isNewUser: false };
     }
 
-    // Usuário não existe - cria novo
+    // Usuário não existe - cria novo com Google vinculado
     const newUser = await this.userRepository.create({
       email,
       name,
       password: null, // Sem senha para login Google
       avatar: avatar || null,
+      googleId,
     });
 
     return { user: newUser, isNewUser: true };

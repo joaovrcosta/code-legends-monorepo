@@ -5,6 +5,8 @@ export type { UserPublicDTO, UserPrivateDTO, UserFullDTO } from "@code-legends/s
 export type User = Omit<UserPrivateDTO, "createdAt" | "updatedAt"> & {
   createdAt: string | Date;
   updatedAt?: string | Date;
+  googleId?: string | null;
+  hasPassword?: boolean;
 };
 
 export interface UserMeResponse {
