@@ -8,6 +8,8 @@ import { IUsersRepository } from "../../../repositories/users-repository";
 import { LessonNotFoundError } from "../../errors/lesson-not-found";
 import { CourseNotFoundError } from "../../errors/course-not-found";
 import { prisma } from "../../../lib/prisma";
+import { NotificationBuilder } from "../../../utils/notification-builder";
+import { createNotification } from "../../../utils/create-notification";
 
 interface CompleteLessonRequest {
   userId: string;
@@ -118,6 +120,8 @@ export class CompleteLessonUseCase {
         newTotalXp
       );
 
+      const levelUp = newLevel > user.level;
+
       // Atualizar usuário com novo XP e nível usando transação
       await prisma.$transaction(async (tx) => {
         // Atualizar XP e nível do usuário
@@ -140,6 +144,28 @@ export class CompleteLessonUseCase {
             description: `Completou lição: ${lesson.title}`,
           },
         });
+
+        // Criar notificação de level up dentro da transação
+        if (levelUp) {
+          try {
+            const notificationData = NotificationBuilder.createLevelUpNotification(
+              userId,
+              {
+                level: newLevel,
+                totalXp: newTotalXp,
+                xpToNextLevel: newXpToNextLevel,
+              }
+            );
+
+            await createNotification({
+              ...notificationData,
+              tx,
+            });
+          } catch (error) {
+            // Não quebra o fluxo se a notificação falhar
+            console.error("Erro ao criar notificação de level up:", error);
+          }
+        }
       });
 
       xpGained = this.XP_PER_LESSON;
@@ -247,6 +273,8 @@ export class CompleteLessonUseCase {
     const courseProgress =
       allLessons.length > 0 ? completedLessons / allLessons.length : 0;
     const courseCompleted = completedLessons === allLessons.length;
+    const wasCourseCompleted = userCourse.isCompleted;
+    const isNewlyCompleted = courseCompleted && !wasCourseCompleted;
 
     // Atualizar UserCourse
     const nextLesson = nextLessonId
@@ -300,6 +328,25 @@ export class CompleteLessonUseCase {
         isCompleted: true,
         completedAt: new Date(),
       });
+    }
+
+    // Criar notificação de curso completado
+    if (isNewlyCompleted) {
+      try {
+        const notificationData = NotificationBuilder.createCourseCompletedNotification(
+          userId,
+          {
+            courseId: course.id,
+            courseTitle: course.title,
+            courseSlug: course.slug,
+          }
+        );
+
+        await createNotification(notificationData);
+      } catch (error) {
+        // Não quebra o fluxo se a notificação falhar
+        console.error("Erro ao criar notificação de curso completado:", error);
+      }
     }
 
     return {

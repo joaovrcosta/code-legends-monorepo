@@ -7,6 +7,8 @@ import { CertificateAlreadyExistsError } from "../../errors/certificate-already-
 import { UserNotFoundError } from "../../errors/user-not-found";
 import { CourseNotFoundError } from "../../errors/course-not-found";
 import { CourseNotCompletedError } from "../../errors/course-not-completed";
+import { NotificationBuilder } from "../../../utils/notification-builder";
+import { createNotification } from "../../../utils/create-notification";
 
 interface CreateCertificateUseCaseRequest {
   userId: string;
@@ -85,6 +87,23 @@ export class CreateCertificateUseCase {
         },
       }),
     });
+
+    // Criar notificação de certificado gerado
+    try {
+      const notificationData = NotificationBuilder.createCertificateNotification(
+        userId,
+        {
+          certificateId: certificate.id,
+          courseId: course.id,
+          courseTitle: course.title,
+        }
+      );
+
+      await createNotification(notificationData);
+    } catch (error) {
+      // Não quebra o fluxo se a notificação falhar
+      console.error("Erro ao criar notificação de certificado:", error);
+    }
 
     return {
       certificate,

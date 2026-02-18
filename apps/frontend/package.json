@@ -12,6 +12,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@code-legends/shared-types": "workspace:*",
     "@hookform/resolvers": "^3.9.1",
     "@phosphor-icons/react": "^2.1.7",
     "@radix-ui/react-accordion": "^1.2.11",
@@ -27,6 +28,7 @@
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.29.2",
     "json-server": "^1.0.0-beta.3",
@@ -42,8 +44,7 @@
     "tailwind-scrollbar-hide": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "3.21.4",
-    "zustand": "^5.0.3",
-    "@code-legends/shared-types": "workspace:*"
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",

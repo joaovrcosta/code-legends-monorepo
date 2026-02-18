@@ -5,6 +5,9 @@ import { ICategoryRepository } from "../../../repositories/category-repository";
 import { CourseAlreadyExistsError } from "../../errors/course-already-exists";
 import { InstructorNotFoundError } from "../../errors/instructor-not-found";
 import { CategoryNotFoundError } from "../../errors/category-not-found";
+import { NotificationBuilder } from "../../../utils/notification-builder";
+import { createNotificationsBatch } from "../../../utils/create-notification";
+import { prisma } from "../../../lib/prisma";
 
 interface CreateCourseRequest {
   title: string;
@@ -65,6 +68,40 @@ export class CreateCourseUseCase {
     }
 
     const course = await this.courseRepository.create(data);
+
+    // Criar notificações para todos os usuários se o curso estiver ativo
+    // Fazemos isso de forma assíncrona para não bloquear a resposta
+    if (course.active) {
+      // Não aguardamos a conclusão - executa em background
+      setImmediate(async () => {
+        try {
+          // Buscar todos os usuários (apenas IDs para performance)
+          const users = await prisma.user.findMany({
+            select: { id: true },
+          });
+
+          if (users.length > 0) {
+            const notifications = users.map((user) =>
+              NotificationBuilder.createNewCourseNotification(user.id, {
+                courseId: course.id,
+                courseTitle: course.title,
+                courseSlug: course.slug,
+                instructorName: instructor.name,
+              })
+            );
+
+            await createNotificationsBatch(notifications);
+          }
+        } catch (error) {
+          // Não quebra o fluxo se a notificação falhar
+          console.error("Erro ao criar notificações de novo curso:", {
+            courseId: course.id,
+            error: error instanceof Error ? error.message : "Unknown error",
+            stack: error instanceof Error ? error.stack : undefined,
+          });
+        }
+      });
+    }
 
     return {
       course,

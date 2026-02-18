@@ -81,8 +81,21 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
       return reply.status(403).send({ message: error.message });
     }
 
-    // Log do erro para debug em desenvolvimento
-    console.error("Error creating course:", error);
+    // Log do erro para debug
+    console.error("Error creating course:", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      body: request.body,
+    });
+
+    // Em desenvolvimento, retorna mais detalhes
+    if (process.env.NODE_ENV !== "production") {
+      return reply.status(500).send({
+        message: "Internal server error",
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+    }
 
     return reply.status(500).send({ message: "Internal server error" });
   }
