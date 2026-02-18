@@ -2,6 +2,7 @@
 
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import reactIcon from "../../../public/react-course-icon.svg";
 import {
     ArrowUpRight,
@@ -191,73 +192,82 @@ export function RecomendationCard({
     isFree,
 }: RecomendationCardProps) {
     const imageSrc = image || reactIcon;
+    const router = useRouter();
 
     const { label, className: statusClass } = getStatusInfo(status);
     return (
-        <div
-            className={`relative shadow-2xl w-full rounded-[16px] min-w-[300px] h-[280px] flex flex-col transition-colors duration-300 cursor-pointer hover:border-[#3f3f48]
+        <Link href={url} className="block">
+            <div
+                className={`relative shadow-2xl w-full rounded-[16px] min-w-[300px] h-[280px] flex flex-col transition-colors duration-300 cursor-pointer hover:border-[#3f3f48]
     ${isCurrent
-                    ? "bg-blue-gradient-second border-[#35BED5]"
-                    : "bg-gray-gradient border-[#25252A]"
-                }
+                        ? "bg-blue-gradient-second border-[#35BED5]"
+                        : "bg-gray-gradient border-[#25252A]"
+                    }
     border hover:shadow-[inset_0_-20px_20px_rgba(255,255,255,0.025)] ${className}`}
-        >
-            {label && (
-                <div className="flex items-center justify-between rounded-t-[20px] pr-4 pl-4 pt-4 pb-0">
-                    <div
-                        className={`text-white ${statusClass} rounded-full px-2 border ${isCurrent ? "border-white" : "border-[#25252A]"
-                            }`}
-                    >
-                        <p className="text-sm">{label}</p>
-                    </div>
-                    {isFree && (
-                        <div className="bg-green-500/20 border border-green-500/50 rounded-full px-2 py-0.5">
-                            <p className="text-xs text-green-400 font-semibold">Gratuito</p>
+            >
+                {label && (
+                    <div className="flex items-center justify-between rounded-t-[20px] pr-4 pl-4 pt-4 pb-0">
+                        <div
+                            className={`text-white ${statusClass} rounded-full px-2 border ${isCurrent ? "border-white" : "border-[#25252A]"
+                                }`}
+                        >
+                            <p className="text-sm">{label}</p>
                         </div>
-                    )}
-                </div>
-            )}
-
-            <div className="p-4 flex-1 flex flex-col">
-                <Image
-                    src={imageSrc}
-                    alt={name}
-                    width={80}
-                    height={80}
-                    className="mb-3"
-                />
-                <div className="px-4 pt-2 flex-1">
-                    <div className="flex items-center space-x-1">
-                        <span className={`font-semibold bg-clip-text text-base text-white line-clamp-2`}>
-                            {name}
-                        </span>
-                        <ArrowUpRight className="flex-shrink-0" />
+                        {isFree && (
+                            <div className="bg-green-500/20 border border-green-500/50 rounded-full px-2 py-0.5">
+                                <p className="text-xs text-green-400 font-semibold">Gratuito</p>
+                            </div>
+                        )}
                     </div>
-                </div>
-            </div>
+                )}
 
-            <div className="flex items-center justify-between pr-4 pl-4 pb-4 mt-auto">
-                <div className="flex items-center gap-2 text-xs text-white">
-                    <ChartNoAxesColumnIncreasing size={16} className={getAccentClassFromLevel(level)} />
-                    <p className="text-muted-foreground">
-                        Para{" "}
-                        {getAudienceLabelFromLevel(level)}
-                    </p>
-                </div>
-
-                <div className="flex gap-2">
-                    <div className="flex items-center justify-center w-8 h-8 hover:bg-[#25252A] rounded-full cursor-pointer hover:text-[#35BED5]">
-                        <Link href={url}>
-                            <ScrollText size={20} className="text-gray-600" />
-                        </Link>
-                    </div>
-
-                    <EnrollButton
-                        courseId={courseId}
-                        onEnrollSuccess={onEnrollSuccess}
+                <div className="p-4 flex-1 flex flex-col">
+                    <Image
+                        src={imageSrc}
+                        alt={name}
+                        width={80}
+                        height={80}
+                        className="mb-3"
                     />
+                    <div className="px-4 pt-2 flex-1">
+                        <div className="flex items-center space-x-1">
+                            <span className={`font-semibold bg-clip-text text-base text-white line-clamp-2`}>
+                                {name}
+                            </span>
+                            <ArrowUpRight className="flex-shrink-0" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between pr-4 pl-4 pb-4 mt-auto">
+                    <div className="flex items-center gap-2 text-xs text-white">
+                        <ChartNoAxesColumnIncreasing size={16} className={getAccentClassFromLevel(level)} />
+                        <p className="text-muted-foreground">
+                            Para{" "}
+                            {getAudienceLabelFromLevel(level)}
+                        </p>
+                    </div>
+
+                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(url);
+                            }}
+                            className="flex items-center justify-center w-8 h-8 hover:bg-[#25252A] rounded-full cursor-pointer hover:text-[#35BED5]"
+                        >
+                            <ScrollText size={20} className="text-gray-600" />
+                        </button>
+
+                        <div onClick={(e) => e.stopPropagation()}>
+                            <EnrollButton
+                                courseId={courseId}
+                                onEnrollSuccess={onEnrollSuccess}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 }

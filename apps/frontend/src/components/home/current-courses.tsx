@@ -20,7 +20,7 @@ export async function CurrentCourses() {
 
     return (
         <div className="flex flex-col gap-4 w-full relative">
-            <h2 className="text-muted-foreground text-sm font-semibold mb-2 mt-4">
+            <h2 className="text-muted-foreground text-sm font-semibold mb-2 mt-8">
                 Continuar aprendendo
             </h2>
 

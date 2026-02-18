@@ -55,7 +55,7 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
           },
         });
       } else if (lessonSlug) {
-        lesson = await prisma.lesson.findUnique({
+        lesson = await prisma.lesson.findFirst({
           where: { slug: lessonSlug },
           include: {
             submodule: {

@@ -141,7 +141,7 @@ export class PrismaLessonRepository implements ILessonRepository {
   }
 
   async findBySlug(slug: string): Promise<Lesson | null> {
-    const lesson = await prisma.lesson.findUnique({
+    const lesson = await prisma.lesson.findFirst({
       where: {
         slug,
       },

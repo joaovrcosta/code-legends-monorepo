@@ -112,27 +112,32 @@ export class PrismaUserCourseRepository implements IUserCourseRepository {
   }
 
   async findByUserId(userId: string): Promise<UserCourse[]> {
-    const userCourses = await prisma.userCourse.findMany({
-      where: { userId },
-      include: {
-        course: {
-          include: {
-            instructor: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
+    try {
+      const userCourses = await prisma.userCourse.findMany({
+        where: { userId },
+        include: {
+          course: {
+            include: {
+              instructor: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatar: true,
+                },
               },
+              category: true,
             },
-            category: true,
           },
         },
-      },
-      orderBy: {
-        enrolledAt: "desc",
-      },
-    });
+        orderBy: {
+          enrolledAt: "desc",
+        },
+      });
 
-    return userCourses;
+      return userCourses;
+    } catch (error) {
+      console.error("Erro ao buscar cursos inscritos do usuário:", error);
+      throw error;
+    }
   }
 }

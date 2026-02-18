@@ -21,6 +21,10 @@ export async function listEnrolled(
       return reply.status(404).send({ message: error.message });
     }
 
-    return reply.status(500).send({ message: "Internal server error" });
+    console.error("Erro ao listar cursos inscritos:", error);
+    return reply.status(500).send({
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
   }
 }

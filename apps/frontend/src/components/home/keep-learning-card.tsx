@@ -44,7 +44,7 @@ export function KeepLearningCard({ course, progress }: KeepLearningCardProps) {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                        <p className="text-[#C2C2C2] text-[10px] font-light uppercase mb-1">
+                        <p className="text-muted-foreground text-[10px] font-light uppercase mb-1">
                             CURSO
                         </p>
                         <h3 className={`font-semibold text-base truncate text-white`}>
