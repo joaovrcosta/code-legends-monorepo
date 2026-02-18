@@ -1,6 +1,8 @@
 import { Request } from "@prisma/client";
 import { IRequestRepository } from "../../../repositories/request-repository";
 import { RequestNotFoundError } from "../../errors/request-not-found";
+import { NotificationBuilder } from "../../../utils/notification-builder";
+import { createNotification } from "../../../utils/create-notification";
 
 interface UpdateRequestRequest {
   status?: string;
@@ -43,6 +45,26 @@ export class UpdateRequestUseCase {
     }
 
     const request = await this.requestRepository.update(id, updateData);
+
+    // Criar notificação se o status mudou
+    if (data.status && data.status !== requestExists.status) {
+      try {
+        const notificationData = NotificationBuilder.createRequestStatusNotification(
+          requestExists.userId,
+          {
+            requestId: request.id,
+            oldStatus: requestExists.status,
+            newStatus: data.status,
+            response: data.response ?? null,
+          }
+        );
+
+        await createNotification(notificationData);
+      } catch (error) {
+        // Não quebra o fluxo se a notificação falhar
+        console.error("Erro ao criar notificação de status de solicitação:", error);
+      }
+    }
 
     return {
       request,

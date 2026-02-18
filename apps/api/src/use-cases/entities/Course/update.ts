@@ -4,6 +4,9 @@ import { ICategoryRepository } from "../../../repositories/category-repository";
 import { CourseNotFoundError } from "../../errors/course-not-found";
 import { CourseAlreadyExistsError } from "../../errors/course-already-exists";
 import { CategoryNotFoundError } from "../../errors/category-not-found";
+import { NotificationBuilder } from "../../../utils/notification-builder";
+import { createNotificationsBatch } from "../../../utils/create-notification";
+import { prisma } from "../../../lib/prisma";
 
 interface UpdateCourseRequest {
   id: string;
@@ -59,6 +62,7 @@ export class UpdateCourseUseCase {
       }
     }
 
+    const wasActive = course.active;
     const updatedCourse = await this.courseRepository.update(data.id, {
       title: data.title,
       slug: data.slug,
@@ -73,6 +77,46 @@ export class UpdateCourseUseCase {
       active: data.active,
       releaseAt: data.releaseAt,
     });
+
+    // Criar notificações se o curso foi ativado (de false para true)
+    // Fazemos isso de forma assíncrona para não bloquear a resposta
+    if (!wasActive && updatedCourse.active) {
+      // Não aguardamos a conclusão - executa em background
+      setImmediate(async () => {
+        try {
+          // Buscar instrutor do curso
+          const instructor = await prisma.user.findUnique({
+            where: { id: course.instructorId },
+            select: { name: true },
+          });
+
+          // Buscar todos os usuários (apenas IDs para performance)
+          const users = await prisma.user.findMany({
+            select: { id: true },
+          });
+
+          if (users.length > 0) {
+            const notifications = users.map((user) =>
+              NotificationBuilder.createNewCourseNotification(user.id, {
+                courseId: updatedCourse.id,
+                courseTitle: updatedCourse.title,
+                courseSlug: updatedCourse.slug,
+                instructorName: instructor?.name,
+              })
+            );
+
+            await createNotificationsBatch(notifications);
+          }
+        } catch (error) {
+          // Não quebra o fluxo se a notificação falhar
+          console.error("Erro ao criar notificações de novo curso:", {
+            courseId: updatedCourse.id,
+            error: error instanceof Error ? error.message : "Unknown error",
+            stack: error instanceof Error ? error.stack : undefined,
+          });
+        }
+      });
+    }
 
     return {
       course: updatedCourse,

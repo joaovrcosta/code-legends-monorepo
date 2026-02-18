@@ -15,6 +15,7 @@ import { favoriteCourseRoutes } from "./http/controllers/favorite-course/routes"
 import { certificateRoutes } from "./http/controllers/certificate/routes";
 import { tagRoutes } from "./http/controllers/tag/routes";
 import { requestRoutes } from "./http/controllers/request/routes";
+import { notificationRoutes } from "./http/controllers/notification/routes";
 import { verifyCertificate } from "./http/controllers/certificate/verify.controller";
 import { env } from "./env/index";
 
@@ -100,6 +101,7 @@ app.register(favoriteCourseRoutes);
 app.register(certificateRoutes);
 app.register(tagRoutes);
 app.register(requestRoutes);
+app.register(notificationRoutes);
 
 app.setErrorHandler((error, _, reply) => {
   if (error instanceof ZodError) {

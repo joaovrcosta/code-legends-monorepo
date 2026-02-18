@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { searchCourses } from "@/actions/course/search-courses";
 import { CourseWithCount } from "@/types/user-course.ts";
 import { Loader2 } from "lucide-react";
+import { NotificationsSection } from "../notifications-section";
 
 interface LearnHeaderProps {
   initialUserCourses: EnrolledCourse[];
@@ -158,6 +159,8 @@ export default function LearnHeader({
               initialActiveCourse={initialActiveCourse}
             />
             <StrikeSection />
+
+            <NotificationsSection />
 
             {/* <div className="flex items-center space-x-2">
               <Brain size={24} weight="fill" className="text-[#00C8FF]" />
