@@ -1,6 +1,5 @@
 import fastify from "fastify";
 import { ZodError } from "zod";
-
 import fastifyCors from "@fastify/cors";
 import fastifyCookie from "@fastify/cookie";
 import fastifyJwt from "@fastify/jwt";
@@ -19,9 +18,10 @@ import { requestRoutes } from "./http/controllers/request/routes";
 import { verifyCertificate } from "./http/controllers/certificate/verify.controller";
 import { env } from "./env/index";
 
-export const app = fastify();
+export const app = fastify({
+  trustProxy: true,
+});
 
-// Configurar parser de JSON para aceitar body vazio
 app.removeContentTypeParser("application/json");
 app.addContentTypeParser(
   "application/json",
@@ -55,17 +55,40 @@ app.register(fastifyJwt, {
   },
 });
 
-// Rota pública para verificação de certificados (para recrutadores)
-// Deve ser registrada ANTES do plugin de certificados para não passar pelo hook de autenticação
-// Rate limiting aplicado para prevenir ataques de enumeração e brute force
-app.register(async function (fastify) {
-  await fastify.register(fastifyRateLimit, {
-    max: 50, // Limite: 50 requisições por minuto por IP
-    timeWindow: 60 * 1000, // 1 minuto em milissegundos (para versão 9.x)
-  });
+app.register(fastifyRateLimit, {
+  max: 50,
+  timeWindow: 60 * 1000,
+  keyGenerator: async (request) => {
+    if (request.user?.id) {
+      return `user:${request.user.id}`;
+    }
 
-  fastify.get("/certificates/verify/:id", verifyCertificate);
+    try {
+      await request.jwtVerify();
+      if (request.user?.id) {
+        return `user:${request.user.id}`;
+      }
+    } catch { }
+
+    return `ip:${request.ip}`;
+  },
+  errorResponseBuilder: (request, context) => {
+    return {
+      code: 429,
+      error: "Too Many Requests",
+      message: `Rate limit exceeded. Maximum ${context.max} requests per minute allowed.`,
+      retryAfter: Math.ceil(context.ttl / 1000),
+    };
+  },
+  addHeaders: {
+    "x-ratelimit-limit": true,
+    "x-ratelimit-remaining": true,
+    "x-ratelimit-reset": true,
+    "retry-after": true,
+  },
 });
+
+app.get("/certificates/verify/:id", verifyCertificate);
 
 app.register(usersRoutes);
 app.register(courseRoutes);
@@ -85,14 +108,12 @@ app.setErrorHandler((error, _, reply) => {
       .send({ message: "validation error", issues: error.format() });
   }
 
-  // Sempre logar erros para debug
-  console.error("Unhandled error:", error);
-  
   if (env.NODE_ENV !== "production") {
-    return reply.status(500).send({ 
+    console.error(error);
+    return reply.status(500).send({
       message: "internal server error",
       error: error.message,
-      stack: error.stack 
+      stack: error.stack,
     });
   }
 

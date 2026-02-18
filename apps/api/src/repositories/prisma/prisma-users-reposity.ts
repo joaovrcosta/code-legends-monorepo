@@ -17,14 +17,22 @@ export class PrismaUsersRepository implements IUsersRepository {
       ? await bcrypt.hash(data.password, 6)
       : null;
 
-    const user = await prisma.user.create({
-      data: {
-        ...data,
-        password: hashedPassword,
-      },
-    });
+    try {
+      const user = await prisma.user.create({
+        data: {
+          ...data,
+          password: hashedPassword,
+        },
+      });
 
-    return user;
+      return user;
+    } catch (error: any) {
+      // Se for erro de constraint única (email duplicado)
+      if (error?.code === "P2002" && error?.meta?.target?.includes("email")) {
+        throw new Error("User with this email already exists");
+      }
+      throw error;
+    }
   }
 
   async findByEmail(email: string) {

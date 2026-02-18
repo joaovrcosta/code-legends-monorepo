@@ -1,5 +1,6 @@
 import { User } from "@prisma/client";
 import { IUsersRepository } from "../../../repositories/users-repository";
+import { UserAlreadyExistsError } from "../../errors/user-already-exists";
 
 interface CreateUserRequest {
   name: string;
@@ -15,7 +16,7 @@ export class CreateUserUseCase {
     const userWithSameEmail = await this.userRepository.findByEmail(data.email);
 
     if (userWithSameEmail) {
-      throw new Error("User already exists");
+      throw new UserAlreadyExistsError();
     }
 
     const user = await this.userRepository.create(data);
