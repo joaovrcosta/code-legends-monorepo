@@ -10,9 +10,9 @@ import {
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { getNotifications, type Notification } from "@/actions/notification/get-notifications";
-import { getUnreadCount } from "@/actions/notification/get-unread-count";
 import { markAsRead } from "@/actions/notification/mark-as-read";
 import { markAllAsRead } from "@/actions/notification/mark-all-as-read";
+import { useNotificationSSE } from "@/hooks/use-notification-sse";
 
 function formatRelativeTime(dateString: string): string {
     const date = new Date(dateString);
@@ -43,18 +43,19 @@ export function NotificationsSection() {
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<"unread" | "read">("unread");
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [unreadCount, setUnreadCount] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
+    
+    // Usar SSE para contagem em tempo real
+    const { unreadCount } = useNotificationSSE();
 
     const loadNotifications = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [notificationsData, countData] = await Promise.all([
-                getNotifications(activeTab === "unread" ? false : true, 50),
-                getUnreadCount(),
-            ]);
+            const notificationsData = await getNotifications(
+                activeTab === "unread" ? false : true,
+                50
+            );
             setNotifications(notificationsData.notifications);
-            setUnreadCount(countData.count);
         } catch (error) {
             console.error("Erro ao carregar notificações:", error);
         } finally {
@@ -63,38 +64,10 @@ export function NotificationsSection() {
     }, [activeTab]);
 
     useEffect(() => {
-        const loadInitialCount = async () => {
-            try {
-                const countData = await getUnreadCount();
-                setUnreadCount(countData.count);
-            } catch (error) {
-                console.error("Erro ao carregar contagem inicial:", error);
-            }
-        };
-
-        loadInitialCount();
-    }, []);
-
-    useEffect(() => {
         if (isOpen) {
             loadNotifications();
         }
     }, [isOpen, activeTab, loadNotifications]);
-
-    useEffect(() => {
-        if (!isOpen) {
-            const interval = setInterval(async () => {
-                try {
-                    const countData = await getUnreadCount();
-                    setUnreadCount(countData.count);
-                } catch (error) {
-                    console.error("Erro ao atualizar contagem:", error);
-                }
-            }, 30000);
-
-            return () => clearInterval(interval);
-        }
-    }, [isOpen]);
 
     const handleMarkAsRead = async (notificationId: string) => {
         const result = await markAsRead(notificationId);
@@ -104,7 +77,7 @@ export function NotificationsSection() {
                     n.id === notificationId ? { ...n, read: true } : n
                 )
             );
-            setUnreadCount((prev) => Math.max(0, prev - 1));
+            // A contagem será atualizada automaticamente via SSE
         }
     };
 
@@ -114,7 +87,7 @@ export function NotificationsSection() {
             setNotifications((prev) =>
                 prev.map((n) => ({ ...n, read: true }))
             );
-            setUnreadCount(0);
+            // A contagem será atualizada automaticamente via SSE
         }
     };
 

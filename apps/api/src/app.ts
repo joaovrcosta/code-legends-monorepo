@@ -39,8 +39,39 @@ app.addContentTypeParser(
 );
 
 app.register(fastifyCors, {
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: (origin, callback) => {
+    const devOrigins = [
+      "http://localhost:3000",
+      "http://localhost:3001",
+    ];
+
+    const prodOrigins = [
+      "https://www.codelegends.com.br",
+      "https://codelegends.com.br",
+    ];
+
+    const allowedOrigins = env.NODE_ENV === "production"
+      ? prodOrigins
+      : [...devOrigins, ...prodOrigins];
+
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Em desenvolvimento, permitir qualquer origem localhost
+    if (env.NODE_ENV === "development" && origin.includes("localhost")) {
+      return callback(null, true);
+    }
+
+    callback(new Error("Not allowed by CORS"), false);
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+  credentials: true,
 });
 
 app.register(fastifyCookie);
@@ -56,10 +87,15 @@ app.register(fastifyJwt, {
   },
 });
 
+// @ts-ignore - skip é uma propriedade válida do fastify-rate-limit
 app.register(fastifyRateLimit, {
   max: 50,
   timeWindow: 60 * 1000,
   keyGenerator: async (request) => {
+    if (request.url?.includes("/notifications/sse")) {
+      return `sse:${request.ip}`;
+    }
+
     if (request.user?.id) {
       return `user:${request.user.id}`;
     }
@@ -73,7 +109,11 @@ app.register(fastifyRateLimit, {
 
     return `ip:${request.ip}`;
   },
-  errorResponseBuilder: (request, context) => {
+  skip: (request: any) => {
+    // Pula rate limit para endpoint SSE e OPTIONS
+    return (request.url?.includes("/notifications/sse") ?? false) || request.method === "OPTIONS";
+  },
+  errorResponseBuilder: (request: any, context: any) => {
     return {
       code: 429,
       error: "Too Many Requests",

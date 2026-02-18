@@ -1,5 +1,7 @@
 import { NotificationType, Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "../lib/prisma";
+import { sseManager } from "./sse-manager";
+import { makeGetUnreadCountUseCase } from "./factories/make-get-unread-count-use-case";
 
 interface CreateNotificationParams {
   userId: string;
@@ -38,6 +40,22 @@ export async function createNotification(
         data: params.data ?? null,
       },
     });
+
+    // Enviar atualização via SSE se o cliente estiver conectado
+    try {
+      const getUnreadCountUseCase = makeGetUnreadCountUseCase();
+      const { count } = await getUnreadCountUseCase.execute({
+        userId: params.userId,
+      });
+      
+      sseManager.sendToUser(params.userId, "notification", {
+        count,
+        type: "new_notification",
+      });
+    } catch (sseError) {
+      // Falha no SSE não deve quebrar o fluxo
+      // Cliente pode não estar conectado, o que é normal
+    }
   } catch (error) {
     // Log do erro mas não quebra o fluxo principal
     console.error("Erro ao criar notificação:", {
@@ -76,6 +94,27 @@ export async function createNotificationsBatch(
         skipDuplicates: true,
       });
     }
+
+    // Enviar atualizações SSE apenas para usuários conectados
+    // Agrupar por userId para evitar queries duplicadas
+    const uniqueUserIds = [...new Set(notifications.map(n => n.userId))];
+    
+    // Processar em background para não bloquear
+    setImmediate(async () => {
+      const getUnreadCountUseCase = makeGetUnreadCountUseCase();
+      
+      for (const userId of uniqueUserIds) {
+        try {
+          const { count } = await getUnreadCountUseCase.execute({ userId });
+          sseManager.sendToUser(userId, "notification", {
+            count,
+            type: "new_notification",
+          });
+        } catch (sseError) {
+          // Ignorar erros - usuário pode não estar conectado
+        }
+      }
+    });
   } catch (error) {
     // Log do erro mas não quebra o fluxo principal
     console.error("Erro ao criar notificações em lote:", {
