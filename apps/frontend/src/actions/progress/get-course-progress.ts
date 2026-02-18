@@ -33,12 +33,17 @@ export async function getUserCourseProgress(
 
     if (!response.ok) {
       if (response.status === 404) {
-        // Curso não encontrado ou usuário não está inscrito
+        // Curso não encontrado
         return null;
       }
 
       if (response.status === 401) {
-        console.error("Não autorizado");
+        // Não autorizado
+        return null;
+      }
+
+      if (response.status === 403) {
+        // Usuário não está inscrito no curso - comportamento esperado
         return null;
       }
 
