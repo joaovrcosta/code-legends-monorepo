@@ -39,7 +39,7 @@ export default async function Home() {
                 <CurrentCourseCard />
               </div>
 
-              <div className="w-full pr-6 mt-6">
+              <div className="w-full pr-6 mt-0">
                 <CurrentCourses />
               </div>
 

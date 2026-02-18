@@ -10,12 +10,22 @@ import { RecomendationCard } from "./recomendation-card";
 
 // Função para mapear level para color
 const getColorByLevel = (level: string): string => {
-    switch (level) {
+    const normalized = (level ?? "")
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    switch (normalized) {
         case "beginner":
+        case "iniciante":
             return "blue";
         case "intermediate":
+        case "intermediario":
             return "lime";
         case "advanced":
+        case "avancado":
             return "orange";
         default:
             return "gray";
@@ -59,7 +69,8 @@ export function RecommendationsCarousel({
                                 isCurrent={false}
                                 tags={course.tags}
                                 courseId={course.id}
-                                level={course.level as "beginner" | "intermediate" | "advanced"}
+                                level={course.level}
+                                isFree={course.isFree}
                             />
                         </CarouselItem>
                     ))}

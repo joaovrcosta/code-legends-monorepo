@@ -114,6 +114,36 @@ function getStatusInfo(status?: CatalogCardProps["status"]) {
   }
 }
 
+function getAudienceLabelFromLevel(level?: string): string {
+  const normalized = (level ?? "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (normalized === "beginner" || normalized === "iniciante") return "Iniciantes";
+  if (normalized === "intermediate" || normalized === "intermediario") return "Intermediários";
+  if (normalized === "advanced" || normalized === "avancado") return "Avançados";
+
+  return "Avançados";
+}
+
+function getAccentClassFromLevel(level?: string): string {
+  const normalized = (level ?? "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (normalized === "beginner" || normalized === "iniciante") return "text-green-500";
+  if (normalized === "intermediate" || normalized === "intermediario") return "text-orange-500";
+  if (normalized === "advanced" || normalized === "avancado") return "text-violet-700";
+
+  return "text-green-500";
+}
+
 interface CatalogCardProps {
   name: string;
   image?: string | StaticImageData;
@@ -127,7 +157,8 @@ interface CatalogCardProps {
   courseId?: string;
   isEnrolled?: boolean;
   onEnrollSuccess?: () => void;
-  level?: "beginner" | "intermediate" | "advanced";
+  level?: string;
+  isFree?: boolean;
 }
 
 export function CatalogCard({
@@ -141,6 +172,7 @@ export function CatalogCard({
   onEnrollSuccess,
   isEnrolled,
   level,
+  isFree,
 }: CatalogCardProps) {
   const imageSrc = image || reactIcon;
 
@@ -148,22 +180,25 @@ export function CatalogCard({
   return (
     <div
       className={`relative shadow-2xl w-full rounded-[16px] transition-colors duration-300 cursor-pointer hover:border-[#3f3f48]
-    ${
-      isCurrent
-        ? "bg-blue-gradient-second border-[#35BED5]"
-        : "bg-gray-gradient border-[#25252A]"
-    }
+    ${isCurrent
+          ? "bg-blue-gradient-second border-[#35BED5]"
+          : "bg-gray-gradient border-[#25252A]"
+        }
     border hover:shadow-[inset_0_-20px_20px_rgba(255,255,255,0.025)] ${className}`}
     >
       {label && (
         <div className="flex items-center justify-between rounded-t-[20px] pr-4 pl-4 pt-4 pb-0">
           <div
-            className={`text-white ${statusClass} rounded-full px-2 border ${
-              isCurrent ? "border-white" : "border-[#25252A]"
-            }`}
+            className={`text-white ${statusClass} rounded-full px-2 border ${isCurrent ? "border-white" : "border-[#25252A]"
+              }`}
           >
             <p className="text-sm">{label}</p>
           </div>
+          {isFree && (
+            <div className="bg-green-500/20 border border-green-500/50 rounded-full px-2 py-0.5">
+              <p className="text-xs text-green-400 font-semibold">Gratuito</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -186,15 +221,11 @@ export function CatalogCard({
       </div>
 
       <div className="flex items-center justify-between pr-4 pl-4 pb-4">
-        <div className="flex items-center gap-2  text-green-500 text-xs">
-          <ChartNoAxesColumnIncreasing size={16} />
+        <div className="flex items-center gap-2 text-xs text-white">
+          <ChartNoAxesColumnIncreasing size={16} className={getAccentClassFromLevel(level)} />
           <p className="">
             Para{" "}
-            {level === "beginner"
-              ? "Iniciantes"
-              : level === "intermediate"
-              ? "Intermediários"
-              : "Avançados"}
+            {getAudienceLabelFromLevel(level)}
           </p>
         </div>
 

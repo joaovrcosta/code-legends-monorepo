@@ -22,6 +22,29 @@ function base64UrlDecode(str: string): string {
 }
 
 /**
+ * Decodifica o payload do JWT e retorna os dados do usuário
+ */
+function decodeJWT(token: string): { role?: string; exp?: number } | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    const payload = parts[1];
+    const decodedPayloadStr = base64UrlDecode(payload);
+
+    if (!decodedPayloadStr) {
+      return null;
+    }
+
+    return JSON.parse(decodedPayloadStr);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Decodifica e valida um token JWT
  * Retorna true se o token é válido e não está expirado, false caso contrário
  */
@@ -85,8 +108,29 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  if (pathname === "/login" && isValidToken) {
-    return NextResponse.redirect(new URL("/", request.url));
+  // Se não é rota pública, verificar autenticação e role
+  if (!isPublicRoute) {
+    if (!token || !isValidToken) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    // Decodificar token e verificar role
+    const payload = decodeJWT(token);
+    if (payload?.role === "STUDENT") {
+      const response = NextResponse.redirect(
+        new URL("/login?error=access_denied", request.url)
+      );
+      response.cookies.delete("auth_token");
+      return response;
+    }
+  }
+
+  // Se está na página de login e já está autenticado com role válida
+  if (pathname === "/login" && isValidToken && token) {
+    const payload = decodeJWT(token);
+    if (payload?.role && payload.role !== "STUDENT") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
   }
 
   if (!isPublicRoute && !isValidToken) {

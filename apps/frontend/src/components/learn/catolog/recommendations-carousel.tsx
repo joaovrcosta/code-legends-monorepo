@@ -10,12 +10,22 @@ import type { CourseWithCount } from "@/types/user-course.ts";
 
 // Função para mapear level para color
 const getColorByLevel = (level: string): string => {
-  switch (level) {
+  const normalized = (level ?? "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  switch (normalized) {
     case "beginner":
+    case "iniciante":
       return "blue";
     case "intermediate":
+    case "intermediario":
       return "lime";
     case "advanced":
+    case "avancado":
       return "orange";
     default:
       return "gray";
@@ -48,7 +58,8 @@ export function RecommendationsCarousel({
                 tags={course.tags}
                 courseId={course.id}
                 isEnrolled={course.isEnrolled}
-                level={course.level as "beginner" | "intermediate" | "advanced"}
+                level={course.level}
+                isFree={course.isFree}
               />
             </CarouselItem>
           ))}

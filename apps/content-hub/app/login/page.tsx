@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,21 +12,45 @@ import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam === "access_denied") {
+      setError("Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.");
+    }
+  }, [searchParams]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     try {
       setLoading(true);
       const token = await authenticateUser(formData.email, formData.password);
+      
+      // Verificar role antes de salvar token
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.role === "STUDENT") {
+          setError("Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.");
+          toast.error("Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.");
+          return;
+        }
+      } catch (decodeError) {
+        console.error("Erro ao decodificar token:", decodeError);
+      }
+      
       setAuthToken(token);
       router.push("/");
     } catch (error: any) {
       console.error("Erro ao fazer login:", error);
+      setError(error.message || "Erro ao fazer login");
       toast.error(error.message || "Erro ao fazer login");
     } finally {
       setLoading(false);
@@ -42,6 +66,12 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800">
+                {error}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input

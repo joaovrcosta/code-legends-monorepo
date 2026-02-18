@@ -28,6 +28,8 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { CourseBuilder } from "@/components/course-builder/course-builder";
 import { toast } from "sonner";
+import { verifyPassword } from "@/actions/user/verify-password";
+import { X } from "lucide-react";
 
 export default function EditCoursePage() {
   const router = useRouter();
@@ -44,6 +46,10 @@ export default function EditCoursePage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [courseStatus, setCourseStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT");
   const [modules, setModules] = useState<ModuleWithStructure[]>([]);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [publishPassword, setPublishPassword] = useState("");
+  const [verifyingPassword, setVerifyingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
   const [formData, setFormData] = useState<UpdateCourseData>({
     title: "",
     slug: "",
@@ -221,37 +227,65 @@ export default function EditCoursePage() {
     return errors;
   };
 
-  const handlePublish = async () => {
+  const handlePublishClick = () => {
     const errors = validateCourseForPublishing();
     if (errors.length > 0) {
       toast.error(`Não é possível publicar o curso:\n${errors.join("\n")}`);
       return;
     }
 
-    if (!confirm("Tem certeza que deseja publicar este curso?")) {
+    setShowPublishModal(true);
+    setPublishPassword("");
+    setPasswordError("");
+  };
+
+  const handlePublishConfirm = async () => {
+    if (!publishPassword.trim()) {
+      setPasswordError("Senha é obrigatória");
       return;
     }
 
+    setVerifyingPassword(true);
+    setPasswordError("");
+
     try {
-      setLoading(true);
-      const token = getAuthTokenFromClient();
-      if (!token) {
-        toast.error("Token de autenticação não encontrado");
+      const result = await verifyPassword(publishPassword);
+
+      if (!result.success) {
+        setPasswordError(result.message);
+        setVerifyingPassword(false);
         return;
       }
 
-      const response = await publishCourse(courseId, token);
-      setCourseStatus(response.course.status);
-      toast.success("Curso publicado com sucesso!");
-      // Aguardar um pouco antes de recarregar para garantir que o backend processou
-      setTimeout(() => {
-        loadCourse();
-      }, 500);
+      setShowPublishModal(false);
+      setPublishPassword("");
+      setPasswordError("");
+
+      try {
+        setLoading(true);
+        const token = getAuthTokenFromClient();
+        if (!token) {
+          toast.error("Token de autenticação não encontrado");
+          return;
+        }
+
+        const response = await publishCourse(courseId, token);
+        setCourseStatus(response.course.status);
+        toast.success("Curso publicado com sucesso!");
+        setTimeout(() => {
+          loadCourse();
+        }, 500);
+      } catch (error: any) {
+        console.error("Erro ao publicar curso:", error);
+        toast.error(error.message || "Erro ao publicar curso");
+      } finally {
+        setLoading(false);
+      }
     } catch (error: any) {
-      console.error("Erro ao publicar curso:", error);
-      toast.error(error.message || "Erro ao publicar curso");
+      console.error("Erro ao verificar senha:", error);
+      setPasswordError("Erro ao verificar senha. Tente novamente.");
     } finally {
-      setLoading(false);
+      setVerifyingPassword(false);
     }
   };
 
@@ -307,18 +341,16 @@ export default function EditCoursePage() {
                   {formData.title || "Editar Curso"}
                 </h1>
                 <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                    courseStatus === "PUBLISHED"
-                      ? "bg-emerald-900/20 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
-                      : "bg-yellow-900/20 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300"
-                  }`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${courseStatus === "PUBLISHED"
+                    ? "bg-emerald-900/20 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                    : "bg-yellow-900/20 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300"
+                    }`}
                 >
                   <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      courseStatus === "PUBLISHED"
-                        ? "bg-emerald-700 dark:bg-emerald-400"
-                        : "bg-yellow-700 dark:bg-yellow-400"
-                    }`}
+                    className={`w-1.5 h-1.5 rounded-full ${courseStatus === "PUBLISHED"
+                      ? "bg-emerald-700 dark:bg-emerald-400"
+                      : "bg-yellow-700 dark:bg-yellow-400"
+                      }`}
                   />
                   {courseStatus === "PUBLISHED" ? "Publicado" : "Rascunho"}
                 </span>
@@ -597,7 +629,7 @@ export default function EditCoursePage() {
                 {courseStatus === "DRAFT" ? (
                   <Button
                     type="button"
-                    onClick={handlePublish}
+                    onClick={handlePublishClick}
                     disabled={loading}
                     className="bg-emerald-600 hover:bg-emerald-700"
                   >
@@ -641,6 +673,79 @@ export default function EditCoursePage() {
             )}
           </CardContent>
         </Card>
+
+        {showPublishModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Confirmar Publicação</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setShowPublishModal(false);
+                    setPublishPassword("");
+                    setPasswordError("");
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Tem certeza que deseja publicar este curso? Para confirmar, digite sua senha:
+                </p>
+
+                <div className="space-y-2">
+                  <Label htmlFor="publish-password">Senha</Label>
+                  <Input
+                    id="publish-password"
+                    type="password"
+                    value={publishPassword}
+                    onChange={(e) => {
+                      setPublishPassword(e.target.value);
+                      setPasswordError("");
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !verifyingPassword) {
+                        handlePublishConfirm();
+                      }
+                    }}
+                    placeholder="Digite sua senha"
+                    disabled={verifyingPassword}
+                    autoFocus
+                  />
+                  {passwordError && (
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      {passwordError}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowPublishModal(false);
+                      setPublishPassword("");
+                      setPasswordError("");
+                    }}
+                    disabled={verifyingPassword}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handlePublishConfirm}
+                    disabled={verifyingPassword || !publishPassword.trim()}
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    {verifyingPassword ? "Verificando..." : "Confirmar Publicação"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </MainLayout>
   );

@@ -132,6 +132,36 @@ function getStatusInfo(status?: RecomendationCardProps["status"]) {
     }
 }
 
+function getAudienceLabelFromLevel(level?: string): string {
+    const normalized = (level ?? "")
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    if (normalized === "beginner" || normalized === "iniciante") return "Iniciantes";
+    if (normalized === "intermediate" || normalized === "intermediario") return "Intermediários";
+    if (normalized === "advanced" || normalized === "avancado") return "Avançados";
+
+    return "Avançados";
+}
+
+function getAccentClassFromLevel(level?: string): string {
+    const normalized = (level ?? "")
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    if (normalized === "beginner" || normalized === "iniciante") return "text-green-500";
+    if (normalized === "intermediate" || normalized === "intermediario") return "text-orange-500";
+    if (normalized === "advanced" || normalized === "avancado") return "text-violet-700";
+
+    return "text-green-500";
+}
+
 interface RecomendationCardProps {
     name: string;
     image?: string | StaticImageData;
@@ -144,7 +174,8 @@ interface RecomendationCardProps {
     tags?: string[];
     courseId?: string;
     onEnrollSuccess?: () => void;
-    level?: "beginner" | "intermediate" | "advanced";
+    level?: string;
+    isFree?: boolean;
 }
 
 export function RecomendationCard({
@@ -157,13 +188,14 @@ export function RecomendationCard({
     courseId,
     onEnrollSuccess,
     level,
+    isFree,
 }: RecomendationCardProps) {
     const imageSrc = image || reactIcon;
 
     const { label, className: statusClass } = getStatusInfo(status);
     return (
         <div
-            className={`relative shadow-2xl w-full rounded-[16px] min-w-[300px] transition-colors duration-300 cursor-pointer hover:border-[#3f3f48]
+            className={`relative shadow-2xl w-full rounded-[16px] min-w-[300px] h-[280px] flex flex-col transition-colors duration-300 cursor-pointer hover:border-[#3f3f48]
     ${isCurrent
                     ? "bg-blue-gradient-second border-[#35BED5]"
                     : "bg-gray-gradient border-[#25252A]"
@@ -178,37 +210,38 @@ export function RecomendationCard({
                     >
                         <p className="text-sm">{label}</p>
                     </div>
+                    {isFree && (
+                        <div className="bg-green-500/20 border border-green-500/50 rounded-full px-2 py-0.5">
+                            <p className="text-xs text-green-400 font-semibold">Gratuito</p>
+                        </div>
+                    )}
                 </div>
             )}
 
-            <div className="p-4">
+            <div className="p-4 flex-1 flex flex-col">
                 <Image
                     src={imageSrc}
                     alt={name}
                     width={80}
                     height={80}
-                    className="-mb-4"
+                    className="mb-3"
                 />
-                <div className="px-4 pt-4">
+                <div className="px-4 pt-2 flex-1">
                     <div className="flex items-center space-x-1">
-                        <span className={`font-semibold bg-clip-text text-base text-white`}>
+                        <span className={`font-semibold bg-clip-text text-base text-white line-clamp-2`}>
                             {name}
                         </span>
-                        <ArrowUpRight />
+                        <ArrowUpRight className="flex-shrink-0" />
                     </div>
                 </div>
             </div>
 
-            <div className="flex items-center justify-between pr-4 pl-4 pb-4">
-                <div className="flex items-center gap-2  text-green-500 text-xs">
-                    <ChartNoAxesColumnIncreasing size={16} />
-                    <p className="">
+            <div className="flex items-center justify-between pr-4 pl-4 pb-4 mt-auto">
+                <div className="flex items-center gap-2 text-xs text-white">
+                    <ChartNoAxesColumnIncreasing size={16} className={getAccentClassFromLevel(level)} />
+                    <p className="text-muted-foreground">
                         Para{" "}
-                        {level === "beginner"
-                            ? "Iniciantes"
-                            : level === "intermediate"
-                                ? "Intermediários"
-                                : "Avançados"}
+                        {getAudienceLabelFromLevel(level)}
                     </p>
                 </div>
 
