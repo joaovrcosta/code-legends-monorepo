@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Bell, Check, Gear, Rocket, X, Info } from "@phosphor-icons/react/dist/ssr";
+import { Bell, Check, Gear, Rocket, Info } from "@phosphor-icons/react/dist/ssr";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
