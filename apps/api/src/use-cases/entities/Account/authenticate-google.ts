@@ -28,8 +28,10 @@ export class AuthenticateGoogleUseCase {
     let user = await this.userRepository.findByEmail(email);
 
     if (user) {
-      // Usuário existe - atualiza dados se necessário e vincula Google
-      const updateData: any = { googleId };
+      const updateData: any = {
+        googleId,
+        lastLogin: new Date(),
+      };
       if (!user.avatar && avatar) {
         updateData.avatar = avatar;
       }
@@ -37,16 +39,14 @@ export class AuthenticateGoogleUseCase {
       return { user, isNewUser: false };
     }
 
-    // Usuário não existe - verifica se pode associar provider
     if (!canAssociateProvider) {
       throw new Error("USER_NOT_FOUND");
     }
 
-    // Usuário não existe - cria novo com Google vinculado
     const newUser = await this.userRepository.create({
       email,
       name,
-      password: null, // Sem senha para login Google
+      password: null,
       avatar: avatar || null,
       googleId,
     });

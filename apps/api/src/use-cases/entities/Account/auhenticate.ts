@@ -31,8 +31,12 @@ export class AuthenticateUserUseCase {
       throw new InvalidCredentialsError();
     }
 
+    const updatedUser = await this.userRepository.update(user.id, {
+      lastLogin: new Date(),
+    });
+
     return {
-      user,
+      user: updatedUser,
     };
   }
 }

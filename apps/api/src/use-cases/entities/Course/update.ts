@@ -90,8 +90,16 @@ export class UpdateCourseUseCase {
             select: { name: true },
           });
 
-          // Buscar todos os usuários (apenas IDs para performance)
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+          // Buscar apenas usuários ativos (fizeram login nos últimos 30 dias)
           const users = await prisma.user.findMany({
+            where: {
+              lastLogin: {
+                gte: thirtyDaysAgo,
+              },
+            },
             select: { id: true },
           });
 

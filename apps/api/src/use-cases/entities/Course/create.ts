@@ -69,14 +69,22 @@ export class CreateCourseUseCase {
 
     const course = await this.courseRepository.create(data);
 
-    // Criar notificações para todos os usuários se o curso estiver ativo
+    // Criar notificações para usuários ativos (último login nos últimos 30 dias) se o curso estiver ativo
     // Fazemos isso de forma assíncrona para não bloquear a resposta
     if (course.active) {
       // Não aguardamos a conclusão - executa em background
       setImmediate(async () => {
         try {
-          // Buscar todos os usuários (apenas IDs para performance)
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+          // Buscar apenas usuários ativos (fizeram login nos últimos 30 dias)
           const users = await prisma.user.findMany({
+            where: {
+              lastLogin: {
+                gte: thirtyDaysAgo,
+              },
+            },
             select: { id: true },
           });
 

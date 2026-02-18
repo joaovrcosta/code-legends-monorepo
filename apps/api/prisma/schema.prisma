@@ -89,6 +89,7 @@ model User {
   totalXp             Int           @default(0)
   level               Int           @default(1)
   xpToNextLevel       Int           @default(100)
+  lastLogin           DateTime?
 
   expertise Expertise[] @relation("UserToExpertise")
 
