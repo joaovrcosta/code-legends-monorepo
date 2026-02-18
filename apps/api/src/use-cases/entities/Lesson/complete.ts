@@ -41,7 +41,7 @@ export class CompleteLessonUseCase {
     private moduleRepository: IModuleRepository,
     private courseRepository: ICourseRepository,
     private usersRepository: IUsersRepository
-  ) {}
+  ) { }
 
   async execute({
     userId,
@@ -111,6 +111,9 @@ export class CompleteLessonUseCase {
       throw new Error("User not found");
     }
 
+    // Calcular xpToNextLevel inicial baseado no nível atual do usuário
+    xpToNextLevel = this.calculateXpToNextLevel(user.level, user.totalXp);
+
     if (!wasAlreadyCompleted) {
       // Calcular novo XP e nível
       const newTotalXp = user.totalXp + this.XP_PER_LESSON;
@@ -173,10 +176,22 @@ export class CompleteLessonUseCase {
       level = newLevel;
       xpToNextLevel = newXpToNextLevel;
     } else {
-      // Se já estava completa, usar dados atuais do usuário (sem ganhar XP)
+      // Se já estava completa, recalcular nível e xpToNextLevel baseado no XP atual
+      // Isso garante que se a fórmula mudou, os valores sejam atualizados
       totalXp = user.totalXp;
-      level = user.level;
-      xpToNextLevel = user.xpToNextLevel;
+      level = this.calculateLevel(user.totalXp);
+      xpToNextLevel = this.calculateXpToNextLevel(level, user.totalXp);
+
+      // Se o nível calculado for diferente do armazenado, atualizar no banco
+      if (level !== user.level || xpToNextLevel !== user.xpToNextLevel) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: {
+            level,
+            xpToNextLevel,
+          },
+        });
+      }
     }
 
     // Buscar todas as aulas do módulo para calcular o progresso
@@ -364,20 +379,56 @@ export class CompleteLessonUseCase {
   }
 
   /**
+   * Calcula o XP total necessário para alcançar um determinado nível
+   * Fórmula progressiva: XP total = 100 * level + 50 * (level - 1) * level / 2
+   * Exemplo:
+   * - Nível 1: 100 XP total
+   * - Nível 2: 250 XP total (100 + 150)
+   * - Nível 3: 450 XP total (250 + 200)
+   * - Nível 4: 700 XP total (450 + 250)
+   */
+  private calculateXpForLevel(level: number): number {
+    if (level <= 1) return 100;
+    // XP total = 100 * level + 50 * (level - 1) * level / 2
+    // Simplificado: 100 * level + 25 * (level - 1) * level
+    return 100 * level + 25 * (level - 1) * level;
+  }
+
+  /**
+   * Calcula o XP necessário apenas para o próximo nível (não acumulado)
+   * Fórmula: XP necessário = 100 + (level - 1) * 50
+   * Exemplo:
+   * - Para nível 2: 100 + (2-1) * 50 = 150 XP
+   * - Para nível 3: 100 + (3-1) * 50 = 200 XP
+   * - Para nível 4: 100 + (4-1) * 50 = 250 XP
+   */
+  private calculateXpRequiredForNextLevel(level: number): number {
+    return 100 + (level - 1) * 50;
+  }
+
+  /**
    * Calcula o nível baseado no XP total
-   * Fórmula: level = Math.floor(totalXp / 100) + 1
+   * Usa busca binária ou iteração para encontrar o nível correto
    */
   private calculateLevel(totalXp: number): number {
-    return Math.floor(totalXp / 100) + 1;
+    if (totalXp < 100) return 1;
+
+    let level = 1;
+    while (this.calculateXpForLevel(level + 1) <= totalXp) {
+      level++;
+    }
+    return level;
   }
 
   /**
    * Calcula o XP necessário para alcançar o próximo nível
-   * Fórmula: xpToNextLevel = (level * 100) - totalXp
+   * Retorna quanto XP falta para subir de nível
    */
   private calculateXpToNextLevel(level: number, totalXp: number): number {
-    const xpForNextLevel = level * 100;
-    return Math.max(0, xpForNextLevel - totalXp);
+    const xpForCurrentLevel = this.calculateXpForLevel(level);
+    const xpForNextLevel = this.calculateXpForLevel(level + 1);
+    const xpNeeded = xpForNextLevel - totalXp;
+    return Math.max(0, xpNeeded);
   }
 
   private async getAllLessonsInOrder(courseId: string) {

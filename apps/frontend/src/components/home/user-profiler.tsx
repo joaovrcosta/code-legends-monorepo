@@ -4,11 +4,30 @@ import { ActivityCalendar } from "./activity-calendar";
 import { CaretRight, Flame, Lightning } from "@phosphor-icons/react/dist/ssr";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { getCurrentUser } from "@/actions/user/get-current-user";
+import { getUserFromAPI } from "@/actions/user/get-user-from-api";
 
 export async function UserProfiler() {
     const user = await getCurrentUser();
+    const userFromAPI = await getUserFromAPI();
     const firstName = user?.name?.split(" ")[0] || "Usuário";
-    const progress = 82;
+
+    const level = userFromAPI?.level ?? user?.level ?? 1;
+    const totalXp = userFromAPI?.totalXp ?? user?.totalXp ?? 0;
+    const xpToNextLevel = userFromAPI?.xpToNextLevel ?? user?.xpToNextLevel ?? 100;
+    
+    // Calcula o XP necessário apenas para o próximo nível
+    const calculateXpRequiredForNextLevel = (lvl: number): number => {
+      return 100 + (lvl - 1) * 50;
+    };
+    
+    // XP necessário para passar do nível atual para o próximo
+    const xpNeededForNextLevel = calculateXpRequiredForNextLevel(level);
+    // XP atual no nível = XP necessário - XP que falta
+    const currentLevelXp = xpNeededForNextLevel - xpToNextLevel;
+    // Progresso: quanto XP já tem no nível atual / quanto precisa para o próximo nível
+    const progress = xpNeededForNextLevel > 0 
+      ? Math.max(0, Math.min(100, (currentLevelXp / xpNeededForNextLevel) * 100))
+      : 0;
 
     return (
         <div className="w-full lg:mb-0 mb-6 lg:max-w-[360px] flex-shrink-0 self-stretch lg:mt-9 mt-0 flex flex-col gap-8 lg:sticky lg:top-[32px] h-fit">
@@ -49,7 +68,7 @@ export async function UserProfiler() {
                 </div>
                 <div className="mt-6">
                     <div>
-                        <p className="text-white text-sm font-medium">Nível 122</p>
+                        <p className="text-white text-sm font-medium">Nível {level}</p>
                     </div>
                     <div className="mt-2">
                         <div className="flex items-center gap-4 w-full">

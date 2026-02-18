@@ -23,6 +23,9 @@ export async function profile(request: FastifyRequest, reply: FastifyReply) {
         onboardingCareer: user.onboardingCareer,
         googleId: (user as any).googleId || null,
         hasPassword: !!user.password,
+        level: user.level ?? 1,
+        totalXp: user.totalXp ?? 0,
+        xpToNextLevel: user.xpToNextLevel ?? 100,
       },
     });
   } catch (error) {
