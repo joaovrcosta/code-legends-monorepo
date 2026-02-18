@@ -5,6 +5,7 @@ import { calculateCourseTotalDuration } from "../../../utils/calculate-course-du
 
 interface GetCourseBySlugRequest {
   slug: string;
+  includeDrafts?: boolean; // Opcional: para admin ver cursos em draft
 }
 
 interface GetCourseBySlugResponse {
@@ -17,10 +18,16 @@ export class GetCourseBySlugUseCase {
 
   async execute({
     slug,
+    includeDrafts = false,
   }: GetCourseBySlugRequest): Promise<GetCourseBySlugResponse> {
     const course = await this.courseRepository.findBySlug(slug);
 
     if (!course) {
+      throw new CourseNotFoundError();
+    }
+
+    // Se não for admin e o curso estiver em draft, retornar erro
+    if (!includeDrafts && course.status === "DRAFT") {
       throw new CourseNotFoundError();
     }
 

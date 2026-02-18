@@ -32,10 +32,11 @@ export class UpdateLessonUseCase {
       throw new LessonNotFoundError();
     }
 
-    // Se está alterando o slug, verificar se não existe outra lição com o mesmo slug
+    // Se está alterando o slug, verificar se não existe outra lição com o mesmo slug neste submódulo
     if (data.slug && data.slug !== lesson.slug) {
-      const lessonWithSameSlug = await this.lessonRepository.findBySlug(
-        data.slug
+      const lessonWithSameSlug = await this.lessonRepository.findBySlugAndSubmoduleId(
+        data.slug,
+        lesson.submoduleId
       );
 
       if (lessonWithSameSlug) {

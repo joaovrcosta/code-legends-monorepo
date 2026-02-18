@@ -17,6 +17,7 @@ import { getAuthTokenFromClient } from "@/lib/auth";
 import { Users as UsersIcon, Trash2, Eye, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<UserFull[]>([]);
@@ -47,14 +48,14 @@ export default function UsersPage() {
     try {
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await deleteUser(id, token);
       loadUsers();
     } catch (error) {
       console.error("Erro ao excluir usuário:", error);
-      alert("Erro ao excluir usuário");
+      toast.error("Erro ao excluir usuário");
     }
   };
 
@@ -63,7 +64,7 @@ export default function UsersPage() {
       setLoadingDetails(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       const user = await getUserById(id, token);
@@ -71,11 +72,11 @@ export default function UsersPage() {
         setSelectedUser(user);
         setShowDetailsModal(true);
       } else {
-        alert("Usuário não encontrado");
+        toast.error("Usuário não encontrado");
       }
     } catch (error) {
       console.error("Erro ao carregar detalhes do usuário:", error);
-      alert("Erro ao carregar detalhes do usuário");
+      toast.error("Erro ao carregar detalhes do usuário");
     } finally {
       setLoadingDetails(false);
     }

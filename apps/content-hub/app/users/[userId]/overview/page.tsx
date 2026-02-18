@@ -15,6 +15,7 @@ import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft, User, BookOpen, CheckCircle2, TrendingUp, Award, Clock, Target, Edit, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function UserOverviewPage() {
   const params = useParams();
@@ -43,7 +44,7 @@ export default function UserOverviewPage() {
       setLoading(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         router.push("/users");
         return;
       }
@@ -51,12 +52,12 @@ export default function UserOverviewPage() {
       if (data) {
         setOverview(data);
       } else {
-        alert("Usuário não encontrado");
+        toast.error("Usuário não encontrado");
         router.push("/users");
       }
     } catch (error) {
       console.error("Erro ao carregar overview:", error);
-      alert("Erro ao carregar overview do usuário");
+      toast.error("Erro ao carregar overview do usuário");
       router.push("/users");
     } finally {
       setLoading(false);
@@ -85,7 +86,7 @@ export default function UserOverviewPage() {
       setSaving(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
 
@@ -102,7 +103,7 @@ export default function UserOverviewPage() {
       loadOverview(); // Recarrega os dados
     } catch (error: any) {
       console.error("Erro ao atualizar usuário:", error);
-      alert(error.message || "Erro ao atualizar usuário");
+      toast.error(error.message || "Erro ao atualizar usuário");
     } finally {
       setSaving(false);
     }

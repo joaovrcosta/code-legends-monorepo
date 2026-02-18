@@ -4,6 +4,15 @@ CREATE TYPE "MaritalStatus" AS ENUM ('SINGLE', 'MARRIED', 'DIVORCED', 'WIDOWED')
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('INSTRUCTOR', 'ADMIN', 'STUDENT');
 
+-- CreateEnum
+CREATE TYPE "RequestStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'IN_PROGRESS');
+
+-- CreateEnum
+CREATE TYPE "CourseStatus" AS ENUM ('DRAFT', 'PUBLISHED');
+
+-- CreateEnum
+CREATE TYPE "NotificationType" AS ENUM ('NEW_COURSE_AVAILABLE', 'CERTIFICATE_GENERATED', 'LEVEL_UP', 'REQUEST_STATUS_CHANGED', 'COURSE_COMPLETED', 'NEW_EVENT');
+
 -- CreateTable
 CREATE TABLE "Course" (
     "id" TEXT NOT NULL,
@@ -20,6 +29,8 @@ CREATE TABLE "Course" (
     "level" TEXT NOT NULL,
     "icon" TEXT,
     "description" TEXT NOT NULL,
+    "status" "CourseStatus" NOT NULL DEFAULT 'DRAFT',
+    "publishedAt" TIMESTAMP(3),
     "instructorId" TEXT NOT NULL,
     "categoryId" TEXT,
 
@@ -98,6 +109,7 @@ CREATE TABLE "Module" (
     "title" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "courseId" TEXT NOT NULL,
+    "orderIndex" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "Module_pkey" PRIMARY KEY ("id")
 );
@@ -107,6 +119,7 @@ CREATE TABLE "Group" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
     "moduleId" TEXT NOT NULL,
+    "orderIndex" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "Group_pkey" PRIMARY KEY ("id")
 );
@@ -262,6 +275,39 @@ CREATE TABLE "UserXpHistory" (
 );
 
 -- CreateTable
+CREATE TABLE "Request" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "status" "RequestStatus" NOT NULL DEFAULT 'PENDING',
+    "title" TEXT,
+    "description" TEXT,
+    "data" TEXT,
+    "response" TEXT,
+    "respondedBy" TEXT,
+    "respondedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Request_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "type" "NotificationType" NOT NULL,
+    "title" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "read" BOOLEAN NOT NULL DEFAULT false,
+    "data" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "readAt" TIMESTAMP(3),
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_CourseToTag" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -302,10 +348,10 @@ CREATE UNIQUE INDEX "User_slug_key" ON "User"("slug");
 CREATE UNIQUE INDEX "Expertise_name_key" ON "Expertise"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Module_slug_key" ON "Module"("slug");
+CREATE UNIQUE INDEX "Module_slug_courseId_key" ON "Module"("slug", "courseId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Lesson_slug_key" ON "Lesson"("slug");
+CREATE UNIQUE INDEX "Lesson_slug_submoduleId_key" ON "Lesson"("slug", "submoduleId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "UserCourse_userId_courseId_key" ON "UserCourse"("userId", "courseId");
@@ -330,6 +376,24 @@ CREATE INDEX "UserXpHistory_userId_idx" ON "UserXpHistory"("userId");
 
 -- CreateIndex
 CREATE INDEX "UserXpHistory_userId_createdAt_idx" ON "UserXpHistory"("userId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "Request_userId_idx" ON "Request"("userId");
+
+-- CreateIndex
+CREATE INDEX "Request_userId_status_idx" ON "Request"("userId", "status");
+
+-- CreateIndex
+CREATE INDEX "Request_status_idx" ON "Request"("status");
+
+-- CreateIndex
+CREATE INDEX "Notification_userId_read_idx" ON "Notification"("userId", "read");
+
+-- CreateIndex
+CREATE INDEX "Notification_userId_createdAt_idx" ON "Notification"("userId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "Notification_type_idx" ON "Notification"("type");
 
 -- CreateIndex
 CREATE INDEX "_CourseToTag_B_index" ON "_CourseToTag"("B");
@@ -411,6 +475,12 @@ ALTER TABLE "FavoriteCourse" ADD CONSTRAINT "FavoriteCourse_courseId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "UserXpHistory" ADD CONSTRAINT "UserXpHistory_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Request" ADD CONSTRAINT "Request_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_CourseToTag" ADD CONSTRAINT "_CourseToTag_A_fkey" FOREIGN KEY ("A") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE;

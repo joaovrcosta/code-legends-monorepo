@@ -24,10 +24,11 @@ export class UpdateModuleUseCase {
       throw new ModuleNotFoundError();
     }
 
-    // Se está alterando o slug, verificar se não existe outro módulo com o mesmo slug
+    // Se está alterando o slug, verificar se não existe outro módulo com o mesmo slug neste curso
     if (data.slug && data.slug !== module.slug) {
-      const moduleWithSameSlug = await this.moduleRepository.findBySlug(
-        data.slug
+      const moduleWithSameSlug = await this.moduleRepository.findBySlugAndCourseId(
+        data.slug,
+        module.courseId
       );
 
       if (moduleWithSameSlug) {

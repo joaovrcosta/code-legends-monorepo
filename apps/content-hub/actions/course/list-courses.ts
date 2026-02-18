@@ -14,6 +14,8 @@ export interface Course {
   tags?: string[];
   isFree: boolean;
   active: boolean;
+  status: "DRAFT" | "PUBLISHED";
+  publishedAt?: string | null;
   releaseAt?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -31,6 +33,7 @@ export async function listCourses(params?: {
   categorySlug?: string;
   instructor?: string;
   search?: string;
+  token?: string;
 }): Promise<CoursesListResponse> {
   try {
     const searchParams = new URLSearchParams();
@@ -43,11 +46,18 @@ export async function listCourses(params?: {
       searchParams.toString() ? `?${searchParams.toString()}` : ""
     }`;
 
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+
+    // Adicionar token se fornecido (para admin ver drafts)
+    if (params?.token) {
+      headers.Authorization = `Bearer ${params.token}`;
+    }
+
     const response = await fetch(url, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       cache: "no-store",
     });
 

@@ -11,6 +11,7 @@ import { getGroupById, updateGroup, type UpdateGroupData } from "@/actions/group
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function EditSubmodulePage() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function EditSubmodulePage() {
       setLoadingGroup(true);
       const group = await getGroupById(groupId);
       if (!group) {
-        alert("Submódulo não encontrado");
+        toast.error("Submódulo não encontrado");
         return;
       }
       setFormData({
@@ -39,7 +40,7 @@ export default function EditSubmodulePage() {
       });
     } catch (error) {
       console.error("Erro ao carregar submódulo:", error);
-      alert("Erro ao carregar submódulo");
+      toast.error("Erro ao carregar submódulo");
     } finally {
       setLoadingGroup(false);
     }
@@ -51,14 +52,14 @@ export default function EditSubmodulePage() {
       setLoading(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await updateGroup(groupId, formData, token);
       router.push("/submodules");
     } catch (error: any) {
       console.error("Erro ao atualizar submódulo:", error);
-      alert(error.message || "Erro ao atualizar submódulo");
+      toast.error(error.message || "Erro ao atualizar submódulo");
     } finally {
       setLoading(false);
     }

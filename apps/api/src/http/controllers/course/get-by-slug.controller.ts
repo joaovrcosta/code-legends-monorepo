@@ -14,7 +14,13 @@ export async function getBySlug(request: FastifyRequest, reply: FastifyReply) {
   try {
     const getCourseBySlugUseCase = makeGetCourseBySlugUseCase();
 
-    const { course, totalDuration } = await getCourseBySlugUseCase.execute({ slug });
+    // Incluir drafts se o usuário for admin
+    const includeDrafts = request.user?.role === "ADMIN";
+
+    const { course, totalDuration } = await getCourseBySlugUseCase.execute({
+      slug,
+      includeDrafts,
+    });
 
     // Sanitizar curso para garantir que dados de instrutor sejam públicos apenas
     const sanitized = sanitizeCourse(course, totalDuration);

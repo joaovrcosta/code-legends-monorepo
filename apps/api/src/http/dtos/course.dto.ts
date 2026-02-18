@@ -47,6 +47,8 @@ export function toCourseDTO(
     description: course.description,
     instructorId: course.instructorId,
     categoryId: course.categoryId,
+    status: (course as any).status || "DRAFT",
+    publishedAt: (course as any).publishedAt || null,
     instructor: course.instructor ? toUserPublicDTO(course.instructor) : undefined,
     category: course.category
       ? {

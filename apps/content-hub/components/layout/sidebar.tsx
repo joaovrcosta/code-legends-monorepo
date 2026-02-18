@@ -9,9 +9,6 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   BookOpen,
   Users,
-  FileText,
-  Layers,
-  FolderTree,
   GraduationCap,
   LogOut,
   Tag,
@@ -21,9 +18,6 @@ import {
 const navigation = [
   { name: "Dashboard", href: "/", icon: GraduationCap },
   { name: "Cursos", href: "/courses", icon: BookOpen },
-  { name: "Módulos", href: "/modules", icon: Layers },
-  { name: "Submódulos", href: "/submodules", icon: FolderTree },
-  { name: "Aulas", href: "/lessons", icon: FileText },
   { name: "Usuários", href: "/users", icon: Users },
   { name: "Categorias", href: "/categories", icon: Tag },
   { name: "Solicitações", href: "/requests", icon: MessageSquare },

@@ -19,6 +19,7 @@ import { listCourses } from "@/actions/course";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function SubmodulesPage() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -85,14 +86,14 @@ export default function SubmodulesPage() {
     try {
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await deleteGroup(id, token);
       loadGroups();
     } catch (error) {
       console.error("Erro ao excluir submódulo:", error);
-      alert("Erro ao excluir submódulo");
+      toast.error("Erro ao excluir submódulo");
     }
   };
 

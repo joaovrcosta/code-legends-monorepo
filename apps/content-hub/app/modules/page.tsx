@@ -18,6 +18,7 @@ import { listCourses } from "@/actions/course";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function ModulesPage() {
   const [modules, setModules] = useState<Module[]>([]);
@@ -63,14 +64,14 @@ export default function ModulesPage() {
     try {
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await deleteModule(id, token);
       loadModules();
     } catch (error) {
       console.error("Erro ao excluir módulo:", error);
-      alert("Erro ao excluir módulo");
+      toast.error("Erro ao excluir módulo");
     }
   };
 

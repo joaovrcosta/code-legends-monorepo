@@ -24,6 +24,7 @@ import { createLesson, type CreateLessonData } from "@/actions/lesson";
 import { Plus, Edit, Trash2, Upload, Eye } from "lucide-react";
 import { LessonDetailsModal } from "@/components/ui/lesson-details-modal";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function LessonsPage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -121,20 +122,20 @@ export default function LessonsPage() {
     try {
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await deleteLesson(id, token);
       loadLessons();
     } catch (error) {
       console.error("Erro ao excluir aula:", error);
-      alert("Erro ao excluir aula");
+      toast.error("Erro ao excluir aula");
     }
   };
 
   const handleImportJson = async () => {
     if (!selectedGroup) {
-      alert("Selecione um submódulo antes de importar");
+      toast.error("Selecione um submódulo antes de importar");
       return;
     }
 
@@ -234,7 +235,7 @@ export default function LessonsPage() {
       setShowDetailsModal(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         setShowDetailsModal(false);
         return;
       }
@@ -242,12 +243,12 @@ export default function LessonsPage() {
       if (lesson) {
         setSelectedLesson(lesson);
       } else {
-        alert("Aula não encontrada");
+        toast.error("Aula não encontrada");
         setShowDetailsModal(false);
       }
     } catch (error) {
       console.error("Erro ao carregar detalhes da aula:", error);
-      alert("Erro ao carregar detalhes da aula");
+      toast.error("Erro ao carregar detalhes da aula");
       setShowDetailsModal(false);
     } finally {
       setLoadingDetails(false);

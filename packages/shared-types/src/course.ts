@@ -26,6 +26,8 @@ export interface CourseDTO {
     description: string;
     instructorId: string;
     categoryId: string | null;
+    status: "DRAFT" | "PUBLISHED";
+    publishedAt: Date | null;
     instructor?: UserPublicDTO;
     category?: CategoryDTO | null;
     totalDuration?: string | null; // Duração total do curso em formato legível (ex: "19h 30min")

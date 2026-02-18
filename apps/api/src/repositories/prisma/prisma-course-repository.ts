@@ -37,6 +37,7 @@ interface FindAllFilters {
   categoryId?: string;
   instructorId?: string;
   search?: string;
+  includeDrafts?: boolean;
 }
 
 export class PrismaCourseRepository implements ICourseRepository {
@@ -54,6 +55,7 @@ export class PrismaCourseRepository implements ICourseRepository {
       isFree: data.isFree ?? false,
       active: data.active ?? true,
       releaseAt: data.releaseAt ?? null,
+      status: "DRAFT",
     };
 
     // Se houver tags, conecta ou cria elas
@@ -77,6 +79,11 @@ export class PrismaCourseRepository implements ICourseRepository {
     const where: any = {
       active: true,
     };
+
+    // Filtrar por status: apenas PUBLISHED, exceto se includeDrafts for true (para admin)
+    if (!filters?.includeDrafts) {
+      where.status = "PUBLISHED";
+    }
 
     // Filtro por categoria
     if (filters?.categoryId) {
@@ -158,6 +165,7 @@ export class PrismaCourseRepository implements ICourseRepository {
     const courses = await prisma.course.findMany({
       where: {
         active: true,
+        status: "PUBLISHED",
       },
       include: {
         instructor: {
@@ -196,6 +204,7 @@ export class PrismaCourseRepository implements ICourseRepository {
     const courses = await prisma.course.findMany({
       where: {
         active: true,
+        status: "PUBLISHED",
       },
       include: {
         instructor: {
@@ -320,6 +329,7 @@ export class PrismaCourseRepository implements ICourseRepository {
     const courses = await prisma.course.findMany({
       where: {
         active: true,
+        status: "PUBLISHED",
         title: {
           contains: name,
           mode: "insensitive",
@@ -445,5 +455,29 @@ export class PrismaCourseRepository implements ICourseRepository {
         id,
       },
     });
+  }
+
+  async publish(id: string): Promise<Course> {
+    const course = await prisma.course.update({
+      where: { id },
+      data: {
+        status: "PUBLISHED",
+        publishedAt: new Date(),
+      },
+    });
+
+    return course;
+  }
+
+  async unpublish(id: string): Promise<Course> {
+    const course = await prisma.course.update({
+      where: { id },
+      data: {
+        status: "DRAFT",
+        publishedAt: null,
+      },
+    });
+
+    return course;
   }
 }

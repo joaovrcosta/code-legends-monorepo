@@ -127,6 +127,35 @@ export class PrismaModuleRepository implements IModuleRepository {
     return module;
   }
 
+  async findBySlugAndCourseId(slug: string, courseId: string): Promise<Module | null> {
+    const module = await prisma.module.findFirst({
+      where: {
+        slug,
+        courseId,
+      },
+      include: {
+        course: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+          },
+        },
+        groups: {
+          include: {
+            _count: {
+              select: {
+                lessons: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return module;
+  }
+
   async update(id: string, data: UpdateModuleData): Promise<Module> {
     const module = await prisma.module.update({
       where: {

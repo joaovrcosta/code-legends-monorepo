@@ -11,6 +11,7 @@ import { createGroup, type CreateGroupData } from "@/actions/group";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function NewSubmodulePage() {
   const router = useRouter();
@@ -24,21 +25,21 @@ export default function NewSubmodulePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!moduleId) {
-      alert("ID do módulo é obrigatório");
+      toast.error("ID do módulo é obrigatório");
       return;
     }
     try {
       setLoading(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await createGroup(moduleId, formData, token);
       router.push("/submodules");
     } catch (error: any) {
       console.error("Erro ao criar submódulo:", error);
-      alert(error.message || "Erro ao criar submódulo");
+      toast.error(error.message || "Erro ao criar submódulo");
     } finally {
       setLoading(false);
     }

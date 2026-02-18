@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { authenticateUser } from "@/actions/user";
 import { setAuthToken } from "@/lib/auth";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function LoginPage() {
       router.push("/");
     } catch (error: any) {
       console.error("Erro ao fazer login:", error);
-      alert(error.message || "Erro ao fazer login");
+      toast.error(error.message || "Erro ao fazer login");
     } finally {
       setLoading(false);
     }

@@ -22,9 +22,6 @@ export interface CreateCourseResponse {
   course: Course;
 }
 
-/**
- * Cria um novo curso
- */
 export async function createCourse(
   courseData: CreateCourseData,
   token: string

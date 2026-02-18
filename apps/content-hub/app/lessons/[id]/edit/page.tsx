@@ -19,6 +19,7 @@ import { getAuthTokenFromClient } from "@/lib/auth";
 import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function EditLessonPage() {
   const router = useRouter();
@@ -131,13 +132,13 @@ export default function EditLessonPage() {
       setLoadingLesson(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       // A API busca por slug, então lessonId aqui é na verdade o slug
       const lesson = await getLessonBySlug(lessonId, token);
       if (!lesson) {
-        alert("Aula não encontrada");
+        toast.error("Aula não encontrada");
         return;
       }
       // Salvar o ID real da aula para usar no update
@@ -184,7 +185,7 @@ export default function EditLessonPage() {
       setSlugManuallyEdited(true);
     } catch (error) {
       console.error("Erro ao carregar aula:", error);
-      alert("Erro ao carregar aula");
+      toast.error("Erro ao carregar aula");
     } finally {
       setLoadingLesson(false);
     }
@@ -196,19 +197,19 @@ export default function EditLessonPage() {
       setLoading(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       // Usar o ID real da aula para fazer o update
       if (!lessonRealId) {
-        alert("ID da aula não encontrado");
+        toast.error("ID da aula não encontrado");
         return;
       }
       await updateLesson(lessonRealId.toString(), formData, token);
       router.push("/lessons");
     } catch (error: any) {
       console.error("Erro ao atualizar aula:", error);
-      alert(error.message || "Erro ao atualizar aula");
+      toast.error(error.message || "Erro ao atualizar aula");
     } finally {
       setLoading(false);
     }

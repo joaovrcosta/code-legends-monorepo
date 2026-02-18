@@ -16,6 +16,7 @@ import { listCategories, deleteCategory, type Category } from "@/actions/categor
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { Plus, Edit, Trash2, Tag } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -42,14 +43,14 @@ export default function CategoriesPage() {
     try {
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await deleteCategory(id, token);
       loadCategories();
     } catch (error) {
       console.error("Erro ao excluir categoria:", error);
-      alert("Erro ao excluir categoria");
+      toast.error("Erro ao excluir categoria");
     }
   };
 

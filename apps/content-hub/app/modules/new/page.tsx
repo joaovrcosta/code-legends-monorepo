@@ -12,6 +12,7 @@ import { getAuthTokenFromClient } from "@/lib/auth";
 import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function NewModulePage() {
   const router = useRouter();
@@ -37,21 +38,21 @@ export default function NewModulePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!courseId) {
-      alert("ID do curso é obrigatório");
+      toast.error("ID do curso é obrigatório");
       return;
     }
     try {
       setLoading(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await createModule(courseId, formData, token);
       router.push("/modules");
     } catch (error: any) {
       console.error("Erro ao criar módulo:", error);
-      alert(error.message || "Erro ao criar módulo");
+      toast.error(error.message || "Erro ao criar módulo");
     } finally {
       setLoading(false);
     }

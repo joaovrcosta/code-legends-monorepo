@@ -16,6 +16,7 @@ export interface IModuleRepository {
   findAll(courseId?: string): Promise<Module[]>;
   findById(id: string): Promise<Module | null>;
   findBySlug(slug: string): Promise<Module | null>;
+  findBySlugAndCourseId(slug: string, courseId: string): Promise<Module | null>;
   update(id: string, data: UpdateModuleData): Promise<Module>;
   delete(id: string): Promise<void>;
 }

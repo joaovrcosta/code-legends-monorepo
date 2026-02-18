@@ -47,9 +47,10 @@ export class CreateLessonUseCase {
       throw new UserNotFoundError();
     }
 
-    // Verificar se a lição já existe
-    const lessonWithSameSlug = await this.lessonRepository.findBySlug(
-      data.slug
+    // Verificar se a lição já existe neste submódulo
+    const lessonWithSameSlug = await this.lessonRepository.findBySlugAndSubmoduleId(
+      data.slug,
+      data.submoduleId
     );
 
     if (lessonWithSameSlug) {

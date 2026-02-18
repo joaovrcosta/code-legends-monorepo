@@ -16,6 +16,7 @@ import { listCourses, deleteCourse, type Course } from "@/actions/course";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -28,7 +29,8 @@ export default function CoursesPage() {
   const loadCourses = async () => {
     try {
       setLoading(true);
-      const { courses: data } = await listCourses();
+      const token = getAuthTokenFromClient();
+      const { courses: data } = await listCourses({ token: token || undefined });
       setCourses(data);
     } catch (error) {
       console.error("Erro ao carregar cursos:", error);
@@ -42,14 +44,14 @@ export default function CoursesPage() {
     try {
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await deleteCourse(id, token);
       loadCourses();
     } catch (error) {
       console.error("Erro ao excluir curso:", error);
-      alert("Erro ao excluir curso");
+      toast.error("Erro ao excluir curso");
     }
   };
 
@@ -83,7 +85,7 @@ export default function CoursesPage() {
                     <TableHead>Título</TableHead>
                     <TableHead>Slug</TableHead>
                     <TableHead>Nível</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Publicação</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -103,19 +105,19 @@ export default function CoursesPage() {
                         <TableCell>
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                              course.active
+                              course.status === "PUBLISHED"
                                 ? "bg-emerald-900/20 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
-                                : "bg-gray-900/20 dark:bg-gray-500/20 text-gray-700 dark:text-gray-300"
+                                : "bg-yellow-900/20 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300"
                             }`}
                           >
                             <span
                               className={`w-1.5 h-1.5 rounded-full ${
-                                course.active
+                                course.status === "PUBLISHED"
                                   ? "bg-emerald-700 dark:bg-emerald-400"
-                                  : "bg-gray-700 dark:bg-gray-400"
+                                  : "bg-yellow-700 dark:bg-yellow-400"
                               }`}
                             />
-                            {course.active ? "Ativo" : "Inativo"}
+                            {course.status === "PUBLISHED" ? "Publicado" : "Rascunho"}
                           </span>
                         </TableCell>
                         <TableCell>

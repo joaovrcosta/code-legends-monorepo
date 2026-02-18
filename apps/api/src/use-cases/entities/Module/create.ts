@@ -28,9 +28,10 @@ export class CreateModuleUseCase {
       throw new CourseNotFoundError();
     }
 
-    // Verificar se o módulo já existe
-    const moduleWithSameSlug = await this.moduleRepository.findBySlug(
-      data.slug
+    // Verificar se o módulo já existe neste curso
+    const moduleWithSameSlug = await this.moduleRepository.findBySlugAndCourseId(
+      data.slug,
+      data.courseId
     );
 
     if (moduleWithSameSlug) {

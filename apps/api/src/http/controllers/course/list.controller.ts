@@ -19,6 +19,8 @@ export async function list(request: FastifyRequest, reply: FastifyReply) {
 
     // Incluir userId se o usuário estiver autenticado
     const userId = request.user?.id;
+    // Incluir drafts se o usuário for admin
+    const includeDrafts = request.user?.role === "ADMIN";
 
     const { courses } = await listCoursesUseCase.execute({
       categoryId: category,
@@ -26,6 +28,7 @@ export async function list(request: FastifyRequest, reply: FastifyReply) {
       instructorId: instructor,
       search,
       userId, // Passar userId opcional
+      includeDrafts, // Passar includeDrafts se for admin
     });
 
     // Sanitizar cursos para garantir que dados de instrutor sejam públicos apenas

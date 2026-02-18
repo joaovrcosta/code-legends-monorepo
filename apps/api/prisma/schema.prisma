@@ -9,20 +9,22 @@ datasource db {
 }
 
 model Course {
-  id            String    @id @default(cuid())
+  id            String       @id @default(cuid())
   title         String
-  slug          String    @unique
-  active        Boolean   @default(true)
+  slug          String       @unique
+  active        Boolean      @default(true)
   thumbnail     String?
   colorHex      String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  releaseAt     DateTime? @default(now())
-  isFree        Boolean   @default(false)
-  subscriptions Int       @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  releaseAt     DateTime?    @default(now())
+  isFree        Boolean      @default(false)
+  subscriptions Int          @default(0)
   level         String
   icon          String?
   description   String
+  status        CourseStatus @default(DRAFT)
+  publishedAt   DateTime?
 
   instructorId String
   instructor   User   @relation("CourseInstructor", fields: [instructorId], references: [id])
@@ -113,21 +115,25 @@ model Expertise {
 model Module {
   id                 String               @id @default(cuid())
   title              String
-  slug               String               @unique
+  slug               String
   courseId           String
+  orderIndex         Int                  @default(0)
   course             Course               @relation(fields: [courseId], references: [id])
   groups             Group[]
   userCourses        UserCourse[]
   userModuleProgress UserModuleProgress[]
   unlockedModules    UnlockedModule[]
+
+  @@unique([slug, courseId])
 }
 
 model Group {
-  id       Int      @id @default(autoincrement())
-  title    String
-  moduleId String
-  module   Module   @relation(fields: [moduleId], references: [id])
-  lessons  Lesson[]
+  id         Int      @id @default(autoincrement())
+  title      String
+  moduleId   String
+  orderIndex Int      @default(0)
+  module     Module   @relation(fields: [moduleId], references: [id])
+  lessons    Lesson[]
 }
 
 model Lesson {
@@ -135,7 +141,7 @@ model Lesson {
   title          String
   description    String
   type           String
-  slug           String         @unique
+  slug           String
   url            String?
   isFree         Boolean        @default(false)
   video_url      String?
@@ -152,6 +158,8 @@ model Lesson {
   submodule      Group          @relation(fields: [submoduleId], references: [id])
   userCourses    UserCourse[]
   userProgress   UserProgress[]
+
+  @@unique([slug, submoduleId])
 }
 
 model UserCourse {
@@ -327,6 +335,11 @@ enum RequestStatus {
   APPROVED
   REJECTED
   IN_PROGRESS
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
 }
 
 enum NotificationType {

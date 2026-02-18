@@ -17,6 +17,7 @@ import { listRequests, updateRequest, type Request } from "@/actions/requests";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, Clock, AlertCircle, X } from "lucide-react";
+import { toast } from "sonner";
 
 const statusConfig = {
   PENDING: {
@@ -58,7 +59,7 @@ export default function RequestsPage() {
       setLoading(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       const { requests: data } = await listRequests(token);
@@ -83,7 +84,7 @@ export default function RequestsPage() {
       setUpdating(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
 
@@ -102,11 +103,11 @@ export default function RequestsPage() {
         setResponse("");
         loadRequests();
       } else {
-        alert(result.message || "Erro ao atualizar solicitação");
+        toast.error(result.message || "Erro ao atualizar solicitação");
       }
     } catch (error) {
       console.error("Erro ao atualizar solicitação:", error);
-      alert("Erro ao atualizar solicitação");
+      toast.error("Erro ao atualizar solicitação");
     } finally {
       setUpdating(false);
     }

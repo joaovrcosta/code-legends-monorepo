@@ -13,6 +13,7 @@ import { getAuthTokenFromClient } from "@/lib/auth";
 import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function EditCategoryPage() {
   const router = useRouter();
@@ -73,14 +74,14 @@ export default function EditCategoryPage() {
       setLoading(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await updateCategory(id, formData, token);
       router.push("/categories");
     } catch (error: any) {
       console.error("Erro ao atualizar categoria:", error);
-      alert(error.message || "Erro ao atualizar categoria");
+      toast.error(error.message || "Erro ao atualizar categoria");
     } finally {
       setLoading(false);
     }

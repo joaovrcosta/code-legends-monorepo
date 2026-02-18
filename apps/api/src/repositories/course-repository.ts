@@ -39,7 +39,7 @@ interface FindAllFilters {
 
 export interface ICourseRepository {
   create(data: CreateCourseData): Promise<Course>;
-  findAll(filters?: FindAllFilters): Promise<Course[]>;
+  findAll(filters?: FindAllFilters & { includeDrafts?: boolean }): Promise<Course[]>;
   findRecent(limit?: number): Promise<Course[]>;
   findPopular(limit?: number): Promise<Course[]>;
   findById(id: string): Promise<Course | null>;
@@ -47,4 +47,6 @@ export interface ICourseRepository {
   searchByName(name: string): Promise<Course[]>;
   update(id: string, data: UpdateCourseData): Promise<Course>;
   delete(id: string): Promise<void>;
+  publish(id: string): Promise<Course>;
+  unpublish(id: string): Promise<Course>;
 }

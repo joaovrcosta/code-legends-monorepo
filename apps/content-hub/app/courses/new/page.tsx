@@ -18,6 +18,7 @@ import { getAuthTokenFromClient } from "@/lib/auth";
 import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function NewCoursePage() {
   const router = useRouter();
@@ -110,14 +111,14 @@ export default function NewCoursePage() {
       setLoading(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await createCourse(formData, token);
       router.push("/courses");
     } catch (error: any) {
       console.error("Erro ao criar curso:", error);
-      alert(error.message || "Erro ao criar curso");
+      toast.error(error.message || "Erro ao criar curso");
     } finally {
       setLoading(false);
     }

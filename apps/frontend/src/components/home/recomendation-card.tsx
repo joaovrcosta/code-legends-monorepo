@@ -191,7 +191,7 @@ export function RecomendationCard({
                 />
                 <div className="px-4 pt-4">
                     <div className="flex items-center space-x-1">
-                        <span className={`font-semibold bg-clip-text text-lg text-white`}>
+                        <span className={`font-semibold bg-clip-text text-base text-white`}>
                             {name}
                         </span>
                         <ArrowUpRight />

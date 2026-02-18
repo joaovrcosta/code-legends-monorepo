@@ -19,6 +19,8 @@ import { myLearning } from "./my-learning.controller";
 import { resetProgress } from "./reset-progress.controller";
 import { getCourseProgress } from "./get-progress.controller";
 import { getLessonBySlug } from "./get-lesson-by-slug.controller";
+import { publish } from "./publish.controller";
+import { unpublish } from "./unpublish.controller";
 import { verifyJWT } from "../../middlewares/verify-jwt";
 import { verifyJWTOptional } from "../../middlewares/verify-jwt-optional";
 import { verifyAdmin } from "../../middlewares/verify-admin";
@@ -37,6 +39,8 @@ export async function courseRoutes(app: FastifyInstance) {
 
   app.put("/courses/:id", { onRequest: [verifyAdmin] }, update);
   app.delete("/courses/:id", { onRequest: [verifyAdmin] }, remove);
+  app.post("/courses/:id/publish", { onRequest: [verifyAdmin] }, publish);
+  app.post("/courses/:id/unpublish", { onRequest: [verifyAdmin] }, unpublish);
 
   app.get(
     "/courses/:courseId/lessons/:lessonSlug",

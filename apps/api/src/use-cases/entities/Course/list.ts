@@ -9,6 +9,7 @@ interface ListCoursesRequest {
   instructorId?: string;
   search?: string;
   userId?: string; // Opcional: para verificar se está inscrito
+  includeDrafts?: boolean; // Opcional: para admin ver todos os cursos
 }
 
 interface CourseWithEnrollment extends Course {
@@ -44,6 +45,7 @@ export class ListCoursesUseCase {
       categoryId,
       instructorId: filters?.instructorId,
       search: filters?.search,
+      includeDrafts: filters?.includeDrafts,
     });
 
     // Se houver userId, verificar inscrições de uma vez (1 query adicional)

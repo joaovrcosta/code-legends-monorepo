@@ -14,6 +14,7 @@ import { getAuthTokenFromClient } from "@/lib/auth";
 import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function NewLessonPage() {
   const router = useRouter();
@@ -47,21 +48,21 @@ export default function NewLessonPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!groupId) {
-      alert("ID do grupo é obrigatório");
+      toast.error("ID do grupo é obrigatório");
       return;
     }
     try {
       setLoading(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await createLesson(Number(groupId), formData, token);
       router.push("/lessons");
     } catch (error: any) {
       console.error("Erro ao criar aula:", error);
-      alert(error.message || "Erro ao criar aula");
+      toast.error(error.message || "Erro ao criar aula");
     } finally {
       setLoading(false);
     }

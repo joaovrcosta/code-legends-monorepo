@@ -12,6 +12,7 @@ import { getAuthTokenFromClient } from "@/lib/auth";
 import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function EditModulePage() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function EditModulePage() {
       setLoadingModule(true);
       const module = await getModuleBySlug(moduleId);
       if (!module) {
-        alert("Módulo não encontrado");
+        toast.error("Módulo não encontrado");
         return;
       }
       setFormData({
@@ -55,7 +56,7 @@ export default function EditModulePage() {
       setSlugManuallyEdited(true);
     } catch (error) {
       console.error("Erro ao carregar módulo:", error);
-      alert("Erro ao carregar módulo");
+      toast.error("Erro ao carregar módulo");
     } finally {
       setLoadingModule(false);
     }
@@ -67,14 +68,14 @@ export default function EditModulePage() {
       setLoading(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await updateModule(moduleId, formData, token);
       router.push("/modules");
     } catch (error: any) {
       console.error("Erro ao atualizar módulo:", error);
-      alert(error.message || "Erro ao atualizar módulo");
+      toast.error(error.message || "Erro ao atualizar módulo");
     } finally {
       setLoading(false);
     }

@@ -13,6 +13,7 @@ import { getAuthTokenFromClient } from "@/lib/auth";
 import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function NewCategoryPage() {
   const router = useRouter();
@@ -44,14 +45,14 @@ export default function NewCategoryPage() {
       setLoading(true);
       const token = getAuthTokenFromClient();
       if (!token) {
-        alert("Token de autenticação não encontrado");
+        toast.error("Token de autenticação não encontrado");
         return;
       }
       await createCategory(formData, token);
       router.push("/categories");
     } catch (error: any) {
       console.error("Erro ao criar categoria:", error);
-      alert(error.message || "Erro ao criar categoria");
+      toast.error(error.message || "Erro ao criar categoria");
     } finally {
       setLoading(false);
     }
