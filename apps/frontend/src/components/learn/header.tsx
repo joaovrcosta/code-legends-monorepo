@@ -6,6 +6,8 @@ import codeLegendsLogoMobile from "../../../public/logo-mobile.png";
 import Link from "next/link";
 import { ListEnd, Menu, Search } from "lucide-react";
 import useSidebarStore from "@/stores/sidebarStore";
+import { useMobileNavStore } from "@/stores/mobile-nav-store";
+import { MobileNavSheet } from "./mobile-nav-sheet";
 import { usePathname } from "next/navigation";
 import { CourseDropdownMenu } from "./course-menu";
 import type { EnrolledCourse, ActiveCourse } from "@/types/user-course.ts";
@@ -29,6 +31,7 @@ export default function LearnHeader({
   initialActiveCourse,
 }: LearnHeaderProps) {
   const { toggleSidebar, isOpen } = useSidebarStore();
+  const openMobileNav = useMobileNavStore((s) => s.open);
   const pathName = usePathname();
   const [mounted, setMounted] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -41,11 +44,6 @@ export default function LearnHeader({
     setMounted(true);
   }, []);
 
-  // Durante a hidratação, renderiza sem a condição do pathname
-  // Garante que o HTML do servidor seja igual ao do cliente na primeira renderização
-  // IMPORTANTE: Na primeira renderização (servidor e cliente), sempre mostra o botão
-  // Após a hidratação (mounted = true), aplica a lógica do pathname
-  // Usa uma verificação segura para evitar diferenças entre servidor e cliente
   const showSidebarButton = !mounted || (pathName && typeof pathName === 'string' && !pathName.startsWith("/account"));
 
   // Função de busca com debounce
@@ -90,7 +88,7 @@ export default function LearnHeader({
   return (
     <div
       className="learn-header fixed left-0 w-full z-50 bg-[#121214] shadow-lg border-b-[1px] border-[#25252a] lg:py-0 py-2"
-      style={{ top: "var(--top-banner-height)" }}
+      style={{ top: "calc(var(--top-banner-height) + var(--header-top-offset))" }}
     >
       <ul className="flex justify-between items-center gap-2 lg:gap-0 lg:pt-4 pt-0 lg:pb-4 pb-0 w-full mx-auto px-4 sm:px-5">
         <li className="flex min-w-0 shrink-0 items-center lg:space-x-3">
@@ -110,6 +108,15 @@ export default function LearnHeader({
               )}
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={openMobileNav}
+            className="text-white p-1.5 border mr-4 border-[#25252a] rounded-lg hover:bg-[#25252a] transition-all duration-150 ease-in-out lg:hidden"
+            aria-label="Abrir menu"
+          >
+            <Menu size={22} />
+          </button>
 
           <div className="flex items-center space-x-4">
             {/* <LoggedSheet /> */}
@@ -157,10 +164,12 @@ export default function LearnHeader({
 
         <li className="flex min-w-0 shrink-0 items-center">
           <div className="flex items-center gap-2 sm:gap-4">
-            <CourseDropdownMenu
-              initialUserCourses={initialUserCourses}
-              initialActiveCourse={initialActiveCourse}
-            />
+            <div className="hidden lg:block">
+              <CourseDropdownMenu
+                initialUserCourses={initialUserCourses}
+                initialActiveCourse={initialActiveCourse}
+              />
+            </div>
             <StrikeSection />
 
             <NotificationsSection />
@@ -270,6 +279,8 @@ export default function LearnHeader({
           </div>
         </DialogContent>
       </Dialog>
+
+      <MobileNavSheet />
     </div>
   );
 }

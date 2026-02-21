@@ -8,15 +8,18 @@ body {
   color: #e1e1e6;
 }
 
-/* Layout dinâmico: banner + header. Altere --top-banner-height em .app-shell-has-top-banner para mudar a altura do banner. */
 :root {
-  --top-banner-height: 0;
+  --top-banner-height: 0px;
+  --header-top-offset: 12px;
   --header-height-mobile: 64px;
-  --header-height-desktop: 79px;
+  --header-height-desktop: 88px;
 }
 
 .app-shell-has-top-banner {
-  --top-banner-height: 3.5rem; /* 56px - altere aqui para mudar a altura do banner */
+  --top-banner-height: 3.5rem;
+  /* 56px - altere aqui para mudar a altura do banner */
+  --header-top-offset: 0px;
+  /* com banner não precisa do offset extra */
 }
 
 .app-shell-has-top-banner .learn-header {

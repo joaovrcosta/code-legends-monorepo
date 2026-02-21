@@ -28,7 +28,10 @@ export default async function AccountLayout({
         <AccountAsideMenu />
         <main className="w-full lg:flex-1 min-w-0">{children}</main>
       </div>
-      <FooterFixed />
+      <FooterFixed
+        initialUserCourses={enrolledCoursesData.userCourses || []}
+        initialActiveCourse={activeCourse}
+      />
     </>
   );
 }

@@ -110,7 +110,7 @@ app.register(fastifyRateLimit, {
     return `ip:${request.ip}`;
   },
   skip: (request: any) => {
-    // Pula rate limit para endpoint SSE e OPTIONS
+    if (env.NODE_ENV === "development") return true;
     return (request.url?.includes("/notifications/sse") ?? false) || request.method === "OPTIONS";
   },
   errorResponseBuilder: (request: any, context: any) => {

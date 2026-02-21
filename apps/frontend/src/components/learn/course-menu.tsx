@@ -76,8 +76,8 @@ export function CourseDropdownMenu({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <div
-          className={`bg-gray-gradient-first items-center justify-center border cursor-pointer flex transition-colors shrink-0
-            h-[42px] w-[52px] rounded-lg lg:h-auto lg:w-auto lg:max-h-[42px] lg:py-3 lg:px-4 lg:gap-2 lg:rounded-[12px]
+          className={`bg-[#1e1f20] lg:bg-gray-gradient-first items-center justify-center border cursor-pointer flex transition-colors shrink-0
+            h-[52px] w-[80px] lg:rounded-lg rounded-full lg:h-auto lg:w-auto lg:max-h-[42px] lg:py-3 lg:px-4 lg:gap-2 lg:rounded-[12px]
             hover:bg-[#25252A] ${open ? "border-[#00C8FF]" : "border-[#25252A]"}`}
         >
           {currentActiveCourse?.icon ? (
@@ -86,7 +86,7 @@ export function CourseDropdownMenu({
               alt={currentActiveCourse.title || "Curso"}
               height={40}
               width={40}
-              className="object-contain h-[32px] w-[32px] lg:h-[32px] lg:w-[32px]"
+              className="object-contain h-[50px] w-[50px] lg:h-[32px] lg:w-[32px]"
             />
           ) : (
             <div className="h-[26px] w-[26px] bg-[#25252A] rounded lg:h-5 lg:w-5" />
