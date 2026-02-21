@@ -44,11 +44,11 @@ const Sidebar = () => {
 
   return (
     <section
-      className={`flex h-full flex-col gap-2 bg-[#1A1A1E] text-white py-4 transition-all duration-300 ease-in-out ${isOpen ? "w-64" : "w-16"
+      className={`flex h-full min-h-0 flex-col gap-2 overflow-hidden bg-[#1A1A1E] text-white py-4 transition-all duration-300 ease-in-out ${isOpen ? "w-64" : "w-16"
         }`}
     >
-      <div className="flex-1">
-        <nav className="w-full max-h-[326px] bg-transparent py-4 px-0 rounded-lg border border-none">
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <nav className="w-full bg-transparent py-4 px-0 rounded-lg border border-none">
           <ul className="space-y-2">
             {links.map((link) => {
               const isActive = pathName === link.path;

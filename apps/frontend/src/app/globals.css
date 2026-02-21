@@ -8,6 +8,22 @@ body {
   color: #e1e1e6;
 }
 
+/* Layout dinâmico: banner + header. Altere --top-banner-height em .app-shell-has-top-banner para mudar a altura do banner. */
+:root {
+  --top-banner-height: 0;
+  --header-height-mobile: 64px;
+  --header-height-desktop: 79px;
+}
+
+.app-shell-has-top-banner {
+  --top-banner-height: 3.5rem; /* 56px - altere aqui para mudar a altura do banner */
+}
+
+.app-shell-has-top-banner .learn-header {
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

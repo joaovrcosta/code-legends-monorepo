@@ -196,9 +196,11 @@ export function RecomendationCard({
 
     const { label, className: statusClass } = getStatusInfo(status);
     return (
-        <Link href={url} className="block">
+        // ADICIONADO: h-full no Link para ocupar toda a altura se o pai for maior
+        <Link href={url} className="block h-full">
             <div
-                className={`relative shadow-2xl w-full rounded-[16px] min-w-[300px] h-[280px] flex flex-col transition-colors duration-300 cursor-pointer hover:border-[#3f3f48]
+                // ADICIONADO: h-full no div principal para acompanhar o tamanho do Link
+                className={`relative shadow-2xl w-full h-full rounded-[16px] min-w-[300px] flex flex-col transition-colors duration-300 cursor-pointer hover:border-[#3f3f48]
     ${isCurrent
                         ? "bg-blue-gradient-second border-[#35BED5]"
                         : "bg-gray-gradient border-[#25252A]"
@@ -221,15 +223,15 @@ export function RecomendationCard({
                     </div>
                 )}
 
-                <div className="p-4 flex-1 flex flex-col">
+                {/* ADICIONADO: flex-1 para empurrar o rodapé para baixo, preenchendo o espaço em branco */}
+                <div className="flex flex-col flex-1 p-4">
                     <Image
                         src={imageSrc}
                         alt={name}
                         width={80}
                         height={80}
-                        className="mb-3"
                     />
-                    <div className="px-4 pt-2 flex-1">
+                    <div className="px-4 pt-2">
                         <div className="flex items-center space-x-1">
                             <span className={`font-semibold bg-clip-text text-base text-white line-clamp-2`}>
                                 {name}
@@ -239,7 +241,7 @@ export function RecomendationCard({
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between pr-4 pl-4 pb-4 mt-auto">
+                <div className="mt-2 flex items-center justify-between px-4 pb-4">
                     <div className="flex items-center gap-2 text-xs text-white">
                         <ChartNoAxesColumnIncreasing size={16} className={getAccentClassFromLevel(level)} />
                         <p className="text-muted-foreground">

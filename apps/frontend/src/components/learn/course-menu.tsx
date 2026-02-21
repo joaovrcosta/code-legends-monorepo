@@ -76,19 +76,20 @@ export function CourseDropdownMenu({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <div
-          className={`bg-gray-gradient-first items-center border py-3 px-4 gap-2 rounded-[12px] hover:bg-[#25252A] cursor-pointer flex max-h-[42px] transition-colors ${open ? "border-[#00C8FF]" : "border-[#25252A]"
-            }`}
+          className={`bg-gray-gradient-first items-center justify-center border cursor-pointer flex transition-colors shrink-0
+            h-[42px] w-[52px] rounded-lg lg:h-auto lg:w-auto lg:max-h-[42px] lg:py-3 lg:px-4 lg:gap-2 lg:rounded-[12px]
+            hover:bg-[#25252A] ${open ? "border-[#00C8FF]" : "border-[#25252A]"}`}
         >
           {currentActiveCourse?.icon ? (
             <Image
               src={currentActiveCourse.icon}
               alt={currentActiveCourse.title || "Curso"}
-              height={32}
-              width={32}
-              className="object-contain lg:h-[32px] lg:w-[32px] h-[40px] w-[40px]"
+              height={40}
+              width={40}
+              className="object-contain h-[32px] w-[32px] lg:h-[32px] lg:w-[32px]"
             />
           ) : (
-            <div className="w-5 h-5 bg-[#25252A] rounded" />
+            <div className="h-[26px] w-[26px] bg-[#25252A] rounded lg:h-5 lg:w-5" />
           )}
           <p className="lg:block hidden">
             {currentActiveCourse?.title || "Meus Cursos"}

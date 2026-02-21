@@ -88,9 +88,12 @@ export default function LearnHeader({
   }, [isSearchModalOpen]);
 
   return (
-    <div className="fixed top-0 left-0 w-full z-50 bg-[#121214] shadow-lg border-b-[1px] border-[#25252a] lg:py-0 py-2 ">
-      <ul className="flex justify-between items-center lg:pt-4 pt-0 lg:pb-4 lpb-0 w-full mx-auto px-4">
-        <li className="flex items-center lg:space-x-3">
+    <div
+      className="learn-header fixed left-0 w-full z-50 bg-[#121214] shadow-lg border-b-[1px] border-[#25252a] lg:py-0 py-2"
+      style={{ top: "var(--top-banner-height)" }}
+    >
+      <ul className="flex justify-between items-center gap-2 lg:gap-0 lg:pt-4 pt-0 lg:pb-4 pb-0 w-full mx-auto px-4 sm:px-5">
+        <li className="flex min-w-0 shrink-0 items-center lg:space-x-3">
           {showSidebarButton && (
             <button
               onClick={toggleSidebar}
@@ -132,9 +135,9 @@ export default function LearnHeader({
           </div>
         </li>
 
-        <li className="flex-1 max-w-[478px] mx-4">
+        <li className="flex-none sm:min-w-0 sm:flex-1 sm:max-w-[478px] mx-1 sm:mx-4">
           <div
-            className="relative cursor-pointer w-full"
+            className="relative cursor-pointer w-full max-w-[42px] sm:max-w-none"
             onClick={() => setIsSearchModalOpen(true)}
           >
             <Input
@@ -142,7 +145,7 @@ export default function LearnHeader({
               readOnly
               className="cursor-pointer h-[42px] w-full hidden sm:block rounded-full hover:bg-[#25252a] transition-all duration-150 ease-in-out"
             />
-            <button className="flex sm:hidden items-center justify-center h-[42px] w-[42px] rounded-lg border border-[#25252a] hover:bg-[#25252a] transition-all duration-150 ease-in-out">
+            <button className="flex sm:hidden items-center justify-center h-[42px] w-[42px] shrink-0 rounded-lg border border-[#25252a] hover:bg-[#25252a] transition-all duration-150 ease-in-out">
               <Search size={24} className="text-[#c4c4cc]" />
             </button>
             <Search
@@ -152,8 +155,8 @@ export default function LearnHeader({
           </div>
         </li>
 
-        <li className="flex space-x-2 items-center ">
-          <div className="flex items-center space-x-4">
+        <li className="flex min-w-0 shrink-0 items-center">
+          <div className="flex items-center gap-2 sm:gap-4">
             <CourseDropdownMenu
               initialUserCourses={initialUserCourses}
               initialActiveCourse={initialActiveCourse}
