@@ -10,9 +10,9 @@ body {
 
 :root {
   --top-banner-height: 0px;
-  --header-top-offset: 12px;
+  --header-top-offset: 0px;
   --header-height-mobile: 64px;
-  --header-height-desktop: 88px;
+  --header-height-desktop: 78px;
 }
 
 .app-shell-has-top-banner {
