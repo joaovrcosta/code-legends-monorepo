@@ -172,11 +172,10 @@ function ChooseCourseContent() {
               key={course.id}
               onClick={() => setSelectedCourse(course.slug)}
               disabled={isLoading}
-              className={`w-full p-3 rounded-full px-4 border flex justify-start items-center text-left gap-3 ${
-                selectedCourse === course.slug
+              className={`w-full p-3 rounded-full px-4 border flex justify-start items-center text-left gap-3 ${selectedCourse === course.slug
                   ? "border-[#00C8FF] shadow-[0_0_12px_#00C8FF]"
                   : "border-[#25252A] bg-[#1A1A1E] hover:border-[#3A3A3F]"
-              }`}
+                }`}
             >
               {course.icon && (
                 <Image

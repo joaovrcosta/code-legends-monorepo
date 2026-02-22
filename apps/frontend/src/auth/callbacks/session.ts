@@ -9,6 +9,7 @@ interface ExtendedUser {
     onboardingCompleted?: boolean;
     onboardingGoal?: string | null;
     onboardingCareer?: string | null;
+    plan?: "FREE" | "PRO" | "PREMIUM";
 }
 
 interface ExtendedSession extends Omit<Session, "user"> {
@@ -60,6 +61,7 @@ export async function sessionCallback({ session, token }: SessionCallbackParams)
             onboardingCompleted: t.onboardingCompleted,
             onboardingGoal: t.onboardingGoal,
             onboardingCareer: t.onboardingCareer,
+            plan: t.plan ?? "FREE",
         };
     }
 

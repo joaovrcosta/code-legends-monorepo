@@ -3,6 +3,12 @@ export enum Role {
     ADMIN = "ADMIN",
     STUDENT = "STUDENT",
 }
+
+export enum UserPlan {
+    FREE = "FREE",
+    PRO = "PRO",
+    PREMIUM = "PREMIUM",
+}
 export interface CertificateTemplate {
     id: string;
     name: string;

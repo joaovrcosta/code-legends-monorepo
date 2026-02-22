@@ -26,6 +26,7 @@ export async function profile(request: FastifyRequest, reply: FastifyReply) {
         level: user.level ?? 1,
         totalXp: user.totalXp ?? 0,
         xpToNextLevel: user.xpToNextLevel ?? 100,
+        plan: user.plan,
       },
     });
   } catch (error) {

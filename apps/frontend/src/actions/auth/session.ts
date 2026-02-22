@@ -3,7 +3,7 @@
 import { auth } from "@/auth/authSetup";
 import { redirect } from "next/navigation";
 import type { User } from "@/types/user";
-import { Role } from "@code-legends/shared-types";
+import { Role, UserPlan } from "@code-legends/shared-types";
 
 /**
  * Obtém a sessão atual do usuário usando NextAuth
@@ -15,13 +15,14 @@ export async function getCurrentSession(): Promise<User | null> {
     return null;
   }
 
-  // Cast para acessar propriedades customizadas do token (onboarding, role, etc)
+  // Cast para acessar propriedades customizadas do token (onboarding, role, plan, etc)
   interface ExtendedUser {
     id?: string;
     name?: string;
     email?: string;
     image?: string | null;
     role?: string;
+    plan?: string;
     onboardingCompleted?: boolean;
     onboardingGoal?: string | null;
     onboardingCareer?: string | null;
@@ -34,6 +35,14 @@ export async function getCurrentSession(): Promise<User | null> {
     ? (roleValue as Role)
     : Role.STUDENT;
 
+  const planValue = extendedUser.plan;
+  const validPlan =
+    planValue === UserPlan.PRO
+      ? UserPlan.PRO
+      : planValue === UserPlan.PREMIUM
+        ? UserPlan.PREMIUM
+        : UserPlan.FREE;
+
   return {
     id: extendedUser.id || "",
     name: extendedUser.name || "",
@@ -42,6 +51,7 @@ export async function getCurrentSession(): Promise<User | null> {
 
     // Dados Críticos: Lendo do token em vez de hardcoded
     role: validRole,
+    plan: validPlan,
     onboardingCompleted: extendedUser.onboardingCompleted ?? false,
     onboardingGoal: extendedUser.onboardingGoal || null,
     onboardingCareer: extendedUser.onboardingCareer || null,

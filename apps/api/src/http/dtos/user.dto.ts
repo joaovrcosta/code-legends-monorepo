@@ -20,6 +20,7 @@ export function toUserPublicDTO(user: User): UserPublicDTO {
     bio: user.bio,
     expertise: user.expertise,
     role: user.role,
+    plan: user.plan,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

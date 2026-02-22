@@ -5,6 +5,15 @@ CREATE TYPE "MaritalStatus" AS ENUM ('SINGLE', 'MARRIED', 'DIVORCED', 'WIDOWED')
 CREATE TYPE "Role" AS ENUM ('INSTRUCTOR', 'ADMIN', 'STUDENT');
 
 -- CreateEnum
+CREATE TYPE "UserPlan" AS ENUM ('FREE', 'PRO', 'PREMIUM');
+
+-- CreateEnum
+CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'PAID', 'FAILED', 'REFUNDED');
+
+-- CreateEnum
+CREATE TYPE "SubscriptionStatus" AS ENUM ('ACTIVE', 'CANCELLED', 'EXPIRED');
+
+-- CreateEnum
 CREATE TYPE "RequestStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'IN_PROGRESS');
 
 -- CreateEnum
@@ -81,6 +90,7 @@ CREATE TABLE "User" (
     "gender" TEXT,
     "marital_status" "MaritalStatus" NOT NULL DEFAULT 'SINGLE',
     "role" "Role" NOT NULL DEFAULT 'STUDENT',
+    "plan" "UserPlan" NOT NULL DEFAULT 'FREE',
     "occupation" TEXT,
     "phone" TEXT,
     "rg" TEXT,
@@ -90,6 +100,7 @@ CREATE TABLE "User" (
     "totalXp" INTEGER NOT NULL DEFAULT 0,
     "level" INTEGER NOT NULL DEFAULT 1,
     "xpToNextLevel" INTEGER NOT NULL DEFAULT 100,
+    "lastLogin" TIMESTAMP(3),
     "activeCourseId" TEXT,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
@@ -308,6 +319,39 @@ CREATE TABLE "Notification" (
 );
 
 -- CreateTable
+CREATE TABLE "Payment" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "amountCents" INTEGER NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'BRL',
+    "status" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
+    "plan" "UserPlan" NOT NULL,
+    "gateway" TEXT NOT NULL,
+    "gatewayPaymentId" TEXT,
+    "metadata" JSONB,
+    "paidAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Subscription" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "plan" "UserPlan" NOT NULL,
+    "status" "SubscriptionStatus" NOT NULL DEFAULT 'ACTIVE',
+    "startsAt" TIMESTAMP(3) NOT NULL,
+    "endsAt" TIMESTAMP(3) NOT NULL,
+    "gatewaySubscriptionId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Subscription_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_CourseToTag" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -396,6 +440,24 @@ CREATE INDEX "Notification_userId_createdAt_idx" ON "Notification"("userId", "cr
 CREATE INDEX "Notification_type_idx" ON "Notification"("type");
 
 -- CreateIndex
+CREATE INDEX "Payment_userId_idx" ON "Payment"("userId");
+
+-- CreateIndex
+CREATE INDEX "Payment_status_idx" ON "Payment"("status");
+
+-- CreateIndex
+CREATE INDEX "Payment_gatewayPaymentId_idx" ON "Payment"("gatewayPaymentId");
+
+-- CreateIndex
+CREATE INDEX "Subscription_userId_idx" ON "Subscription"("userId");
+
+-- CreateIndex
+CREATE INDEX "Subscription_status_idx" ON "Subscription"("status");
+
+-- CreateIndex
+CREATE INDEX "Subscription_endsAt_idx" ON "Subscription"("endsAt");
+
+-- CreateIndex
 CREATE INDEX "_CourseToTag_B_index" ON "_CourseToTag"("B");
 
 -- CreateIndex
@@ -481,6 +543,12 @@ ALTER TABLE "Request" ADD CONSTRAINT "Request_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_CourseToTag" ADD CONSTRAINT "_CourseToTag_A_fkey" FOREIGN KEY ("A") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE;

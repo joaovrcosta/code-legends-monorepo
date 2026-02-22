@@ -34,6 +34,7 @@ async function refreshAccessToken(token: TokenWithRefresh): Promise<TokenWithRef
             onboardingGoal: token.onboardingGoal,
             onboardingCareer: token.onboardingCareer
         };
+        let plan: "FREE" | "PRO" | "PREMIUM" = token.plan ?? "FREE";
 
         try {
             const userResponse = await fetch(
@@ -53,6 +54,7 @@ async function refreshAccessToken(token: TokenWithRefresh): Promise<TokenWithRef
                     onboardingGoal: userData.user.onboardingGoal ?? null,
                     onboardingCareer: userData.user.onboardingCareer ?? null
                 };
+                plan = userData.user.plan ?? "FREE";
             } else if (userResponse.status === 401 || userResponse.status === 404) {
                 throw new Error("UserNotFound");
             }
@@ -68,6 +70,7 @@ async function refreshAccessToken(token: TokenWithRefresh): Promise<TokenWithRef
             refreshToken: data.refreshToken ?? token.refreshToken,
             accessTokenExpires: Date.now() + 10 * 60 * 1000,
             ...onboardingData,
+            plan,
             error: undefined,
         };
     } catch {
@@ -179,6 +182,7 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
                     onboardingCompleted: data.onboardingCompleted ?? false,
                     onboardingGoal: data.onboardingGoal ?? null,
                     onboardingCareer: data.onboardingCareer ?? null,
+                    plan: userData.user.plan ?? "FREE",
                     lastOnboardingCheck: Date.now(),
                 };
             } catch (error) {
@@ -235,6 +239,7 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
                 updatedToken.onboardingCompleted = userData.user.onboardingCompleted ?? false;
                 updatedToken.onboardingGoal = userData.user.onboardingGoal ?? null;
                 updatedToken.onboardingCareer = userData.user.onboardingCareer ?? null;
+                updatedToken.plan = userData.user.plan ?? "FREE";
                 updatedToken.lastOnboardingCheck = 0;
             } else if (userResponse.status === 401 || userResponse.status === 404) {
                 return { ...tokenWithRefresh, error: "RefreshAccessTokenError" };
@@ -269,6 +274,7 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
                         onboardingCompleted: userData.user.onboardingCompleted ?? false,
                         onboardingGoal: userData.user.onboardingGoal ?? null,
                         onboardingCareer: userData.user.onboardingCareer ?? null,
+                        plan: userData.user.plan ?? "FREE",
                         lastOnboardingCheck: Date.now(),
                     };
                 } else if (userResponse.status === 401 || userResponse.status === 404) {

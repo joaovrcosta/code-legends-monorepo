@@ -10,6 +10,7 @@ export interface TokenWithRefresh {
     onboardingGoal?: string | null;
     onboardingCareer?: string | null;
     lastOnboardingCheck?: number;
+    plan?: "FREE" | "PRO" | "PREMIUM";
     error?: string;
     [key: string]: unknown;
 }

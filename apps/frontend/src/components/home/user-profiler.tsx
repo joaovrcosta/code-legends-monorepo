@@ -34,10 +34,13 @@ export async function UserProfiler() {
             <div className="bg-[#1A1A1E] p-6 border border-[#25252A] rounded-[20px] w-full">
                 <div className=" flex justify-between">
                     <h1 className="text-white text-xl font-medium">Olá, {firstName}</h1>
-                    <div className="flex items-center gap-2">
-                        <Lightning size={24} weight="fill" className="text-[#FF6200]" />
-                        PRO
-                    </div>
+                    {((userFromAPI?.plan ?? user?.plan) === "PRO" ||
+                      (userFromAPI?.plan ?? user?.plan) === "PREMIUM") && (
+                        <div className="flex items-center gap-2">
+                            <Lightning size={24} weight="fill" className="text-[#FF6200]" />
+                            {(userFromAPI?.plan ?? user?.plan) === "PREMIUM" ? "PREMIUM" : "PRO"}
+                        </div>
+                    )}
                 </div>
                 <div className="flex items-center gap-4 mt-6">
                     {/* Avatar com borda gradiente */}
