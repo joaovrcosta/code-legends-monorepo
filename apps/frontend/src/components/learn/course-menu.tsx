@@ -110,8 +110,8 @@ export function CourseDropdownMenu({
         className="w-screen max-w-none left-0 right-0 border-none bg-[#1A1A1E] shadow-2xl z-50 p-0 
                   sm:w-auto sm:max-w-sm sm:rounded-[20px] sm:border sm:border-[#25252A] sm:left-auto sm:right-auto"
       >
-        <DropdownMenuLabel className="p-4">
-          <span className="bg-blue-gradient-500 bg-clip-text text-transparent font-bold text-sm">
+        <DropdownMenuLabel className="p-4 flex items-center justify-center">
+          <span className="bg-blue-gradient-500 bg-clip-text text-transparent font-bold text-base">
             Meus cursos
           </span>
         </DropdownMenuLabel>
@@ -207,7 +207,7 @@ export function CourseDropdownMenu({
         )}
 
         <Link href="/learn/catalog" onClick={() => setOpen(false)}>
-          <div className="flex text-white gap-1 items-center justify-center py-3 hover:bg-[#25252A] border-t border-[#25252A] cursor-pointer">
+          <div className="flex text-white gap-1 items-center justify-center py-3 hover:bg-[#25252A] border-t border-[#25252A] cursor-pointer h-[52px]">
             <Plus />
             Adicionar curso
           </div>
