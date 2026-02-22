@@ -79,7 +79,7 @@ export function CourseDropdownMenu({
           className={`bg-[#2A2A35] border-b-[1px] border-[#55555c] lg:bg-gray-gradient-first items-center justify-center border cursor-pointer flex transition-all duration-300 shrink-0
     h-[52px] w-[120px] lg:rounded-lg rounded-full lg:h-auto lg:w-auto lg:max-h-[42px] lg:py-3 lg:px-4 lg:gap-2 lg:rounded-[12px]
     hover:bg-[#25252A] 
-    shadow-[0_0_15px_rgba(255,255,255,0.15)] hover:shadow-[0_0_20px_rgba(255,255,255,0.25)]
+    shadow-[0_0_15px_rgba(255,255,255,0.15)] hover:shadow-[0_0_20px_rgba(255,255,255,0.40)]
     
     ${open
               ? "border-[#00C8FF] shadow-[0_0_25px_rgba(255,255,255,0.2)]" /* Quando aberto, o glow fica mais evidente */
