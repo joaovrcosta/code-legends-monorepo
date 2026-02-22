@@ -15,7 +15,7 @@ export function FooterFixed({
   return (
     <footer
       // 1. ADICIONEI o `pointer-events-none` aqui. Isso faz a área toda do padding ignorar o toque e repassar pro conteúdo de trás rolar livremente.
-      className="fixed bottom-0 left-0 w-full px-4 pt-16 pb-3 lg:hidden pointer-events-none"
+      className="fixed bottom-0 left-0 w-full px-4 pt-8 pb-3 lg:hidden pointer-events-none"
     >
       <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-transparent via-[#121214]/80 to-[#121214]" />
 
