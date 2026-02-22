@@ -76,9 +76,15 @@ export function CourseDropdownMenu({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <div
-          className={`bg-[#1e1f20] lg:bg-gray-gradient-first items-center justify-center border cursor-pointer flex transition-colors shrink-0
-            h-[52px] w-[80px] lg:rounded-lg rounded-full lg:h-auto lg:w-auto lg:max-h-[42px] lg:py-3 lg:px-4 lg:gap-2 lg:rounded-[12px]
-            hover:bg-[#25252A] ${open ? "border-[#00C8FF]" : "border-[#25252A]"}`}
+          className={`bg-[#2A2A35] border-b-[1px] border-[#55555c] lg:bg-gray-gradient-first items-center justify-center border cursor-pointer flex transition-all duration-300 shrink-0
+    h-[52px] w-[120px] lg:rounded-lg rounded-full lg:h-auto lg:w-auto lg:max-h-[42px] lg:py-3 lg:px-4 lg:gap-2 lg:rounded-[12px]
+    hover:bg-[#25252A] 
+    shadow-[0_0_15px_rgba(255,255,255,0.15)] hover:shadow-[0_0_20px_rgba(255,255,255,0.25)]
+    
+    ${open
+              ? "border-[#00C8FF] shadow-[0_0_25px_rgba(255,255,255,0.2)]" /* Quando aberto, o glow fica mais evidente */
+              : "border-[#25252A]"
+            }`}
         >
           {currentActiveCourse?.icon ? (
             <Image
@@ -100,7 +106,8 @@ export function CourseDropdownMenu({
       <DropdownMenuContent
         align="center"
         side="bottom"
-        className="w-screen max-w-none left-0 right-0 border-none bg-[#1A1A1E] shadow-2xl z-50 mt-1 p-0 
+        sideOffset={20}
+        className="w-screen max-w-none left-0 right-0 border-none bg-[#1A1A1E] shadow-2xl z-50 p-0 
                   sm:w-auto sm:max-w-sm sm:rounded-[20px] sm:border sm:border-[#25252A] sm:left-auto sm:right-auto"
       >
         <DropdownMenuLabel className="p-4">

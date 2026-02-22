@@ -60,6 +60,8 @@ export default {
           "linear-gradient(0deg, rgba(32,32,32, 0.05) 0%, rgba(26,26,30, 0.39) 100%)",
         "gray-gradient-first":
           "linear-gradient(0deg, rgba(32,32,32, 0.05) 40%, rgba(123,123,138, 0.39) 100%)",
+        "gray-gradient-first-full":
+          "linear-gradient(0deg, rgba(32,32,32, 1) 100%, rgba(123,123,138, 1) 100%)",
         "gray-gradient-second":
           "linear-gradient(0deg, rgba(123,123,138, 0.39) 5%, rgba(32,32,32, 0.05) 100%)",
         "blue-gradient-first":
