@@ -14,14 +14,13 @@ export function FooterFixed({
 }: FooterFixedProps) {
   return (
     <footer
-      // 1. Substituí o py-3 por pt-24 e pb-3. O pt-24 "estica" o footer para cima, dando bastante espaço para o degradê acontecer.
-      className="fixed bottom-0 left-0 w-full px-4 pt-16 pb-3 lg:hidden"
+      // 1. ADICIONEI o `pointer-events-none` aqui. Isso faz a área toda do padding ignorar o toque e repassar pro conteúdo de trás rolar livremente.
+      className="fixed bottom-0 left-0 w-full px-4 pt-16 pb-3 lg:hidden pointer-events-none"
     >
-      {/* 2. Adicionei via-[#121214]/80. Isso faz o degradê começar transparente, ficar 80% escuro no meio, e 100% escuro na base. */}
       <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-transparent via-[#121214]/80 to-[#121214]" />
 
-      {/* 3. Adicionei relative e z-10 aqui para garantir que o botão fique na frente do fade e continue clicável */}
-      <div className="relative z-10 flex justify-center mb-3">
+      {/* 2. ADICIONEI o `pointer-events-auto` aqui. Isso "acorda" o toque apenas na área exata do botão, permitindo que ele seja clicado! */}
+      <div className="relative z-10 flex justify-center mb-3 pointer-events-auto">
         <CourseDropdownMenu
           initialUserCourses={initialUserCourses}
           initialActiveCourse={initialActiveCourse}
