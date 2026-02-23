@@ -28,6 +28,7 @@ import { getCompletedCourses } from "@/actions/course/completed";
 import { useActiveCourseStore } from "@/stores/active-course-store";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
+import { LearnUpgradeCard } from "@/components/learn/learn-upgrade-card";
 
 interface CourseOverviewProps {
   tags?: string[];
@@ -421,6 +422,7 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
         </Card>
       </div>
       <div className="max-w-[500px] w-full space-y-4 lg:sticky lg:top-[100px] lg:h-fit">
+        <LearnUpgradeCard />
         <Card className="p-0 text-white bg-gray-gradient rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">
             <div className="flex items-center justify-between">

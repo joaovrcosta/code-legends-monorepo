@@ -11,7 +11,10 @@ import { listUsers } from "./list.controller";
 import { getById } from "./get-by-id.controller";
 import { listInstructors } from "./list-instructors.controller";
 import { getAccountOverview, updateAccountData } from "./account-overview.controller";
+import { getCheckoutDados } from "./get-checkout-dados.controller";
+import { updateCheckoutDados } from "./update-checkout-dados.controller";
 import { listPayments } from "./list-payments.controller";
+import { createCheckout } from "../payments/create-checkout.controller";
 import { remove } from "./delete.controller";
 import { unlinkGoogle } from "./unlink-google.controller";
 import { verifyJWT } from "../../middlewares/verify-jwt";
@@ -26,10 +29,15 @@ export async function usersRoutes(app: FastifyInstance) {
 
   // Rotas autenticadas
   app.get("/me", { onRequest: [verifyJWT] }, profile);
+  app.get("/me/checkout-dados", { onRequest: [verifyJWT] }, getCheckoutDados);
+  app.patch("/me/checkout-dados", { onRequest: [verifyJWT] }, updateCheckoutDados);
   app.get("/users/onboarding/status", { onRequest: [verifyJWT] }, getOnboardingStatus);
   app.post("/users/onboarding", { onRequest: [verifyJWT] }, updateOnboarding);
   app.post("/users/onboarding/complete", { onRequest: [verifyJWT] }, completeOnboarding);
   app.delete("/users/unlink-google", { onRequest: [verifyJWT] }, unlinkGoogle);
+
+  // Checkout (usuário autenticado)
+  app.post("/payments/checkout", { onRequest: [verifyJWT] }, createCheckout);
 
   // Rotas protegidas - apenas ADMIN
   app.get("/payments", { onRequest: [verifyAdmin] }, listPayments);
