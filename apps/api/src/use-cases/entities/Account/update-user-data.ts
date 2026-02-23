@@ -1,9 +1,10 @@
-import { User } from "@prisma/client";
+import { User, UserPlan } from "@prisma/client";
 import { IUsersRepository } from "../../../repositories/users-repository";
 import { UserNotFoundError } from "../../errors/user-not-found";
 
 interface UpdateUserDataRequest {
   userId: string;
+  plan?: UserPlan;
   onboardingCompleted?: boolean;
   onboardingGoal?: string | null;
   onboardingCareer?: string | null;
@@ -31,6 +32,9 @@ export class UpdateUserDataUseCase {
 
     const updateData: Partial<User> = {};
 
+    if (data.plan !== undefined) {
+      updateData.plan = data.plan;
+    }
     if (data.onboardingCompleted !== undefined) {
       updateData.onboardingCompleted = data.onboardingCompleted;
     }

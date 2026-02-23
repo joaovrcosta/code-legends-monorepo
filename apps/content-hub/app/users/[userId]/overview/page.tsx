@@ -235,6 +235,7 @@ export default function UserOverviewPage() {
           <Button
             onClick={() => {
               setEditFormData({
+                plan: overview.user.plan as "FREE" | "PRO" | "PREMIUM",
                 name: overview.user.name,
                 bio: overview.user.bio,
                 expertise: overview.user.expertise,
@@ -362,13 +363,29 @@ export default function UserOverviewPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Plano</p>
-                <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mt-1 ${getPlanBadgeColor(
-                    overview.user.plan
-                  )}`}
+                <Select
+                  value={overview.user.plan ?? "FREE"}
+                  onChange={async (e) => {
+                    const newPlan = e.target.value as "FREE" | "PRO" | "PREMIUM";
+                    try {
+                      const token = getAuthTokenFromClient();
+                      if (!token) {
+                        toast.error("Token não encontrado");
+                        return;
+                      }
+                      await updateUserOverview(userId, { plan: newPlan }, token);
+                      toast.success("Plano atualizado");
+                      loadOverview();
+                    } catch (err: unknown) {
+                      toast.error(err instanceof Error ? err.message : "Erro ao atualizar plano");
+                    }
+                  }}
+                  className="mt-1 w-[130px]"
                 >
-                  {getPlanLabel(overview.user.plan)}
-                </span>
+                  <option value="FREE">Free</option>
+                  <option value="PRO">Pro</option>
+                  <option value="PREMIUM">Premium</option>
+                </Select>
               </div>
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Onboarding</p>
@@ -775,6 +792,23 @@ export default function UserOverviewPage() {
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Informações Básicas</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="plan">Plano</Label>
+                      <Select
+                        id="plan"
+                        value={editFormData.plan ?? "FREE"}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            plan: e.target.value as "FREE" | "PRO" | "PREMIUM",
+                          })
+                        }
+                      >
+                        <option value="FREE">Free</option>
+                        <option value="PRO">Pro</option>
+                        <option value="PREMIUM">Premium</option>
+                      </Select>
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="name">Nome</Label>
                       <Input

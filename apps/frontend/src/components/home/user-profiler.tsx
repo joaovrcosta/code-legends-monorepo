@@ -127,7 +127,7 @@ export async function UserProfiler() {
                     </div>
                 </div>
             </div>
-            <CtaFacaUpgradeCard />
+            {userPlan !== "PRO" && userPlan !== "PREMIUM" && <CtaFacaUpgradeCard />}
             <div className="bg-[#1A1A1E] border border-[#25252A] rounded-[20px] w-full p-6">
                 <div className="flex items-center gap-2 mb-2">
                     <Flame size={24} weight="fill" className="text-[#FF6200]" />

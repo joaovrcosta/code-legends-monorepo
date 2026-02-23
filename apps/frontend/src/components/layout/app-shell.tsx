@@ -1,12 +1,13 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { FooterFixed } from "@/components/learn/footer-fixed";
 import LearnHeader from "@/components/learn/header";
 import Sidebar from "@/components/learn/sidebar";
 import { TopAdvertesing } from "@/components/learn/top-advertesing";
 import type { EnrolledCourse, ActiveCourse } from "@/types/user-course.ts";
 
-const showTopBanner = process.env.NEXT_PUBLIC_SHOW_TOP_BANNER === "true";
+const showTopBannerByEnv = process.env.NEXT_PUBLIC_SHOW_TOP_BANNER === "true";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -21,11 +22,16 @@ export function AppShell({
   initialUserCourses,
   initialActiveCourse,
 }: AppShellProps) {
+  const { data: session, status } = useSession();
+  const userPlan = (session?.user as { plan?: string } | undefined)?.plan;
+  const isPaidUser = userPlan === "PRO" || userPlan === "PREMIUM";
+  const showTopBanner =
+    showTopBannerByEnv && status !== "loading" && !isPaidUser;
+
   return (
     <div
       className={`h-[100dvh] w-full flex flex-col ${showTopBanner ? "app-shell-has-top-banner" : ""}`}
     >
-      {/* CORREÇÃO AQUI: O banner só é renderizado no HTML se showTopBanner for true */}
       {showTopBanner && <TopAdvertesing />}
 
       <LearnHeader

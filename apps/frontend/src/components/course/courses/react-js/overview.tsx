@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { Card, CardHeader } from "@/components/ui/card";
 import {
   Accordion,
@@ -41,6 +42,11 @@ interface CourseOverviewProps {
 }
 
 export function CourseOverview({ tags = [], currentLesson = null }: CourseOverviewProps) {
+  const { data: session, status } = useSession();
+  const userPlan = (session?.user as { plan?: string } | undefined)?.plan;
+  const isPaidUser = userPlan === "PRO" || userPlan === "PREMIUM";
+  const sessionReady = status !== "loading";
+
   const [showMore, setShowMore] = useState(false);
   const [isCourseCompleted, setIsCourseCompleted] = useState(false);
   const { activeCourse } = useActiveCourseStore();
@@ -422,7 +428,7 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
         </Card>
       </div>
       <div className="max-w-[500px] w-full space-y-4 lg:sticky lg:top-[100px] lg:h-fit">
-        <LearnUpgradeCard />
+        {sessionReady && !isPaidUser && <LearnUpgradeCard />}
         <Card className="p-0 text-white bg-gray-gradient rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">
             <div className="flex items-center justify-between">

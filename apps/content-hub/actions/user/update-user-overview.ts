@@ -2,7 +2,10 @@
 
 import type { UserOverview } from "./get-user-overview";
 
+export type UserPlanValue = "FREE" | "PRO" | "PREMIUM";
+
 export interface UpdateUserOverviewData {
+  plan?: UserPlanValue;
   name?: string;
   bio?: string | null;
   expertise?: string[];
