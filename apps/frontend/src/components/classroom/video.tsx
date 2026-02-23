@@ -183,7 +183,6 @@ export default function VideoComponent({
         )}
       </div>
 
-      {/* Acordeões */}
       <div className="">
         <TitleAccordion title={title} description={description} />
         <LevelAccordion />
