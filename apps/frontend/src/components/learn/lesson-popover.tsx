@@ -26,6 +26,7 @@ export const LessonPopover = ({
   setShowContinue,
   completed,
   locked,
+  lockedByPlan = false,
   allLessons,
   roadmap,
 }: {
@@ -36,6 +37,7 @@ export const LessonPopover = ({
   setShowContinue: (state: boolean) => void;
   completed: boolean;
   locked: boolean;
+  lockedByPlan?: boolean;
   currentCourseSlug: string;
   allLessons?: Lesson[];
   roadmap?: RoadmapResponse;
@@ -49,7 +51,7 @@ export const LessonPopover = ({
   const router = useRouter();
 
   const handleWatchClick = () => {
-    if (!locked) {
+    if (!locked && !lockedByPlan) {
       // Tenta gerar URL dinâmica se tiver roadmap
       if (roadmap?.modules) {
         const context = findLessonContext(lesson.id, roadmap.modules);
@@ -201,10 +203,19 @@ export const LessonPopover = ({
                 )}
               </div>
 
-              <PrimaryButton disabled={locked} onClick={handleWatchClick}>
-                {locked ? "Bloqueado" : completed ? "Revisar" : "Assistir"}
-                {locked ? <Lock /> : <CirclePlay />}
-              </PrimaryButton>
+              {lockedByPlan ? (
+                <Link href="/cart/pro" className="block">
+                  <PrimaryButton className="w-full">
+                    Assine para acessar
+                    <CirclePlay />
+                  </PrimaryButton>
+                </Link>
+              ) : (
+                <PrimaryButton disabled={locked} onClick={handleWatchClick}>
+                  {locked ? "Bloqueado" : completed ? "Revisar" : "Assistir"}
+                  {locked ? <Lock /> : <CirclePlay />}
+                </PrimaryButton>
+              )}
 
               {(lesson.type === "project" || lesson.type === "quiz") && (
                 <Link href={`/skip-lesson/${lesson.id}`}>

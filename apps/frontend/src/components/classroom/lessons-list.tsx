@@ -32,7 +32,6 @@ export const LessonsList = memo(function LessonsList({
   }, [roadmap]);
 
   const handleLessonClick = useCallback((lesson: Lesson, index: number) => {
-    if (lesson.status === "locked") return;
     if (!roadmap?.modules) return;
 
     const context = findLessonContext(lesson.id, roadmap.modules);
@@ -40,6 +39,7 @@ export const LessonsList = memo(function LessonsList({
     if (context) {
       const url = generateLessonUrl(lesson, context.module, context.group);
       router.push(url);
+      // Aulas bloqueadas (pagas) também navegam: usuário FREE vê o paywall na página da aula
     } else {
       setLessonsForPage(lessons, index);
       router.push("/classroom");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import { useSession } from "next-auth/react";
 import {
   getCourseRoadmap,
   listModulesProgress,
@@ -49,6 +50,10 @@ export function LearnPageContent({
   } = useCourseModalStore();
 
   console.log(activeCourse);
+
+  const { data: session } = useSession();
+  const userPlan = (session?.user as { plan?: string } | undefined)?.plan;
+  const isPaidUser = userPlan === "PRO" || userPlan === "PREMIUM";
 
   const { activeCourse: storeActiveCourse } = useActiveCourseStore();
   const currentActiveCourse = storeActiveCourse || activeCourse;
@@ -496,6 +501,7 @@ export function LearnPageContent({
             firstIncompleteLesson={firstIncompleteLesson}
             allLessons={allLessons}
             taskRefs={taskRefs}
+            isPaidUser={isPaidUser}
           />
           <div className="flex items-center justify-between flex-col border border-[#25252A] lg:border-b-[1px] lg:border-r-[1px] lg:border-l-[1px] border-l-0 border-r-0 border-b-0 lg:rounded-[20px] rounded-none p-8 w-full max-w-[412px]">
             {(nextLockedModule || currentActiveCourse?.isCompleted === true) && (

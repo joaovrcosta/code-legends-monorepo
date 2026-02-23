@@ -36,18 +36,24 @@ export interface LessonResponse {
   };
 }
 
+/** Resposta quando a API retorna 403 (conteúdo exclusivo para assinantes). Não lança erro. */
+export interface LessonUpgradeRequired {
+  __upgradeRequired: true;
+  message: string;
+}
+
 /**
- * Busca uma aula específica pelo slug do curso e slug da aula
+ * Busca uma aula específica pelo slug do curso e slug da aula.
+ * Em 403 (conteúdo exclusivo), retorna { __upgradeRequired: true, message } para a página exibir o paywall.
  */
 export async function getLessonBySlug(
   courseId: string,
   lessonSlug: string
-): Promise<LessonResponse | null> {
+): Promise<LessonResponse | LessonUpgradeRequired | null> {
   try {
     const token = await getAuthToken();
 
     if (!token) {
-      // Usuário não autenticado - comportamento esperado
       return null;
     }
 
@@ -59,17 +65,23 @@ export async function getLessonBySlug(
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        cache: "no-store", // Sem cache para sempre ter dados atualizados
+        cache: "no-store",
       }
     );
 
     if (!response.ok) {
       if (response.status === 404) {
-        console.error("Aula não encontrada");
         return null;
       }
 
-      console.error("Erro na resposta da API:", response.statusText);
+      if (response.status === 403) {
+        const body = await response.json().catch(() => ({}));
+        const message =
+          (body as { message?: string }).message ||
+          "Conteúdo exclusivo para assinantes. Faça upgrade para acessar.";
+        return { __upgradeRequired: true, message };
+      }
+
       return null;
     }
 

@@ -13,7 +13,7 @@ import { NotificationsSection } from "../notifications-section";
 import { useActiveCourseStore } from "@/stores/active-course-store";
 import { useCourseModalStore } from "@/stores/course-modal-store";
 import type { EnrolledCourse, ActiveCourse } from "@/types/user-course.ts";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useRoadmapUpdater } from "@/hooks/use-roadmap-updater";
 import type { RoadmapResponse } from "@/types/roadmap";
@@ -28,10 +28,17 @@ export default function ClassroomHeader({
   initialActiveCourse,
 }: ClassroomHeaderProps) {
   const { toggleSidebar } = useClassroomSidebarStore();
-  const { activeCourse } = useActiveCourseStore();
+  const { activeCourse, setActiveCourse } = useActiveCourseStore();
   const { currentLesson } = useCourseModalStore();
   const [isAutoplay, setIsAutoplay] = useState(false);
   const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null);
+
+  // Sincroniza o curso ativo do layout (SSR) com o store para a página do classroom ter curso imediato
+  useEffect(() => {
+    if (initialActiveCourse?.id && !activeCourse?.id) {
+      setActiveCourse(initialActiveCourse);
+    }
+  }, [initialActiveCourse, activeCourse?.id, setActiveCourse]);
 
   // Custom hook gerencia toda a lógica de atualização do roadmap
   useRoadmapUpdater({

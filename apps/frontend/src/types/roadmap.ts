@@ -14,6 +14,7 @@ export type Lesson = {
   status: LessonStatus;
   isCurrent: boolean;
   canReview: boolean;
+  isFree?: boolean;
 };
 
 export type Group = {
@@ -45,6 +46,7 @@ export type CourseRoadmap = {
   slug: string;
   progress: number;
   isCompleted: boolean;
+  isFree?: boolean;
   author?: CourseAuthor;
   currentModule?: number;
   currentClass?: number;

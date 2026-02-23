@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getLessonBySlug, type LessonResponse, unlockNextModule, getCourseRoadmapFresh, revalidateRoadmapCache } from "@/actions/course";
+import { getLessonBySlug, type LessonResponse, type LessonUpgradeRequired, unlockNextModule, getCourseRoadmapFresh, revalidateRoadmapCache } from "@/actions/course";
+import { isLessonAccessibleForUser } from "@/utils/lesson-access";
 import { LessonContent } from "@/components/classroom/lesson-content";
+import { LessonPaywall } from "@/components/classroom/lesson-paywall";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { LevelProgressBar } from "@/components/learn/level-progress-bar";
@@ -16,10 +18,26 @@ import { useCourseModalStore } from "@/stores/course-modal-store";
 import useClassroomSidebarStore from "@/stores/classroom-sidebar";
 import type { RoadmapResponse } from "@/types/roadmap";
 import { generateLessonUrl, findLessonContext } from "@/utils/lesson-url";
+import { useSession } from "next-auth/react";
+
+function isLessonUpgradeRequiredResult(
+  data: LessonResponse | LessonUpgradeRequired | null
+): data is LessonUpgradeRequired {
+  return !!(
+    data &&
+    typeof data === "object" &&
+    "__upgradeRequired" in data &&
+    (data as LessonUpgradeRequired).__upgradeRequired
+  );
+}
 
 export default function DynamicLessonPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
+  const userPlan = (session?.user as { plan?: string } | undefined)?.plan;
+  const isPaidUser = userPlan === "PRO" || userPlan === "PREMIUM";
+
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore();
   const { setLessonForPage, lessonCompletedTimestamp, currentLesson } = useCourseModalStore();
   const { isOpen: isSidebarOpen } = useClassroomSidebarStore();
@@ -61,6 +79,10 @@ export default function DynamicLessonPage() {
 
         try {
           const data = await getLessonBySlug(courseId, lessonSlug);
+          if (isLessonUpgradeRequiredResult(data)) {
+            setError(data.message);
+            return;
+          }
           if (data) {
             // VALIDAÇÃO: Se a aula estiver bloqueada, redireciona para a primeira desbloqueada
             if (data.status === "locked") {
@@ -75,7 +97,7 @@ export default function DynamicLessonPage() {
                   .flatMap((group) => group?.lessons || []);
                 
                 const firstUnlockedLesson = allLessons.find(
-                  (lesson) => lesson.status !== "locked"
+                  (lesson) => isLessonAccessibleForUser(lesson, isPaidUser)
                 );
                 
                 if (firstUnlockedLesson) {
@@ -115,13 +137,13 @@ export default function DynamicLessonPage() {
           }
         } catch (err) {
           console.error("Erro ao carregar aula:", err);
-          setError("Erro ao carregar aula");
+          setError(err instanceof Error ? err.message : "Erro ao carregar aula");
         } finally {
           setIsLoading(false);
         }
         return;
       }
-      
+
       if (!lessonSlug) {
         setIsLoading(false);
         return;
@@ -132,8 +154,12 @@ export default function DynamicLessonPage() {
 
       try {
         const data = await getLessonBySlug(activeCourse.id, lessonSlug);
+        if (isLessonUpgradeRequiredResult(data)) {
+          setError(data.message);
+          return;
+        }
         if (data) {
-          // VALIDAÇÃO: Se a aula estiver bloqueada, redireciona para a primeira desbloqueada
+          // VALIDAÇÃO: Se a aula estiver bloqueada, redireciona para a primeira acessível
           if (data.status === "locked") {
             // Carrega o roadmap para encontrar a primeira aula desbloqueada
             const roadmapData = await getCourseRoadmapFresh(activeCourse.id);
@@ -146,7 +172,7 @@ export default function DynamicLessonPage() {
                 .flatMap((group) => group?.lessons || []);
               
               const firstUnlockedLesson = allLessons.find(
-                (lesson) => lesson.status !== "locked"
+                (lesson) => isLessonAccessibleForUser(lesson, isPaidUser)
               );
               
               if (firstUnlockedLesson) {
@@ -186,14 +212,14 @@ export default function DynamicLessonPage() {
         }
       } catch (err) {
         console.error("Erro ao carregar aula:", err);
-        setError("Erro ao carregar aula");
+        setError(err instanceof Error ? err.message : "Erro ao carregar aula");
       } finally {
         setIsLoading(false);
       }
     };
 
     loadLesson();
-  }, [activeCourse?.id, lessonSlug, setLessonForPage, router, fetchActiveCourse]);
+  }, [activeCourse?.id, lessonSlug, setLessonForPage, router, fetchActiveCourse, isPaidUser]);
 
   // Carrega o roadmap para a sidebar
   useEffect(() => {
@@ -235,7 +261,7 @@ export default function DynamicLessonPage() {
           getCourseRoadmapFresh(activeCourse.id),
         ]);
         
-        if (refreshedLessonData) {
+        if (refreshedLessonData && !isLessonUpgradeRequiredResult(refreshedLessonData)) {
           setLessonData(refreshedLessonData);
           // Atualiza o store com o status correto do nível raiz
           const lessonWithStatus = {
@@ -320,7 +346,7 @@ export default function DynamicLessonPage() {
           
           // Recarrega a lição atual para obter dados atualizados (incluindo navigation)
           const refreshedLessonData = await getLessonBySlug(activeCourse.id, lessonSlug);
-          if (refreshedLessonData) {
+          if (refreshedLessonData && !isLessonUpgradeRequiredResult(refreshedLessonData)) {
             setLessonData(refreshedLessonData);
             
             // Se houver uma próxima aula disponível, navega automaticamente para ela
@@ -346,10 +372,112 @@ export default function DynamicLessonPage() {
   }, [activeCourse?.id, lessonSlug, navigateToLesson]);
 
   if (isLoading) {
+    // Mantém o mesmo layout (sidebar + área principal) para não ficar tela preta; conteúdo central com loading
     return (
-      <div className="flex items-center justify-center w-full h-full">
-        <div className="text-center text-white">
-          <p className="text-muted-foreground">Carregando aula...</p>
+      <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
+        <aside
+          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
+            isSidebarOpen ? "w-[378px]" : "w-0"
+          }`}
+        >
+          {isSidebarOpen && (
+            <div className="h-full flex flex-col w-[378px]">
+              <div className="p-4 border-b border-[#25252A] bg-[#121214]">
+                <h2 className="text-[20px] font-semibold text-[#C4C4CC]">Trilha</h2>
+              </div>
+              <div className="flex-1 overflow-y-auto flex items-center justify-center p-4">
+                <p className="text-sm text-[#71717a]">Carregando lista de aulas...</p>
+              </div>
+            </div>
+          )}
+        </aside>
+        <div
+          className={`flex-1 w-full min-h-[calc(100dvh-63px)] lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)] bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)] text-white flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${
+            isSidebarOpen ? "lg:ml-[378px]" : "lg:ml-0"
+          }`}
+        >
+          <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
+            <div className="flex items-center justify-between w-full px-4">
+              <Link href="/learn">
+                <X size={32} className="text-white cursor-pointer" />
+              </Link>
+            </div>
+          </header>
+          <div className="flex flex-1 items-center justify-center">
+            <p className="text-[#a1a1aa]">Carregando aula...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const isUpgradeRequired =
+    error?.toLowerCase().includes("exclusivo") ||
+    error?.toLowerCase().includes("assinantes") ||
+    error?.toLowerCase().includes("upgrade");
+
+  // Paywall: conteúdo exclusivo para assinantes — mantém sidebar e layout, mostra paywall no lugar do vídeo
+  if (isUpgradeRequired && activeCourse) {
+    return (
+      <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
+        {/* Sidebar com lista de aulas */}
+        <aside
+          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
+            isSidebarOpen ? "w-[378px]" : "w-0"
+          }`}
+        >
+          {isSidebarOpen && (
+            <div className="h-full flex flex-col w-[378px]">
+              <div className="p-4 border-b border-[#25252A] bg-[#121214]">
+                <h2 className="text-[20px] font-semibold text-[#C4C4CC]">Trilha</h2>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {roadmap ? (
+                  <LessonsList
+                    lessons={allLessons}
+                    roadmap={roadmap}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center p-4">
+                    <p className="text-sm text-[#71717a]">Carregando lista de aulas...</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </aside>
+
+        {/* Conteúdo principal — paywall no lugar do vídeo */}
+        <div
+          className={`flex-1 w-full lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)]
+             bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)]
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${
+               isSidebarOpen ? "lg:ml-[378px]" : "lg:ml-0"
+             }`}
+        >
+          <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
+            <div className="flex items-center justify-between w-full px-4">
+              <Link href="/learn">
+                <X size={32} className="text-white cursor-pointer" />
+              </Link>
+            </div>
+          </header>
+
+          <LessonPaywall />
+
+          <footer
+            className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 transition-all duration-300 ease-in-out ${
+              isSidebarOpen ? "lg:left-[378px]" : "lg:left-0"
+            }`}
+          >
+            <div className="flex justify-center w-full py-3">
+              <Link href={`/learn`}>
+                <Button variant="outline" className="rounded-full border-[#25252A]">
+                  Voltar ao aprendizado
+                </Button>
+              </Link>
+            </div>
+          </footer>
         </div>
       </div>
     );
@@ -357,11 +485,18 @@ export default function DynamicLessonPage() {
 
   if (error || !lessonData) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
-        <div className="text-center text-white">
-          <p className="text-muted-foreground mb-4">
+      <div className="flex min-h-[calc(100dvh-63px)] w-full items-center justify-center bg-[#121214]">
+        <div className="flex flex-col items-center gap-4 px-4 text-center">
+          <p className="text-[#a1a1aa] mb-4">
             {error || "Aula não encontrada"}
           </p>
+          {isUpgradeRequired && (
+            <Link href="/cart/pro">
+              <Button className="rounded-full bg-blue-gradient-500 hover:opacity-90">
+                Fazer upgrade para acessar
+              </Button>
+            </Link>
+          )}
           <Link href="/learn">
             <Button>Voltar</Button>
           </Link>
@@ -372,9 +507,9 @@ export default function DynamicLessonPage() {
 
   if (!activeCourse) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
-        <div className="text-center text-white">
-          <p className="text-muted-foreground mb-4">
+      <div className="flex min-h-[calc(100dvh-63px)] w-full items-center justify-center bg-[#121214]">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <p className="text-[#a1a1aa] mb-4">
             Nenhum curso ativo encontrado.
           </p>
           <Link href="/learn/catalog">

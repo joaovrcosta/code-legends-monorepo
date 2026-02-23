@@ -16,6 +16,7 @@ interface LessonsContentProps {
   firstIncompleteLesson: Lesson | undefined;
   allLessons: Lesson[];
   taskRefs: React.MutableRefObject<{ [key: number]: HTMLDivElement | null }>;
+  isPaidUser?: boolean;
 }
 
 export function LessonsContent({
@@ -28,9 +29,11 @@ export function LessonsContent({
   firstIncompleteLesson,
   allLessons,
   taskRefs,
+  isPaidUser = true,
 }: LessonsContentProps) {
   const isLessonCompleted = (status: string) => status === "completed";
   const isLessonLocked = (status: string) => status === "locked";
+  const courseIsFree = roadmap?.course?.isFree ?? false;
 
 
   // Filtra apenas o módulo atual para exibir na página /learn
@@ -66,7 +69,10 @@ export function LessonsContent({
                   {group.lessons?.map((lesson, lessonIndex) => {
                     const isLeft = lessonIndex % 2 === 0;
                     const completed = isLessonCompleted(lesson.status);
-                    const locked = isLessonLocked(lesson.status);
+                    const lockedByProgress = isLessonLocked(lesson.status);
+                    const lockedByPlan =
+                      !isPaidUser && !courseIsFree && !(lesson.isFree ?? false);
+                    const locked = lockedByProgress || lockedByPlan;
                     // Verifica se é a primeira lição do módulo (primeira do primeiro grupo do módulo)
                     const isFirstInModule =
                       groupIndex === 0 && lessonIndex === 0;
@@ -100,6 +106,7 @@ export function LessonsContent({
                               setShowContinue={setShowContinue}
                               completed={completed}
                               locked={locked}
+                              lockedByPlan={lockedByPlan}
                               currentCourseSlug={activeCourse.slug}
                               allLessons={allLessons}
                               roadmap={roadmap}

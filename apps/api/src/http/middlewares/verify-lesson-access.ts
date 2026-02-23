@@ -76,13 +76,29 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
       }
 
       const courseId = lesson.submodule.module.courseId;
+      const course = lesson.submodule.module.course;
+      const courseIsFree = course.isFree;
+      const lessonIsFree = lesson.isFree;
 
       // Verificar se é o instrutor do curso (se permitido)
       if (
         allowInstructors &&
-        lesson.submodule.module.course.instructorId === userId
+        course.instructorId === userId
       ) {
         return; // Permite acesso
+      }
+
+      // Usuário FREE só pode acessar curso free ou aula free (em curso pago)
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { plan: true },
+      });
+      const isPaidUser = user?.plan === "PRO" || user?.plan === "PREMIUM";
+      if (!isPaidUser && !courseIsFree && !lessonIsFree) {
+        return reply.status(403).send({
+          message:
+            "Conteúdo exclusivo para assinantes. Faça upgrade para acessar.",
+        });
       }
 
       // Verificar se o usuário está inscrito no curso

@@ -10,14 +10,20 @@ import { SkipForward } from "@phosphor-icons/react";
 import { SkipBack, LockOpen } from "@phosphor-icons/react/dist/ssr";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { getCourseRoadmapFresh, unlockNextModule } from "@/actions/course";
+import { isLessonAccessibleForUser } from "@/utils/lesson-access";
 import type { RoadmapResponse, Lesson } from "@/types/roadmap";
 import { useRoadmapUpdater } from "@/hooks/use-roadmap-updater";
 import Link from "next/link";
 import { LessonsList } from "@/components/classroom/lessons-list";
 import { useRouter } from "next/navigation";
 import { generateLessonUrl, findLessonContext } from "@/utils/lesson-url";
+import { useSession } from "next-auth/react";
 
 export default function ClassroomPage() {
+  const { data: session } = useSession();
+  const userPlan = (session?.user as { plan?: string } | undefined)?.plan;
+  const isPaidUser = userPlan === "PRO" || userPlan === "PREMIUM";
+
   const {
     currentLesson,
     lessons,
@@ -41,6 +47,20 @@ export default function ClassroomPage() {
     lessonCompletedTimestamp,
     onRoadmapUpdate: setRoadmap,
   });
+
+  // Quando temos roadmap mas a store ainda não tem aulas, preenche para a sidebar e para redirecionar
+  useEffect(() => {
+    if (!roadmap?.modules || lessons.length > 0) return;
+    const all = roadmap.modules
+      .flatMap((m) => m?.groups || [])
+      .flatMap((g) => g?.lessons || []);
+    if (all.length === 0) return;
+    const firstUnlockedIndex = Math.max(
+      0,
+      all.findIndex((l) => isLessonAccessibleForUser(l, isPaidUser))
+    );
+    setLessonsForPage(all, firstUnlockedIndex >= 0 ? firstUnlockedIndex : 0);
+  }, [roadmap?.modules, lessons.length, setLessonsForPage, isPaidUser]);
 
   // Carrega as aulas quando a página é montada e redireciona para URL dinâmica
   useEffect(() => {
@@ -66,18 +86,16 @@ export default function ClassroomPage() {
               .flatMap((module) => module?.groups || [])
               .flatMap((group) => group?.lessons || []);
 
-            // Encontra a aula atual (isCurrent) ou a primeira desbloqueada
-            // IMPORTANTE: Só usa a aula atual se ela não estiver bloqueada
+            // Encontra a aula atual (isCurrent) ou a primeira acessível para o plano do usuário
+            // FREE: só aulas com status desbloqueado E isFree === true
             let targetLesson: Lesson | null = null;
             const foundCurrentLesson = allLessons.find((lesson) => lesson.isCurrent);
             
-            // Só usa a aula atual se ela não estiver bloqueada
-            if (foundCurrentLesson && foundCurrentLesson.status !== "locked") {
+            if (foundCurrentLesson && isLessonAccessibleForUser(foundCurrentLesson, isPaidUser)) {
               targetLesson = foundCurrentLesson;
             } else {
-              // Procura a primeira aula desbloqueada
               targetLesson =
-                allLessons.find((lesson) => lesson.status !== "locked") || null;
+                allLessons.find((l) => isLessonAccessibleForUser(l, isPaidUser)) || null;
             }
 
             if (targetLesson) {
@@ -121,18 +139,15 @@ export default function ClassroomPage() {
             .flatMap((module) => module?.groups || [])
             .flatMap((group) => group?.lessons || []);
 
-          // Encontra a aula atual (isCurrent) ou a primeira desbloqueada
-          // IMPORTANTE: Só usa a aula atual se ela não estiver bloqueada
+          // Encontra a aula atual (isCurrent) ou a primeira acessível para o plano do usuário
           let targetLesson: Lesson | null = null;
           const foundCurrentLesson = allLessons.find((lesson) => lesson.isCurrent);
           
-          // Só usa a aula atual se ela não estiver bloqueada
-          if (foundCurrentLesson && foundCurrentLesson.status !== "locked") {
+          if (foundCurrentLesson && isLessonAccessibleForUser(foundCurrentLesson, isPaidUser)) {
             targetLesson = foundCurrentLesson;
           } else {
-            // Procura a primeira aula desbloqueada
             targetLesson =
-              allLessons.find((lesson) => lesson.status !== "locked") || null;
+              allLessons.find((l) => isLessonAccessibleForUser(l, isPaidUser)) || null;
           }
 
           if (targetLesson) {
@@ -164,7 +179,7 @@ export default function ClassroomPage() {
     };
 
     loadLessons();
-  }, [activeCourse?.id, setLessonsForPage, lessons.length, router, fetchActiveCourse]);
+  }, [activeCourse?.id, setLessonsForPage, lessons.length, router, fetchActiveCourse, isPaidUser]);
 
   // Memoiza cálculos de navegação
   const { hasNextLesson, hasPreviousLesson, nextLesson, previousLesson, isNextLessonLocked } = useMemo(() => {
@@ -269,10 +284,10 @@ export default function ClassroomPage() {
             // Encontra o próximo módulo (1-based para 0-based)
             const nextModule = roadmapData.modules[nextModuleNumber - 1];
 
-            // Procura a primeira aula do próximo módulo que não está bloqueada
+            // Procura a primeira aula do próximo módulo acessível para o plano do usuário
             for (const group of nextModule.groups || []) {
               const firstUnlockedLesson = group.lessons?.find(
-                (lesson) => lesson.status !== "locked"
+                (lesson) => isLessonAccessibleForUser(lesson, isPaidUser)
               );
 
               if (firstUnlockedLesson) {
@@ -283,17 +298,17 @@ export default function ClassroomPage() {
               }
             }
 
-            // Se não encontrou nenhuma aula desbloqueada no próximo módulo,
-            // procura a primeira aula desbloqueada em todo o roadmap
+            // Se não encontrou nenhuma aula acessível no próximo módulo,
+            // procura a primeira aula acessível em todo o roadmap
             if (nextLessonIndex === -1) {
               nextLessonIndex = allLessons.findIndex(
-                (lesson) => lesson.status !== "locked"
+                (lesson) => isLessonAccessibleForUser(lesson, isPaidUser)
               );
             }
           } else {
-            // Se não há próximo módulo definido, procura a primeira aula desbloqueada
+            // Se não há próximo módulo definido, procura a primeira aula acessível
             nextLessonIndex = allLessons.findIndex(
-              (lesson) => lesson.status !== "locked"
+              (lesson) => isLessonAccessibleForUser(lesson, isPaidUser)
             );
           }
 
@@ -315,7 +330,7 @@ export default function ClassroomPage() {
     } finally {
       setIsUnlocking(false);
     }
-  }, [activeCourse?.id, setModuleUnlockedTimestamp, setLessonsForPage]);
+  }, [activeCourse?.id, setModuleUnlockedTimestamp, setLessonsForPage, isPaidUser]);
 
   // Se não há curso ativo ou aulas, mostra mensagem
   if (!activeCourse) {
@@ -333,11 +348,63 @@ export default function ClassroomPage() {
     );
   }
 
+  // Quando temos curso mas ainda não temos aula atual: mostra layout completo (sidebar + área central)
+  // para que a lista de aulas apareça assim que o roadmap carregar (incluindo para usuários FREE)
   if (!currentLesson) {
+    const allLessonsFromRoadmap = roadmap?.modules
+      ? roadmap.modules
+          .flatMap((module) => module?.groups || [])
+          .flatMap((group) => group?.lessons || [])
+      : [];
+
     return (
-      <div className="flex items-center justify-center w-full h-full">
-        <div className="text-center text-white">
-          <p className="text-muted-foreground">Carregando aula...</p>
+      <div className="flex h-[100dvh] w-full">
+        <aside
+          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
+            isSidebarOpen ? "w-[378px]" : "w-0"
+          }`}
+        >
+          {isSidebarOpen && (
+            <div className="h-full flex flex-col w-[378px]">
+              <div className="p-4 border-b border-[#25252A] bg-[#060607]">
+                <h2 className="text-sm font-semibold text-[#C4C4CC]">Aulas</h2>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                <LessonsList
+                  lessons={allLessonsFromRoadmap.length > 0 ? allLessonsFromRoadmap : lessons}
+                  currentLessonId={undefined}
+                  roadmap={roadmap}
+                />
+              </div>
+            </div>
+          )}
+        </aside>
+
+        <div
+          className={`flex-1 w-full lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)]
+             bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)]
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-[margin-left] duration-300 ease-in-out pt-[112px] lg:pt-0 ${
+               isSidebarOpen ? "lg:ml-[378px]" : "lg:ml-0"
+             }`}
+        >
+          <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
+            <div className="flex items-center justify-between w-full px-4">
+              <div className="lg:hidden flex">
+                <Menu size={32} className="text-white" />
+              </div>
+              <Link href="/learn">
+                <X size={32} className="text-white cursor-pointer" />
+              </Link>
+            </div>
+          </header>
+
+          <div className="flex flex-1 items-center justify-center">
+            <p className="text-muted-foreground">
+              {allLessonsFromRoadmap.length > 0
+                ? "Selecione uma aula na lista ao lado"
+                : "Carregando aulas..."}
+            </p>
+          </div>
         </div>
       </div>
     );

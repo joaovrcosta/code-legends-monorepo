@@ -43,6 +43,7 @@ interface RoadmapLesson {
   status: "locked" | "unlocked" | "completed";
   isCurrent: boolean;
   canReview: boolean; // Permite revisitar aulas concluídas
+  isFree: boolean; // Aula gratuita (acessível para usuário FREE em curso pago)
 }
 
 interface RoadmapGroup {
@@ -72,6 +73,7 @@ interface GetRoadmapResponse {
     slug: string;
     progress: number;
     isCompleted: boolean;
+    isFree: boolean;
     author: {
       name: string;
     };
@@ -294,6 +296,7 @@ export class GetRoadmapUseCase {
             status,
             isCurrent,
             canReview,
+            isFree: lesson.isFree,
           };
         });
 
@@ -467,6 +470,7 @@ export class GetRoadmapUseCase {
         slug: course.slug,
         progress: courseProgress,
         isCompleted: userCourse?.isCompleted ?? false,
+        isFree: course.isFree,
         author: {
           name: courseWithInstructor.instructor?.name ?? "",
         },
