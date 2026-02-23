@@ -24,7 +24,7 @@ interface ClassroomHeaderProps {
 }
 
 export default function ClassroomHeader({
-  initialUserCourses,
+  initialUserCourses: _initialUserCourses,
   initialActiveCourse,
 }: ClassroomHeaderProps) {
   const { toggleSidebar } = useClassroomSidebarStore();

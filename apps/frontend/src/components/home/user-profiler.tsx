@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { Progress } from "../ui/progress";
 import { ActivityCalendar } from "./activity-calendar";
-import { CaretRight, Flame, Lightning } from "@phosphor-icons/react/dist/ssr";
+import { CaretRight, Flame } from "@phosphor-icons/react/dist/ssr";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { getCurrentUser } from "@/actions/user/get-current-user";
 import { getUserFromAPI } from "@/actions/user/get-user-from-api";
+import { CtaFacaUpgradeCard } from "@/components/cta";
+import freeIconPlan from "../../../public/free-plan-icon.svg";
+import premiumIconPlan from "../../../public/premium-plan-icon.svg";
+import proIconPlan from "../../../public/pro-plan-icon.svg";
+import Image from "next/image";
 
 export async function UserProfiler() {
     const user = await getCurrentUser();
@@ -12,38 +17,43 @@ export async function UserProfiler() {
     const firstName = user?.name?.split(" ")[0] || "Usuário";
 
     const level = userFromAPI?.level ?? user?.level ?? 1;
-    const totalXp = userFromAPI?.totalXp ?? user?.totalXp ?? 0;
+    const _totalXp = userFromAPI?.totalXp ?? user?.totalXp ?? 0;
     const xpToNextLevel = userFromAPI?.xpToNextLevel ?? user?.xpToNextLevel ?? 100;
-    
+
     // Calcula o XP necessário apenas para o próximo nível
     const calculateXpRequiredForNextLevel = (lvl: number): number => {
-      return 100 + (lvl - 1) * 50;
+        return 100 + (lvl - 1) * 50;
     };
-    
+
     // XP necessário para passar do nível atual para o próximo
     const xpNeededForNextLevel = calculateXpRequiredForNextLevel(level);
     // XP atual no nível = XP necessário - XP que falta
     const currentLevelXp = xpNeededForNextLevel - xpToNextLevel;
     // Progresso: quanto XP já tem no nível atual / quanto precisa para o próximo nível
-    const progress = xpNeededForNextLevel > 0 
-      ? Math.max(0, Math.min(100, (currentLevelXp / xpNeededForNextLevel) * 100))
-      : 0;
+    const progress = xpNeededForNextLevel > 0
+        ? Math.max(0, Math.min(100, (currentLevelXp / xpNeededForNextLevel) * 100))
+        : 0;
 
     const userPlan = userFromAPI?.plan ?? user?.plan;
-    const isPaidUser = userPlan === "PRO" || userPlan === "PREMIUM";
 
     return (
         <div className="w-full lg:mb-0 mb-6 lg:max-w-[360px] flex-shrink-0 self-stretch lg:mt-9 mt-0 flex flex-col gap-8 lg:sticky lg:top-[32px] h-fit">
             <div className="bg-[#1A1A1E] p-6 border border-[#25252A] rounded-[20px] w-full">
                 <div className=" flex justify-between">
                     <h1 className="text-white text-xl font-medium">Olá, {firstName}</h1>
-                    {isPaidUser ? (
+                    {userPlan === "PREMIUM" ? (
                         <div className="flex items-center gap-2">
-                            <Lightning size={24} weight="fill" className="text-[#FF6200]" />
-                            <span className="text-[#FF6200]">{userPlan === "PREMIUM" ? "PREMIUM" : "PRO"}</span>
+                            <Image src={premiumIconPlan} alt="PREMIUM" width={16} height={16} />
+                            <span className="text-[#FF6200] font-medium">PREMIUM</span>
+                        </div>
+                    ) : userPlan === "PRO" ? (
+                        <div className="flex items-center gap-2">
+                            <Image src={proIconPlan} alt="PRO" width={16} height={16} />
+                            <span className="text-[#8234E9] font-medium">PRO</span>
                         </div>
                     ) : (
                         <div className="flex items-center gap-2">
+                            <Image src={freeIconPlan} alt="FREE" width={16} height={16} />
                             <span className="text-[#B8E62E] font-medium">FREE</span>
                         </div>
                     )}
@@ -117,6 +127,7 @@ export async function UserProfiler() {
                     </div>
                 </div>
             </div>
+            <CtaFacaUpgradeCard />
             <div className="bg-[#1A1A1E] border border-[#25252A] rounded-[20px] w-full p-6">
                 <div className="flex items-center gap-2 mb-2">
                     <Flame size={24} weight="fill" className="text-[#FF6200]" />

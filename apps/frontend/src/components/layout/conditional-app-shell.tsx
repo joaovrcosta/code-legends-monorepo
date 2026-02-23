@@ -10,7 +10,7 @@ interface ConditionalAppShellProps {
   initialActiveCourse: ActiveCourse | null;
 }
 
-const excludedRoutes = ["/login", "/signup", "/onboarding", "/account", "/classroom"];
+const excludedRoutes = ["/login", "/signup", "/onboarding", "/account", "/classroom", "/cart"];
 
 export function ConditionalAppShell({
   children,

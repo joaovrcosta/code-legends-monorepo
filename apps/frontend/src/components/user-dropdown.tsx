@@ -10,16 +10,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Headset, LogOut, User, Zap } from "lucide-react";
+import { Headset, LogOut, User } from "lucide-react";
 import { logout } from "@/actions/auth";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import Image from "next/image";
+import freeIconPlan from "../../public/free-plan-icon.svg";
+import premiumIconPlan from "../../public/premium-plan-icon.svg";
+import proIconPlan from "../../public/pro-plan-icon.svg";
 
 export function UserDropdown() {
   const { data: session } = useSession();
   const user = session?.user;
   const userPlan = (user as { plan?: string } | undefined)?.plan;
-  const isPaidUser = userPlan === "PRO" || userPlan === "PREMIUM";
   const [open, setOpen] = useState(false);
 
   // Obtém as iniciais do nome para o fallback
@@ -35,7 +38,7 @@ export function UserDropdown() {
   // Fecha o dropdown durante o resize para evitar reposicionamento constante do Popper
   useEffect(() => {
     let timeoutRef: NodeJS.Timeout | null = null;
-    
+
     const handleResize = () => {
       // Fecha o dropdown imediatamente ao detectar resize
       if (open) {
@@ -52,7 +55,7 @@ export function UserDropdown() {
     };
 
     window.addEventListener("resize", debouncedHandleResize);
-    
+
     return () => {
       window.removeEventListener("resize", debouncedHandleResize);
       if (timeoutRef) {
@@ -101,12 +104,22 @@ export function UserDropdown() {
               <span className="bg-blue-gradient-500 bg-clip-text text-transparent font-bold text-sm">
                 Minha Conta
               </span>
-              <div className={`flex border border-[#25252A] py-2 px-4 rounded-[20px] items-center gap-3 hover:bg-[#25252A] cursor-pointer ${isPaidUser ? "text-[#8234E9]" : "text-[#B8E62E]"}`}>
-                {isPaidUser && <Zap className="size-4" />}
-                <span className={isPaidUser ? "bg-purple-gradient-500 bg-clip-text text-transparent font-bold text-sm" : "font-bold text-sm text-[#B8E62E]"}>
-                  {isPaidUser ? (userPlan === "PREMIUM" ? "PREMIUM" : "Pro") : "FREE"}
-                </span>
-              </div>
+              {userPlan === "PREMIUM" ? (
+                <div className="flex items-center gap-2">
+                  <Image src={premiumIconPlan} alt="PREMIUM" width={16} height={16} />
+                  <span className="text-[#FF6200] font-medium">PREMIUM</span>
+                </div>
+              ) : userPlan === "PRO" ? (
+                <div className="flex items-center gap-2">
+                  <Image src={proIconPlan} alt="PRO" width={16} height={16} />
+                  <span className="text-[#8234E9] font-medium">PRO</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Image src={freeIconPlan} alt="FREE" width={16} height={16} />
+                  <span className="text-[#B8E62E] font-medium">FREE</span>
+                </div>
+              )}
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="border border-[#25252A]" />
