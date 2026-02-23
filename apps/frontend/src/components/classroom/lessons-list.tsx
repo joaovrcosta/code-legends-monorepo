@@ -5,6 +5,7 @@ import type { Lesson, RoadmapResponse } from "@/types/roadmap";
 import { findLessonContext, generateLessonUrl } from "@/utils/lesson-url";
 import { useRouter } from "next/navigation";
 import { useMemo, memo, useCallback } from "react";
+import { useSession } from "next-auth/react";
 
 interface LessonsListProps {
   lessons: Lesson[];
@@ -19,6 +20,8 @@ export const LessonsList = memo(function LessonsList({
 }: LessonsListProps) {
   const { setLessonsForPage } = useCourseModalStore();
   const router = useRouter();
+  const { data: session } = useSession();
+  const userPlan = (session?.user as { plan?: string } | undefined)?.plan;
 
   const organizedLessons = useMemo(() => {
     if (!roadmap?.modules) return [];
@@ -231,8 +234,8 @@ export const LessonsList = memo(function LessonsList({
                               {lesson.title}
                             </span>
 
-                            {lesson.isFree && (
-                              <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            {lesson.isFree && userPlan === "FREE" && (
+                              <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-lime-500/10 text-lime-400 border border-lime-500/20">
                                 G
                               </span>
                             )}

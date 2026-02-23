@@ -195,8 +195,8 @@ export function CatalogCard({
             <p className="text-sm">{label}</p>
           </div>
           {isFree && (
-            <div className="bg-green-500/20 border border-green-500/50 rounded-full px-2 py-0.5">
-              <p className="text-xs text-green-400 font-semibold">Gratuito</p>
+            <div className="bg-lime-500/10 border border-lime-500/20 rounded-full px-2 py-0.5">
+              <p className="text-xs text-lime-400 font-semibold">Gratuito</p>
             </div>
           )}
         </div>

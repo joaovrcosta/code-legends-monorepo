@@ -13,10 +13,13 @@ import { useState, useMemo, useCallback } from "react";
 import type { Lesson, RoadmapResponse } from "@/types/roadmap";
 import { findLessonContext, generateLessonUrl } from "@/utils/lesson-url";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export function LessonsAccordion() {
   const { currentLesson } = useCourseModalStore();
   const { activeCourse } = useActiveCourseStore();
+  const { data: session } = useSession();
+  const userPlan = (session?.user as { plan?: string } | undefined)?.plan;
   const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null);
   const router = useRouter();
 
@@ -202,8 +205,8 @@ export function LessonsAccordion() {
                             >
                               {lesson.title}
                             </span>
-                            {lesson.isFree && (
-                              <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            {lesson.isFree && userPlan === "FREE" && (
+                              <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-lime-500/10 text-lime-400 border border-lime-500/20">
                                 G
                               </span>
                             )}
