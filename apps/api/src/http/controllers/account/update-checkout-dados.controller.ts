@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../../../lib/prisma";
 
 const bodySchema = z.object({
+  email: z.string().email().optional().or(z.literal("")),
   fullname: z.string().optional(),
   document: z.string().optional(),
   phone: z.string().optional(),
@@ -32,10 +33,11 @@ export async function updateCheckoutDados(
     return reply.status(400).send({ message: "Dados inválidos", issues: parsed.error.format() });
   }
 
-  const { fullname, document, phone, livingAbroad, address: addressData } = parsed.data;
+  const { email, fullname, document, phone, livingAbroad, address: addressData } = parsed.data;
 
   await prisma.$transaction(async (tx) => {
-    const userUpdate: { fullname?: string; document?: string; phone?: string } = {};
+    const userUpdate: { email?: string; fullname?: string; document?: string; phone?: string } = {};
+    if (email !== undefined && email !== "") userUpdate.email = email;
     if (fullname !== undefined) userUpdate.fullname = fullname;
     if (document !== undefined) userUpdate.document = document;
     if (phone !== undefined) userUpdate.phone = phone;

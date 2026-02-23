@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { makeCreateCheckoutUseCase } from "../../../utils/factories/make-create-checkout-use-case";
+import type { CreateCheckoutResult } from "../../../use-cases/entities/Payment/create-checkout";
 
 const bodySchema = z.object({
   plan: z.enum(["pro", "premium"]),
@@ -26,13 +27,22 @@ export async function createCheckout(
   const returnUrl = parsed.data.returnUrl ?? `${baseUrl}/cart/${parsed.data.plan}`;
   const completionUrl = parsed.data.completionUrl ?? `${baseUrl}/learn`;
 
-  const useCase = makeCreateCheckoutUseCase();
-  const result = await useCase.execute({
-    userId,
-    planSlug: parsed.data.plan,
-    returnUrl,
-    completionUrl,
-  });
+  let result: CreateCheckoutResult;
+  try {
+    const useCase = makeCreateCheckoutUseCase();
+    result = await useCase.execute({
+      userId,
+      planSlug: parsed.data.plan,
+      returnUrl,
+      completionUrl,
+    });
+  } catch (err) {
+    request.log.error(err, "Create checkout use case threw");
+    const message = err instanceof Error ? err.message : "Erro ao criar checkout";
+    return reply.status(502).send({
+      message: message.includes("Abacate") ? message : "Falha no gateway de pagamento. Tente novamente.",
+    });
+  }
 
   if (!result.ok) {
     if (result.reason === "invalid_plan") {

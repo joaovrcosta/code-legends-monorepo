@@ -77,6 +77,7 @@ export function CartMeusDadosForm({
   const handleAdvance = async () => {
     setSaving(true);
     const result = await saveCheckoutDados({
+      email: email?.trim() || undefined,
       fullname: fullname || undefined,
       document: document || undefined,
       phone: phone || undefined,

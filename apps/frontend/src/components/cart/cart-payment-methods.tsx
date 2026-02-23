@@ -68,7 +68,7 @@ export function CartPaymentMethods({ planSlug, value = null, onChange }: CartPay
         window.location.href = result.checkoutUrl;
         return;
       }
-      setError(result?.message ?? "Erro ao criar checkout");
+      setError(!result ? "Erro ao criar checkout" : "message" in result ? result.message : "Erro ao criar checkout");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao redirecionar");
     } finally {

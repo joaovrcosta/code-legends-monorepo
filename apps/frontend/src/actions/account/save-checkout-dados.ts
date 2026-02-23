@@ -6,6 +6,7 @@ import { getAuthToken } from "../auth/session";
 const API_TIMEOUT_MS = 90_000;
 
 export interface SaveCheckoutDadosInput {
+  email?: string;
   fullname?: string;
   document?: string;
   phone?: string;
