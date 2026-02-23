@@ -17,6 +17,7 @@ import { tagRoutes } from "./http/controllers/tag/routes";
 import { requestRoutes } from "./http/controllers/request/routes";
 import { notificationRoutes } from "./http/controllers/notification/routes";
 import { verifyCertificate } from "./http/controllers/certificate/verify.controller";
+import { abacatePayWebhook } from "./http/controllers/webhooks/abacatepay-webhook.controller";
 import { env } from "./env/index";
 
 export const app = fastify({
@@ -111,7 +112,9 @@ app.register(fastifyRateLimit, {
   },
   skip: (request: any) => {
     if (env.NODE_ENV === "development") return true;
-    return (request.url?.includes("/notifications/sse") ?? false) || request.method === "OPTIONS";
+    return (request.url?.includes("/notifications/sse") ?? false)
+      || (request.url?.includes("/webhooks/") ?? false)
+      || request.method === "OPTIONS";
   },
   errorResponseBuilder: (request: any, context: any) => {
     return {
@@ -130,6 +133,8 @@ app.register(fastifyRateLimit, {
 });
 
 app.get("/certificates/verify/:id", verifyCertificate);
+
+app.post("/webhooks/abacatepay", abacatePayWebhook);
 
 app.register(usersRoutes);
 app.register(courseRoutes);

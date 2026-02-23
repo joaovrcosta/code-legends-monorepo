@@ -43,6 +43,8 @@ const envSchema = z.object({
       z.boolean()
     )
     .default(true),
+  /** Secret do webhook Abacate Pay (query param webhookSecret). Obrigatório para aceitar webhooks. */
+  ABACATE_PAY_WEBHOOK_SECRET: z.string().optional(),
 });
 
 const _env = envSchema.safeParse(process.env);
