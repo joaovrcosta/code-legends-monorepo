@@ -84,16 +84,16 @@ export function LessonsAccordion() {
   // Encontra o próximo módulo e calcula suas informações
   const nextModuleInfo = useMemo(() => {
     if (!organizedLessons || currentModuleNumber === -1) return null;
-    
+
     const nextModuleIndex = currentModuleNumber + 1;
     if (nextModuleIndex >= organizedLessons.length) return null;
-    
+
     const nextModule = organizedLessons[nextModuleIndex];
-    
+
     // Calcula total de aulas e tempo
     const allLessons = nextModule.groups.flatMap((group) => group.lessons || []);
     const totalLessons = allLessons.length;
-    
+
     // Calcula tempo total em segundos
     let totalSeconds = 0;
     allLessons.forEach((lesson) => {
@@ -109,19 +109,19 @@ export function LessonsAccordion() {
         }
       }
     });
-    
+
     // Converte para formato legível
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    
+
     let durationText = "";
     if (hours > 0) {
       durationText = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     } else {
       durationText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }
-    
+
     return {
       module: nextModule,
       moduleNumber: nextModuleIndex + 1,
@@ -180,31 +180,33 @@ export function LessonsAccordion() {
                             handleLessonClick(lesson, lessonIndexInAll)
                           }
                           disabled={isLocked}
-                          className={`text-left py-2 px-3 rounded-lg transition-all ${
-                            isActive
+                          className={`text-left py-2 px-3 rounded-lg transition-all ${isActive
                               ? "bg-zinc-800/50 border border-cyan-400/50"
                               : "hover:bg-zinc-800/30 border border-transparent"
-                          } ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
+                            } ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
                         >
                           <div className="flex items-center gap-2">
                             <div
-                              className={`w-2 h-2 rounded-full shrink-0 ${
-                                isActive
+                              className={`w-2 h-2 rounded-full shrink-0 ${isActive
                                   ? "bg-cyan-400"
                                   : isLocked
-                                  ? "bg-zinc-700"
-                                  : "bg-cyan-400/50"
-                              }`}
+                                    ? "bg-zinc-700"
+                                    : "bg-cyan-400/50"
+                                }`}
                             />
                             <span
-                              className={`text-sm font-medium ${
-                                isActive
+                              className={`text-sm font-medium ${isActive
                                   ? "text-cyan-50 font-semibold"
                                   : "text-zinc-400"
-                              }`}
+                                }`}
                             >
                               {lesson.title}
                             </span>
+                            {lesson.isFree && (
+                              <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                G
+                              </span>
+                            )}
                           </div>
                         </button>
                       );

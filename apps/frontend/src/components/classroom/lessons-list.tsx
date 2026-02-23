@@ -78,16 +78,16 @@ export const LessonsList = memo(function LessonsList({
   // Encontra o próximo módulo e calcula suas informações
   const nextModuleInfo = useMemo(() => {
     if (!organizedLessons || currentModuleNumber === -1) return null;
-    
+
     const nextModuleIndex = currentModuleNumber + 1;
     if (nextModuleIndex >= organizedLessons.length) return null;
-    
+
     const nextModule = organizedLessons[nextModuleIndex];
-    
+
     // Calcula total de aulas e tempo
     const allLessons = nextModule.groups.flatMap((group) => group.lessons || []);
     const totalLessons = allLessons.length;
-    
+
     // Calcula tempo total em segundos
     let totalSeconds = 0;
     allLessons.forEach((lesson) => {
@@ -103,19 +103,19 @@ export const LessonsList = memo(function LessonsList({
         }
       }
     });
-    
+
     // Converte para formato legível
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    
+
     let durationText = "";
     if (hours > 0) {
       durationText = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     } else {
       durationText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }
-    
+
     return {
       module: nextModule,
       moduleNumber: nextModuleIndex + 1,
@@ -175,16 +175,15 @@ export const LessonsList = memo(function LessonsList({
                   <h3 className="text-base font-semibold text-zinc-200">
                     {group.title}
                   </h3>
-                  
+
                 </div>
 
                 {/* Lista de Lições (Filhos) */}
                 <div className="relative pl-[11px]">
                   {/* Linha Guia Vertical do Grupo para as lições */}
-                  <div 
-                    className={`absolute left-[11px] top-0 bottom-0 w-[2px] bg-zinc-800/50 ${
-                      group.lessons.length === 0 ? "hidden" : ""
-                    }`} 
+                  <div
+                    className={`absolute left-[11px] top-0 bottom-0 w-[2px] bg-zinc-800/50 ${group.lessons.length === 0 ? "hidden" : ""
+                      }`}
                   />
 
                   <div className="flex flex-col">
@@ -192,7 +191,7 @@ export const LessonsList = memo(function LessonsList({
                       const isActive = currentLessonId === lesson.id;
                       const isLocked = lesson.status === "locked";
                       const isLastLesson = lessonIndex === group.lessons.length - 1;
-                      
+
                       // Encontra o índice global para o fallback de navegação
                       const lessonIndexInAll = lessons.findIndex((l) => l.id === lesson.id);
 
@@ -203,41 +202,44 @@ export const LessonsList = memo(function LessonsList({
                           {isLastLesson && (
                             <div className="absolute left-0 top-4 bottom-0 w-[4px] bg-[#121214] z-10" />
                           )}
-                          
+
                           {/* 2. O Desenho da Curva (L Shape) */}
                           <div className="absolute left-0 top-0 h-[24px] w-[24px] border-b-2 border-l-2 border-zinc-800/50 rounded-bl-xl translate-y-[-50%]" />
 
                           <button
                             onClick={() => handleLessonClick(lesson, lessonIndexInAll)}
                             disabled={isLocked}
-                            className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${
-                              isActive
+                            className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${isActive
                                 ? "bg-zinc-800/50"
                                 : "hover:bg-zinc-800/30"
-                            } ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
+                              } ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
                           >
                             {/* Bolinha da Lição */}
-                            <div className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
-                              isActive
+                            <div className={`w-2 h-2 rounded-full shrink-0 transition-colors ${isActive
                                 ? "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]"
                                 : isLocked
                                   ? "bg-zinc-700"
                                   : "bg-cyan-400"
-                            }`} />
+                              }`} />
 
                             <span
-                              className={`text-sm font-medium truncate transition-colors ${
-                                isActive
+                              className={`text-sm font-medium truncate transition-colors ${isActive
                                   ? "text-cyan-50 font-semibold"
                                   : "text-zinc-400 group-hover:text-zinc-300"
-                              }`}
+                                }`}
                             >
                               {lesson.title}
                             </span>
-                            
+
+                            {lesson.isFree && (
+                              <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                G
+                              </span>
+                            )}
+
                             {/* Ícone de Play ou Cadeado sutil à direita */}
                             {isActive && (
-                                <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                              <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                             )}
                           </button>
                         </div>
