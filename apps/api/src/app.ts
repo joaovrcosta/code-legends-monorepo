@@ -51,9 +51,10 @@ app.register(fastifyCors, {
       "https://codelegends.com.br",
     ];
 
-    const allowedOrigins = env.NODE_ENV === "production"
-      ? prodOrigins
-      : [...devOrigins, ...prodOrigins];
+    const allowedOrigins =
+      env.NODE_ENV === "production"
+        ? [...prodOrigins, ...devOrigins]
+        : [...devOrigins, ...prodOrigins];
 
     if (!origin) {
       return callback(null, true);
