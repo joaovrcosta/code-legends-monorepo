@@ -11,6 +11,7 @@ import { listUsers } from "./list.controller";
 import { getById } from "./get-by-id.controller";
 import { listInstructors } from "./list-instructors.controller";
 import { getAccountOverview, updateAccountData } from "./account-overview.controller";
+import { listPayments } from "./list-payments.controller";
 import { remove } from "./delete.controller";
 import { unlinkGoogle } from "./unlink-google.controller";
 import { verifyJWT } from "../../middlewares/verify-jwt";
@@ -31,6 +32,7 @@ export async function usersRoutes(app: FastifyInstance) {
   app.delete("/users/unlink-google", { onRequest: [verifyJWT] }, unlinkGoogle);
 
   // Rotas protegidas - apenas ADMIN
+  app.get("/payments", { onRequest: [verifyAdmin] }, listPayments);
   app.get("/users", { onRequest: [verifyAdmin] }, listUsers);
   app.get("/users/:id", { onRequest: [verifyAdmin] }, getById);
   app.delete("/users/:id", { onRequest: [verifyAdmin] }, remove);

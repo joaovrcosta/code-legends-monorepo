@@ -18,6 +18,8 @@ import { useState, useEffect } from "react";
 export function UserDropdown() {
   const { data: session } = useSession();
   const user = session?.user;
+  const userPlan = (user as { plan?: string } | undefined)?.plan;
+  const isPaidUser = userPlan === "PRO" || userPlan === "PREMIUM";
   const [open, setOpen] = useState(false);
 
   // Obtém as iniciais do nome para o fallback
@@ -99,10 +101,10 @@ export function UserDropdown() {
               <span className="bg-blue-gradient-500 bg-clip-text text-transparent font-bold text-sm">
                 Minha Conta
               </span>
-              <div className="flex border border-[#25252A] py-2 px-4 rounded-[20px] items-center gap-3 text-[#8234E9] hover:bg-[#25252A] cursor-pointer">
-                <Zap />
-                <span className="bg-purple-gradient-500 bg-clip-text text-transparent font-bold text-sm">
-                  Pro
+              <div className={`flex border border-[#25252A] py-2 px-4 rounded-[20px] items-center gap-3 hover:bg-[#25252A] cursor-pointer ${isPaidUser ? "text-[#8234E9]" : "text-[#B8E62E]"}`}>
+                {isPaidUser && <Zap className="size-4" />}
+                <span className={isPaidUser ? "bg-purple-gradient-500 bg-clip-text text-transparent font-bold text-sm" : "font-bold text-sm text-[#B8E62E]"}>
+                  {isPaidUser ? (userPlan === "PREMIUM" ? "PREMIUM" : "Pro") : "FREE"}
                 </span>
               </div>
             </div>

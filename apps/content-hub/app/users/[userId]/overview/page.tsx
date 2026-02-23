@@ -12,10 +12,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { getUserOverview, type UserOverview } from "@/actions/user/get-user-overview";
 import { updateUserOverview, type UpdateUserOverviewData } from "@/actions/user/update-user-overview";
 import { getAuthTokenFromClient } from "@/lib/auth";
-import { ArrowLeft, User, BookOpen, CheckCircle2, TrendingUp, Award, Clock, Target, Edit, X } from "lucide-react";
+import { ArrowLeft, User, BookOpen, CheckCircle2, TrendingUp, Award, Clock, Target, Edit, X, CreditCard, Calendar } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function UserOverviewPage() {
   const params = useParams();
@@ -170,6 +171,19 @@ export default function UserOverviewPage() {
     }
   };
 
+  const getPlanBadgeColor = (plan: string | undefined) => {
+    switch (plan) {
+      case "PRO":
+        return "bg-orange-900/20 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300";
+      case "PREMIUM":
+        return "bg-amber-900/20 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300";
+      default:
+        return "bg-lime-900/20 dark:bg-lime-500/20 text-lime-700 dark:text-lime-300";
+    }
+  };
+
+  const getPlanLabel = (plan: string | undefined) => plan === "PREMIUM" ? "Premium" : plan === "PRO" ? "Pro" : "Free";
+
   if (loading) {
     return (
       <MainLayout>
@@ -185,6 +199,9 @@ export default function UserOverviewPage() {
   if (!overview) {
     return null;
   }
+
+  const payments = overview.payments ?? [];
+  const subscriptions = overview.subscriptions ?? [];
 
   return (
     <MainLayout>
@@ -344,6 +361,16 @@ export default function UserOverviewPage() {
                 </span>
               </div>
               <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Plano</p>
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mt-1 ${getPlanBadgeColor(
+                    overview.user.plan
+                  )}`}
+                >
+                  {getPlanLabel(overview.user.plan)}
+                </span>
+              </div>
+              <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Onboarding</p>
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mt-1 ${
@@ -411,6 +438,119 @@ export default function UserOverviewPage() {
                   ))}
                 </div>
               </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Pagamentos */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Pagamentos ({payments.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {payments.length === 0 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                Nenhum pagamento registrado
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Plano</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Gateway</TableHead>
+                    <TableHead>Pago em</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell>{formatDate(p.createdAt)}</TableCell>
+                      <TableCell>
+                        {new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: p.currency,
+                        }).format(p.amountCents / 100)}
+                      </TableCell>
+                      <TableCell>{getPlanLabel(p.plan)}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-2 py-0.5 rounded text-xs ${
+                            p.status === "PAID"
+                              ? "bg-emerald-900/20 text-emerald-700 dark:text-emerald-300"
+                              : p.status === "PENDING"
+                                ? "bg-amber-900/20 text-amber-700 dark:text-amber-300"
+                                : p.status === "FAILED"
+                                  ? "bg-red-900/20 text-red-700 dark:text-red-300"
+                                  : "bg-gray-900/20 text-gray-700 dark:text-gray-300"
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>{p.gateway}</TableCell>
+                      <TableCell>{p.paidAt ? formatDate(p.paidAt) : "—"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Assinaturas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Assinaturas ({subscriptions.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {subscriptions.length === 0 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                Nenhuma assinatura registrada
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Plano</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Início</TableHead>
+                    <TableHead>Fim</TableHead>
+                    <TableHead>Criada em</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {subscriptions.map((s) => (
+                    <TableRow key={s.id}>
+                      <TableCell>{getPlanLabel(s.plan)}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-2 py-0.5 rounded text-xs ${
+                            s.status === "ACTIVE"
+                              ? "bg-emerald-900/20 text-emerald-700 dark:text-emerald-300"
+                              : s.status === "EXPIRED"
+                                ? "bg-gray-900/20 text-gray-700 dark:text-gray-300"
+                                : "bg-amber-900/20 text-amber-700 dark:text-amber-300"
+                          }`}
+                        >
+                          {s.status === "ACTIVE" ? "Ativa" : s.status === "EXPIRED" ? "Expirada" : "Cancelada"}
+                        </span>
+                      </TableCell>
+                      <TableCell>{formatDate(s.startsAt)}</TableCell>
+                      <TableCell>{formatDate(s.endsAt)}</TableCell>
+                      <TableCell>{formatDate(s.createdAt)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>

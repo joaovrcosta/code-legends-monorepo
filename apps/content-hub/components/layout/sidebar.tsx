@@ -13,12 +13,14 @@ import {
   LogOut,
   Tag,
   MessageSquare,
+  CreditCard,
 } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: GraduationCap },
   { name: "Cursos", href: "/courses", icon: BookOpen },
   { name: "Usuários", href: "/users", icon: Users },
+  { name: "Pagamentos", href: "/payments", icon: CreditCard },
   { name: "Categorias", href: "/categories", icon: Tag },
   { name: "Solicitações", href: "/requests", icon: MessageSquare },
 ];

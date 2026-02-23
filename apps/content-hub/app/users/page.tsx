@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,9 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { listUsers, deleteUser, getUserById, type UserFull } from "@/actions/user";
 import { getAuthTokenFromClient } from "@/lib/auth";
-import { Users as UsersIcon, Trash2, Eye, X } from "lucide-react";
+import { Users as UsersIcon, Trash2, Eye, X, Search, FilterX } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -25,6 +28,11 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState<UserFull | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
+
+  const [filterSearch, setFilterSearch] = useState("");
+  const [filterRole, setFilterRole] = useState<string>("");
+  const [filterPlan, setFilterPlan] = useState<string>("");
+  const [filterOnboarding, setFilterOnboarding] = useState<string>("");
 
   useEffect(() => {
     loadUsers();
@@ -129,6 +137,47 @@ export default function UsersPage() {
     }
   };
 
+  const getPlanBadgeColor = (plan: string | undefined) => {
+    switch (plan) {
+      case "PRO":
+        return "bg-orange-900/20 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300";
+      case "PREMIUM":
+        return "bg-amber-900/20 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300";
+      default:
+        return "bg-lime-900/20 dark:bg-lime-500/20 text-lime-700 dark:text-lime-300";
+    }
+  };
+
+  const getPlanLabel = (plan: string | undefined) =>
+    plan === "PREMIUM" ? "Premium" : plan === "PRO" ? "Pro" : "Free";
+
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const searchLower = filterSearch.trim().toLowerCase();
+      if (searchLower) {
+        const matchName = user.name.toLowerCase().includes(searchLower);
+        const matchEmail = user.email.toLowerCase().includes(searchLower);
+        if (!matchName && !matchEmail) return false;
+      }
+      if (filterRole && user.role !== filterRole) return false;
+      const userPlan = user.plan ?? "FREE";
+      if (filterPlan && userPlan !== filterPlan) return false;
+      if (filterOnboarding === "complete" && !user.onboardingCompleted) return false;
+      if (filterOnboarding === "pending" && user.onboardingCompleted) return false;
+      return true;
+    });
+  }, [users, filterSearch, filterRole, filterPlan, filterOnboarding]);
+
+  const hasActiveFilters =
+    filterSearch.trim() !== "" || filterRole !== "" || filterPlan !== "" || filterOnboarding !== "";
+
+  const clearFilters = () => {
+    setFilterSearch("");
+    setFilterRole("");
+    setFilterPlan("");
+    setFilterOnboarding("");
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -146,17 +195,99 @@ export default function UsersPage() {
           <CardHeader>
             <CardTitle>Lista de Usuários</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {!loading && (
+              <div className="flex flex-wrap items-end gap-4 pb-4 border-b border-gray-200 dark:border-[#25252a]">
+                <div className="flex-1 min-w-[200px] max-w-xs">
+                  <Label htmlFor="filter-search" className="text-gray-600 dark:text-gray-400 text-xs">
+                    Buscar (nome ou e-mail)
+                  </Label>
+                  <div className="relative mt-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="filter-search"
+                      type="text"
+                      placeholder="Digite para filtrar..."
+                      value={filterSearch}
+                      onChange={(e) => setFilterSearch(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
+                <div className="w-[140px]">
+                  <Label htmlFor="filter-role" className="text-gray-600 dark:text-gray-400 text-xs">
+                    Função
+                  </Label>
+                  <Select
+                    id="filter-role"
+                    value={filterRole}
+                    onChange={(e) => setFilterRole(e.target.value)}
+                    className="mt-1"
+                  >
+                    <option value="">Todas</option>
+                    <option value="ADMIN">Admin</option>
+                    <option value="INSTRUCTOR">Instrutor</option>
+                    <option value="STUDENT">Estudante</option>
+                  </Select>
+                </div>
+                <div className="w-[120px]">
+                  <Label htmlFor="filter-plan" className="text-gray-600 dark:text-gray-400 text-xs">
+                    Plan
+                  </Label>
+                  <Select
+                    id="filter-plan"
+                    value={filterPlan}
+                    onChange={(e) => setFilterPlan(e.target.value)}
+                    className="mt-1"
+                  >
+                    <option value="">Todos</option>
+                    <option value="FREE">Free</option>
+                    <option value="PRO">Pro</option>
+                    <option value="PREMIUM">Premium</option>
+                  </Select>
+                </div>
+                <div className="w-[160px]">
+                  <Label htmlFor="filter-onboarding" className="text-gray-600 dark:text-gray-400 text-xs">
+                    Onboarding
+                  </Label>
+                  <Select
+                    id="filter-onboarding"
+                    value={filterOnboarding}
+                    onChange={(e) => setFilterOnboarding(e.target.value)}
+                    className="mt-1"
+                  >
+                    <option value="">Todos</option>
+                    <option value="complete">Completo</option>
+                    <option value="pending">Pendente</option>
+                  </Select>
+                </div>
+                {hasActiveFilters && (
+                  <Button variant="outline" size="sm" onClick={clearFilters} className="gap-1">
+                    <FilterX className="h-4 w-4" />
+                    Limpar filtros
+                  </Button>
+                )}
+              </div>
+            )}
             {loading ? (
               <div className="text-center py-8">Carregando...</div>
             ) : (
-              <Table>
+              <>
+                {hasActiveFilters && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {filteredUsers.length === users.length
+                      ? `${users.length} usuário(s)`
+                      : `${filteredUsers.length} de ${users.length} usuário(s)`}
+                  </p>
+                )}
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Avatar</TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Função</TableHead>
+                    <TableHead>Plan</TableHead>
                     <TableHead>Nível</TableHead>
                     <TableHead>XP Total</TableHead>
                     <TableHead>Onboarding</TableHead>
@@ -165,17 +296,19 @@ export default function UsersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.length === 0 ? (
+                  {filteredUsers.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={9}
+                        colSpan={10}
                         className="text-center py-8 text-gray-500"
                       >
-                        Nenhum usuário encontrado
+                        {users.length === 0
+                          ? "Nenhum usuário encontrado"
+                          : "Nenhum usuário corresponde aos filtros"}
                       </TableCell>
                     </TableRow>
                   ) : (
-                    users.map((user) => (
+                    filteredUsers.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell>
                           {user.avatar ? (
@@ -208,6 +341,15 @@ export default function UsersPage() {
                               )}`}
                             />
                             {getRoleLabel(user.role)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getPlanBadgeColor(
+                              user.plan
+                            )}`}
+                          >
+                            {getPlanLabel(user.plan)}
                           </span>
                         </TableCell>
                         <TableCell>Nível {user.level}</TableCell>
@@ -259,6 +401,7 @@ export default function UsersPage() {
                   )}
                 </TableBody>
               </Table>
+              </>
             )}
           </CardContent>
         </Card>

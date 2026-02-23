@@ -9,6 +9,7 @@ export interface UserOverview {
         bio: string | null;
         expertise: string[];
         role: string;
+        plan?: string;
         createdAt: string;
         updatedAt: string;
         email: string;
@@ -30,6 +31,26 @@ export interface UserOverview {
         rg: string | null;
         address: string | null;
     };
+    payments: Array<{
+        id: string;
+        amountCents: number;
+        currency: string;
+        status: string;
+        plan: string;
+        gateway: string;
+        gatewayPaymentId: string | null;
+        paidAt: string | null;
+        createdAt: string;
+    }>;
+    subscriptions: Array<{
+        id: string;
+        plan: string;
+        status: string;
+        startsAt: string;
+        endsAt: string;
+        gatewaySubscriptionId: string | null;
+        createdAt: string;
+    }>;
     activeCourse: {
         id: string;
         title: string;
@@ -75,6 +96,8 @@ export interface UserOverview {
 
 export interface UserOverviewResponse {
     user: UserOverview["user"];
+    payments: UserOverview["payments"];
+    subscriptions: UserOverview["subscriptions"];
     activeCourse: UserOverview["activeCourse"];
     enrolledCourses: UserOverview["enrolledCourses"];
     completedLessons: UserOverview["completedLessons"];

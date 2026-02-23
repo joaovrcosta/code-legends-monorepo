@@ -8,6 +8,7 @@ export interface User {
   bio?: string | null;
   expertise?: string[];
   role: "STUDENT" | "INSTRUCTOR" | "ADMIN";
+  plan?: "FREE" | "PRO" | "PREMIUM";
   createdAt: string;
   updatedAt: string;
   email: string;

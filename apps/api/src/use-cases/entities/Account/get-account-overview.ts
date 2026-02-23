@@ -12,6 +12,26 @@ interface GetAccountOverviewRequest {
 
 interface AccountOverviewResponse {
   user: User & { Address?: any };
+  payments: {
+    id: string;
+    amountCents: number;
+    currency: string;
+    status: string;
+    plan: string;
+    gateway: string;
+    gatewayPaymentId: string | null;
+    paidAt: Date | null;
+    createdAt: Date;
+  }[];
+  subscriptions: {
+    id: string;
+    plan: string;
+    status: string;
+    startsAt: Date;
+    endsAt: Date;
+    gatewaySubscriptionId: string | null;
+    createdAt: Date;
+  }[];
   activeCourse: {
     id: string;
     title: string;
@@ -187,12 +207,63 @@ export class GetAccountOverviewUseCase {
       score: progress.score,
     }));
 
+    // Pagamentos e assinaturas do usuário
+    const payments = await prisma.payment.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        amountCents: true,
+        currency: true,
+        status: true,
+        plan: true,
+        gateway: true,
+        gatewayPaymentId: true,
+        paidAt: true,
+        createdAt: true,
+      },
+    });
+
+    const subscriptions = await prisma.subscription.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        plan: true,
+        status: true,
+        startsAt: true,
+        endsAt: true,
+        gatewaySubscriptionId: true,
+        createdAt: true,
+      },
+    });
+
     // Calcular estatísticas
     const completedCourses = enrolledCourses.filter((c) => c.isCompleted).length;
     const inProgressCourses = enrolledCourses.filter((c) => !c.isCompleted).length;
 
     return {
       user,
+      payments: payments.map((p) => ({
+        id: p.id,
+        amountCents: p.amountCents,
+        currency: p.currency,
+        status: p.status,
+        plan: p.plan,
+        gateway: p.gateway,
+        gatewayPaymentId: p.gatewayPaymentId,
+        paidAt: p.paidAt,
+        createdAt: p.createdAt,
+      })),
+      subscriptions: subscriptions.map((s) => ({
+        id: s.id,
+        plan: s.plan,
+        status: s.status,
+        startsAt: s.startsAt,
+        endsAt: s.endsAt,
+        gatewaySubscriptionId: s.gatewaySubscriptionId,
+        createdAt: s.createdAt,
+      })),
       activeCourse,
       enrolledCourses,
       completedLessons,
