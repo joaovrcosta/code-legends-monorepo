@@ -23,7 +23,7 @@ export async function notificationRoutes(app: FastifyInstance) {
     ];
 
     const allowedOrigins = env.NODE_ENV === "production"
-      ? prodOrigins
+      ? [...prodOrigins, ...devOrigins]
       : [...devOrigins, ...prodOrigins];
 
     const corsOrigin = origin && allowedOrigins.includes(origin)
