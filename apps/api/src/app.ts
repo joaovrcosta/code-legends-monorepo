@@ -51,9 +51,10 @@ app.register(fastifyCors, {
       "https://codelegends.com.br",
     ];
 
-    const allowedOrigins = env.NODE_ENV === "production"
-      ? prodOrigins
-      : [...devOrigins, ...prodOrigins];
+    const allowedOrigins =
+      env.NODE_ENV === "production"
+        ? [...prodOrigins, ...devOrigins]
+        : [...devOrigins, ...prodOrigins];
 
     if (!origin) {
       return callback(null, true);
@@ -114,6 +115,7 @@ app.register(fastifyRateLimit, {
     if (env.NODE_ENV === "development") return true;
     return (request.url?.includes("/notifications/sse") ?? false)
       || (request.url?.includes("/webhooks/") ?? false)
+      || (request.url?.includes("/ping") ?? false)
       || request.method === "OPTIONS";
   },
   errorResponseBuilder: (request: any, context: any) => {
@@ -133,6 +135,11 @@ app.register(fastifyRateLimit, {
 });
 
 app.get("/certificates/verify/:id", verifyCertificate);
+
+/** Rota temporária para UptimeRobot / monitor de cold start (ping a cada ~14 min). */
+app.get("/ping", async (_, reply) => {
+  return reply.status(200).send({ ok: true });
+});
 
 app.post("/webhooks/abacatepay", abacatePayWebhook);
 
