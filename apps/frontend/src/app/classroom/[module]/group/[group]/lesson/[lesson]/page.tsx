@@ -13,6 +13,7 @@ import { SkipForward } from "@phosphor-icons/react";
 import { SkipBack, LockOpen } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { LessonsList } from "@/components/classroom/lessons-list";
+import { LessonsAccordion } from "@/components/learn/lessons-accordion";
 import { useActiveCourseStore } from "@/stores/active-course-store";
 import { useCourseModalStore } from "@/stores/course-modal-store";
 import useClassroomSidebarStore from "@/stores/classroom-sidebar";
@@ -50,10 +51,10 @@ export default function DynamicLessonPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUnlocking, setIsUnlocking] = useState(false);
-  
+
   // Ref para evitar loop infinito no useEffect de atualização do roadmap
   const lessonDataRef = useRef<LessonResponse | null>(null);
-  
+
   useEffect(() => {
     lessonDataRef.current = lessonData;
   }, [lessonData]);
@@ -90,23 +91,23 @@ export default function DynamicLessonPage() {
               const roadmapData = await getCourseRoadmapFresh(courseId);
               if (roadmapData) {
                 setRoadmap(roadmapData);
-                
+
                 // Encontra a primeira aula desbloqueada
                 const allLessons = roadmapData.modules
                   .flatMap((module) => module?.groups || [])
                   .flatMap((group) => group?.lessons || []);
-                
+
                 const firstUnlockedLesson = allLessons.find(
                   (lesson) => isLessonAccessibleForUser(lesson, isPaidUser)
                 );
-                
+
                 if (firstUnlockedLesson) {
                   // Encontra o contexto da aula
                   const context = findLessonContext(
                     firstUnlockedLesson.id,
                     roadmapData.modules
                   );
-                  
+
                   if (context) {
                     const url = generateLessonUrl(
                       firstUnlockedLesson,
@@ -118,14 +119,14 @@ export default function DynamicLessonPage() {
                   }
                 }
               }
-              
+
               // Se não encontrou aula desbloqueada, redireciona para /classroom
               router.replace("/classroom");
               return;
             }
-            
+
             setLessonData(data);
-            
+
             // Atualiza o store com a lição atual, incluindo o status do nível raiz
             const lessonWithStatus = {
               ...data.lesson,
@@ -165,23 +166,23 @@ export default function DynamicLessonPage() {
             const roadmapData = await getCourseRoadmapFresh(activeCourse.id);
             if (roadmapData) {
               setRoadmap(roadmapData);
-              
+
               // Encontra a primeira aula desbloqueada
               const allLessons = roadmapData.modules
                 .flatMap((module) => module?.groups || [])
                 .flatMap((group) => group?.lessons || []);
-              
+
               const firstUnlockedLesson = allLessons.find(
                 (lesson) => isLessonAccessibleForUser(lesson, isPaidUser)
               );
-              
+
               if (firstUnlockedLesson) {
                 // Encontra o contexto da aula
                 const context = findLessonContext(
                   firstUnlockedLesson.id,
                   roadmapData.modules
                 );
-                
+
                 if (context) {
                   const url = generateLessonUrl(
                     firstUnlockedLesson,
@@ -193,14 +194,14 @@ export default function DynamicLessonPage() {
                 }
               }
             }
-            
+
             // Se não encontrou aula desbloqueada, redireciona para /classroom
             router.replace("/classroom");
             return;
           }
-          
+
           setLessonData(data);
-          
+
           // Atualiza o store com a lição atual, incluindo o status do nível raiz
           const lessonWithStatus = {
             ...data.lesson,
@@ -243,7 +244,7 @@ export default function DynamicLessonPage() {
   useEffect(() => {
     const updateAfterCompletion = async () => {
       if (!activeCourse?.id || !lessonCompletedTimestamp || !lessonSlug) return;
-      
+
       // Usa o ref para acessar lessonData sem causar loop
       const currentLessonData = lessonDataRef.current;
       if (!currentLessonData) return;
@@ -251,16 +252,16 @@ export default function DynamicLessonPage() {
       try {
         // Revalida o cache primeiro
         await revalidateRoadmapCache(activeCourse.id);
-        
+
         // Aguarda um delay reduzido para garantir que a API foi atualizada
         await new Promise((resolve) => setTimeout(resolve, 300));
-        
+
         // Busca roadmap e lição em paralelo para melhor performance
         const [refreshedLessonData, roadmapData] = await Promise.all([
           getLessonBySlug(activeCourse.id, lessonSlug),
           getCourseRoadmapFresh(activeCourse.id),
         ]);
-        
+
         if (refreshedLessonData && !isLessonUpgradeRequiredResult(refreshedLessonData)) {
           setLessonData(refreshedLessonData);
           // Atualiza o store com o status correto do nível raiz
@@ -270,7 +271,7 @@ export default function DynamicLessonPage() {
           };
           setLessonForPage(lessonWithStatus);
         }
-        
+
         if (roadmapData) {
           setRoadmap(roadmapData);
         }
@@ -335,20 +336,20 @@ export default function DynamicLessonPage() {
       if (result.success) {
         // Revalida o cache do roadmap
         await revalidateRoadmapCache(activeCourse.id);
-        
+
         // Aguarda um pouco para garantir que o revalidateTag foi processado
         await new Promise((resolve) => setTimeout(resolve, 200));
-        
+
         // Recarrega o roadmap atualizado
         const roadmapData = await getCourseRoadmapFresh(activeCourse.id);
         if (roadmapData) {
           setRoadmap(roadmapData);
-          
+
           // Recarrega a lição atual para obter dados atualizados (incluindo navigation)
           const refreshedLessonData = await getLessonBySlug(activeCourse.id, lessonSlug);
           if (refreshedLessonData && !isLessonUpgradeRequiredResult(refreshedLessonData)) {
             setLessonData(refreshedLessonData);
-            
+
             // Se houver uma próxima aula disponível, navega automaticamente para ela
             if (refreshedLessonData.navigation?.next) {
               navigateToLesson(
@@ -376,9 +377,8 @@ export default function DynamicLessonPage() {
     return (
       <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
         <aside
-          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
-            isSidebarOpen ? "w-[378px]" : "w-0"
-          }`}
+          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? "w-[378px]" : "w-0"
+            }`}
         >
           {isSidebarOpen && (
             <div className="h-full flex flex-col w-[378px]">
@@ -392,9 +392,8 @@ export default function DynamicLessonPage() {
           )}
         </aside>
         <div
-          className={`flex-1 w-full min-h-[calc(100dvh-63px)] lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)] bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)] text-white flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${
-            isSidebarOpen ? "lg:ml-[378px]" : "lg:ml-0"
-          }`}
+          className={`flex-1 w-full min-h-[calc(100dvh-63px)] lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)] bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)] text-white flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? "lg:ml-[378px]" : "lg:ml-0"
+            }`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
             <div className="flex items-center justify-between w-full px-4">
@@ -422,9 +421,8 @@ export default function DynamicLessonPage() {
       <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
         {/* Sidebar com lista de aulas */}
         <aside
-          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
-            isSidebarOpen ? "w-[378px]" : "w-0"
-          }`}
+          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? "w-[378px]" : "w-0"
+            }`}
         >
           {isSidebarOpen && (
             <div className="h-full flex flex-col w-[378px]">
@@ -447,13 +445,12 @@ export default function DynamicLessonPage() {
           )}
         </aside>
 
-        {/* Conteúdo principal — paywall no lugar do vídeo */}
+        {/* Conteúdo principal — no mobile: accordion em cima, paywall centralizado abaixo */}
         <div
-          className={`flex-1 w-full lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)]
+          className={`flex-1 w-full min-h-0 flex flex-col lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)]
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${
-               isSidebarOpen ? "lg:ml-[378px]" : "lg:ml-0"
-             }`}
+             text-white shadow-2xl shadow-[#00C8FF]/10 transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? "lg:ml-[378px]" : "lg:ml-0"
+            }`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
             <div className="flex items-center justify-between w-full px-4">
@@ -463,21 +460,20 @@ export default function DynamicLessonPage() {
             </div>
           </header>
 
-          <LessonPaywall />
-
-          <footer
-            className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 transition-all duration-300 ease-in-out ${
-              isSidebarOpen ? "lg:left-[378px]" : "lg:left-0"
-            }`}
-          >
-            <div className="flex justify-center w-full py-3">
-              <Link href={`/learn`}>
-                <Button variant="outline" className="rounded-full border-[#25252A]">
-                  Voltar ao aprendizado
-                </Button>
-              </Link>
+          {/* Mobile: coluna rolável — paywall em cima, accordion embaixo */}
+          <div className="lg:hidden flex-1 min-h-0 overflow-y-auto flex flex-col">
+            <div className="flex-shrink-0">
+              <LessonPaywall />
             </div>
-          </footer>
+            <div className="w-full pt-4 pb-6">
+              <LessonsAccordion />
+            </div>
+          </div>
+
+          {/* Desktop: paywall centralizado */}
+          <div className="hidden lg:flex flex-1 min-h-0">
+            <LessonPaywall />
+          </div>
         </div>
       </div>
     );
@@ -528,9 +524,8 @@ export default function DynamicLessonPage() {
     <div className="flex h-[100dvh] w-full">
       {/* Sidebar com lista de aulas - apenas no desktop */}
       <aside
-        className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? "w-[378px]" : "w-0"
-        }`}
+        className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? "w-[378px]" : "w-0"
+          }`}
       >
         {isSidebarOpen && (
           <div className="h-full flex flex-col w-[378px]">
@@ -552,9 +547,8 @@ export default function DynamicLessonPage() {
       <div
         className={`flex-1 w-full lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)]
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${
-               isSidebarOpen ? "lg:ml-[378px]" : "lg:ml-0"
-             }`}
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? "lg:ml-[378px]" : "lg:ml-0"
+          }`}
       >
         {/* Header */}
         <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
@@ -582,9 +576,8 @@ export default function DynamicLessonPage() {
 
         {/* Footer */}
         <footer
-          className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 transition-all duration-300 ease-in-out ${
-            isSidebarOpen ? "lg:left-[378px]" : "lg:left-0"
-          }`}
+          className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 transition-all duration-300 ease-in-out ${isSidebarOpen ? "lg:left-[378px]" : "lg:left-0"
+            }`}
         >
           <div className="flex justify-between w-full m-0 p-0">
             <Button
