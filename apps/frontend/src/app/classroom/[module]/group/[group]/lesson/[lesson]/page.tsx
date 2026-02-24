@@ -487,7 +487,7 @@ export default function DynamicLessonPage() {
             {error || "Aula não encontrada"}
           </p>
           {isUpgradeRequired && (
-            <Link href="/cart/pro">
+            <Link href="/plans">
               <Button className="rounded-full bg-blue-gradient-500 hover:opacity-90">
                 Fazer upgrade para acessar
               </Button>

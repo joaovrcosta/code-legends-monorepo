@@ -204,7 +204,7 @@ export const LessonPopover = ({
               </div>
 
               {lockedByPlan ? (
-                <Link href="/cart/pro" className="block">
+                <Link href="/plans" className="block">
                   <PrimaryButton className="w-full">
                     Assine para acessar
                     <CirclePlay />
