@@ -1,44 +1,44 @@
-"use client";
+'use client'
 
-import Image from "next/image";
-import codeLegendsLogo from "../../../public/code-legends-logo.svg";
-import Link from "next/link";
-import { Menu } from "lucide-react";
-import useClassroomSidebarStore from "@/stores/classroom-sidebar";
-import { SkipBack, SkipForward } from "@phosphor-icons/react/dist/ssr";
-import codeLegendsLogoMobile from "../../../public/logo-mobile.png";
-import { UserDropdown } from "../user-dropdown";
-import { StrikeSection } from "../strike-section";
-import { NotificationsSection } from "../notifications-section";
-import { useActiveCourseStore } from "@/stores/active-course-store";
-import { useCourseModalStore } from "@/stores/course-modal-store";
-import type { EnrolledCourse, ActiveCourse } from "@/types/user-course.ts";
-import { useState, useMemo, useEffect } from "react";
-import { ArrowLeft } from "lucide-react";
-import { useRoadmapUpdater } from "@/hooks/use-roadmap-updater";
-import type { RoadmapResponse } from "@/types/roadmap";
+import Image from 'next/image'
+import codeLegendsLogo from '../../../public/code-legends-logo.svg'
+import Link from 'next/link'
+import { Menu } from 'lucide-react'
+import useClassroomSidebarStore from '@/stores/classroom-sidebar'
+import { SkipBack, SkipForward } from '@phosphor-icons/react/dist/ssr'
+import codeLegendsLogoMobile from '../../../public/logo-mobile.png'
+import { UserDropdown } from '../user-dropdown'
+import { StrikeSection } from '../strike-section'
+import { NotificationsSection } from '../notifications-section'
+import { useActiveCourseStore } from '@/stores/active-course-store'
+import { useCourseModalStore } from '@/stores/course-modal-store'
+import type { EnrolledCourse, ActiveCourse } from '@/types/user-course.ts'
+import { useState, useMemo, useEffect } from 'react'
+import { ArrowLeft } from 'lucide-react'
+import { useRoadmapUpdater } from '@/hooks/use-roadmap-updater'
+import type { RoadmapResponse } from '@/types/roadmap'
 
 interface ClassroomHeaderProps {
-  initialUserCourses: EnrolledCourse[];
-  initialActiveCourse: ActiveCourse | null;
+  initialUserCourses: EnrolledCourse[]
+  initialActiveCourse: ActiveCourse | null
 }
 
 export default function ClassroomHeader({
   initialUserCourses: _initialUserCourses,
   initialActiveCourse,
 }: ClassroomHeaderProps) {
-  const { toggleSidebar } = useClassroomSidebarStore();
-  const { activeCourse, setActiveCourse } = useActiveCourseStore();
-  const { currentLesson } = useCourseModalStore();
-  const [isAutoplay, setIsAutoplay] = useState(false);
-  const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null);
+  const { toggleSidebar } = useClassroomSidebarStore()
+  const { activeCourse, setActiveCourse } = useActiveCourseStore()
+  const { currentLesson } = useCourseModalStore()
+  const [isAutoplay, setIsAutoplay] = useState(false)
+  const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
 
   // Sincroniza o curso ativo do layout (SSR) com o store para a página do classroom ter curso imediato
   useEffect(() => {
     if (initialActiveCourse?.id && !activeCourse?.id) {
-      setActiveCourse(initialActiveCourse);
+      setActiveCourse(initialActiveCourse)
     }
-  }, [initialActiveCourse, activeCourse?.id, setActiveCourse]);
+  }, [initialActiveCourse, activeCourse?.id, setActiveCourse])
 
   // Custom hook gerencia toda a lógica de atualização do roadmap
   useRoadmapUpdater({
@@ -47,50 +47,50 @@ export default function ClassroomHeader({
     currentLessonId: currentLesson?.id,
     lessonCompletedTimestamp: null,
     onRoadmapUpdate: setRoadmap,
-  });
+  })
 
   // Usa o activeCourse do store se disponível, senão usa o inicial
-  const currentActiveCourse = activeCourse || initialActiveCourse;
+  const currentActiveCourse = activeCourse || initialActiveCourse
 
   // Constrói o path do curso dinamicamente
   const coursePath = currentActiveCourse?.slug
     ? `/learn/paths/${currentActiveCourse.slug}`
-    : "/learn/catalog";
+    : '/learn/catalog'
 
   // Nome do curso para exibir (fallback para "Curso" se não tiver título)
-  const courseName = currentActiveCourse?.title || "Curso";
+  const courseName = currentActiveCourse?.title || 'Curso'
 
   // Busca moduleTitle e groupTitle do roadmap
   const { moduleTitle, groupTitle } = useMemo(() => {
-    let moduleTitleValue: string | undefined;
-    let groupTitleValue: string | undefined;
+    let moduleTitleValue: string | undefined
+    let groupTitleValue: string | undefined
 
     if (roadmap?.modules && currentLesson) {
       for (const moduleItem of roadmap.modules) {
         for (const groupItem of moduleItem.groups || []) {
           if (groupItem.lessons?.some((l) => l.id === currentLesson.id)) {
-            moduleTitleValue = moduleItem.title;
-            groupTitleValue = groupItem.title;
-            break;
+            moduleTitleValue = moduleItem.title
+            groupTitleValue = groupItem.title
+            break
           }
         }
-        if (moduleTitleValue && groupTitleValue) break;
+        if (moduleTitleValue && groupTitleValue) break
       }
     }
 
-    return { moduleTitle: moduleTitleValue, groupTitle: groupTitleValue };
-  }, [roadmap?.modules, currentLesson]);
+    return { moduleTitle: moduleTitleValue, groupTitle: groupTitleValue }
+  }, [roadmap?.modules, currentLesson])
 
   const breadcrumbPath = useMemo(() => {
     return [currentActiveCourse?.title, moduleTitle, groupTitle]
       .filter(Boolean)
-      .join(" / ");
-  }, [currentActiveCourse?.title, moduleTitle, groupTitle]);
+      .join(' / ')
+  }, [currentActiveCourse?.title, moduleTitle, groupTitle])
 
   return (
-    <div className="fixed top-0 left-0 w-full z-[60] bg-white shadow-md">
-      <header className="fixed top-0 left-0 w-full z-[60] bg-[#121214] shadow-lg border-b-[1px] border-[#25252a] lg:py-0 pt-2 pb-0">
-        <ul className="flex justify-between items-center lg:pt-2 pt-0 lg:pb-2 pb-2 lpb-0 w-full mx-auto px-4">
+    <div className="fixed top-0 left-0 w-full z-40 bg-white shadow-md">
+      <header className="fixed top-0 left-0 w-full z-40 bg-[#121214] shadow-lg border-b-[1px] border-[#25252a] lg:py-0 pt-2 pb-0">
+        <ul className="relative z-10 flex justify-between items-center lg:pt-2 pt-0 lg:pb-2 pb-2 lpb-0 w-full mx-auto px-4">
           <li className="flex items-center lg:space-x-6">
             <button
               onClick={toggleSidebar}
@@ -134,7 +134,7 @@ export default function ClassroomHeader({
             </div>
             <div className="p-2 lg:flex hidden px-3 space-x-2">
               <p className="text-white text-sm truncate max-w-[200px]">
-                {currentLesson?.title || "Introdução"}
+                {currentLesson?.title || 'Introdução'}
               </p>
             </div>
           </li>
@@ -149,12 +149,15 @@ export default function ClassroomHeader({
         </ul>
 
         {/* Lesson Header - abaixo do header principal, apenas no mobile */}
-        <div className="lg:hidden block border-t border-[#25252A]">
+        <div className="relative z-0 lg:hidden block border-t border-[#25252A]">
           <div className="bg-[#121214]/90">
             <div className="flex items-center justify-between px-4 py-2">
               {/* Lado esquerdo */}
               <div className="flex items-center gap-3 flex-1 min-w-0 mr-3">
-                <Link href="/learn" className="flex items-center justify-center">
+                <Link
+                  href="/learn"
+                  className="flex items-center justify-center"
+                >
                   <button className="flex-shrink-0 text-white hover:text-[#00C8FF] transition-colors">
                     <ArrowLeft size={20} />
                   </button>
@@ -176,7 +179,7 @@ export default function ClassroomHeader({
                 ) : (
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                     <span className="text-white text-xs font-bold">
-                      {courseName[0]?.toUpperCase() || "C"}
+                      {courseName[0]?.toUpperCase() || 'C'}
                     </span>
                   </div>
                 )}
@@ -194,12 +197,14 @@ export default function ClassroomHeader({
                 {/* Reprodução automática */}
                 <button
                   onClick={() => setIsAutoplay(!isAutoplay)}
-                  className={`relative w-11 h-6 rounded-full transition-colors ${isAutoplay ? "bg-[#00C8FF]" : "bg-[#25252A]"
-                    }`}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${
+                    isAutoplay ? 'bg-[#00C8FF]' : 'bg-[#25252A]'
+                  }`}
                 >
                   <span
-                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${isAutoplay ? "translate-x-5" : "translate-x-0"
-                      }`}
+                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                      isAutoplay ? 'translate-x-5' : 'translate-x-0'
+                    }`}
                   />
                 </button>
 
@@ -251,5 +256,5 @@ export default function ClassroomHeader({
         </div>
       </header>
     </div>
-  );
+  )
 }
