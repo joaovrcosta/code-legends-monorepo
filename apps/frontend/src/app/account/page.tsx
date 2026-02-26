@@ -1,11 +1,17 @@
 import { MyCourses } from "@/components/account/my-courses";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage, type AvatarRingVariant } from "@/components/ui/avatar";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Crown, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { getCurrentUser } from "@/actions/user/get-current-user";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+
+function planToRingVariant(plan?: string): AvatarRingVariant {
+  if (plan === "PRO") return "pro";
+  if (plan === "PREMIUM") return "premium";
+  return "free";
+}
 
 export const metadata: Metadata = {
   title: "Minha Conta - Code Legends",
@@ -23,7 +29,10 @@ export default async function AccountPage() {
   return (
     <div className="space-y-4 w-full mt-8">
       <div className="lg:flex hidden items-center space-x-2 px-4 py-8 mt-8">
-        <Avatar className="h-[52px] w-[52px]">
+        <Avatar
+          className="h-[52px] w-[52px]"
+          ringVariant={planToRingVariant(user.plan)}
+        >
           <AvatarImage src={user.avatar || ""} />
           <AvatarFallback>
             {user.name?.charAt(0).toUpperCase() || "U"}

@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { INPUT_CLASS } from "./constants";
 import { getCheckoutDados } from "@/actions/account/get-checkout-dados";
 import { saveCheckoutDados } from "@/actions/account/save-checkout-dados";
+import { fetchAddressByCep } from "@/actions/address/fetch-address-by-cep";
 
 interface CartMeusDadosFormProps {
   onAdvanceToPayment: () => void;
@@ -37,6 +38,8 @@ export function CartMeusDadosForm({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepError, setCepError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen || loaded) return;
@@ -104,6 +107,44 @@ export function CartMeusDadosForm({
 
   const updateAddress = (key: keyof ReturnType<typeof defaultAddress>, value: string | boolean) => {
     setAddress((prev) => ({ ...prev, [key]: value }));
+    if (key === "cep") setCepError(null);
+  };
+
+  const handleCepBlur = useCallback(async () => {
+    const digits = address.cep.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+    setCepError(null);
+    setCepLoading(true);
+    try {
+      const result = await fetchAddressByCep(address.cep);
+      if (result.success) {
+        setAddress((prev) => ({
+          ...prev,
+          street: result.street,
+          neighborhood: result.neighborhood,
+          city: result.city,
+          state: result.state,
+        }));
+      } else {
+        setCepError(result.message);
+      }
+    } finally {
+      setCepLoading(false);
+    }
+  }, [address.cep]);
+
+  const formatCep = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 8);
+    if (digits.length <= 5) return digits.replace(/(\d{5})/, "$1-");
+    return digits.replace(/(\d{5})(\d{0,3})/, "$1-$2");
+  };
+
+  const formatCpf = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+    return digits
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
   };
 
   return (
@@ -144,10 +185,12 @@ export function CartMeusDadosForm({
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="CPF"
+                inputMode="numeric"
+                placeholder="000.000.000-00"
+                maxLength={14}
                 className={`flex-1 ${INPUT_CLASS}`}
                 value={document}
-                onChange={(e) => setDocument(e.target.value)}
+                onChange={(e) => setDocument(formatCpf(e.target.value))}
               />
               <div className="flex items-center h-12 px-3 rounded-lg bg-[#25252A] border border-[#25252A] text-[#7e7e89] text-sm gap-1">
                 <span>🇧🇷</span>
@@ -165,15 +208,31 @@ export function CartMeusDadosForm({
 
           <p className="text-xs font-medium text-[#7e7e89] mb-2">Endereço</p>
           <div className="space-y-4">
-            <div className="flex gap-2 items-center">
-              <input
-                type="text"
-                placeholder="CEP"
-                className={`flex-1 ${INPUT_CLASS}`}
-                value={address.cep}
-                onChange={(e) => updateAddress("cep", e.target.value)}
-              />
-              <button type="button" className="text-sm text-[#00C8FF] hover:underline shrink-0">
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="00000-000"
+                  maxLength={9}
+                  className={cn("flex-1", INPUT_CLASS, cepLoading && "opacity-70")}
+                  value={address.cep}
+                  onChange={(e) => updateAddress("cep", formatCep(e.target.value))}
+                  onBlur={handleCepBlur}
+                  disabled={cepLoading}
+                />
+                {cepLoading && (
+                  <span className="text-xs text-[#7e7e89] shrink-0">Buscando...</span>
+                )}
+              </div>
+              {cepError && (
+                <p className="text-xs text-red-400">{cepError}</p>
+              )}
+              <button
+                type="button"
+                className="text-sm text-[#00C8FF] hover:underline shrink-0 w-fit"
+                onClick={() => window.open("https://buscacepinter.correios.com.br/app/endereco/index.php", "_blank")}
+              >
                 Não sei o CEP
               </button>
             </div>

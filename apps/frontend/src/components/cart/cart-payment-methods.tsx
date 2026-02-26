@@ -62,7 +62,7 @@ export function CartPaymentMethods({ planSlug, value = null, onChange }: CartPay
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       const result = await createCheckout(plan, {
         returnUrl: `${origin}/cart/${planSlug}`,
-        completionUrl: `${origin}/learn`,
+        completionUrl: `${origin}/`,
       });
       if (result?.success && result.checkoutUrl) {
         window.location.href = result.checkoutUrl;
