@@ -1,21 +1,21 @@
-import { AccountAsideMenu } from "@/components/account/aside-menu";
-import { FooterFixed } from "@/components/learn/footer-fixed";
-import LearnHeader from "@/components/learn/header";
-import { getActiveCourse } from "@/actions/user/get-active-course";
-import { getUserEnrolledList } from "@/actions/progress";
+import { AccountAsideMenu } from '@/components/account/aside-menu'
+import { FooterFixed } from '@/components/learn/footer-fixed'
+import LearnHeader from '@/components/learn/header'
+import { getActiveCourse } from '@/actions/user/get-active-course'
+import { getUserEnrolledList } from '@/actions/progress'
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
 
 export default async function AccountLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   // Busca os dados no servidor
   const [enrolledCoursesData, activeCourse] = await Promise.all([
     getUserEnrolledList(),
     getActiveCourse(),
-  ]);
+  ])
 
   return (
     <>
@@ -33,5 +33,5 @@ export default async function AccountLayout({
         initialActiveCourse={activeCourse}
       />
     </>
-  );
+  )
 }
