@@ -44,7 +44,7 @@ export default function LearnHeader({
     setMounted(true);
   }, []);
 
-  const showSidebarButton = !mounted || (pathName && typeof pathName === 'string' && !pathName.startsWith("/account"));
+  const showSidebarButton = mounted;
 
   // Função de busca com debounce
   const performSearch = useCallback(async (query: string) => {
