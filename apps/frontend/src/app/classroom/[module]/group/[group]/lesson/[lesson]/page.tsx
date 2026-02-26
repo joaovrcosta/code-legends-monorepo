@@ -13,6 +13,8 @@ import { SkipForward } from "@phosphor-icons/react";
 import { SkipBack, LockOpen } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { LessonsList } from "@/components/classroom/lessons-list";
+import { Skeleton } from "@/components/skeleton";
+import { Loading } from "@/components/loading";
 import { LessonsAccordion } from "@/components/learn/lessons-accordion";
 import { useActiveCourseStore } from "@/stores/active-course-store";
 import { useCourseModalStore } from "@/stores/course-modal-store";
@@ -385,8 +387,23 @@ export default function DynamicLessonPage() {
               <div className="p-4 border-b border-[#25252A] bg-[#121214]">
                 <h2 className="text-[20px] font-semibold text-[#C4C4CC]">Trilha</h2>
               </div>
-              <div className="flex-1 overflow-y-auto flex items-center justify-center p-4">
-                <p className="text-sm text-[#71717a]">Carregando lista de aulas...</p>
+              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="space-y-3 border-b border-zinc-900 pb-4 last:border-b-0">
+                    <div className="flex items-center gap-3">
+                      <Skeleton variant="circular" width={44} height={44} className="shrink-0 dark:bg-zinc-800" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton variant="text" width="30%" className="h-3 dark:bg-zinc-800" />
+                        <Skeleton variant="text" width="70%" className="h-4 dark:bg-zinc-800" />
+                      </div>
+                    </div>
+                    <div className="pl-11 space-y-2">
+                      <Skeleton variant="text" width="100%" className="h-3 dark:bg-zinc-800" />
+                      <Skeleton variant="text" width="90%" className="h-3 dark:bg-zinc-800" />
+                      <Skeleton variant="text" width="95%" className="h-3 dark:bg-zinc-800" />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -403,7 +420,7 @@ export default function DynamicLessonPage() {
             </div>
           </header>
           <div className="flex flex-1 items-center justify-center">
-            <p className="text-[#a1a1aa]">Carregando aula...</p>
+            <Loading className="flex-1" />
           </div>
         </div>
       </div>
