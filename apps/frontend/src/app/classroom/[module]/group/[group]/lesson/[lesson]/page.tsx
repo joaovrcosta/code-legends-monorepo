@@ -545,7 +545,7 @@ export default function DynamicLessonPage() {
 
       {/* Conteúdo principal */}
       <div
-        className={`flex-1 w-full lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)]
+        className={`flex-1 w-full min-h-0 lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)]
              text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? "lg:ml-[378px]" : "lg:ml-0"
           }`}
@@ -564,15 +564,16 @@ export default function DynamicLessonPage() {
           </div>
         </header>
 
-
-        {/* Conteúdo */}
-        <LessonContent
-          lesson={lesson}
-          courseTitle={activeCourse?.title}
-          moduleTitle={lessonData.moduleTitle}
-          groupTitle={lessonData.groupTitle}
-          courseIcon={activeCourse?.icon}
-        />
+        {/* Área rolável: vídeo + accordions (título, completar aula, etc.) */}
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+          <LessonContent
+            lesson={lesson}
+            courseTitle={activeCourse?.title}
+            moduleTitle={lessonData.moduleTitle}
+            groupTitle={lessonData.groupTitle}
+            courseIcon={activeCourse?.icon}
+          />
+        </div>
 
         {/* Footer */}
         <footer
