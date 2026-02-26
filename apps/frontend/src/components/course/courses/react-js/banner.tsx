@@ -184,7 +184,6 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                 try {
                   setIsLoading(true);
 
-                  // Se não estiver inscrito, faz enroll primeiro
                   if (!isEnrolled) {
                     const { enrollInCourse } = await import(
                       "@/actions/course/enroll"
@@ -192,16 +191,49 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                     await enrollInCourse(course.id);
                   }
 
-                  // Inicia o curso (define como ativo)
                   const { startCourse } = await import(
                     "@/actions/course/start"
                   );
                   await startCourse(course.id);
 
-                  // Redirecionar para /learn
-                  router.push("/learn");
+                  // Ir para o classroom da aula atual (ou primeira desbloqueada)
+                  const { getCourseRoadmap } = await import(
+                    "@/actions/course/roadmap"
+                  );
+                  const { findLessonContext, generateLessonUrl } = await import(
+                    "@/utils/lesson-url"
+                  );
+                  const roadmap = await getCourseRoadmap(course.id);
+                  if (roadmap?.modules) {
+                    const allLessons = roadmap.modules.flatMap((m) =>
+                      (m.groups || []).flatMap((g) => g.lessons || [])
+                    );
+                    const targetLesson =
+                      allLessons.find((l) => l.isCurrent && l.status !== "locked") ||
+                      allLessons.find((l) => l.status !== "locked") ||
+                      null;
+                    if (targetLesson) {
+                      const context = findLessonContext(
+                        targetLesson.id,
+                        roadmap.modules
+                      );
+                      if (context) {
+                        const url = generateLessonUrl(
+                          targetLesson,
+                          context.module,
+                          context.group
+                        );
+                        router.push(url);
+                        setIsLoading(false);
+                        return;
+                      }
+                    }
+                  }
+                  router.push("/classroom");
                 } catch (error) {
                   console.error("Erro ao iniciar curso:", error);
+                  router.push("/classroom");
+                } finally {
                   setIsLoading(false);
                 }
               }}
@@ -374,7 +406,6 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                   try {
                     setIsLoading(true);
 
-                    // Se não estiver inscrito, faz enroll primeiro
                     if (!isEnrolled) {
                       const { enrollInCourse } = await import(
                         "@/actions/course/enroll"
@@ -382,16 +413,48 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                       await enrollInCourse(course.id);
                     }
 
-                    // Inicia o curso (define como ativo)
                     const { startCourse } = await import(
                       "@/actions/course/start"
                     );
                     await startCourse(course.id);
 
-                    // Redirecionar para /learn
-                    router.push("/learn");
+                    const { getCourseRoadmap } = await import(
+                      "@/actions/course/roadmap"
+                    );
+                    const { findLessonContext, generateLessonUrl } = await import(
+                      "@/utils/lesson-url"
+                    );
+                    const roadmap = await getCourseRoadmap(course.id);
+                    if (roadmap?.modules) {
+                      const allLessons = roadmap.modules.flatMap((m) =>
+                        (m.groups || []).flatMap((g) => g.lessons || [])
+                      );
+                      const targetLesson =
+                        allLessons.find((l) => l.isCurrent && l.status !== "locked") ||
+                        allLessons.find((l) => l.status !== "locked") ||
+                        null;
+                      if (targetLesson) {
+                        const context = findLessonContext(
+                          targetLesson.id,
+                          roadmap.modules
+                        );
+                        if (context) {
+                          const url = generateLessonUrl(
+                            targetLesson,
+                            context.module,
+                            context.group
+                          );
+                          router.push(url);
+                          setIsLoading(false);
+                          return;
+                        }
+                      }
+                    }
+                    router.push("/classroom");
                   } catch (error) {
                     console.error("Erro ao iniciar curso:", error);
+                    router.push("/classroom");
+                  } finally {
                     setIsLoading(false);
                   }
                 }}

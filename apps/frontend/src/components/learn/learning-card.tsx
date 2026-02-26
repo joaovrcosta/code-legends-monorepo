@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { useState } from "react";
+import { useState } from 'react'
 import {
   CaretDown,
   CaretUp,
@@ -9,43 +9,46 @@ import {
   PushPinIcon,
   InfoIcon,
   VideoCamera,
-} from "@phosphor-icons/react/dist/ssr";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import Image from "next/image";
-import Link from "next/link";
+} from '@phosphor-icons/react/dist/ssr'
+import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
+import Image from 'next/image'
+import Link from 'next/link'
 
 interface Lesson {
-  id: string;
-  title: string;
-  type: "video" | "quiz" | "read" | "informational";
-  duration?: string;
-  locked?: boolean;
+  id: string
+  title: string
+  type: 'video' | 'quiz' | 'read' | 'informational'
+  duration?: string
+  locked?: boolean
 }
 
 interface Module {
-  id: string;
-  title: string;
-  isActive: boolean;
-  lessons?: Lesson[];
+  id: string
+  title: string
+  isActive: boolean
+  lessons?: Lesson[]
 }
 
 interface LearningCardProps {
-  title: string;
-  type: "course" | "skill-path";
-  progress: number;
-  description?: string;
-  icon?: string;
-  lessons?: Lesson[];
-  modules?: Module[];
-  courseId?: string;
-  isPinned?: boolean;
-  isLoadingModules?: boolean;
-  onExpand?: (courseId: string) => void;
+  title: string
+  type: 'course' | 'skill-path'
+  progress: number
+  description?: string
+  icon?: string
+  lessons?: Lesson[]
+  modules?: Module[]
+  courseId?: string
+  isPinned?: boolean
+  isLoadingModules?: boolean
+  onExpand?: (courseId: string) => void
+  continueClassroomUrl?: string | null
+  onContinue?: (courseId: string) => void
 }
 
 export function LearningCard({
   title,
+  type: cardType,
   progress,
   description,
   icon,
@@ -54,24 +57,26 @@ export function LearningCard({
   courseId,
   isLoadingModules = false,
   onExpand,
+  continueClassroomUrl,
+  onContinue,
 }: LearningCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const hasModules = modules.length > 0;
+  const [isExpanded, setIsExpanded] = useState(false)
+  const hasModules = modules.length > 0
 
   const handleExpand = () => {
-    const newExpandedState = !isExpanded;
-    setIsExpanded(newExpandedState);
+    const newExpandedState = !isExpanded
+    setIsExpanded(newExpandedState)
 
     // Se está expandindo, não tem módulos carregados e tem courseId, carrega o roadmap
     if (newExpandedState && !hasModules && courseId && onExpand) {
-      onExpand(courseId);
+      onExpand(courseId)
     }
-  };
+  }
 
   return (
     <div
       className={`border border-[#25252A] rounded-[20px] overflow-hidden transition-colors ${
-        isExpanded ? "bg-gray-gradient-second" : "bg-gray-gradient"
+        isExpanded ? 'bg-gray-gradient-second' : 'bg-gray-gradient'
       }`}
     >
       {/* Header */}
@@ -151,7 +156,7 @@ export function LearningCard({
                 <div key={module.id} className="space-y-2">
                   <h5
                     className={`text-sm font-semibold ${
-                      module.isActive ? "text-[#00C8FF]" : "text-[#C4C4CC]"
+                      module.isActive ? 'text-[#00C8FF]' : 'text-[#C4C4CC]'
                     }`}
                   >
                     {module.title}
@@ -174,8 +179,8 @@ export function LearningCard({
                             flex items-center gap-3 p-3 rounded-lg
                             ${
                               lesson.locked
-                                ? "bg-[#1A1A1E] opacity-50"
-                                : "bg-[#25252A] hover:bg-[#2E2E32] cursor-pointer transition-colors"
+                                ? 'bg-[#1A1A1E] opacity-50'
+                                : 'bg-[#25252A] hover:bg-[#2E2E32] cursor-pointer transition-colors'
                             }
                           `}
                           >
@@ -189,12 +194,12 @@ export function LearningCard({
                             ) : (
                               <div className="w-10 h-10 rounded-lg bg-[#1A1A1E] flex items-center justify-center flex-shrink-0">
                                 <span className="text-xs text-[#C4C4CC]">
-                                  {lesson.type === "video" ? (
+                                  {lesson.type === 'video' ? (
                                     <VideoCamera size={20} weight="regular" />
-                                  ) : lesson.type === "quiz" ? (
-                                    "?"
-                                  ) : lesson.type === "read" ? (
-                                    "📄"
+                                  ) : lesson.type === 'quiz' ? (
+                                    '?'
+                                  ) : lesson.type === 'read' ? (
+                                    '📄'
                                   ) : (
                                     <InfoIcon size={20} weight="regular" />
                                   )}
@@ -218,7 +223,7 @@ export function LearningCard({
                               <p
                                 className={`
                               text-sm mt-1
-                              ${lesson.locked ? "text-[#C4C4CC]" : "text-white"}
+                              ${lesson.locked ? 'text-[#C4C4CC]' : 'text-white'}
                             `}
                               >
                                 {lesson.title}
@@ -243,8 +248,8 @@ export function LearningCard({
                     flex items-center gap-3 p-3 rounded-lg
                     ${
                       lesson.locked
-                        ? "bg-[#1A1A1E] opacity-50"
-                        : "bg-[#25252A] hover:bg-[#2E2E32] cursor-pointer transition-colors"
+                        ? 'bg-[#1A1A1E] opacity-50'
+                        : 'bg-[#25252A] hover:bg-[#2E2E32] cursor-pointer transition-colors'
                     }
                   `}
                 >
@@ -258,12 +263,12 @@ export function LearningCard({
                   ) : (
                     <div className="w-10 h-10 rounded-lg bg-[#1A1A1E] flex items-center justify-center flex-shrink-0">
                       <span className="text-xs text-[#C4C4CC]">
-                        {lesson.type === "video" ? (
+                        {lesson.type === 'video' ? (
                           <VideoCamera size={20} weight="regular" />
-                        ) : lesson.type === "quiz" ? (
-                          "?"
-                        ) : lesson.type === "read" ? (
-                          "📄"
+                        ) : lesson.type === 'quiz' ? (
+                          '?'
+                        ) : lesson.type === 'read' ? (
+                          '📄'
                         ) : (
                           <InfoIcon size={20} weight="regular" />
                         )}
@@ -285,7 +290,7 @@ export function LearningCard({
                     <p
                       className={`
                       text-sm mt-1
-                      ${lesson.locked ? "text-[#C4C4CC]" : "text-white"}
+                      ${lesson.locked ? 'text-[#C4C4CC]' : 'text-white'}
                     `}
                     >
                       {lesson.title}
@@ -308,13 +313,31 @@ export function LearningCard({
                   View syllabus
                 </button>
               </Link>
-              <Button className="bg-blue-gradient-500 hover:opacity-90 text-white font-semibold px-6 py-2 rounded-lg">
-                Continuar
-              </Button>
+              {cardType === 'course' &&
+              (continueClassroomUrl || (onContinue && courseId)) ? (
+                continueClassroomUrl ? (
+                  <Link href={continueClassroomUrl}>
+                    <Button className="bg-blue-gradient-500 hover:opacity-90 text-white font-semibold px-6 py-2 rounded-lg">
+                      Continuar
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button
+                    className="bg-blue-gradient-500 hover:opacity-90 text-white font-semibold px-6 py-2 rounded-lg"
+                    onClick={() => courseId && onContinue?.(courseId)}
+                  >
+                    Continuar
+                  </Button>
+                )
+              ) : (
+                <Button className="bg-blue-gradient-500 hover:opacity-90 text-white font-semibold px-6 py-2 rounded-lg">
+                  Continuar
+                </Button>
+              )}
             </div>
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }

@@ -13,6 +13,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { ProgressRing } from '@/components/classroom/module-progress-ring'
 
 interface LessonsListProps {
   lessons: Lesson[]
@@ -113,6 +114,15 @@ export const LessonsList = memo(function LessonsList({
         {organizedLessons.map((moduleItem, moduleIndex) => {
           const moduleValue = `module-${moduleItem.id}`
           const isCurrentModule = currentModule?.id === moduleItem.id
+          const allModuleLessons = moduleItem.groups.flatMap(
+            (g) => g.lessons || [],
+          )
+          const totalLessons = allModuleLessons.length
+          const completedLessons = allModuleLessons.filter(
+            (l) => l.status === 'completed',
+          ).length
+          const progress =
+            totalLessons > 0 ? completedLessons / totalLessons : 0
 
           return (
             <AccordionItem
@@ -121,21 +131,27 @@ export const LessonsList = memo(function LessonsList({
               className="border-b border-zinc-900 last:border-b-0"
             >
               <AccordionTrigger className="sticky top-0 z-10 bg-[#121214] py-4 hover:no-underline border-b border-transparent [&[data-state=open]]:border-zinc-800 [&[data-state=open]>svg]:rotate-180">
-                <div className="flex flex-col items-start gap-0.5 text-left">
-                  <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Módulo {String(moduleIndex + 1).padStart(2, '0')}
-                  </span>
-                  <span
-                    className={`font-bold text-[16px] ${
-                      isCurrentModule
-                        ? 'bg-blue-gradient-500 bg-clip-text text-transparent'
-                        : 'text-zinc-200'
-                    }`}
-                  >
-                    {moduleItem.title}
-                  </span>
+                <div className="flex items-center gap-3 text-left">
+                  <ProgressRing
+                    progress={progress}
+                    moduleNumber={moduleIndex + 1}
+                    isCurrent={isCurrentModule}
+                  />
+                  <div className="flex flex-col items-start gap-0.5">
+                    <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                      Módulo {String(moduleIndex + 1).padStart(2, '0')}
+                    </span>
+                    <span
+                      className={`font-bold text-[16px] ${
+                        isCurrentModule
+                          ? 'bg-blue-gradient-500 bg-clip-text text-transparent'
+                          : 'text-zinc-200'
+                      }`}
+                    >
+                      {moduleItem.title}
+                    </span>
+                  </div>
                 </div>
-                {/* Adicionado origin-center para evitar sub-pixel shift na rotação */}
                 <ChevronDown className="h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 origin-center" />
               </AccordionTrigger>
               <AccordionContent className="pb-4 pt-6">
@@ -243,10 +259,6 @@ export const LessonsList = memo(function LessonsList({
                                       >
                                         {lesson.isFree ? 'G' : 'P'}
                                       </span>
-                                    )}
-
-                                    {isActive && (
-                                      <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                                     )}
                                   </button>
                                 </div>

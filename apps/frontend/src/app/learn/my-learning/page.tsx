@@ -4,12 +4,15 @@ import { BookBookmarkIcon } from "@phosphor-icons/react/dist/ssr";
 import { Tabs } from "@/components/ui/tabs";
 import { LearningCard } from "@/components/learn/learning-card";
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { getMyLearning } from "@/actions/progress";
 import { getCourseRoadmap } from "@/actions/course";
+import { findLessonContext, generateLessonUrl } from "@/utils/lesson-url";
 import type { MyLearningCourse } from "@/actions/progress/my-learning";
 import type { Lesson } from "@/types/roadmap";
 
 interface CourseWithModules extends MyLearningCourse {
+  continueClassroomUrl?: string | null;
   modules?: Array<{
     id: string;
     title: string;
@@ -25,6 +28,7 @@ interface CourseWithModules extends MyLearningCourse {
 }
 
 export default function MyLearningPage() {
+  const router = useRouter();
   const [inProgressCourses, setInProgressCourses] = useState<
     CourseWithModules[]
   >([]);
@@ -119,16 +123,37 @@ export default function MyLearningPage() {
         };
       });
 
-      // Atualiza os cursos com os módulos
+      // URL para "Continuar": aula atual (isCurrent) ou primeira desbloqueada
+      const allLessons = roadmap.modules.flatMap((m) =>
+        (m.groups || []).flatMap((g) => g.lessons || [])
+      );
+      const targetLesson =
+        allLessons.find((l) => l.isCurrent && l.status !== "locked") ||
+        allLessons.find((l) => l.status !== "locked") ||
+        null;
+      let continueClassroomUrl: string | null = null;
+      if (targetLesson) {
+        const context = findLessonContext(targetLesson.id, roadmap.modules);
+        if (context) {
+          continueClassroomUrl = generateLessonUrl(
+            targetLesson,
+            context.module,
+            context.group
+          );
+        }
+      }
+
+      const courseUpdate = { modules, continueClassroomUrl };
+
       setInProgressCourses((prev) =>
         prev.map((course) =>
-          course.id === courseId ? { ...course, modules } : course
+          course.id === courseId ? { ...course, ...courseUpdate } : course
         )
       );
 
       setCompletedCourses((prev) =>
         prev.map((course) =>
-          course.id === courseId ? { ...course, modules } : course
+          course.id === courseId ? { ...course, ...courseUpdate } : course
         )
       );
     } catch (error) {
@@ -137,6 +162,42 @@ export default function MyLearningPage() {
       setLoadingCourseId(null);
     }
   }, []);
+
+  // Continuar sem ter expandido: busca roadmap e vai para a aula atual no classroom
+  const handleContinue = useCallback(
+    async (courseId: string) => {
+      try {
+        const roadmap = await getCourseRoadmap(courseId);
+        if (!roadmap?.modules) {
+          router.push("/classroom");
+          return;
+        }
+        const allLessons = roadmap.modules.flatMap((m) =>
+          (m.groups || []).flatMap((g) => g.lessons || [])
+        );
+        const targetLesson =
+          allLessons.find((l) => l.isCurrent && l.status !== "locked") ||
+          allLessons.find((l) => l.status !== "locked") ||
+          null;
+        if (targetLesson) {
+          const context = findLessonContext(targetLesson.id, roadmap.modules);
+          if (context) {
+            const url = generateLessonUrl(
+              targetLesson,
+              context.module,
+              context.group
+            );
+            router.push(url);
+            return;
+          }
+        }
+        router.push("/classroom");
+      } catch {
+        router.push("/classroom");
+      }
+    },
+    [router]
+  );
 
   // Skill paths (mantido como estava)
   const skillPaths = [
@@ -170,6 +231,8 @@ export default function MyLearningPage() {
                 modules={course.modules}
                 isLoadingModules={loadingCourseId === course.id}
                 onExpand={handleExpandCourse}
+                continueClassroomUrl={course.continueClassroomUrl}
+                onContinue={handleContinue}
               />
             ))
           )}
@@ -197,6 +260,8 @@ export default function MyLearningPage() {
                 modules={course.modules}
                 isLoadingModules={loadingCourseId === course.id}
                 onExpand={handleExpandCourse}
+                continueClassroomUrl={course.continueClassroomUrl}
+                onContinue={handleContinue}
               />
             ))
           )}
