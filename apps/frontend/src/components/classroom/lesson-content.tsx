@@ -23,19 +23,20 @@ export const LessonContent = memo(function LessonContent({
 }: LessonContentProps) {
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      {/* Header do conteúdo - apenas no desktop */}
-      <div className="sticky top-0 z-50 lg:px-4 px-0 lg:pt-2 pt-0 hidden lg:block">
+      {/* Header do conteúdo - sticky logo abaixo do header da página (63px); só no desktop */}
+      <div className="sticky top-[63px] z-40 lg:px-4 px-0 lg:pt-2 pt-0 hidden lg:block">
         <LessonHeader
           courseTitle={courseTitle}
           moduleTitle={moduleTitle}
           groupTitle={groupTitle}
           courseIcon={courseIcon}
+          title={lesson.title}
         />
       </div>
       
-      {/* Conteúdo */}
-      <div className="flex-1 lg:px-4 px-0 min-h-0">
-        <div className="lg:px-4 px-0 lg:pt-4 pt-0 pb-[54px] lg:pb-[84px]">
+      {/* Conteúdo - flex-1 + flex flex-col para a área esticar; inner com flex-1 min-h-0 para preencher altura */}
+      <div className="flex-1 flex flex-col min-h-0 lg:px-4 px-0">
+        <div className="flex-1 min-h-0 flex flex-col lg:px-4 px-0 lg:pt-4 pt-0 pb-[54px] lg:pb-[84px]">
           {lesson?.type === "video" && (
             <VideoComponent
               description={lesson.description}

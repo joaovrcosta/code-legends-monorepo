@@ -188,23 +188,33 @@ export function LessonsAccordion() {
                               : "hover:bg-zinc-800/30 border border-transparent"
                             } ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2 w-full">
                             <div
-                              className={`w-2 h-2 rounded-full shrink-0 ${isActive
+                              className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${isActive
                                   ? "bg-cyan-400"
                                   : isLocked
                                     ? "bg-zinc-700"
                                     : "bg-cyan-400/50"
                                 }`}
                             />
-                            <span
-                              className={`text-sm font-medium ${isActive
-                                  ? "text-cyan-50 font-semibold"
-                                  : "text-zinc-400"
-                                }`}
-                            >
-                              {lesson.title}
-                            </span>
+                            <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                              <span
+                                className={`text-sm truncate transition-colors duration-200 ${isActive
+                                    ? "text-cyan-50 font-semibold"
+                                    : "text-zinc-400 font-medium"
+                                  }`}
+                              >
+                                {lesson.title}
+                              </span>
+                              {lesson.video_duration && (
+                                <span
+                                  className={`text-xs tabular-nums ${isActive ? "text-cyan-400/80" : "text-zinc-500"
+                                    }`}
+                                >
+                                  {lesson.video_duration}
+                                </span>
+                              )}
+                            </div>
                             {lesson.isFree && userPlan === "FREE" && (
                               <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-lime-500/10 text-lime-400 border border-lime-500/20">
                                 G

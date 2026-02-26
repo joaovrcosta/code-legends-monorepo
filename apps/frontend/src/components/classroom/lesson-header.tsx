@@ -1,35 +1,39 @@
-"use client";
+'use client'
 
-import { ArrowLeft, Play, Pause } from "lucide-react";
-import { useState, memo, useMemo } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { ArrowLeft, Play, Pause } from 'lucide-react'
+import { useState, memo, useMemo } from 'react'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 interface LessonHeaderProps {
-  courseTitle?: string;
-  moduleTitle?: string;
-  groupTitle?: string;
-  courseIcon?: string;
+  courseTitle?: string
+  moduleTitle?: string
+  groupTitle?: string
+  courseIcon?: string
+  /** Título da aula/vídeo atual — truncado com reticências se for muito longo */
+  title?: string
 }
+
+const truncateAt = (text: string, max = 40) =>
+  text.length > max ? `${text.slice(0, max)}...` : text
 
 export const LessonHeader = memo(function LessonHeader({
   courseTitle,
   moduleTitle,
   groupTitle,
   courseIcon,
+  title: lessonTitle,
 }: LessonHeaderProps) {
-  const router = useRouter();
-  const [isAutoplay, setIsAutoplay] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const router = useRouter()
+  const [isAutoplay, setIsAutoplay] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   const breadcrumbPath = useMemo(() => {
-    return [courseTitle, moduleTitle, groupTitle]
-      .filter(Boolean)
-      .join(" / ");
-  }, [courseTitle, moduleTitle, groupTitle]);
+    return [courseTitle, moduleTitle, groupTitle].filter(Boolean).join(' / ')
+  }, [courseTitle, moduleTitle, groupTitle])
 
   return (
-    <div className="w-full lg:px-4 px-0 lg:pt-2 pt-0">
+    <div className="w-full lg:px-4 px-0 pt-0">
       {/* Header principal */}
       <div className="bg-[#121214]/90 border border-white/10 lg:rounded-[16px] rounded-none shadow-2xl shadow-black/20">
         <div className="flex items-center justify-between px-4 lg:py-3 py-2">
@@ -49,7 +53,7 @@ export const LessonHeader = memo(function LessonHeader({
               <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden">
                 <Image
                   src={courseIcon}
-                  alt={courseTitle || "Curso"}
+                  alt={courseTitle || 'Curso'}
                   width={32}
                   height={32}
                   className="w-full h-full object-cover"
@@ -58,16 +62,27 @@ export const LessonHeader = memo(function LessonHeader({
             ) : (
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                 <span className="text-white text-xs font-bold">
-                  {courseTitle?.[0]?.toUpperCase() || "C"}
+                  {courseTitle?.[0]?.toUpperCase() || 'C'}
                 </span>
               </div>
             )}
 
-            {/* Breadcrumb */}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-[#C4C4CC] truncate">
-                {breadcrumbPath || "Curso"}
+            {/* Breadcrumb e título da aula (máx. 20 caracteres) */}
+            <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+              <p
+                className="text-sm text-[#C4C4CC] truncate"
+                title={breadcrumbPath || 'Curso'}
+              >
+                {truncateAt(breadcrumbPath || 'Curso')}
               </p>
+              {lessonTitle && (
+                <p
+                  className="text-sm font-medium text-white truncate"
+                  title={lessonTitle}
+                >
+                  {truncateAt(lessonTitle)}
+                </p>
+              )}
             </div>
           </div>
 
@@ -80,12 +95,14 @@ export const LessonHeader = memo(function LessonHeader({
               </span>
               <button
                 onClick={() => setIsAutoplay(!isAutoplay)}
-                className={`relative w-11 h-6 rounded-full transition-colors ${isAutoplay ? "bg-[#00C8FF]" : "bg-[#25252A]"
-                  }`}
+                className={`relative w-11 h-6 rounded-full transition-colors ${
+                  isAutoplay ? 'bg-[#00C8FF]' : 'bg-[#25252A]'
+                }`}
               >
                 <span
-                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${isAutoplay ? "translate-x-5" : "translate-x-0"
-                    }`}
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                    isAutoplay ? 'translate-x-5' : 'translate-x-0'
+                  }`}
                 />
               </button>
             </div>
@@ -138,6 +155,5 @@ export const LessonHeader = memo(function LessonHeader({
         </div>
       </div>
     </div>
-  );
-});
-
+  )
+})
