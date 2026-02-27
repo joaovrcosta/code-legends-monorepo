@@ -1,41 +1,40 @@
-"use client";
+'use client'
 
+import { CatalogCard } from '@/components/home/catalog-card'
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-} from "@/components/ui/carousel";
-import { CatalogCard } from "@/components/course/catalog-card";
-import type { CourseWithCount } from "@/types/user-course.ts";
+} from '@/components/ui/carousel'
+import type { CourseWithCount } from '@/types/user-course.ts'
 
-// Função para mapear level para color
 const getColorByLevel = (level: string): string => {
-  const normalized = (level ?? "")
+  const normalized = (level ?? '')
     .toString()
     .trim()
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
 
   switch (normalized) {
-    case "beginner":
-    case "iniciante":
-      return "blue";
-    case "intermediate":
-    case "intermediario":
-      return "lime";
-    case "advanced":
-    case "avancado":
-      return "orange";
+    case 'beginner':
+    case 'iniciante':
+      return 'blue'
+    case 'intermediate':
+    case 'intermediario':
+      return 'lime'
+    case 'advanced':
+    case 'avancado':
+      return 'orange'
     default:
-      return "gray";
+      return 'gray'
   }
-};
+}
 
 export function RecommendationsCarousel({
   courses,
 }: {
-  courses: CourseWithCount[];
+  courses: CourseWithCount[]
 }) {
   return (
     <div className="relative">
@@ -50,14 +49,13 @@ export function RecommendationsCarousel({
             >
               <CatalogCard
                 name={course.title}
-                image={course.icon || course.thumbnail || ""}
+                image={course.icon || course.thumbnail || ''}
                 url={`/learn/paths/${course.slug}`}
                 color={getColorByLevel(course.level)}
                 status="not-started"
                 isCurrent={false}
                 tags={course.tags}
                 courseId={course.id}
-                isEnrolled={course.isEnrolled}
                 level={course.level}
                 isFree={course.isFree}
               />
@@ -66,5 +64,5 @@ export function RecommendationsCarousel({
         </CarouselContent>
       </Carousel>
     </div>
-  );
+  )
 }
