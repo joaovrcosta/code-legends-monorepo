@@ -86,3 +86,49 @@ export async function createBilling(
     methods: data.methods,
   };
 }
+
+/** Item da lista de cobranças (GET /billing/list). Status: PENDING | PAID | EXPIRED | CANCELLED | REFUNDED */
+export interface AbacateBillingListItem {
+  id: string;
+  status: string;
+  url?: string;
+  amount?: number;
+  methods?: string[];
+}
+
+/**
+ * Lista todas as cobranças na Abacate Pay (GET /billing/list).
+ * Retorna array vazio em caso de erro.
+ */
+export async function listBillings(
+  apiKey: string
+): Promise<AbacateBillingListItem[]> {
+  const res = await fetch(`${ABACATE_API_BASE}/billing/list`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+  });
+
+  const raw = (await res.json()) as AbacateApiResponse<AbacateBillingListItem[]>;
+
+  if (!res.ok || raw?.error) {
+    return [];
+  }
+
+  const data = raw?.data;
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data
+    .filter((b) => b && typeof b.id === "string" && typeof b.status === "string")
+    .map((b) => ({
+      id: b.id,
+      status: b.status,
+      url: b.url,
+      amount: b.amount,
+      methods: b.methods,
+    }));
+}

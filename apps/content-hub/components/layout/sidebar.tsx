@@ -14,6 +14,7 @@ import {
   Tag,
   MessageSquare,
   CreditCard,
+  Crown,
 } from "lucide-react";
 
 const navigation = [
@@ -21,6 +22,7 @@ const navigation = [
   { name: "Cursos", href: "/courses", icon: BookOpen },
   { name: "Usuários", href: "/users", icon: Users },
   { name: "Pagamentos", href: "/payments", icon: CreditCard },
+  { name: "Planos", href: "/plans", icon: Crown },
   { name: "Categorias", href: "/categories", icon: Tag },
   { name: "Solicitações", href: "/requests", icon: MessageSquare },
 ];

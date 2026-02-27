@@ -64,6 +64,7 @@ export const credentialsProvider = Credentials({
                 onboardingCompleted: data.onboardingCompleted ?? false,
                 onboardingGoal: data.onboardingGoal ?? null,
                 onboardingCareer: data.onboardingCareer ?? null,
+                plan: userData.user.plan ?? "FREE",
             };
         } catch {
             return null;

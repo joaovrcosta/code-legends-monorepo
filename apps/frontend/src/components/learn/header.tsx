@@ -1,94 +1,90 @@
-"use client";
+'use client'
 
-import Image from "next/image";
-import codeLegendsLogo from "../../../public/code-legends-logo.svg";
-import codeLegendsLogoMobile from "../../../public/logo-mobile.png";
-import Link from "next/link";
-import { ListEnd, Menu, Search } from "lucide-react";
-import useSidebarStore from "@/stores/sidebarStore";
-import { useMobileNavStore } from "@/stores/mobile-nav-store";
-import { MobileNavSheet } from "./mobile-nav-sheet";
-import { usePathname } from "next/navigation";
-import { CourseDropdownMenu } from "./course-menu";
-import type { EnrolledCourse, ActiveCourse } from "@/types/user-course.ts";
-import { UserDropdown } from "../user-dropdown";
-import { StrikeSection } from "../strike-section";
-import { useEffect, useState, useCallback } from "react";
-import { Input } from "../ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import { searchCourses } from "@/actions/course/search-courses";
-import { CourseWithCount } from "@/types/user-course.ts";
-import { Loader2 } from "lucide-react";
-import { NotificationsSection } from "../notifications-section";
+import Image from 'next/image'
+import codeLegendsLogo from '../../../public/code-legends-logo.svg'
+import codeLegendsLogoMobile from '../../../public/logo-mobile.png'
+import Link from 'next/link'
+import { ListEnd, Menu, Search } from 'lucide-react'
+import useSidebarStore from '@/stores/sidebarStore'
+import { useMobileNavStore } from '@/stores/mobile-nav-store'
+import { MobileNavSheet } from './mobile-nav-sheet'
+import { CourseDropdownMenu } from './course-menu'
+import type { EnrolledCourse, ActiveCourse } from '@/types/user-course.ts'
+import { UserDropdown } from '../user-dropdown'
+import { StrikeSection } from '../strike-section'
+import { useEffect, useState, useCallback } from 'react'
+import { Input } from '../ui/input'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
+import { searchCourses } from '@/actions/course/search-courses'
+import { CourseWithCount } from '@/types/user-course.ts'
+import { Loader2 } from 'lucide-react'
+import { NotificationsSection } from '../notifications-section'
 
 interface LearnHeaderProps {
-  initialUserCourses: EnrolledCourse[];
-  initialActiveCourse: ActiveCourse | null;
+  initialUserCourses: EnrolledCourse[]
+  initialActiveCourse: ActiveCourse | null
 }
 
 export default function LearnHeader({
   initialUserCourses,
   initialActiveCourse,
 }: LearnHeaderProps) {
-  const { toggleSidebar, isOpen } = useSidebarStore();
-  const openMobileNav = useMobileNavStore((s) => s.open);
-  const pathName = usePathname();
-  const [mounted, setMounted] = useState(false);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<CourseWithCount[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const { toggleSidebar, isOpen } = useSidebarStore()
+  const openMobileNav = useMobileNavStore((s) => s.open)
+  const [mounted, setMounted] = useState(false)
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<CourseWithCount[]>([])
+  const [isSearching, setIsSearching] = useState(false)
 
-  // Evita problemas de hidratação
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setMounted(true)
+  }, [])
 
-  const showSidebarButton = mounted;
+  const showSidebarButton = mounted
 
-  // Função de busca com debounce
   const performSearch = useCallback(async (query: string) => {
-    const trimmedQuery = query.trim();
+    const trimmedQuery = query.trim()
 
     if (!trimmedQuery || trimmedQuery.length < 3) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
+      setSearchResults([])
+      setIsSearching(false)
+      return
     }
 
-    setIsSearching(true);
+    setIsSearching(true)
     try {
-      const data = await searchCourses(trimmedQuery);
-      setSearchResults(data.courses);
+      const data = await searchCourses(trimmedQuery)
+      setSearchResults(data.courses)
     } catch (error) {
-      console.error("Erro ao buscar cursos:", error);
-      setSearchResults([]);
+      console.error('Erro ao buscar cursos:', error)
+      setSearchResults([])
     } finally {
-      setIsSearching(false);
+      setIsSearching(false)
     }
-  }, []);
+  }, [])
 
-  // Debounce da pesquisa
   useEffect(() => {
     const timer = setTimeout(() => {
-      performSearch(searchQuery);
-    }, 500); // Aguarda 500ms após o usuário parar de digitar
+      performSearch(searchQuery)
+    }, 500)
 
-    return () => clearTimeout(timer);
-  }, [searchQuery, performSearch]);
+    return () => clearTimeout(timer)
+  }, [searchQuery, performSearch])
 
-  // Limpa os resultados quando o modal fecha
   useEffect(() => {
     if (!isSearchModalOpen) {
-      setSearchQuery("");
-      setSearchResults([]);
+      setSearchQuery('')
+      setSearchResults([])
     }
-  }, [isSearchModalOpen]);
+  }, [isSearchModalOpen])
 
   return (
     <div
       className="learn-header fixed left-0 w-full z-50 bg-[#121214] shadow-lg border-b-[1px] border-[#25252a] lg:py-0 py-2"
-      style={{ top: "calc(var(--top-banner-height) + var(--header-top-offset))" }}
+      style={{
+        top: 'calc(var(--top-banner-height) + var(--header-top-offset))',
+      }}
     >
       <ul className="flex justify-between items-center gap-2 lg:gap-0 lg:pt-4 pt-0 lg:pb-4 pb-0 w-full mx-auto px-4 sm:px-5">
         <li className="flex min-w-0 shrink-0 items-center lg:space-x-3">
@@ -173,11 +169,6 @@ export default function LearnHeader({
             <StrikeSection />
 
             <NotificationsSection />
-
-            {/* <div className="flex items-center space-x-2">
-              <Brain size={24} weight="fill" className="text-[#00C8FF]" />
-              <span>8</span>
-            </div> */}
 
             <div>
               <UserDropdown />
@@ -282,5 +273,5 @@ export default function LearnHeader({
 
       <MobileNavSheet />
     </div>
-  );
+  )
 }

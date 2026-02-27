@@ -55,12 +55,11 @@ export function CartPaymentMethods({ planSlug, value = null, onChange }: CartPay
   };
 
   const handlePayWithCard = async () => {
-    const plan = planSlug === "premium" ? "premium" : "pro";
     setLoading(true);
     setError(null);
     try {
       const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const result = await createCheckout(plan, {
+      const result = await createCheckout(planSlug, {
         returnUrl: `${origin}/cart/${planSlug}`,
         completionUrl: `${origin}/`,
       });

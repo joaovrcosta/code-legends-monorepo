@@ -6,8 +6,48 @@ const prisma = new PrismaClient();
 const COURSE_SLUG = "fundamentos-frontend-completo";
 const INSTRUCTOR_EMAIL = "seed-instructor@codelegends.com.br";
 
+const PLANS = [
+  {
+    slug: "FREE",
+    name: "Plano gratuito",
+    description: "Acesso a conteúdos gratuitos do catálogo.",
+    amountCents: 0,
+    order: 0,
+    externalId: null,
+    productName: null,
+  },
+  {
+    slug: "PRO",
+    name: "Code Legends PRO",
+    description: "Acesso a todos os conteúdos do catálogo, certificados e suporte. Assinatura anual.",
+    amountCents: 19700,
+    order: 1,
+    externalId: "CODE-LEGENDS-PRO",
+    productName: "Code Legends PRO - Assinatura anual",
+  },
+  {
+    slug: "PREMIUM",
+    name: "Code Legends PREMIUM",
+    description: "Tudo do PRO com mentorias, vagas e certificados ilimitados. Assinatura anual.",
+    amountCents: 39700,
+    order: 2,
+    externalId: "CODE-LEGENDS-PREMIUM",
+    productName: "Code Legends PREMIUM - Assinatura anual",
+  },
+];
+
 async function main() {
   console.log("🌱 Seeding database...");
+
+  // 0. Planos
+  for (const plan of PLANS) {
+    await prisma.plan.upsert({
+      where: { slug: plan.slug },
+      update: {},
+      create: plan,
+    });
+  }
+  console.log("✅ Plans seeded!");
 
   // 1. Categorias
   const categories = [

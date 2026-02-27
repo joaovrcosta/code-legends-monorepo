@@ -1,0 +1,46 @@
+"use server";
+
+export interface UpdatePlanData {
+  slug?: string;
+  name?: string;
+  description?: string | null;
+  amountCents?: number;
+  order?: number;
+  active?: boolean;
+  externalId?: string | null;
+  productName?: string | null;
+}
+
+export async function updatePlan(
+  id: string,
+  data: UpdatePlanData,
+  token: string
+): Promise<void> {
+  const payload: Record<string, unknown> = {};
+  if (data.slug !== undefined) payload.slug = data.slug.toUpperCase();
+  if (data.name !== undefined) payload.name = data.name;
+  if (data.description !== undefined) payload.description = data.description;
+  if (data.amountCents !== undefined) payload.amountCents = data.amountCents;
+  if (data.order !== undefined) payload.order = data.order;
+  if (data.active !== undefined) payload.active = data.active;
+  if (data.externalId !== undefined) payload.externalId = data.externalId;
+  if (data.productName !== undefined) payload.productName = data.productName;
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/plans/${id}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    }
+  );
+
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body.message ?? "Erro ao atualizar plano");
+  }
+}

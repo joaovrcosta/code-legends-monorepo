@@ -10,7 +10,7 @@ const bodySchema = z.object({
 });
 
 export async function createCheckout(
-  request: FastifyRequest<{ Body: z.infer<typeof bodySchema> }>,
+  request: FastifyRequest,
   reply: FastifyReply
 ) {
   const parsed = bodySchema.safeParse(request.body);

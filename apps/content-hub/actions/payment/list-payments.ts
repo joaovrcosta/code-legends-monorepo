@@ -50,3 +50,53 @@ export async function listPayments(token?: string): Promise<ListPaymentsResponse
     return { payments: [] };
   }
 }
+
+export interface SyncPaymentsResponse {
+  ok: boolean;
+  message?: string;
+  updated?: number;
+}
+
+/**
+ * Sincroniza status dos pagamentos com a Abacate Pay (admin).
+ */
+export async function syncPayments(
+  token?: string
+): Promise<SyncPaymentsResponse> {
+  try {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/payments/sync`,
+      {
+        method: "POST",
+        headers,
+        cache: "no-store",
+      }
+    );
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        message: data.message ?? "Erro ao sincronizar",
+      };
+    }
+
+    return {
+      ok: true,
+      message: data.message ?? "Sincronização concluída",
+      updated: data.updated ?? 0,
+    };
+  } catch (error) {
+    console.error("Erro ao sincronizar pagamentos:", error);
+    return { ok: false, message: "Erro ao sincronizar" };
+  }
+}

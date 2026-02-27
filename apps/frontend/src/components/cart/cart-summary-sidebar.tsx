@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Check, FileText } from "@phosphor-icons/react/dist/ssr";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { PlanInfo } from "./constants";
@@ -19,9 +20,20 @@ export function CartSummarySidebar({ plan }: CartSummarySidebarProps) {
           </h3>
         </CardHeader>
         <CardContent className="p-5 pt-0 space-y-4">
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-[#c4c4cc]">{plan.title}</span>
-            <span className="font-semibold text-white">{plan.price}</span>
+          <div className="flex justify-between items-center gap-2 text-sm">
+            <span className="flex items-center gap-2 text-[#c4c4cc] min-w-0">
+              {plan.icon && (
+                <Image
+                  src={plan.icon}
+                  alt=""
+                  width={20}
+                  height={20}
+                  className="shrink-0"
+                />
+              )}
+              <span className="truncate">{plan.title}</span>
+            </span>
+            <span className="font-semibold text-white shrink-0">{plan.price}</span>
           </div>
           <div className="border-t border-[#25252A] pt-4">
             <div className="flex justify-between items-center text-sm mb-2">

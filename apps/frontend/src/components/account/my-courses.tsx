@@ -1,17 +1,17 @@
-import { Album } from "lucide-react";
-import { Card, CardHeader, CardContent } from "../ui/card";
-import Link from "next/link";
-import { getCompletedCourses } from "@/actions/course/completed";
-import Image from "next/image";
-import { GenerateCertificateButton } from "./generate-certificate-button";
+import { Album } from 'lucide-react'
+import { Card, CardHeader, CardContent } from '../ui/card'
+import Link from 'next/link'
+import { getCompletedCourses } from '@/actions/course/completed'
+import Image from 'next/image'
+import { GenerateCertificateButton } from './generate-certificate-button'
 
 export async function MyCourses() {
-  const completedCourses = await getCompletedCourses();
+  const completedCourses = await getCompletedCourses()
 
-  const completedCoursesList = completedCourses.courses || [];
-  
+  const completedCoursesList = completedCourses.courses || []
+
   return (
-    <Card className="bg-[#121214] border-[#25252a] lg:p-10 py-4 px-2">
+    <Card className="bg-[#121214] rounded-[20px] border-[#25252a] p-4">
       <CardHeader className="px-4">
         <div className="flex items-center space-x-2">
           <Album className="w-6 h-6 text-[#00c8ff]" />
@@ -74,5 +74,5 @@ export async function MyCourses() {
         )}
       </CardContent>
     </Card>
-  );
+  )
 }

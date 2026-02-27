@@ -23,7 +23,7 @@ const bodySchema = z.object({
 });
 
 export async function updateCheckoutDados(
-  request: FastifyRequest<{ Body: z.infer<typeof bodySchema> }>,
+  request: FastifyRequest,
   reply: FastifyReply
 ) {
   const userId = (request.user as { id: string }).id;

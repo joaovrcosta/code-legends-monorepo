@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { PlansGrid } from "@/components/plans/plans-grid";
+import { listPlans } from "@/actions/plan/list-plans";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,9 @@ export const metadata: Metadata = {
     "Escolha o plano ideal para sua jornada: comece grátis, assine PRO ou PREMIUM e tenha acesso a todo o catálogo e benefícios.",
 };
 
-export default function PlansPage() {
+export default async function PlansPage() {
+  const { plans } = await listPlans();
+
   return (
     <div className="min-h-screen bg-black">
       {/* Gradiente em tons de azul */}
@@ -43,7 +46,7 @@ export default function PlansPage() {
 
         {/* Três colunas de planos */}
         <section id="planos" className="scroll-mt-8">
-          <PlansGrid />
+          <PlansGrid apiPlans={plans} />
         </section>
       </div>
     </div>

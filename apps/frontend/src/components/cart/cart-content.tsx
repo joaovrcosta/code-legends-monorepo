@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { PLANOS } from "./constants";
+import type { PlanInfo } from "./constants";
 import { CartHeader } from "./cart-header";
 import { CartItemsSection } from "./cart-items-section";
 import { CartCheckoutAccordion } from "./cart-checkout-accordion";
@@ -11,10 +11,10 @@ import { CartSummarySidebar } from "./cart-summary-sidebar";
 
 interface CartContentProps {
   planSlug: string;
+  plan: PlanInfo;
 }
 
-export function CartContent({ planSlug }: CartContentProps) {
-  const plan = PLANOS[planSlug] ?? PLANOS.pro;
+export function CartContent({ planSlug, plan }: CartContentProps) {
   const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
   const accordionRef = useRef<HTMLDivElement>(null);
 

@@ -61,6 +61,20 @@ model Category {
   courses     Course[]
 }
 
+model Plan {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  amountCents Int      @default(0)
+  order       Int      @default(0)
+  active      Boolean  @default(true)
+  externalId  String?
+  productName String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model User {
   id                  String        @id @default(cuid())
   email               String        @unique
@@ -392,19 +406,19 @@ model Notification {
 }
 
 model Payment {
-  id                String        @id @default(cuid())
-  userId            String
-  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amountCents       Int
-  currency          String        @default("BRL")
-  status            PaymentStatus @default(PENDING)
-  plan              UserPlan
-  gateway           String
-  gatewayPaymentId  String?
-  metadata          Json?
-  paidAt            DateTime?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  id               String        @id @default(cuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amountCents      Int
+  currency         String        @default("BRL")
+  status           PaymentStatus @default(PENDING)
+  plan             UserPlan
+  gateway          String
+  gatewayPaymentId String?
+  metadata         Json?
+  paidAt           DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -414,14 +428,14 @@ model Payment {
 model Subscription {
   id                    String             @id @default(cuid())
   userId                String
-  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan                  UserPlan
-  status                SubscriptionStatus  @default(ACTIVE)
+  status                SubscriptionStatus @default(ACTIVE)
   startsAt              DateTime
   endsAt                DateTime
   gatewaySubscriptionId String?
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
 
   @@index([userId])
   @@index([status])

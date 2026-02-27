@@ -11,14 +11,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { listPayments, type PaymentItem } from "@/actions/payment/list-payments";
+import {
+  listPayments,
+  syncPayments,
+  type PaymentItem,
+} from "@/actions/payment/list-payments";
 import { getAuthTokenFromClient } from "@/lib/auth";
-import { CreditCard } from "lucide-react";
+import { CreditCard, RefreshCw } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     loadPayments();
@@ -34,6 +40,23 @@ export default function PaymentsPage() {
       console.error("Erro ao carregar pagamentos:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSync = async () => {
+    try {
+      setSyncing(true);
+      const token = getAuthTokenFromClient();
+      const result = await syncPayments(token || undefined);
+      if (result.ok) {
+        await loadPayments();
+      } else {
+        console.error(result.message);
+      }
+    } catch (error) {
+      console.error("Erro ao sincronizar:", error);
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -88,8 +111,20 @@ export default function PaymentsPage() {
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle>Lista de Pagamentos</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSync}
+              disabled={syncing || loading}
+              title="Sincronizar com Abacate Pay"
+            >
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`}
+              />
+              {syncing ? "Sincronizando..." : "Sincronizar"}
+            </Button>
           </CardHeader>
           <CardContent>
             {loading ? (

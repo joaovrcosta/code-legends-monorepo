@@ -94,6 +94,7 @@ interface JwtCallbackParams {
     onboardingCompleted?: boolean;
     onboardingGoal?: string | null;
     onboardingCareer?: string | null;
+    plan?: "FREE" | "PRO" | "PREMIUM";
   };
   account?: {
     provider?: string;
@@ -211,6 +212,7 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
             onboardingCompleted: user.onboardingCompleted,
             onboardingGoal: user.onboardingGoal,
             onboardingCareer: user.onboardingCareer,
+            plan: user.plan ?? "FREE",
             lastOnboardingCheck: Date.now(),
         };
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Check, FileText } from "@phosphor-icons/react/dist/ssr";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { PlanInfo } from "./constants";
@@ -22,6 +23,15 @@ export function CartItemsSection({ plan }: CartItemsSectionProps) {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 flex-wrap mb-2">
+                {plan.icon && (
+                  <Image
+                    src={plan.icon}
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="shrink-0"
+                  />
+                )}
                 <h3 className="text-lg font-bold text-white">{plan.title}</h3>
                 <span className="text-xs font-medium text-[#7e7e89] bg-[#25252A] px-2.5 py-1 rounded-full">
                   ACESSO ANUAL

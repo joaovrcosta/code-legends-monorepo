@@ -60,7 +60,6 @@ export function LessonsAccordion() {
     [roadmap?.modules, router],
   )
 
-  // Encontra o módulo que contém a aula atual
   const currentModule = useMemo(() => {
     if (!organizedLessons || organizedLessons.length === 0) {
       return null
@@ -81,17 +80,11 @@ export function LessonsAccordion() {
     return organizedLessons[0]
   }, [organizedLessons, currentLesson?.id])
 
-  const currentModuleNumber = useMemo(() => {
-    if (!currentModule) return -1
-    return organizedLessons.findIndex((m) => m.id === currentModule.id)
-  }, [currentModule, organizedLessons])
-
   const defaultOpenModuleValue = useMemo(() => {
     if (!currentModule) return undefined
     return `module-${currentModule.id}`
   }, [currentModule])
 
-  // Coleta todas as aulas para encontrar índices
   const allLessons = useMemo(() => {
     return organizedLessons.flatMap((m) => m.groups).flatMap((g) => g.lessons)
   }, [organizedLessons])
