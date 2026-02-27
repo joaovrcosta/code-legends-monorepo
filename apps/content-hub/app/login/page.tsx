@@ -1,68 +1,83 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { authenticateUser } from "@/actions/user";
-import { setAuthToken } from "@/lib/auth";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { authenticateUser } from '@/actions/user'
+import { setAuthToken } from '@/lib/auth'
+import { toast } from 'sonner'
+
+function decodeJwtPayload(token: string): { role?: string } | null {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    while (base64.length % 4) base64 += '='
+    return JSON.parse(atob(base64))
+  } catch {
+    return null
+  }
+}
 
 export default function LoginPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+    email: '',
+    password: '',
+  })
 
+  const errorParam = searchParams.get('error')
   useEffect(() => {
-    const errorParam = searchParams.get("error");
-    if (errorParam === "access_denied") {
-      setError("Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.");
+    if (errorParam === 'access_denied') {
+      setError(
+        'Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.',
+      )
     }
-  }, [searchParams]);
+  }, [errorParam])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+    e.preventDefault()
+    setError('')
     try {
-      setLoading(true);
-      const token = await authenticateUser(formData.email, formData.password);
-      
-      // Verificar role antes de salvar token
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        if (payload.role === "STUDENT") {
-          setError("Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.");
-          toast.error("Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.");
-          return;
-        }
-      } catch (decodeError) {
-        console.error("Erro ao decodificar token:", decodeError);
+      setLoading(true)
+      const token = await authenticateUser(formData.email, formData.password)
+
+      const payload = decodeJwtPayload(token)
+      if (payload?.role === 'STUDENT') {
+        setError(
+          'Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.',
+        )
+        toast.error(
+          'Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.',
+        )
+        return
       }
-      
-      setAuthToken(token);
-      router.push("/");
+
+      setAuthToken(token)
+      router.push('/')
     } catch (error: any) {
-      console.error("Erro ao fazer login:", error);
-      setError(error.message || "Erro ao fazer login");
-      toast.error(error.message || "Erro ao fazer login");
+      console.error('Erro ao fazer login:', error)
+      setError(error.message || 'Erro ao fazer login')
+      toast.error(error.message || 'Erro ao fazer login')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#121214]">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">Code Legends</CardTitle>
-          <p className="text-center text-gray-600 dark:text-gray-400 mt-2">Content Hub - Login</p>
+          <p className="text-center text-gray-600 dark:text-gray-400 mt-2">
+            Content Hub - Login
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -78,7 +93,9 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 required
               />
             </div>
@@ -89,18 +106,19 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
                 required
               />
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
-
