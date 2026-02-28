@@ -4,6 +4,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
 } from '@/components/ui/carousel'
 import type { CourseWithCount } from '@/types/user-course.ts'
 import { CatalogCard } from './catalog-card'
@@ -48,16 +50,18 @@ export function RecommendationsCarousel({
         }}
         className="w-full"
       >
+        <CarouselPrevious
+          hideWhenDisabled
+          className="h-[42px] w-[42px] left-0 top-1/2 z-20 -translate-y-1/2 border-[#25252A] bg-[#121214]/80 hover:bg-[#25252A] text-white"
+        />
+        <CarouselNext
+          hideWhenDisabled
+          className="h-[42px] w-[42px] right-0 top-1/2 z-20 -translate-y-1/2 border-[#25252A] bg-[#121214]/80 hover:bg-[#25252A] text-white"
+        />
         <CarouselContent className="-ml-4">
           {courses.map((course) => (
             <CarouselItem
               key={course.id}
-              /* 1. pl-4: Mantém o espaçamento de 16px.
-                                2. basis-[85%]: Em celulares muito pequenos, ocupa 85% da tela.
-                                3. sm:basis-[316px]: A partir de telas "sm" (640px) ou maiores,
-                                   o item trava em 316px (300px de conteúdo + 16px de padding).
-                                   Isso garante que o card nunca passe de 300px visíveis.
-                            */
               className="pl-4 basis-[85%] sm:basis-[316px] flex-shrink-0"
             >
               <CatalogCard

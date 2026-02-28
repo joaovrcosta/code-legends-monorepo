@@ -215,7 +215,7 @@ export function CatalogCard({
                 isCurrent ? 'border-white' : 'border-[#25252A]'
               }`}
             >
-              <p className="text-sm">{label}</p>
+              <p className="text-xs text-muted-foreground">{label}</p>
             </div>
             {isFree ? (
               <div className="bg-lime-500/10 border border-lime-500/20 rounded-full px-2 py-1">
