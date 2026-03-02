@@ -40,7 +40,7 @@ export function RecommendationsCarousel({
   courses: CourseWithCount[]
 }) {
   return (
-    <div className="relative overflow-y-visible overflow-x-hidden py-8">
+    <div className="relative overflow-y-visible overflow-x-hidden pt-6 pb-0">
       <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-[#121214] to-transparent" />
 
       <Carousel
@@ -68,25 +68,25 @@ export function RecommendationsCarousel({
                   : 'middle'
 
             return (
-            <CarouselItem
-              key={course.id}
-              className="pl-4 basis-[85%] sm:basis-[316px] flex-shrink-0"
-            >
-              <CatalogCard
-                name={course.title}
-                icon={course.icon || ''}
-                thumbnail={course.thumbnail || ''}
-                url={`/learn/paths/${course.slug}`}
-                color={getColorByLevel(course.level)}
-                status="not-started"
-                isCurrent={false}
-                tags={course.tags}
-                courseId={course.id}
-                level={course.level}
-                isFree={course.isFree}
-                position={position}
-              />
-            </CarouselItem>
+              <CarouselItem
+                key={course.id}
+                className="pl-4 basis-[85%] sm:basis-[316px] flex-shrink-0"
+              >
+                <CatalogCard
+                  name={course.title}
+                  icon={course.icon || ''}
+                  thumbnail={course.thumbnail || ''}
+                  url={`/learn/paths/${course.slug}`}
+                  color={getColorByLevel(course.level)}
+                  status="not-started"
+                  isCurrent={false}
+                  tags={course.tags}
+                  courseId={course.id}
+                  level={course.level}
+                  isFree={course.isFree}
+                  position={position}
+                />
+              </CarouselItem>
             )
           })}
         </CarouselContent>

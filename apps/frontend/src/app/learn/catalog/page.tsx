@@ -1,21 +1,22 @@
-import { NewContentCaroussel } from "@/components/learn/catolog/new-content-caroussel";
-import { RecommendationsCarousel } from "@/components/learn/catolog/recommendations-carousel";
-import { CategoriesCarousel } from "@/components/learn/catolog/categories-carousel";
-import { MyCatalogWrapper } from "@/components/learn/catolog/my-catalog-wrapper";
-import { getUserEnrolledList } from "@/actions/progress";
-import { listCourses } from "@/actions/course";
-import type { Metadata } from "next";
+import { NewContentCaroussel } from '@/components/learn/catolog/new-content-caroussel'
+import { RecommendationsCarousel } from '@/components/learn/catolog/recommendations-carousel'
+import { CategoriesCarousel } from '@/components/learn/catolog/categories-carousel'
+import { MyCatalogWrapper } from '@/components/learn/catolog/my-catalog-wrapper'
+import { getUserEnrolledList } from '@/actions/progress'
+import { listCourses } from '@/actions/course'
+import type { Metadata } from 'next'
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: "Catálogo de Cursos - Code Legends",
-  description: "Explore todos os cursos disponíveis e encontre o próximo passo na sua jornada de programação.",
-};
+  title: 'Catálogo de Cursos - Code Legends',
+  description:
+    'Explore todos os cursos disponíveis e encontre o próximo passo na sua jornada de programação.',
+}
 
 export default async function CoursesPage() {
-  const courses = await listCourses();
-  const { userCourses } = await getUserEnrolledList();
+  const courses = await listCourses()
+  const { userCourses } = await getUserEnrolledList()
 
   return (
     <div className="w-full">
@@ -43,7 +44,7 @@ export default async function CoursesPage() {
 
           {/* Catálogo */}
           <div>
-            <div className="flex items-center space-x-2 py-4 pt-8">
+            <div className="flex items-center space-x-2 pt-8 pb-0">
               <span className="text-muted-foreground text-[14px] font-semibold">
                 Recomendações
               </span>
@@ -67,5 +68,5 @@ export default async function CoursesPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

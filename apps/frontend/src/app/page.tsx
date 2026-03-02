@@ -40,7 +40,7 @@ export default async function Home() {
                 <CurrentCourseCard />
               </div>
 
-              <div className="w-full pr-6 mt-0">
+              <div className="w-full mt-0">
                 <CurrentCourses />
               </div>
 
@@ -50,7 +50,7 @@ export default async function Home() {
               </div>
 
               <div className="mb-8">
-                <div className="flex items-center space-x-2 py-4 pt-8">
+                <div className="flex items-center space-x-2 pt-8 pb-0">
                   <span className="text-muted-foreground text-[14px] font-semibold">
                     Em alta
                   </span>
@@ -60,7 +60,7 @@ export default async function Home() {
 
               {/* Catálogo */}
               <div className="mb-8">
-                <div className="flex items-center space-x-2 py-4 pt-0">
+                <div className="flex items-center space-x-2 pb-0 pt-0">
                   <span className="text-muted-foreground text-[14px] font-semibold">
                     Recomendações
                   </span>

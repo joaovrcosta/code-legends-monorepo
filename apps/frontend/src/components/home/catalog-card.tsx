@@ -258,7 +258,7 @@ export function CatalogCard({
         {/* Adicionado relative z-10 */}
         <div className="relative z-10 flex flex-col flex-1 p-4">
           <Image src={icon} alt={name} width={80} height={80} />
-          <div className="px-4 pt-2">
+          <div className="px-3 pt-2">
             <div className="flex items-center space-x-1">
               <span
                 className={`font-semibold bg-clip-text text-base text-white line-clamp-2`}
@@ -283,7 +283,14 @@ export function CatalogCard({
           </div>
 
           <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-            <button
+            <div onClick={(e) => e.stopPropagation()}>
+              <EnrollButton
+                courseId={courseId}
+                onEnrollSuccess={onEnrollSuccess}
+              />
+            </div>
+
+            {/* <button
               onClick={(e) => {
                 e.stopPropagation()
                 router.push(url)
@@ -291,14 +298,7 @@ export function CatalogCard({
               className="flex items-center justify-center w-8 h-8 hover:bg-[#25252A] rounded-full cursor-pointer hover:text-[#35BED5]"
             >
               <ScrollText size={20} className="text-gray-600" />
-            </button>
-
-            <div onClick={(e) => e.stopPropagation()}>
-              <EnrollButton
-                courseId={courseId}
-                onEnrollSuccess={onEnrollSuccess}
-              />
-            </div>
+            </button> */}
           </div>
         </div>
       </div>
