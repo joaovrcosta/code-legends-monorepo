@@ -40,8 +40,8 @@ export function RecommendationsCarousel({
   courses: CourseWithCount[]
 }) {
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-[#121214] to-transparent z-10" />
+    <div className="relative overflow-visible py-8">
+      <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-[#121214] to-transparent" />
 
       <Carousel
         opts={{
@@ -66,7 +66,8 @@ export function RecommendationsCarousel({
             >
               <CatalogCard
                 name={course.title}
-                image={course.icon || course.thumbnail || ''}
+                icon={course.icon || ''}
+                thumbnail={course.thumbnail || ''}
                 url={`/learn/paths/${course.slug}`}
                 color={getColorByLevel(course.level)}
                 status="not-started"

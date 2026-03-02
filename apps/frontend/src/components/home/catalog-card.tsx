@@ -3,7 +3,6 @@
 import Image, { StaticImageData } from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import reactIcon from '../../../public/react-course-icon.svg'
 import {
   ArrowUpRight,
   ChartNoAxesColumnIncreasing,
@@ -13,6 +12,7 @@ import { Check, Plus, Star } from '@phosphor-icons/react/dist/ssr'
 import { enrollInCourse } from '@/actions/course'
 import { useState } from 'react'
 import { useEnrolledCoursesStore } from '@/stores/enrolled-courses-store'
+import coverBackground from '../../../public/cover-background.png'
 
 // Componente para o botão de enroll
 function EnrollButton({
@@ -167,7 +167,8 @@ function getAccentClassFromLevel(level?: string): string {
 
 interface RecomendationCardProps {
   name: string
-  image?: string | StaticImageData
+  icon: string | StaticImageData
+  thumbnail?: string | StaticImageData
   url: string
   color: string
   className?: string
@@ -183,7 +184,7 @@ interface RecomendationCardProps {
 
 export function CatalogCard({
   name,
-  image,
+  icon,
   url,
   status,
   className,
@@ -193,23 +194,37 @@ export function CatalogCard({
   level,
   isFree,
 }: RecomendationCardProps) {
-  const imageSrc = image || reactIcon
   const router = useRouter()
 
   const { label, className: statusClass } = getStatusInfo(status)
   return (
     <Link href={url} className="block h-full">
       <div
-        className={`relative shadow-2xl w-full h-full rounded-[16px] min-w-[300px] flex flex-col transition-colors duration-300 cursor-pointer hover:border-[#3f3f48]
+        className={`relative z-0 overflow-hidden w-full h-full min-w-[300px] flex flex-col rounded-[16px] border shadow-2xl cursor-pointer
+    transition-all duration-200 ease-out
+    hover:z-20 hover:-translate-y-2 hover:scale-[1.03] hover:border-[#3f3f48]
+    hover:shadow-[0_20px_40px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.05),inset_0_-20px_20px_rgba(255,255,255,0.025)]
     ${
       isCurrent
         ? 'bg-blue-gradient-second border-[#35BED5]'
         : 'bg-gray-gradient border-[#25252A]'
     }
-    border hover:shadow-[inset_0_-20px_20px_rgba(255,255,255,0.025)] ${className}`}
+    ${className}`}
       >
+        {/* IMAGEM DE FUNDO CORRIGIDA */}
+        <Image
+          src={coverBackground}
+          alt="Background do Card"
+          fill
+          priority
+          // Removido o -z-10 e adicionado pointer-events-none.
+          // Ajuste a opacity-30 para mais ou para menos conforme o seu gosto visual.
+          className="object-cover absolute inset-0 opacity-30 pointer-events-none"
+        />
+
+        {/* Adicionado relative z-10 para o conteúdo ficar acima da imagem */}
         {label && (
-          <div className="flex items-center justify-between rounded-t-[20px] pr-4 pl-4 pt-4 pb-0">
+          <div className="relative z-10 flex items-center justify-between rounded-t-[20px] pr-4 pl-4 pt-4 pb-0">
             <div
               className={`text-white ${statusClass} rounded-full px-2 border ${
                 isCurrent ? 'border-white' : 'border-[#25252A]'
@@ -229,8 +244,9 @@ export function CatalogCard({
           </div>
         )}
 
-        <div className="flex flex-col flex-1 p-4">
-          <Image src={imageSrc} alt={name} width={80} height={80} />
+        {/* Adicionado relative z-10 */}
+        <div className="relative z-10 flex flex-col flex-1 p-4">
+          <Image src={icon} alt={name} width={80} height={80} />
           <div className="px-4 pt-2">
             <div className="flex items-center space-x-1">
               <span
@@ -243,7 +259,8 @@ export function CatalogCard({
           </div>
         </div>
 
-        <div className="mt-2 flex items-center justify-between px-4 pb-4">
+        {/* Adicionado relative z-10 */}
+        <div className="relative z-10 mt-2 flex items-center justify-between px-4 pb-4">
           <div className="flex items-center gap-2 text-xs text-white">
             <ChartNoAxesColumnIncreasing
               size={16}

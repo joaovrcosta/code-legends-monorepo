@@ -1,12 +1,12 @@
-"use client";
+'use client'
 
 // import { ArrowLeft } from "lucide-react";
-import Image from "next/image";
-import { Progress } from "@/components/ui/progress";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { getUserEnrolledList } from "@/actions/progress/get-user-enrolled-list";
-import { useEnrolledCoursesStore } from "@/stores/enrolled-courses-store";
+import Image from 'next/image'
+import { Progress } from '@/components/ui/progress'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { getUserEnrolledList } from '@/actions/progress/get-user-enrolled-list'
+import { useEnrolledCoursesStore } from '@/stores/enrolled-courses-store'
 import {
   ArrowClockwise,
   Certificate,
@@ -19,17 +19,17 @@ import {
   Trophy,
   VideoCameraIcon,
   Check,
-} from "@phosphor-icons/react/dist/ssr";
-import { ArrowLeft, ChartNoAxesColumnIncreasingIcon } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
+} from '@phosphor-icons/react/dist/ssr'
+import { ArrowLeft, ChartNoAxesColumnIncreasingIcon } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useEffect, useState } from 'react'
+import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu'
 import {
   Dialog,
   DialogContent,
@@ -37,133 +37,137 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { PrimaryButton } from "@/components/ui/primary-button";
-import { CourseDetail } from "@/types/course-types";
-import type { UserCourseProgressResponse } from "@/types/user-course.ts";
+} from '@/components/ui/dialog'
+import { PrimaryButton } from '@/components/ui/primary-button'
+import { CourseDetail } from '@/types/course-types'
+import type { UserCourseProgressResponse } from '@/types/user-course.ts'
 
 interface CourseBannerProps {
-  course: CourseDetail;
-  userProgress?: UserCourseProgressResponse | null;
+  course: CourseDetail
+  userProgress?: UserCourseProgressResponse | null
 }
 
 const getLevelLabel = (level: string): string => {
   const levelMap: Record<string, string> = {
-    beginner: "INICIANTE",
-    intermediate: "INTERMEDIARIO",
-    advanced: "AVANÇADO",
-  };
-  return levelMap[level] || level.toUpperCase();
-};
+    beginner: 'INICIANTE',
+    intermediate: 'INTERMEDIARIO',
+    advanced: 'AVANÇADO',
+  }
+  return levelMap[level] || level.toUpperCase()
+}
 
 const getLevelColor = (level: string): string => {
   const colorMap: Record<string, string> = {
-    beginner: "text-green-500",
-    intermediate: "text-orange-500",
-    advanced: "text-red-500",
-  };
-  return colorMap[level] || "text-orange-500";
-};
+    beginner: 'text-green-500',
+    intermediate: 'text-orange-500',
+    advanced: 'text-red-500',
+  }
+  return colorMap[level] || 'text-orange-500'
+}
 
 export function CourseBanner({ course, userProgress }: CourseBannerProps) {
-  const router = useRouter();
+  const router = useRouter()
   const refreshEnrolledCourses = useEnrolledCoursesStore(
-    (state) => state.refreshEnrolledCourses
-  );
+    (state) => state.refreshEnrolledCourses,
+  )
 
-  const [showSticky, setShowSticky] = useState(false);
-  const [isEnrolled, setIsEnrolled] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isEnrolling, setIsEnrolling] = useState(false);
-  const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(true);
-  const [mounted, setMounted] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
+  const [showSticky, setShowSticky] = useState(false)
+  const [isEnrolled, setIsEnrolled] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isEnrolling, setIsEnrolling] = useState(false)
+  const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(true)
+  const [mounted, setMounted] = useState(false)
+  const [isResetting, setIsResetting] = useState(false)
+  const [showResetModal, setShowResetModal] = useState(false)
 
-  // Garante que o componente está montado no cliente
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setMounted(true)
+  }, [])
 
-  // Verifica se o usuário está inscrito no curso
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted) return
     async function checkEnrollment() {
       try {
-        const { userCourses } = await getUserEnrolledList();
+        const { userCourses } = await getUserEnrolledList()
         const enrolled = userCourses.some(
-          (enrolledCourse) => enrolledCourse.courseId === course.id
-        );
-        setIsEnrolled(enrolled);
+          (enrolledCourse) => enrolledCourse.courseId === course.id,
+        )
+        setIsEnrolled(enrolled)
       } catch (error) {
-        console.error("Erro ao verificar inscrição:", error);
-        setIsEnrolled(false);
+        console.error('Erro ao verificar inscrição:', error)
+        setIsEnrolled(false)
       } finally {
-        setIsCheckingEnrollment(false);
+        setIsCheckingEnrollment(false)
       }
     }
-    checkEnrollment();
-  }, [course.id, mounted]);
+    checkEnrollment()
+  }, [course.id, mounted])
 
   useEffect(() => {
     const scrollContainer = document.querySelector(
-      '[class*="overflow-y-auto"]'
-    ) as HTMLElement;
-    if (!scrollContainer) return;
+      '[class*="overflow-y-auto"]',
+    ) as HTMLElement
+    if (!scrollContainer) return
 
-    let ticking = false;
+    let ticking = false
 
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          setShowSticky(scrollContainer.scrollTop > 440);
-          ticking = false;
-        });
-        ticking = true;
+          setShowSticky(scrollContainer.scrollTop > 440)
+          ticking = false
+        })
+        ticking = true
       }
-    };
+    }
 
-    scrollContainer.addEventListener("scroll", handleScroll);
-    handleScroll(); // initial state
+    scrollContainer.addEventListener('scroll', handleScroll)
+    handleScroll() // initial state
 
-    return () => scrollContainer.removeEventListener("scroll", handleScroll);
-  }, []);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
     <>
       <div
         className={cn(
-          "sticky lg:top-[0px] top-[-1px] z-50 transition-all shadow-2xl duration-300 border-b border-[#25252A] bg-[#151518] p-3 px-4",
+          'sticky lg:top-[0px] top-[-1px] z-50 transition-all shadow-2xl duration-300 border-b border-[#25252A] bg-[#151518] p-3 px-4',
           showSticky
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 -translate-y-4 pointer-events-none h-0 overflow-hidden p-0"
+            ? 'opacity-100 translate-y-0'
+            : 'opacity-0 -translate-y-4 pointer-events-none h-0 overflow-hidden p-0',
         )}
       >
         <div className="flex items-center justify-between lg:px-4 px-0">
-          <span className="font-bold bg-blue-gradient-500 bg-clip-text text-transparent text-xl">
+          <span
+            className={cn(
+              'font-bold text-xl',
+              !course.colorHex &&
+                'bg-blue-gradient-500 bg-clip-text text-transparent',
+            )}
+            style={course.colorHex ? { color: course.colorHex } : undefined}
+          >
             {course.title}
           </span>
           <div className="flex items-center gap-3">
             <button
               onClick={async () => {
-                if (isEnrolled || isEnrolling) return;
+                if (isEnrolled || isEnrolling) return
                 try {
-                  setIsEnrolling(true);
-                  const { enrollInCourse } = await import(
-                    "@/actions/course/enroll"
-                  );
-                  await enrollInCourse(course.id);
-                  setIsEnrolled(true);
-                  await refreshEnrolledCourses();
+                  setIsEnrolling(true)
+                  const { enrollInCourse } =
+                    await import('@/actions/course/enroll')
+                  await enrollInCourse(course.id)
+                  setIsEnrolled(true)
+                  await refreshEnrolledCourses()
                 } catch (error) {
-                  console.error("Erro ao inscrever no curso:", error);
+                  console.error('Erro ao inscrever no curso:', error)
                   alert(
                     error instanceof Error
                       ? error.message
-                      : "Erro ao inscrever no curso"
-                  );
+                      : 'Erro ao inscrever no curso',
+                  )
                 } finally {
-                  setIsEnrolling(false);
+                  setIsEnrolling(false)
                 }
               }}
               disabled={isEnrolled || isEnrolling}
@@ -182,73 +186,70 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             <Button
               onClick={async () => {
                 try {
-                  setIsLoading(true);
+                  setIsLoading(true)
 
                   if (!isEnrolled) {
-                    const { enrollInCourse } = await import(
-                      "@/actions/course/enroll"
-                    );
-                    await enrollInCourse(course.id);
+                    const { enrollInCourse } =
+                      await import('@/actions/course/enroll')
+                    await enrollInCourse(course.id)
                   }
 
-                  const { startCourse } = await import(
-                    "@/actions/course/start"
-                  );
-                  await startCourse(course.id);
+                  const { startCourse } = await import('@/actions/course/start')
+                  await startCourse(course.id)
 
                   // Ir para o classroom da aula atual (ou primeira desbloqueada)
-                  const { getCourseRoadmap } = await import(
-                    "@/actions/course/roadmap"
-                  );
-                  const { findLessonContext, generateLessonUrl } = await import(
-                    "@/utils/lesson-url"
-                  );
-                  const roadmap = await getCourseRoadmap(course.id);
+                  const { getCourseRoadmap } =
+                    await import('@/actions/course/roadmap')
+                  const { findLessonContext, generateLessonUrl } =
+                    await import('@/utils/lesson-url')
+                  const roadmap = await getCourseRoadmap(course.id)
                   if (roadmap?.modules) {
                     const allLessons = roadmap.modules.flatMap((m) =>
-                      (m.groups || []).flatMap((g) => g.lessons || [])
-                    );
+                      (m.groups || []).flatMap((g) => g.lessons || []),
+                    )
                     const targetLesson =
-                      allLessons.find((l) => l.isCurrent && l.status !== "locked") ||
-                      allLessons.find((l) => l.status !== "locked") ||
-                      null;
+                      allLessons.find(
+                        (l) => l.isCurrent && l.status !== 'locked',
+                      ) ||
+                      allLessons.find((l) => l.status !== 'locked') ||
+                      null
                     if (targetLesson) {
                       const context = findLessonContext(
                         targetLesson.id,
-                        roadmap.modules
-                      );
+                        roadmap.modules,
+                      )
                       if (context) {
                         const url = generateLessonUrl(
                           targetLesson,
                           context.module,
-                          context.group
-                        );
-                        router.push(url);
-                        setIsLoading(false);
-                        return;
+                          context.group,
+                        )
+                        router.push(url)
+                        setIsLoading(false)
+                        return
                       }
                     }
                   }
-                  router.push("/classroom");
+                  router.push('/classroom')
                 } catch (error) {
-                  console.error("Erro ao iniciar curso:", error);
-                  router.push("/classroom");
+                  console.error('Erro ao iniciar curso:', error)
+                  router.push('/classroom')
                 } finally {
-                  setIsLoading(false);
+                  setIsLoading(false)
                 }
               }}
               disabled={isLoading || isCheckingEnrollment}
               className="bg-blue-gradient-500 transition-all rounded-[12px] duration-300 hover:shadow-[0_0_12px_#00C8FF] font-semibold px-6 py-2 h-[42px] disabled:opacity-50"
               suppressHydrationWarning
             >
-              <PlayIcon weight="fill" />{" "}
+              <PlayIcon weight="fill" />{' '}
               {mounted && isLoading
-                ? "Carregando..."
+                ? 'Carregando...'
                 : mounted && isCheckingEnrollment
-                  ? "Verificando..."
+                  ? 'Verificando...'
                   : mounted && isEnrolled
-                    ? "Continuar"
-                    : "Inscrever"}
+                    ? 'Continuar'
+                    : 'Inscrever'}
             </Button>
           </div>
         </div>
@@ -259,10 +260,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
         <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
         <div className="flex-col flex-1 relative z-10 w-full">
           <div className="w-full lg:hidden block">
-            <button
-              onClick={() => router.back()}
-              className="lg:hidden block"
-            >
+            <button onClick={() => router.back()} className="lg:hidden block">
               <div className="flex items-center gap-2 cursor-pointer mb-2 text-sm text-[#7e7e89]">
                 <ArrowLeft size={16} className="text-[#7e7e89]" />
                 Voltar
@@ -290,13 +288,14 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
           </div>
           <div className="flex flex-col items-center lg:items-start">
             <div className="flex flex-col">
-              {/* <div
-                className="py-1 mb-4 w-full flex lg:items-start items-center lg:justify-start justify-center max-w-[120px]
-              "
+              <span
+                className={cn(
+                  'font-bold lg:text-4xl text-xl lg:text-left text-center',
+                  !course.colorHex &&
+                    'bg-blue-gradient-500 bg-clip-text text-transparent',
+                )}
+                style={course.colorHex ? { color: course.colorHex } : undefined}
               >
-                <Image src={codeLegendsLogo} alt="Code Legends" />
-              </div> */}
-              <span className="font-bold bg-blue-gradient-500 bg-clip-text text-transparent lg:text-4xl text-xl lg:text-left text-center">
                 {course.title}
               </span>
               <p className="lg:text-base text-sm mt-2 text-center lg:text-left max-w-[620px] text-[#a5a5a6]">
@@ -326,11 +325,11 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                     size={24}
                     weight="fill"
                     className={cn(
-                      "text-[#a5a5a6] group-hover:text-[#00C8FF] transition-colors duration-300",
-                      isResetting && "animate-spin"
+                      'text-[#a5a5a6] group-hover:text-[#00C8FF] transition-colors duration-300',
+                      isResetting && 'animate-spin',
                     )}
                   />
-                  {isResetting ? "Resetando..." : "Resetar curso"}
+                  {isResetting ? 'Resetando...' : 'Resetar curso'}
                 </button>
 
                 <Dialog open={showResetModal} onOpenChange={setShowResetModal}>
@@ -357,42 +356,43 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                       <PrimaryButton
                         onClick={async () => {
                           try {
-                            setIsResetting(true);
-                            const { resetCourseProgress } = await import(
-                              "@/actions/course/reset-progress"
-                            );
-                            const result = await resetCourseProgress(course.id);
+                            setIsResetting(true)
+                            const { resetCourseProgress } =
+                              await import('@/actions/course/reset-progress')
+                            const result = await resetCourseProgress(course.id)
 
                             if (result.success) {
-                              setShowResetModal(false);
+                              setShowResetModal(false)
                               // Aguarda um pouco para garantir que o backend processou o reset
-                              await new Promise((resolve) => setTimeout(resolve, 500));
+                              await new Promise((resolve) =>
+                                setTimeout(resolve, 500),
+                              )
                               // Atualiza a lista de cursos inscritos
-                              await refreshEnrolledCourses();
+                              await refreshEnrolledCourses()
                               // Recarrega a página para atualizar o progresso e roadmap
-                              router.refresh();
+                              router.refresh()
                             } else {
                               alert(
                                 result.error ||
-                                "Erro ao resetar progresso do curso"
-                              );
+                                  'Erro ao resetar progresso do curso',
+                              )
                             }
                           } catch (error) {
-                            console.error("Erro ao resetar progresso:", error);
+                            console.error('Erro ao resetar progresso:', error)
                             alert(
                               error instanceof Error
                                 ? error.message
-                                : "Erro ao resetar progresso do curso"
-                            );
+                                : 'Erro ao resetar progresso do curso',
+                            )
                           } finally {
-                            setIsResetting(false);
+                            setIsResetting(false)
                           }
                         }}
                         disabled={isResetting}
                         variant="primary"
                         className="bg-red-600 hover:bg-red-700 mt-8"
                       >
-                        {isResetting ? "Resetando..." : "Confirmar Reset"}
+                        {isResetting ? 'Resetando...' : 'Confirmar Reset'}
                       </PrimaryButton>
                     </DialogFooter>
                   </DialogContent>
@@ -404,94 +404,91 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
               <Button
                 onClick={async () => {
                   try {
-                    setIsLoading(true);
+                    setIsLoading(true)
 
                     if (!isEnrolled) {
-                      const { enrollInCourse } = await import(
-                        "@/actions/course/enroll"
-                      );
-                      await enrollInCourse(course.id);
+                      const { enrollInCourse } =
+                        await import('@/actions/course/enroll')
+                      await enrollInCourse(course.id)
                     }
 
-                    const { startCourse } = await import(
-                      "@/actions/course/start"
-                    );
-                    await startCourse(course.id);
+                    const { startCourse } =
+                      await import('@/actions/course/start')
+                    await startCourse(course.id)
 
-                    const { getCourseRoadmap } = await import(
-                      "@/actions/course/roadmap"
-                    );
-                    const { findLessonContext, generateLessonUrl } = await import(
-                      "@/utils/lesson-url"
-                    );
-                    const roadmap = await getCourseRoadmap(course.id);
+                    const { getCourseRoadmap } =
+                      await import('@/actions/course/roadmap')
+                    const { findLessonContext, generateLessonUrl } =
+                      await import('@/utils/lesson-url')
+                    const roadmap = await getCourseRoadmap(course.id)
                     if (roadmap?.modules) {
                       const allLessons = roadmap.modules.flatMap((m) =>
-                        (m.groups || []).flatMap((g) => g.lessons || [])
-                      );
+                        (m.groups || []).flatMap((g) => g.lessons || []),
+                      )
                       const targetLesson =
-                        allLessons.find((l) => l.isCurrent && l.status !== "locked") ||
-                        allLessons.find((l) => l.status !== "locked") ||
-                        null;
+                        allLessons.find(
+                          (l) => l.isCurrent && l.status !== 'locked',
+                        ) ||
+                        allLessons.find((l) => l.status !== 'locked') ||
+                        null
                       if (targetLesson) {
                         const context = findLessonContext(
                           targetLesson.id,
-                          roadmap.modules
-                        );
+                          roadmap.modules,
+                        )
                         if (context) {
                           const url = generateLessonUrl(
                             targetLesson,
                             context.module,
-                            context.group
-                          );
-                          router.push(url);
-                          setIsLoading(false);
-                          return;
+                            context.group,
+                          )
+                          router.push(url)
+                          setIsLoading(false)
+                          return
                         }
                       }
                     }
-                    router.push("/classroom");
+                    router.push('/classroom')
                   } catch (error) {
-                    console.error("Erro ao iniciar curso:", error);
-                    router.push("/classroom");
+                    console.error('Erro ao iniciar curso:', error)
+                    router.push('/classroom')
                   } finally {
-                    setIsLoading(false);
+                    setIsLoading(false)
                   }
                 }}
                 disabled={isLoading || isCheckingEnrollment}
                 className="lg:w-fit w-full h-[50px] text-lg bg-blue-gradient-500 transition-all rounded-[12px] duration-300 hover:shadow-[0_0_12px_#00C8FF] font-medium disabled:opacity-50"
                 suppressHydrationWarning
               >
-                <PlayIcon weight="fill" />{" "}
+                <PlayIcon weight="fill" />{' '}
                 {mounted && isLoading
-                  ? "Carregando..."
+                  ? 'Carregando...'
                   : mounted && isCheckingEnrollment
-                    ? "Verificando..."
+                    ? 'Verificando...'
                     : mounted && isEnrolled
-                      ? "Continuar"
-                      : "Inscrever-se"}
+                      ? 'Continuar'
+                      : 'Inscrever-se'}
               </Button>
               <div className="flex gap-4">
                 <button
                   onClick={async () => {
-                    if (isEnrolled || isEnrolling) return;
+                    if (isEnrolled || isEnrolling) return
                     try {
-                      setIsEnrolling(true);
-                      const { enrollInCourse } = await import(
-                        "@/actions/course/enroll"
-                      );
-                      await enrollInCourse(course.id);
-                      setIsEnrolled(true);
-                      await refreshEnrolledCourses();
+                      setIsEnrolling(true)
+                      const { enrollInCourse } =
+                        await import('@/actions/course/enroll')
+                      await enrollInCourse(course.id)
+                      setIsEnrolled(true)
+                      await refreshEnrolledCourses()
                     } catch (error) {
-                      console.error("Erro ao inscrever no curso:", error);
+                      console.error('Erro ao inscrever no curso:', error)
                       alert(
                         error instanceof Error
                           ? error.message
-                          : "Erro ao inscrever no curso"
-                      );
+                          : 'Erro ao inscrever no curso',
+                      )
                     } finally {
-                      setIsEnrolling(false);
+                      setIsEnrolling(false)
                     }
                   }}
                   disabled={isEnrolled || isEnrolling}
@@ -514,11 +511,11 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                     className="rounded-full px-2 py-1 bg-[#1e1e22] border border-[#2a2a2f] flex items-center gap-2 shadow-[0_0_16px_#000]"
                   >
                     <DropdownMenuItem className="rounded-full flex items-center justify-center h-[50px] w-[50px] px-2 py-1 hover:bg-[#2a2a2f] text-white">
-                      <ThumbsDown className="w-8 h-8" />{" "}
+                      <ThumbsDown className="w-8 h-8" />{' '}
                       {/* ou w-full h-full */}
                     </DropdownMenuItem>
                     <DropdownMenuItem className="rounded-full flex items-center justify-center h-[50px] w-[50px] px-2 py-1 hover:bg-[#2a2a2f] text-white">
-                      <ThumbsUpIcon className="w-8 h-8" />{" "}
+                      <ThumbsUpIcon className="w-8 h-8" />{' '}
                       {/* ou w-full h-full */}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -546,8 +543,9 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
               <VideoCameraIcon size={24} className="text-[#00C8FF]" />
               <p className="whitespace-nowrap text-[#a5a5a6] text-sm">
                 <strong className="text-[#c0c0d1]">
-                  {course.totalDuration ? `+${course.totalDuration}` : "0h"}
-                </strong> de conteúdo
+                  {course.totalDuration ? `+${course.totalDuration}` : '0h'}
+                </strong>{' '}
+                de conteúdo
               </p>
             </li>
             <li className="flex w-full items-center gap-3 py-4  border-b border-[#25252A]">
@@ -565,19 +563,21 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             {course.instructor && (
               <div className="flex items-center gap-3 mt-4">
                 <Avatar className="h-[32px] w-[32px]">
-                  <AvatarImage src={course.instructor.avatar || ""} />
+                  <AvatarImage src={course.instructor.avatar || ''} />
                   <AvatarFallback>
                     {course.instructor.name
-                      .split(" ")
+                      .split(' ')
                       .map((n: string) => n[0])
-                      .join("")
+                      .join('')
                       .toUpperCase()
                       .slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
                   <p className="text-white text-sm">{course.instructor.name}</p>
-                  <p className="text-xs text-[#929191] italic leading-tight">Educator</p>
+                  <p className="text-xs text-[#929191] italic leading-tight">
+                    Educator
+                  </p>
                 </div>
               </div>
             )}
@@ -585,5 +585,5 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
         </div>
       </section>
     </>
-  );
+  )
 }

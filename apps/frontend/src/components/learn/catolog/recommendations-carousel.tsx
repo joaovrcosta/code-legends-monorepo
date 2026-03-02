@@ -49,7 +49,7 @@ export function RecommendationsCarousel({
             >
               <CatalogCard
                 name={course.title}
-                image={course.icon || course.thumbnail || ''}
+                icon={course.icon || ''}
                 url={`/learn/paths/${course.slug}`}
                 color={getColorByLevel(course.level)}
                 status="not-started"
