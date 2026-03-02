@@ -3,11 +3,7 @@
 import Image, { StaticImageData } from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import {
-  ArrowUpRight,
-  ChartNoAxesColumnIncreasing,
-  ScrollText,
-} from 'lucide-react'
+import { ArrowUpRight, ChartNoAxesColumnIncreasing } from 'lucide-react'
 import { Check, Plus, Star } from '@phosphor-icons/react/dist/ssr'
 import { enrollInCourse } from '@/actions/course'
 import { useState } from 'react'
