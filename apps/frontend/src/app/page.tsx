@@ -1,26 +1,27 @@
-import { listCourses } from "@/actions/course";
-import { getUserEnrolledList } from "@/actions/progress";
-import { CurrentCourseCard } from "@/components/home/current-course-card";
-import { CategoriesCarousel } from "@/components/learn/catolog/categories-carousel";
-import { NewsBannerCarousel } from "@/components/home/news-banner-carousel";
-import type { Metadata } from "next";
-import { UserProfiler } from "@/components/home/user-profiler";
-import { CurrentCourses } from "@/components/home/current-courses";
-import { RecommendationsCarousel } from "@/components/home/recommendations-carousel";
-import { HomePageWrapper } from "@/components/home/home-page-wrapper";
+import { listCourses } from '@/actions/course'
+import { getUserEnrolledList } from '@/actions/progress'
+import { CurrentCourseCard } from '@/components/home/current-course-card'
+import { CategoriesCarousel } from '@/components/learn/catolog/categories-carousel'
+import { NewsBannerCarousel } from '@/components/home/news-banner-carousel'
+import type { Metadata } from 'next'
+import { UserProfiler } from '@/components/home/user-profiler'
+import { CurrentCourses } from '@/components/home/current-courses'
+import { RecommendationsCarousel } from '@/components/home/recommendations-carousel'
+import { HomePageWrapper } from '@/components/home/home-page-wrapper'
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: "Início - Code Legends",
-  description: "Dashboard principal com suas trilhas, recomendações e progresso de aprendizado.",
-};
+  title: 'Início - Code Legends',
+  description:
+    'Dashboard principal com suas trilhas, recomendações e progresso de aprendizado.',
+}
 
 export default async function Home() {
   const [courses, enrolledCoursesData] = await Promise.all([
     listCourses(),
     getUserEnrolledList(),
-  ]);
+  ])
 
   return (
     <HomePageWrapper initialUserCourses={enrolledCoursesData.userCourses || []}>
@@ -57,7 +58,6 @@ export default async function Home() {
                 <RecommendationsCarousel courses={courses.courses} />
               </div>
 
-
               {/* Catálogo */}
               <div className="mb-8">
                 <div className="flex items-center space-x-2 py-4 pt-0">
@@ -74,7 +74,6 @@ export default async function Home() {
                   Novidades
                 </span>
               </div>
-
 
               <div className="w-full relative px-0 overflow-hidden min-w-0">
                 <NewsBannerCarousel />
@@ -98,5 +97,5 @@ export default async function Home() {
         </div>
       </div>
     </HomePageWrapper>
-  );
+  )
 }

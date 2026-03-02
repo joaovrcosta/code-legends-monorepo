@@ -40,7 +40,7 @@ export function RecommendationsCarousel({
   courses: CourseWithCount[]
 }) {
   return (
-    <div className="relative overflow-visible py-8">
+    <div className="relative overflow-y-visible overflow-x-hidden py-8">
       <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-[#121214] to-transparent" />
 
       <Carousel
@@ -59,7 +59,15 @@ export function RecommendationsCarousel({
           className="h-[42px] w-[42px] right-0 top-1/2 z-20 -translate-y-1/2 border-[#25252A] bg-[#121214]/80 hover:bg-[#25252A] text-white"
         />
         <CarouselContent className="-ml-4">
-          {courses.map((course) => (
+          {courses.map((course, index) => {
+            const position =
+              index === 0
+                ? 'first'
+                : index === courses.length - 1
+                  ? 'last'
+                  : 'middle'
+
+            return (
             <CarouselItem
               key={course.id}
               className="pl-4 basis-[85%] sm:basis-[316px] flex-shrink-0"
@@ -76,9 +84,11 @@ export function RecommendationsCarousel({
                 courseId={course.id}
                 level={course.level}
                 isFree={course.isFree}
+                position={position}
               />
             </CarouselItem>
-          ))}
+            )
+          })}
         </CarouselContent>
       </Carousel>
     </div>

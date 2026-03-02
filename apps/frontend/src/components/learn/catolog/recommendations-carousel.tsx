@@ -42,25 +42,35 @@ export function RecommendationsCarousel({
 
       <Carousel>
         <CarouselContent className="w-full">
-          {courses.map((course) => (
-            <CarouselItem
-              key={course.id}
-              className="md:basis-[48%] basis-[85%] lg:basis-[28%]"
-            >
-              <CatalogCard
-                name={course.title}
-                icon={course.icon || ''}
-                url={`/learn/paths/${course.slug}`}
-                color={getColorByLevel(course.level)}
-                status="not-started"
-                isCurrent={false}
-                tags={course.tags}
-                courseId={course.id}
-                level={course.level}
-                isFree={course.isFree}
-              />
-            </CarouselItem>
-          ))}
+          {courses.map((course, index) => {
+            const position =
+              index === 0
+                ? 'first'
+                : index === courses.length - 1
+                  ? 'last'
+                  : 'middle'
+
+            return (
+              <CarouselItem
+                key={course.id}
+                className="md:basis-[48%] basis-[85%] lg:basis-[28%]"
+              >
+                <CatalogCard
+                  name={course.title}
+                  icon={course.icon || ''}
+                  url={`/learn/paths/${course.slug}`}
+                  color={getColorByLevel(course.level)}
+                  status="not-started"
+                  isCurrent={false}
+                  tags={course.tags}
+                  courseId={course.id}
+                  level={course.level}
+                  isFree={course.isFree}
+                  position={position}
+                />
+              </CarouselItem>
+            )
+          })}
         </CarouselContent>
       </Carousel>
     </div>
