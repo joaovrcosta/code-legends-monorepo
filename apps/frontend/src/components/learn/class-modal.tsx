@@ -1,4 +1,4 @@
-"use client";
+'use client'
 import {
   Dialog,
   DialogClose,
@@ -6,22 +6,22 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog'
 
-import { Button } from "@/components/ui/button";
-import { useCourseModalStore } from "@/stores/course-modal-store";
-import { useActiveCourseStore } from "@/stores/active-course-store";
-import VideoComponent from "../classroom/video";
-import { ComponentsArticle } from "../classroom/article/components";
-import { Menu, X } from "lucide-react";
-import { LevelProgressBar } from "./level-progress-bar";
-import { SkipForward } from "@phosphor-icons/react";
-import { SkipBack, LockOpen } from "@phosphor-icons/react/dist/ssr";
-import { useState, useMemo } from "react";
-import { getCourseRoadmapFresh, unlockNextModule } from "@/actions/course";
-import type { RoadmapResponse } from "@/types/roadmap";
-import { useRoadmapUpdater } from "@/hooks/use-roadmap-updater";
-import { findLessonContext } from "@/utils/lesson-url";
+import { Button } from '@/components/ui/button'
+import { useCourseModalStore } from '@/stores/course-modal-store'
+import { useActiveCourseStore } from '@/stores/active-course-store'
+import VideoComponent from '../classroom/video'
+import { ComponentsArticle } from '../classroom/article/components'
+import { Menu, X } from 'lucide-react'
+import { LevelProgressBar } from './level-progress-bar'
+import { SkipForward } from '@phosphor-icons/react'
+import { SkipBack, LockOpen } from '@phosphor-icons/react/dist/ssr'
+import { useState, useMemo } from 'react'
+import { getCourseRoadmapFresh, unlockNextModule } from '@/actions/course'
+import type { RoadmapResponse } from '@/types/roadmap'
+import { useRoadmapUpdater } from '@/hooks/use-roadmap-updater'
+import { findLessonContext } from '@/utils/lesson-url'
 
 export const AulaModal = () => {
   const {
@@ -35,11 +35,11 @@ export const AulaModal = () => {
     lessonCompletedTimestamp,
     openModalWithLessons,
     setModuleUnlockedTimestamp,
-  } = useCourseModalStore();
+  } = useCourseModalStore()
 
-  const { activeCourse } = useActiveCourseStore();
-  const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null);
-  const [isUnlocking, setIsUnlocking] = useState(false);
+  const { activeCourse } = useActiveCourseStore()
+  const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
+  const [isUnlocking, setIsUnlocking] = useState(false)
 
   // Custom hook gerencia toda a lógica de atualização do roadmap
   useRoadmapUpdater({
@@ -48,80 +48,78 @@ export const AulaModal = () => {
     currentLessonId: currentLesson?.id,
     lessonCompletedTimestamp,
     onRoadmapUpdate: setRoadmap,
-  });
+  })
 
   // Calcula o número do módulo atual baseado na aula atual
   const currentLevel = useMemo(() => {
     if (!roadmap?.modules || !currentLesson) {
-      return roadmap?.course.currentModule || 1;
+      return roadmap?.course.currentModule || 1
     }
 
-    const context = findLessonContext(currentLesson.id, roadmap.modules);
+    const context = findLessonContext(currentLesson.id, roadmap.modules)
     if (context) {
       const moduleIndex = roadmap.modules.findIndex(
-        (m) => m.id === context.module.id
-      );
-      return moduleIndex !== -1 ? moduleIndex + 1 : roadmap.course.currentModule || 1;
+        (m) => m.id === context.module.id,
+      )
+      return moduleIndex !== -1
+        ? moduleIndex + 1
+        : roadmap.course.currentModule || 1
     }
 
-    return roadmap.course.currentModule || 1;
-  }, [roadmap, currentLesson]);
+    return roadmap.course.currentModule || 1
+  }, [roadmap, currentLesson])
 
-  const hasNextLesson = currentIndex < lessons.length - 1;
-  const hasPreviousLesson = currentIndex > 0;
-  const nextLesson = hasNextLesson ? lessons[currentIndex + 1] : null;
-  const isNextLessonLocked = nextLesson?.status === "locked";
-
+  const hasNextLesson = currentIndex < lessons.length - 1
+  const hasPreviousLesson = currentIndex > 0
+  const nextLesson = hasNextLesson ? lessons[currentIndex + 1] : null
+  const isNextLessonLocked = nextLesson?.status === 'locked'
 
   // Usa os valores diretamente do back-end
-  const canUnlockNextModule = roadmap?.course.canUnlockNextModule ?? false;
+  const canUnlockNextModule = roadmap?.course.canUnlockNextModule ?? false
 
   const handleUnlockNext = async () => {
-    if (!activeCourse?.id) return;
+    if (!activeCourse?.id) return
 
-    setIsUnlocking(true);
+    setIsUnlocking(true)
     try {
-      const result = await unlockNextModule(activeCourse.id);
+      const result = await unlockNextModule(activeCourse.id)
       if (result.success) {
         // Notifica que um módulo foi desbloqueado para atualizar a barra de progresso
-        setModuleUnlockedTimestamp();
+        setModuleUnlockedTimestamp()
 
         // Aguarda um pouco para garantir que o revalidateTag foi processado
-        await new Promise((resolve) => setTimeout(resolve, 200));
-
-        // Aguarda mais tempo para que a barra de progresso tenha tempo de atualizar e voltar para zero
-        // A barra de progresso tem um delay de 300ms, então aguardamos um pouco mais para garantir
-        await new Promise((resolve) => setTimeout(resolve, 400));
+        await new Promise((resolve) => setTimeout(resolve, 200))
+        await new Promise((resolve) => setTimeout(resolve, 400))
 
         // Atualiza o roadmap usando versão sem cache
-        const roadmapData = await getCourseRoadmapFresh(activeCourse.id);
+        const roadmapData = await getCourseRoadmapFresh(activeCourse.id)
         if (roadmapData) {
-          setRoadmap(roadmapData);
+          setRoadmap(roadmapData)
 
           // Coleta todas as aulas do roadmap atualizado
           const allLessons = roadmapData.modules
             .flatMap((module) => module?.groups || [])
-            .flatMap((group) => group?.lessons || []);
+            .flatMap((group) => group?.lessons || [])
 
           // Encontra a primeira aula do próximo módulo desbloqueado
-          const nextModuleNumber = roadmapData.course.nextModule;
-          let nextLessonIndex = 0;
+          const nextModuleNumber = roadmapData.course.nextModule
+          let nextLessonIndex = 0
 
           if (nextModuleNumber && roadmapData.modules[nextModuleNumber - 1]) {
             // Encontra o próximo módulo (1-based para 0-based)
-            const nextModule = roadmapData.modules[nextModuleNumber - 1];
+            const nextModule = roadmapData.modules[nextModuleNumber - 1]
 
             // Procura a primeira aula do próximo módulo que não está bloqueada
             for (const group of nextModule.groups || []) {
               const firstUnlockedLesson = group.lessons?.find(
-                (lesson) => lesson.status !== "locked"
-              );
+                (lesson) => lesson.status !== 'locked',
+              )
 
               if (firstUnlockedLesson) {
                 nextLessonIndex = allLessons.findIndex(
-                  (lesson) => lesson.id === firstUnlockedLesson.id
-                );
-                break;
+                  (lesson) => lesson.id === firstUnlockedLesson.id,
+                )
+                break
               }
             }
 
@@ -129,36 +127,36 @@ export const AulaModal = () => {
             // procura a primeira aula desbloqueada em todo o roadmap
             if (nextLessonIndex === -1) {
               nextLessonIndex = allLessons.findIndex(
-                (lesson) => lesson.status !== "locked"
-              );
+                (lesson) => lesson.status !== 'locked',
+              )
             }
           } else {
             // Se não há próximo módulo definido, procura a primeira aula desbloqueada
             nextLessonIndex = allLessons.findIndex(
-              (lesson) => lesson.status !== "locked"
-            );
+              (lesson) => lesson.status !== 'locked',
+            )
           }
 
           // Garante que o índice seja válido
           if (nextLessonIndex === -1) {
-            nextLessonIndex = 0;
+            nextLessonIndex = 0
           }
 
           // Atualiza o modal com as novas aulas, mantendo-o aberto
           // Isso acontece após a barra de progresso ter tempo de atualizar
-          openModalWithLessons(allLessons, nextLessonIndex);
+          openModalWithLessons(allLessons, nextLessonIndex)
         }
       } else {
-        console.error("Erro ao desbloquear módulo:", result.error);
-        alert(result.error || "Erro ao desbloquear módulo");
+        console.error('Erro ao desbloquear módulo:', result.error)
+        alert(result.error || 'Erro ao desbloquear módulo')
       }
     } catch (error) {
-      console.error("Erro ao desbloquear módulo:", error);
-      alert("Erro ao desbloquear módulo");
+      console.error('Erro ao desbloquear módulo:', error)
+      alert('Erro ao desbloquear módulo')
     } finally {
-      setIsUnlocking(false);
+      setIsUnlocking(false)
     }
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal()}>
@@ -196,16 +194,22 @@ export const AulaModal = () => {
             </DialogHeader>
 
             <div className="lg:max-h-[720px] h-full overflow-y-auto lg:px-4 px-0">
-              {currentLesson?.type === "video" && (
+              {currentLesson?.type === 'video' && (
                 <VideoComponent
                   description={currentLesson.description}
                   title={currentLesson.title}
-                  src={currentLesson.video_url}
+                  src={
+                    currentLesson.video?.url ??
+                    currentLesson.video_url ??
+                    undefined
+                  }
                 />
               )}
-              {currentLesson?.type === "article" && <ComponentsArticle />}
-              {currentLesson?.type === "quiz" && <p>Quiz bb</p>}
-              {currentLesson?.type === "project" && <p>Projeto</p>}
+              {(currentLesson?.type === 'article' ||
+                currentLesson?.type === 'text') &&
+                currentLesson && <ComponentsArticle lesson={currentLesson} />}
+              {currentLesson?.type === 'quiz' && <p>Quiz bb</p>}
+              {currentLesson?.type === 'project' && <p>Projeto</p>}
             </div>
           </>
         )}
@@ -233,7 +237,7 @@ export const AulaModal = () => {
       rounded-br-[20px] disabled:opacity-50"
               >
                 {isUnlocking ? (
-                  "Desbloqueando..."
+                  'Desbloqueando...'
                 ) : (
                   <>
                     Desbloquear módulo <LockOpen weight="fill" size={16} />
@@ -244,7 +248,11 @@ export const AulaModal = () => {
               <Button
                 variant="outline"
                 onClick={goToNextLesson}
-                disabled={!hasNextLesson || isNextLessonLocked || currentLesson?.status !== "completed"}
+                disabled={
+                  !hasNextLesson ||
+                  isNextLessonLocked ||
+                  currentLesson?.status !== 'completed'
+                }
                 className="h-[64px] lg:min-h-[84px] w-1/2 max-w-[320px] rounded-none text-base bg-black border-none
       rounded-br-[20px] disabled:opacity-50"
               >
@@ -255,5 +263,5 @@ export const AulaModal = () => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}

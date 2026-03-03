@@ -252,7 +252,7 @@ export const LessonsList = memo(function LessonsList({
                                       >
                                         {lesson.title}
                                       </span>
-                                      {lesson.video_duration && (
+                                      {(lesson.video?.duration ?? lesson.video_duration) && (
                                         <span
                                           className={`text-xs tabular-nums ${
                                             isActive
@@ -260,7 +260,7 @@ export const LessonsList = memo(function LessonsList({
                                               : 'text-zinc-500'
                                           }`}
                                         >
-                                          {lesson.video_duration}
+                                          {lesson.video?.duration ?? lesson.video_duration}
                                         </span>
                                       )}
                                     </div>

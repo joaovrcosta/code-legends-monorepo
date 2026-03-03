@@ -19,7 +19,9 @@ export async function calculateCourseTotalDuration(
                         id: true,
                         lessons: {
                             select: {
-                                video_duration: true,
+                                video: {
+                                    select: { duration: true },
+                                },
                             },
                         },
                     },
@@ -33,8 +35,8 @@ export async function calculateCourseTotalDuration(
         for (const module of modules) {
             for (const group of module.groups) {
                 for (const lesson of group.lessons) {
-                    if (lesson.video_duration) {
-                        const duration = lesson.video_duration.trim();
+                    const duration = lesson.video?.duration?.trim();
+                    if (duration) {
 
                         try {
                             // Verifica se é formato "Xm Ys" (ex: "12m 30s")

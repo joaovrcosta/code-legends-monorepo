@@ -39,11 +39,13 @@ interface RoadmapLesson {
   type: string;
   video_url: string | null;
   video_duration: string | null;
+  video?: { url: string | null; duration: string | null } | null;
+  article?: { body: string } | null;
   order: number;
   status: "locked" | "unlocked" | "completed";
   isCurrent: boolean;
-  canReview: boolean; // Permite revisitar aulas concluídas
-  isFree: boolean; // Aula gratuita (acessível para usuário FREE em curso pago)
+  canReview: boolean;
+  isFree: boolean;
 }
 
 interface RoadmapGroup {
@@ -126,6 +128,12 @@ export class GetRoadmapUseCase {
             lessons: {
               orderBy: {
                 order: "asc",
+              },
+              include: {
+                video: true,
+                article: true,
+                quiz: true,
+                project: true,
               },
             },
           },
@@ -284,14 +292,20 @@ export class GetRoadmapUseCase {
           // Pode revisar se a aula foi concluída
           const canReview = isCompleted;
 
+          const lessonWithContent = lesson as typeof lesson & {
+            video?: { url: string | null; duration: string | null } | null;
+            article?: { body: string } | null;
+          };
           return {
             id: lesson.id,
             title: lesson.title,
             slug: lesson.slug,
             description: lesson.description,
             type: lesson.type,
-            video_url: lesson.video_url,
-            video_duration: lesson.video_duration,
+            video_url: lessonWithContent.video?.url ?? null,
+            video_duration: lessonWithContent.video?.duration ?? null,
+            video: lessonWithContent.video ?? null,
+            article: lessonWithContent.article ?? null,
             order: lesson.order,
             status,
             isCurrent,
@@ -442,18 +456,22 @@ export class GetRoadmapUseCase {
             let progress = 0;
             if (isCompleted) {
               progress = 100;
-            } else if (userProgress?.timeSpent && lesson.video_duration) {
-              // Calcular progresso baseado no tempo assistido
-              const durationSeconds = parseDurationToSeconds(lesson.video_duration);
-              if (durationSeconds > 0) {
-                progress = Math.min(100, Math.round((userProgress.timeSpent / durationSeconds) * 100));
+            } else if (userProgress?.timeSpent) {
+              const lessonWithContent = lesson as typeof lesson & { video?: { duration: string | null } | null };
+              const duration = lessonWithContent.video?.duration;
+              if (duration) {
+                const durationSeconds = parseDurationToSeconds(duration);
+                if (durationSeconds > 0) {
+                  progress = Math.min(100, Math.round((userProgress.timeSpent / durationSeconds) * 100));
+                }
               }
             }
 
+            const lessonWithContent = lesson as typeof lesson & { video?: { duration: string | null } | null };
             currentLessonInfo = {
               id: lesson.id,
               title: lesson.title,
-              duration: lesson.video_duration,
+              duration: lessonWithContent.video?.duration ?? null,
               progress,
             };
             break;

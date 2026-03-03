@@ -11,6 +11,7 @@ export interface UpdateLessonData {
   isFree?: boolean;
   video_url?: string;
   video_duration?: string;
+  body?: string;
   locked?: boolean;
   order?: number;
   authorId?: string;

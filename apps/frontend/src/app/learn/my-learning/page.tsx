@@ -109,7 +109,7 @@ export default function MyLearningPage() {
                   id: lesson.id.toString(),
                   title: lesson.title,
                   type: lessonType,
-                  duration: lesson.video_duration || undefined,
+                  duration: lesson.video?.duration ?? lesson.video_duration ?? undefined,
                   locked: lesson.status === "locked",
                 };
               })

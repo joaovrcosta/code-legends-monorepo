@@ -1,6 +1,6 @@
 export type LessonStatus = "completed" | "unlocked" | "locked";
 
-export type LessonType = "video" | "article" | "quiz" | "project";
+export type LessonType = "video" | "article" | "text" | "quiz" | "project";
 
 export type Lesson = {
   id: number;
@@ -8,8 +8,10 @@ export type Lesson = {
   slug: string;
   description: string;
   type: LessonType;
-  video_url: string;
-  video_duration: string;
+  video_url?: string | null;
+  video_duration?: string | null;
+  video?: { url?: string | null; duration?: string | null } | null;
+  article?: { body: string } | null;
   order: number;
   status: LessonStatus;
   isCurrent: boolean;

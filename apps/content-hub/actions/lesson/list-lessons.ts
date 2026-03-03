@@ -10,6 +10,8 @@ export interface Lesson {
   isFree: boolean;
   video_url?: string | null;
   video_duration?: string | null;
+  video?: { url: string | null; duration: string | null } | null;
+  article?: { body: string } | null;
   locked: boolean;
   order?: number | null;
   submoduleId: number;

@@ -32,6 +32,8 @@ export interface LessonWithStructure {
   isFree: boolean;
   video_url: string | null;
   video_duration: string | null;
+  video?: { url: string | null; duration: string | null } | null;
+  article?: { body: string } | null;
   locked: boolean;
   completed: boolean;
   submoduleId: number;
@@ -84,10 +86,12 @@ export async function getCourseWithStructure(
                 slug: lesson.slug,
                 url: lesson.url || null,
                 isFree: lesson.isFree,
-                video_url: lesson.video_url || null,
-                video_duration: lesson.video_duration || null,
+                video_url: lesson.video?.url ?? lesson.video_url ?? null,
+                video_duration: lesson.video?.duration ?? lesson.video_duration ?? null,
+                video: lesson.video ?? null,
+                article: lesson.article ?? null,
                 locked: lesson.locked,
-                completed: false, // Campo não retornado pela API de listagem, sempre false
+                completed: false,
                 submoduleId: lesson.submoduleId,
                 order: lesson.order || 0,
                 createdAt: lesson.createdAt,

@@ -35,8 +35,9 @@ export function LessonEditModal({
         type: lesson.type,
         slug: lesson.slug,
         url: lesson.url || "",
-        video_url: lesson.video_url || "",
-        video_duration: lesson.video_duration || "",
+        video_url: lesson.video_url || lesson.video?.url || "",
+        video_duration: lesson.video_duration || lesson.video?.duration || "",
+        body: lesson.article?.body ?? "",
         isFree: false,
         locked: lesson.locked,
         order: lesson.order,
@@ -50,8 +51,9 @@ export function LessonEditModal({
                 type: lesson.type,
                 slug: lesson.slug,
                 url: lesson.url || "",
-                video_url: lesson.video_url || "",
-                video_duration: lesson.video_duration || "",
+                video_url: lesson.video_url || lesson.video?.url || "",
+                video_duration: lesson.video_duration || lesson.video?.duration || "",
+                body: lesson.article?.body ?? "",
                 isFree: lesson.isFree,
                 locked: lesson.locked,
                 order: lesson.order,
@@ -85,6 +87,8 @@ export function LessonEditModal({
                 url: formData.url || null,
                 video_url: formData.video_url || null,
                 video_duration: formData.video_duration || null,
+                video: formData.type === "video" ? { url: formData.video_url || null, duration: formData.video_duration || null } : null,
+                article: (formData.type === "article" || formData.type === "text") && formData.body ? { body: formData.body } : null,
             });
             onClose();
         } catch (error) {
@@ -158,9 +162,11 @@ export function LessonEditModal({
                                     required
                                 >
                                     <option value="video">Vídeo</option>
+                                    <option value="article">Artigo</option>
                                     <option value="text">Texto</option>
                                     <option value="quiz">Quiz</option>
                                     <option value="exercise">Exercício</option>
+                                    <option value="project">Projeto</option>
                                 </Select>
                             </div>
 
@@ -210,6 +216,22 @@ export function LessonEditModal({
                                 />
                             </div>
                         </div>
+
+                        {(formData.type === "article" || formData.type === "text") && (
+                            <div className="space-y-2">
+                                <Label htmlFor="body">Conteúdo do artigo (Markdown)</Label>
+                                <Textarea
+                                    id="body"
+                                    value={formData.body}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, body: e.target.value })
+                                    }
+                                    rows={12}
+                                    className="font-mono text-sm"
+                                    placeholder="Escreva o conteúdo em Markdown..."
+                                />
+                            </div>
+                        )}
 
                         <div className="space-y-2">
                             <Label htmlFor="description">Descrição *</Label>

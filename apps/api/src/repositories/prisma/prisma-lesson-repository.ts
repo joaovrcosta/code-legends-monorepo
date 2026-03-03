@@ -9,8 +9,6 @@ interface CreateLessonData {
   slug: string;
   url?: string;
   isFree?: boolean;
-  video_url?: string;
-  video_duration?: string;
   locked?: boolean;
   submoduleId: number;
   order?: number;
@@ -24,8 +22,6 @@ interface UpdateLessonData {
   slug?: string;
   url?: string;
   isFree?: boolean;
-  video_url?: string;
-  video_duration?: string;
   locked?: boolean;
   order?: number;
 }
@@ -40,8 +36,6 @@ export class PrismaLessonRepository implements ILessonRepository {
         slug: data.slug,
         url: data.url,
         isFree: data.isFree ?? false,
-        video_url: data.video_url,
-        video_duration: data.video_duration,
         locked: data.locked ?? false,
         submoduleId: data.submoduleId,
         order: data.order ?? 0,
@@ -63,6 +57,10 @@ export class PrismaLessonRepository implements ILessonRepository {
             moduleId: true,
           },
         },
+        video: true,
+        article: true,
+        quiz: true,
+        project: true,
       },
     });
 
@@ -94,6 +92,10 @@ export class PrismaLessonRepository implements ILessonRepository {
             moduleId: true,
           },
         },
+        video: true,
+        article: true,
+        quiz: true,
+        project: true,
       },
       orderBy: {
         order: "asc",
@@ -134,6 +136,10 @@ export class PrismaLessonRepository implements ILessonRepository {
             },
           },
         },
+        video: true,
+        article: true,
+        quiz: true,
+        project: true,
       },
     });
 
@@ -171,6 +177,10 @@ export class PrismaLessonRepository implements ILessonRepository {
             },
           },
         },
+        video: true,
+        article: true,
+        quiz: true,
+        project: true,
       },
     });
 
@@ -213,6 +223,10 @@ export class PrismaLessonRepository implements ILessonRepository {
             },
           },
         },
+        video: true,
+        article: true,
+        quiz: true,
+        project: true,
       },
     });
 
@@ -251,6 +265,10 @@ export class PrismaLessonRepository implements ILessonRepository {
             },
           },
         },
+        video: true,
+        article: true,
+        quiz: true,
+        project: true,
       },
     });
 
@@ -279,6 +297,10 @@ export class PrismaLessonRepository implements ILessonRepository {
             moduleId: true,
           },
         },
+        video: true,
+        article: true,
+        quiz: true,
+        project: true,
       },
     });
 

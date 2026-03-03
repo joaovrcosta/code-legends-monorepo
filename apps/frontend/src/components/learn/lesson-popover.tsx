@@ -192,7 +192,7 @@ export const LessonPopover = ({
                     {lesson.type}
                   </span>
                   <span className="text-xs text-[#7e7e89]">
-                    {lesson.video_duration || "Aula"}
+                    {lesson.video?.duration ?? lesson.video_duration ?? "Aula"}
                   </span>
                 </div>
                 <h3 className="text-xl mt-2 text-white">{lesson.title}</h3>

@@ -71,6 +71,23 @@ CREATE TABLE "Category" (
 );
 
 -- CreateTable
+CREATE TABLE "Plan" (
+    "id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "amountCents" INTEGER NOT NULL DEFAULT 0,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "externalId" TEXT,
+    "productName" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Plan_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -156,6 +173,51 @@ CREATE TABLE "Lesson" (
     "authorId" TEXT NOT NULL,
 
     CONSTRAINT "Lesson_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Video" (
+    "id" TEXT NOT NULL,
+    "url" TEXT,
+    "duration" TEXT,
+    "lessonId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Video_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Article" (
+    "id" TEXT NOT NULL,
+    "body" TEXT NOT NULL,
+    "lessonId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Article_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Quiz" (
+    "id" TEXT NOT NULL,
+    "lessonId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Quiz_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Project" (
+    "id" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "lessonId" INTEGER NOT NULL,
+    "badgeId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Project_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -380,6 +442,9 @@ CREATE UNIQUE INDEX "Category_name_key" ON "Category"("name");
 CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Plan_slug_key" ON "Plan"("slug");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
@@ -396,6 +461,18 @@ CREATE UNIQUE INDEX "Module_slug_courseId_key" ON "Module"("slug", "courseId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Lesson_slug_submoduleId_key" ON "Lesson"("slug", "submoduleId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Video_lessonId_key" ON "Video"("lessonId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Article_lessonId_key" ON "Article"("lessonId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Quiz_lessonId_key" ON "Quiz"("lessonId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Project_lessonId_key" ON "Project"("lessonId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "UserCourse_userId_courseId_key" ON "UserCourse"("userId", "courseId");
@@ -483,6 +560,18 @@ ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_authorId_fkey" FOREIGN KEY ("authorI
 
 -- AddForeignKey
 ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_submoduleId_fkey" FOREIGN KEY ("submoduleId") REFERENCES "Group"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Video" ADD CONSTRAINT "Video_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Article" ADD CONSTRAINT "Article_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Quiz" ADD CONSTRAINT "Quiz_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Project" ADD CONSTRAINT "Project_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UserCourse" ADD CONSTRAINT "UserCourse_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE;

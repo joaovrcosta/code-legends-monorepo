@@ -19,6 +19,7 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
     isFree: z.boolean().optional(),
     video_url: z.string().optional(),
     video_duration: z.string().optional(),
+    body: z.string().optional(),
     locked: z.boolean().optional(),
     order: z.number().optional(),
   });

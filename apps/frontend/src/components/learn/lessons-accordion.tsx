@@ -271,7 +271,7 @@ export function LessonsAccordion() {
                                       >
                                         {lesson.title}
                                       </span>
-                                      {lesson.video_duration && (
+                                      {(lesson.video?.duration ?? lesson.video_duration) && (
                                         <span
                                           className={`text-xs tabular-nums ${
                                             isActive
@@ -279,7 +279,7 @@ export function LessonsAccordion() {
                                               : 'text-zinc-500'
                                           }`}
                                         >
-                                          {lesson.video_duration}
+                                          {lesson.video?.duration ?? lesson.video_duration}
                                         </span>
                                       )}
                                     </div>

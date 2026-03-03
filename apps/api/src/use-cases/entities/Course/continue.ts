@@ -20,6 +20,8 @@ interface ContinueCourseResponse {
     type: string;
     video_url: string | null;
     video_duration: string | null;
+    video?: { url: string | null; duration: string | null } | null;
+    article?: { body: string } | null;
     order: number;
   } | null;
   module: {
@@ -194,14 +196,20 @@ export class ContinueCourseUseCase {
       );
 
       if (foundLesson) {
+        const lessonWithContent = foundLesson as typeof foundLesson & {
+          video?: { url: string | null; duration: string | null } | null;
+          article?: { body: string } | null;
+        };
         lesson = {
           id: foundLesson.id,
           title: foundLesson.title,
           slug: foundLesson.slug,
           description: foundLesson.description,
           type: foundLesson.type,
-          video_url: foundLesson.video_url,
-          video_duration: foundLesson.video_duration,
+          video_url: lessonWithContent.video?.url ?? null,
+          video_duration: lessonWithContent.video?.duration ?? null,
+          video: lessonWithContent.video ?? null,
+          article: lessonWithContent.article ?? null,
           order: foundLesson.order,
         };
 
