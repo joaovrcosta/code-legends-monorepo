@@ -1,37 +1,37 @@
-import { IUserProgressRepository } from "../../../repositories/user-progress-repository";
-import { IUserModuleProgressRepository } from "../../../repositories/user-module-progress-repository";
-import { IUserCourseRepository } from "../../../repositories/user-course-repository";
-import { ILessonRepository } from "../../../repositories/lesson-repository";
-import { IModuleRepository } from "../../../repositories/module-repository";
-import { ICourseRepository } from "../../../repositories/course-repository";
-import { IUsersRepository } from "../../../repositories/users-repository";
-import { LessonNotFoundError } from "../../errors/lesson-not-found";
-import { CourseNotFoundError } from "../../errors/course-not-found";
-import { prisma } from "../../../lib/prisma";
-import { NotificationBuilder } from "../../../utils/notification-builder";
-import { createNotification } from "../../../utils/create-notification";
+import { IUserProgressRepository } from '../../../repositories/user-progress-repository'
+import { IUserModuleProgressRepository } from '../../../repositories/user-module-progress-repository'
+import { IUserCourseRepository } from '../../../repositories/user-course-repository'
+import { ILessonRepository } from '../../../repositories/lesson-repository'
+import { IModuleRepository } from '../../../repositories/module-repository'
+import { ICourseRepository } from '../../../repositories/course-repository'
+import { IUsersRepository } from '../../../repositories/users-repository'
+import { LessonNotFoundError } from '../../errors/lesson-not-found'
+import { CourseNotFoundError } from '../../errors/course-not-found'
+import { prisma } from '../../../lib/prisma'
+import { NotificationBuilder } from '../../../utils/notification-builder'
+import { createNotification } from '../../../utils/create-notification'
 
 interface CompleteLessonRequest {
-  userId: string;
-  lessonId: number;
-  score?: number;
+  userId: string
+  lessonId: number
+  score?: number
 }
 
 interface CompleteLessonResponse {
-  success: boolean;
-  nextLessonId: number | null;
-  moduleCompleted: boolean;
-  courseCompleted: boolean;
-  courseProgress: number;
-  xpGained?: number;
-  totalXp?: number;
-  level?: number;
-  xpToNextLevel?: number;
-  progress?: number;
+  success: boolean
+  nextLessonId: number | null
+  moduleCompleted: boolean
+  courseCompleted: boolean
+  courseProgress: number
+  xpGained?: number
+  totalXp?: number
+  level?: number
+  xpToNextLevel?: number
+  progress?: number
 }
 
 export class CompleteLessonUseCase {
-  private readonly XP_PER_LESSON = 50; // XP fixo por lição completada
+  private readonly XP_PER_LESSON = 50 // XP fixo por lição completada
 
   constructor(
     private userProgressRepository: IUserProgressRepository,
@@ -40,8 +40,8 @@ export class CompleteLessonUseCase {
     private lessonRepository: ILessonRepository,
     private moduleRepository: IModuleRepository,
     private courseRepository: ICourseRepository,
-    private usersRepository: IUsersRepository
-  ) { }
+    private usersRepository: IUsersRepository,
+  ) {}
 
   async execute({
     userId,
@@ -49,9 +49,9 @@ export class CompleteLessonUseCase {
     score,
   }: CompleteLessonRequest): Promise<CompleteLessonResponse> {
     // Buscar a aula com todas as relações necessárias
-    const lesson = await this.lessonRepository.findById(lessonId);
+    const lesson = await this.lessonRepository.findById(lessonId)
     if (!lesson) {
-      throw new LessonNotFoundError();
+      throw new LessonNotFoundError()
     }
 
     // Buscar o grupo (submodule) para obter o moduleId
@@ -60,35 +60,33 @@ export class CompleteLessonUseCase {
       include: {
         module: true,
       },
-    });
+    })
 
     if (!group) {
-      throw new Error("Group not found");
+      throw new Error('Group not found')
     }
 
-    const courseId = group.module.courseId;
+    const courseId = group.module.courseId
 
     // Verificar se o curso existe
-    const course = await this.courseRepository.findById(courseId);
+    const course = await this.courseRepository.findById(courseId)
     if (!course) {
-      throw new CourseNotFoundError();
+      throw new CourseNotFoundError()
     }
 
     // Verificar se o usuário está inscrito no curso
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,
-      courseId
-    );
+      courseId,
+    )
     if (!userCourse) {
-      throw new Error("User is not enrolled in this course");
+      throw new Error('User is not enrolled in this course')
     }
 
     // Verificar se a lição já foi completada (para evitar duplicação de XP)
-    const existingProgress = await this.userProgressRepository.findByUserAndTask(
-      userId,
-      lessonId
-    );
-    const wasAlreadyCompleted = existingProgress?.isCompleted ?? false;
+    const existingProgress =
+      await this.userProgressRepository.findByUserAndTask(userId, lessonId)
+    const wasAlreadyCompleted = existingProgress?.isCompleted ?? false
 
     // Marcar a aula como concluída
     await this.userProgressRepository.upsert({
@@ -97,33 +95,30 @@ export class CompleteLessonUseCase {
       userCourseId: userCourse.id,
       isCompleted: true,
       score,
-    });
+    })
 
     // Adicionar XP apenas se a lição não estava completa antes
-    let xpGained = 0;
-    let totalXp = 0;
-    let level = 1;
-    let xpToNextLevel = 100;
+    let xpGained = 0
+    let totalXp = 0
+    let level = 1
+    let xpToNextLevel = 100
 
     // Buscar usuário atual para obter XP atual (sempre necessário para retornar dados atualizados)
-    const user = await this.usersRepository.findById(userId);
+    const user = await this.usersRepository.findById(userId)
     if (!user) {
-      throw new Error("User not found");
+      throw new Error('User not found')
     }
 
     // Calcular xpToNextLevel inicial baseado no nível atual do usuário
-    xpToNextLevel = this.calculateXpToNextLevel(user.level, user.totalXp);
+    xpToNextLevel = this.calculateXpToNextLevel(user.level, user.totalXp)
 
     if (!wasAlreadyCompleted) {
       // Calcular novo XP e nível
-      const newTotalXp = user.totalXp + this.XP_PER_LESSON;
-      const newLevel = this.calculateLevel(newTotalXp);
-      const newXpToNextLevel = this.calculateXpToNextLevel(
-        newLevel,
-        newTotalXp
-      );
+      const newTotalXp = user.totalXp + this.XP_PER_LESSON
+      const newLevel = this.calculateLevel(newTotalXp)
+      const newXpToNextLevel = this.calculateXpToNextLevel(newLevel, newTotalXp)
 
-      const levelUp = newLevel > user.level;
+      const levelUp = newLevel > user.level
 
       // Atualizar usuário com novo XP e nível usando transação
       await prisma.$transaction(async (tx) => {
@@ -135,52 +130,50 @@ export class CompleteLessonUseCase {
             level: newLevel,
             xpToNextLevel: newXpToNextLevel,
           },
-        });
+        })
 
         // Registrar no histórico de XP
         await tx.userXpHistory.create({
           data: {
             userId,
             xpAmount: this.XP_PER_LESSON,
-            source: "lesson_completed",
+            source: 'lesson_completed',
             sourceId: lessonId,
             description: `Completou lição: ${lesson.title}`,
           },
-        });
+        })
 
         // Criar notificação de level up dentro da transação
         if (levelUp) {
           try {
-            const notificationData = NotificationBuilder.createLevelUpNotification(
-              userId,
-              {
+            const notificationData =
+              NotificationBuilder.createLevelUpNotification(userId, {
                 level: newLevel,
                 totalXp: newTotalXp,
                 xpToNextLevel: newXpToNextLevel,
-              }
-            );
+              })
 
             await createNotification({
               ...notificationData,
               tx,
-            });
+            })
           } catch (error) {
             // Não quebra o fluxo se a notificação falhar
-            console.error("Erro ao criar notificação de level up:", error);
+            console.error('Erro ao criar notificação de level up:', error)
           }
         }
-      });
+      })
 
-      xpGained = this.XP_PER_LESSON;
-      totalXp = newTotalXp;
-      level = newLevel;
-      xpToNextLevel = newXpToNextLevel;
+      xpGained = this.XP_PER_LESSON
+      totalXp = newTotalXp
+      level = newLevel
+      xpToNextLevel = newXpToNextLevel
     } else {
       // Se já estava completa, recalcular nível e xpToNextLevel baseado no XP atual
       // Isso garante que se a fórmula mudou, os valores sejam atualizados
-      totalXp = user.totalXp;
-      level = this.calculateLevel(user.totalXp);
-      xpToNextLevel = this.calculateXpToNextLevel(level, user.totalXp);
+      totalXp = user.totalXp
+      level = this.calculateLevel(user.totalXp)
+      xpToNextLevel = this.calculateXpToNextLevel(level, user.totalXp)
 
       // Se o nível calculado for diferente do armazenado, atualizar no banco
       if (level !== user.level || xpToNextLevel !== user.xpToNextLevel) {
@@ -190,7 +183,7 @@ export class CompleteLessonUseCase {
             level,
             xpToNextLevel,
           },
-        });
+        })
       }
     }
 
@@ -202,38 +195,38 @@ export class CompleteLessonUseCase {
           include: {
             lessons: {
               orderBy: {
-                order: "asc",
+                order: 'asc',
               },
             },
           },
           orderBy: {
-            id: "asc",
+            id: 'asc',
           },
         },
       },
-    });
+    })
 
     if (!moduleWithLessons) {
-      throw new Error("Module not found");
+      throw new Error('Module not found')
     }
 
     // Calcular total de aulas do módulo
     const totalTasksInModule = moduleWithLessons.submodules.reduce(
       (acc, group) => acc + group.lessons.length,
-      0
-    );
+      0,
+    )
 
     // Contar aulas concluídas no módulo
     const tasksCompleted =
       await this.userProgressRepository.countCompletedInModule(
         userId,
-        group.moduleId
-      );
+        group.moduleId,
+      )
 
     // Calcular progresso do módulo
     const moduleProgress =
-      totalTasksInModule > 0 ? tasksCompleted / totalTasksInModule : 0;
-    const moduleCompleted = tasksCompleted === totalTasksInModule;
+      totalTasksInModule > 0 ? tasksCompleted / totalTasksInModule : 0
+    const moduleCompleted = tasksCompleted === totalTasksInModule
 
     // Atualizar progresso do módulo
     await this.userModuleProgressRepository.upsert({
@@ -244,28 +237,25 @@ export class CompleteLessonUseCase {
       tasksCompleted,
       progress: moduleProgress,
       isCompleted: moduleCompleted,
-    });
+    })
 
-    // Buscar todas as aulas do curso em ordem
-    const allLessons = await this.getAllLessonsInOrder(courseId);
+    const allLessons = await this.getAllLessonsInOrder(courseId)
 
-    // Encontrar a próxima aula não concluída
-    let nextLessonId: number | null = null;
-    const currentLessonIndex = allLessons.findIndex((l) => l.id === lessonId);
+    let nextLessonId: number | null = null
+    const currentLessonIndex = allLessons.findIndex((l) => l.id === lessonId)
 
     if (currentLessonIndex !== -1) {
-      // Verificar se há próxima aula e se ela está desbloqueada
       for (let i = currentLessonIndex + 1; i < allLessons.length; i++) {
-        const nextLesson = allLessons[i];
+        const nextLesson = allLessons[i]
         const isUnlocked = await this.isLessonUnlocked(
           userId,
           nextLesson.id,
-          allLessons
-        );
+          allLessons,
+        )
 
         if (isUnlocked) {
-          nextLessonId = nextLesson.id;
-          break;
+          nextLessonId = nextLesson.id
+          break
         }
       }
     }
@@ -283,18 +273,18 @@ export class CompleteLessonUseCase {
           },
         },
       },
-    });
+    })
 
     const courseProgress =
-      allLessons.length > 0 ? completedLessons / allLessons.length : 0;
-    const courseCompleted = completedLessons === allLessons.length;
-    const wasCourseCompleted = userCourse.isCompleted;
-    const isNewlyCompleted = courseCompleted && !wasCourseCompleted;
+      allLessons.length > 0 ? completedLessons / allLessons.length : 0
+    const courseCompleted = completedLessons === allLessons.length
+    const wasCourseCompleted = userCourse.isCompleted
+    const isNewlyCompleted = courseCompleted && !wasCourseCompleted
 
     // Atualizar UserCourse
     const nextLesson = nextLessonId
       ? allLessons.find((l) => l.id === nextLessonId)
-      : null;
+      : null
 
     if (nextLesson && nextLessonId !== null) {
       const nextLessonGroup = await prisma.submodule.findFirst({
@@ -308,11 +298,11 @@ export class CompleteLessonUseCase {
         include: {
           module: true,
         },
-      });
+      })
 
       // Verificar se a próxima lesson está em outro módulo
-      const nextModuleId = nextLessonGroup?.moduleId;
-      const currentModuleId = group.moduleId;
+      const nextModuleId = nextLessonGroup?.moduleId
+      const currentModuleId = group.moduleId
 
       // Se a próxima lesson está em outro módulo, NÃO avançar automaticamente
       // O usuário deve usar o botão "Desbloquear próximo módulo" para avançar
@@ -325,7 +315,7 @@ export class CompleteLessonUseCase {
           progress: courseProgress,
           isCompleted: courseCompleted,
           completedAt: courseCompleted ? new Date() : null,
-        });
+        })
       } else {
         // A próxima lesson está no mesmo módulo, pode avançar normalmente
         await this.userCourseRepository.update(userCourse.id, {
@@ -334,7 +324,7 @@ export class CompleteLessonUseCase {
           progress: courseProgress,
           isCompleted: courseCompleted,
           completedAt: courseCompleted ? new Date() : null,
-        });
+        })
       }
     } else {
       await this.userCourseRepository.update(userCourse.id, {
@@ -342,25 +332,23 @@ export class CompleteLessonUseCase {
         progress: courseProgress,
         isCompleted: true,
         completedAt: new Date(),
-      });
+      })
     }
 
     // Criar notificação de curso completado
     if (isNewlyCompleted) {
       try {
-        const notificationData = NotificationBuilder.createCourseCompletedNotification(
-          userId,
-          {
+        const notificationData =
+          NotificationBuilder.createCourseCompletedNotification(userId, {
             courseId: course.id,
             courseTitle: course.title,
             courseSlug: course.slug,
-          }
-        );
+          })
 
-        await createNotification(notificationData);
+        await createNotification(notificationData)
       } catch (error) {
         // Não quebra o fluxo se a notificação falhar
-        console.error("Erro ao criar notificação de curso completado:", error);
+        console.error('Erro ao criar notificação de curso completado:', error)
       }
     }
 
@@ -375,7 +363,7 @@ export class CompleteLessonUseCase {
       level,
       xpToNextLevel,
       progress: Math.round(moduleProgress * 100), // Progresso do módulo em porcentagem (0-100)
-    };
+    }
   }
 
   /**
@@ -388,10 +376,10 @@ export class CompleteLessonUseCase {
    * - Nível 4: 700 XP total (450 + 250)
    */
   private calculateXpForLevel(level: number): number {
-    if (level <= 1) return 100;
+    if (level <= 1) return 100
     // XP total = 100 * level + 50 * (level - 1) * level / 2
     // Simplificado: 100 * level + 25 * (level - 1) * level
-    return 100 * level + 25 * (level - 1) * level;
+    return 100 * level + 25 * (level - 1) * level
   }
 
   /**
@@ -403,7 +391,7 @@ export class CompleteLessonUseCase {
    * - Para nível 4: 100 + (4-1) * 50 = 250 XP
    */
   private calculateXpRequiredForNextLevel(level: number): number {
-    return 100 + (level - 1) * 50;
+    return 100 + (level - 1) * 50
   }
 
   /**
@@ -411,13 +399,13 @@ export class CompleteLessonUseCase {
    * Usa busca binária ou iteração para encontrar o nível correto
    */
   private calculateLevel(totalXp: number): number {
-    if (totalXp < 100) return 1;
+    if (totalXp < 100) return 1
 
-    let level = 1;
+    let level = 1
     while (this.calculateXpForLevel(level + 1) <= totalXp) {
-      level++;
+      level++
     }
-    return level;
+    return level
   }
 
   /**
@@ -425,10 +413,10 @@ export class CompleteLessonUseCase {
    * Retorna quanto XP falta para subir de nível
    */
   private calculateXpToNextLevel(level: number, totalXp: number): number {
-    const xpForCurrentLevel = this.calculateXpForLevel(level);
-    const xpForNextLevel = this.calculateXpForLevel(level + 1);
-    const xpNeeded = xpForNextLevel - totalXp;
-    return Math.max(0, xpNeeded);
+    const xpForCurrentLevel = this.calculateXpForLevel(level)
+    const xpForNextLevel = this.calculateXpForLevel(level + 1)
+    const xpNeeded = xpForNextLevel - totalXp
+    return Math.max(0, xpNeeded)
   }
 
   private async getAllLessonsInOrder(courseId: string) {
@@ -439,55 +427,55 @@ export class CompleteLessonUseCase {
           include: {
             lessons: {
               orderBy: {
-                order: "asc",
+                order: 'asc',
               },
             },
           },
           orderBy: {
-            id: "asc",
+            id: 'asc',
           },
         },
       },
       orderBy: {
-        id: "asc",
+        id: 'asc',
       },
-    });
+    })
 
-    const allLessons: Array<{ id: number; order: number }> = [];
+    const allLessons: Array<{ id: number; order: number }> = []
     for (const module of modules) {
       for (const group of module.submodules) {
         for (const lesson of group.lessons) {
           allLessons.push({
             id: lesson.id,
             order: lesson.order,
-          });
+          })
         }
       }
     }
 
-    return allLessons;
+    return allLessons
   }
 
   private async isLessonUnlocked(
     userId: string,
     lessonId: number,
-    allLessons: Array<{ id: number }>
+    allLessons: Array<{ id: number }>,
   ): Promise<boolean> {
-    const lessonIndex = allLessons.findIndex((l) => l.id === lessonId);
+    const lessonIndex = allLessons.findIndex((l) => l.id === lessonId)
 
     // Primeira aula sempre está desbloqueada
     if (lessonIndex === 0) {
-      return true;
+      return true
     }
 
     // Verificar se a aula anterior foi concluída
-    const previousLesson = allLessons[lessonIndex - 1];
+    const previousLesson = allLessons[lessonIndex - 1]
     const previousProgress =
       await this.userProgressRepository.findByUserAndTask(
         userId,
-        previousLesson.id
-      );
+        previousLesson.id,
+      )
 
-    return previousProgress?.isCompleted ?? false;
+    return previousProgress?.isCompleted ?? false
   }
 }

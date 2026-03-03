@@ -71,8 +71,6 @@ export const AulaModal = () => {
 
   const hasNextLesson = currentIndex < lessons.length - 1
   const hasPreviousLesson = currentIndex > 0
-  const nextLesson = hasNextLesson ? lessons[currentIndex + 1] : null
-  const isNextLessonLocked = nextLesson?.status === 'locked'
 
   // Usa os valores diretamente do back-end
   const canUnlockNextModule = roadmap?.course.canUnlockNextModule ?? false
@@ -249,9 +247,7 @@ export const AulaModal = () => {
                 variant="outline"
                 onClick={goToNextLesson}
                 disabled={
-                  !hasNextLesson ||
-                  isNextLessonLocked ||
-                  currentLesson?.status !== 'completed'
+                  !hasNextLesson
                 }
                 className="h-[64px] lg:min-h-[84px] w-1/2 max-w-[320px] rounded-none text-base bg-black border-none
       rounded-br-[20px] disabled:opacity-50"

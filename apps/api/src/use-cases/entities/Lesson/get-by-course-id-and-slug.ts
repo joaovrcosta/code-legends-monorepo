@@ -21,7 +21,7 @@ interface NavigationItem {
 interface GetLessonByCourseIdAndSlugResponse {
   lesson: LessonWithContentDTO
   moduleTitle?: string
-  status?: 'locked' | 'unlocked' | 'completed'
+  status?: 'unlocked' | 'completed'
   isCurrent?: boolean
   canReview?: boolean
   navigation?: {
@@ -112,18 +112,11 @@ export class GetLessonByCourseIdAndSlugUseCase {
     // Encontrar índice da lesson atual
     const lessonIndex = allLessons.findIndex((l) => l.id === lessonEntity.id)
 
-    // Determinar status (mesma lógica do roadmap)
-    let status: 'locked' | 'unlocked' | 'completed'
-    if (isCompleted) {
-      status = 'completed'
-    } else if (lessonIndex === 0) {
-      status = 'unlocked' // Primeira aula sempre desbloqueada
-    } else {
-      // Verificar se a aula anterior foi concluída
-      const previousLesson = allLessons[lessonIndex - 1]
-      const previousCompleted = progressMap.get(previousLesson.id) ?? false
-      status = previousCompleted ? 'unlocked' : 'locked'
-    }
+    // Determinar status (alinhado com o roadmap)
+    // Removido conceito de "locked": toda aula não concluída fica "unlocked"
+    const status: 'unlocked' | 'completed' = isCompleted
+      ? 'completed'
+      : 'unlocked'
 
     // Verificar se é a lesson atual
     const hasProgress = userProgresses.some((p) => p.isCompleted)

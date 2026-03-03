@@ -47,7 +47,6 @@ export function LessonsAccordion() {
 
   const handleLessonClick = useCallback(
     (lesson: Lesson, _: number) => {
-      if (lesson.status === 'locked') return
       if (!roadmap?.modules) return
 
       const context = findLessonContext(lesson.id, roadmap.modules)
@@ -220,12 +219,13 @@ export function LessonsAccordion() {
                           <div className="flex flex-col">
                             {group.lessons.map((lesson, lessonIndex) => {
                               const isActive = currentLesson?.id === lesson.id
-                              const isLocked = lesson.status === 'locked'
                               const isLastLesson =
                                 lessonIndex === group.lessons.length - 1
                               const lessonIndexInAll = allLessons.findIndex(
                                 (l) => l.id === lesson.id,
                               )
+                              const isPaidLesson = lesson.isFree === false
+                              const isFreePlan = userPlan === 'FREE'
 
                               return (
                                 <div
@@ -244,20 +244,22 @@ export function LessonsAccordion() {
                                         lessonIndexInAll,
                                       )
                                     }
-                                    disabled={isLocked}
+                                    disabled={false}
                                     className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${
                                       isActive
                                         ? 'bg-zinc-800/50 border border-cyan-400/50'
                                         : 'hover:bg-zinc-800/30 border border-transparent'
-                                    } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    } ${
+                                      isFreePlan && isPaidLesson
+                                        ? 'opacity-50'
+                                        : ''
+                                    }`}
                                   >
                                     <div
                                       className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
                                         isActive
                                           ? 'bg-cyan-400'
-                                          : isLocked
-                                            ? 'bg-zinc-700'
-                                            : 'bg-cyan-400/50'
+                                          : 'bg-cyan-400/50'
                                       }`}
                                     />
 

@@ -42,7 +42,7 @@ interface RoadmapLesson {
   video?: { url: string | null; duration: string | null } | null
   article?: { body: string } | null
   order: number
-  status: 'locked' | 'unlocked' | 'completed'
+  status: 'unlocked' | 'completed'
   isCurrent: boolean
   canReview: boolean
   isFree: boolean
@@ -270,21 +270,12 @@ export class GetRoadmapUseCase {
       const roadmapGroups: RoadmapGroup[] = module.submodules.map((group) => {
         const roadmapLessons: RoadmapLesson[] = group.lessons.map((lesson) => {
           const isCompleted = progressMap.get(lesson.id) ?? false
-          const lessonIndex = allLessons.findIndex((l) => l.id === lesson.id)
 
           // Determinar status
-          let status: 'locked' | 'unlocked' | 'completed'
-          if (isCompleted) {
-            status = 'completed'
-          } else if (lessonIndex === 0) {
-            status = 'unlocked' // Primeira aula sempre desbloqueada
-          } else {
-            // Verificar se a aula anterior foi concluída
-            const previousLesson = allLessons[lessonIndex - 1]
-            const previousCompleted =
-              progressMap.get(previousLesson.id) ?? false
-            status = previousCompleted ? 'unlocked' : 'locked'
-          }
+          // Removido conceito de "locked": toda aula não concluída fica "unlocked"
+          const status: 'unlocked' | 'completed' = isCompleted
+            ? 'completed'
+            : 'unlocked'
 
           const isCurrent = lesson.id === validCurrentTaskId
 

@@ -41,14 +41,6 @@ export function TitleAccordion({ title, description }: TitleAccordinProps) {
       return
     }
 
-    // Verifica se a aula está bloqueada antes de tentar completá-la
-    if (currentLesson.status === 'locked') {
-      alert(
-        'Esta aula está bloqueada. Complete as aulas anteriores para desbloqueá-la.',
-      )
-      return
-    }
-
     try {
       setIsMarking(true)
 

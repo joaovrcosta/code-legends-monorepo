@@ -52,7 +52,6 @@ export const LessonsList = memo(function LessonsList({
       if (context) {
         const url = generateLessonUrl(lesson, context.module, context.group)
         router.push(url)
-        // Aulas bloqueadas (pagas) também navegam: usuário FREE vê o paywall na página da aula
       } else {
         setLessonsForPage(lessons, index)
         router.push('/classroom')
@@ -94,18 +93,46 @@ export const LessonsList = memo(function LessonsList({
     return (
       <div className="px-4 py-4 space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="space-y-3 border-b border-zinc-900 pb-4 last:border-b-0">
+          <div
+            key={i}
+            className="space-y-3 border-b border-zinc-900 pb-4 last:border-b-0"
+          >
             <div className="flex items-center gap-3">
-              <Skeleton variant="circular" width={44} height={44} className="shrink-0 dark:bg-zinc-800" />
+              <Skeleton
+                variant="circular"
+                width={44}
+                height={44}
+                className="shrink-0 dark:bg-zinc-800"
+              />
               <div className="flex-1 space-y-2">
-                <Skeleton variant="text" width="30%" className="h-3 dark:bg-zinc-800" />
-                <Skeleton variant="text" width="70%" className="h-4 dark:bg-zinc-800" />
+                <Skeleton
+                  variant="text"
+                  width="30%"
+                  className="h-3 dark:bg-zinc-800"
+                />
+                <Skeleton
+                  variant="text"
+                  width="70%"
+                  className="h-4 dark:bg-zinc-800"
+                />
               </div>
             </div>
             <div className="pl-11 space-y-2">
-              <Skeleton variant="text" width="100%" className="h-3 dark:bg-zinc-800" />
-              <Skeleton variant="text" width="90%" className="h-3 dark:bg-zinc-800" />
-              <Skeleton variant="text" width="95%" className="h-3 dark:bg-zinc-800" />
+              <Skeleton
+                variant="text"
+                width="100%"
+                className="h-3 dark:bg-zinc-800"
+              />
+              <Skeleton
+                variant="text"
+                width="90%"
+                className="h-3 dark:bg-zinc-800"
+              />
+              <Skeleton
+                variant="text"
+                width="95%"
+                className="h-3 dark:bg-zinc-800"
+              />
             </div>
           </div>
         ))}
@@ -201,12 +228,13 @@ export const LessonsList = memo(function LessonsList({
                           <div className="flex flex-col">
                             {group.lessons.map((lesson, lessonIndex) => {
                               const isActive = currentLessonId === lesson.id
-                              const isLocked = lesson.status === 'locked'
                               const isLastLesson =
                                 lessonIndex === group.lessons.length - 1
                               const lessonIndexInAll = lessons.findIndex(
                                 (l) => l.id === lesson.id,
                               )
+                              const isPaidLesson = lesson.isFree === false
+                              const isFreePlan = userPlan === 'FREE'
 
                               return (
                                 <div
@@ -225,20 +253,22 @@ export const LessonsList = memo(function LessonsList({
                                         lessonIndexInAll,
                                       )
                                     }
-                                    disabled={isLocked}
+                                    disabled={false}
                                     className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${
                                       isActive
                                         ? 'bg-zinc-800/50 shadow-xl'
                                         : 'hover:bg-zinc-800/30'
-                                    } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    } ${
+                                      isFreePlan && isPaidLesson
+                                        ? 'opacity-50'
+                                        : ''
+                                    }`}
                                   >
                                     <div
                                       className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
                                         isActive
                                           ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]'
-                                          : isLocked
-                                            ? 'bg-zinc-700'
-                                            : 'bg-cyan-400'
+                                          : 'bg-cyan-400'
                                       }`}
                                     />
 
@@ -252,7 +282,8 @@ export const LessonsList = memo(function LessonsList({
                                       >
                                         {lesson.title}
                                       </span>
-                                      {(lesson.video?.duration ?? lesson.video_duration) && (
+                                      {(lesson.video?.duration ??
+                                        lesson.video_duration) && (
                                         <span
                                           className={`text-xs tabular-nums ${
                                             isActive
@@ -260,7 +291,8 @@ export const LessonsList = memo(function LessonsList({
                                               : 'text-zinc-500'
                                           }`}
                                         >
-                                          {lesson.video?.duration ?? lesson.video_duration}
+                                          {lesson.video?.duration ??
+                                            lesson.video_duration}
                                         </span>
                                       )}
                                     </div>
