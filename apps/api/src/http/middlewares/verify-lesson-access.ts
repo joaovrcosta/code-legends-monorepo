@@ -88,13 +88,13 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         return; // Permite acesso
       }
 
-      // Usuário FREE só pode acessar curso free ou aula free (em curso pago)
+      // Usuário FREE só pode acessar aulas gratuitas
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { plan: true },
       });
       const isPaidUser = user?.plan === "PRO" || user?.plan === "PREMIUM";
-      if (!isPaidUser && !courseIsFree && !lessonIsFree) {
+      if (!isPaidUser && !lessonIsFree) {
         return reply.status(403).send({
           message:
             "Conteúdo exclusivo para assinantes. Faça upgrade para acessar.",

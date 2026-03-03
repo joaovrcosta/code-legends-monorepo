@@ -58,9 +58,8 @@ export default function DynamicLessonPage() {
   const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [upgradeRequired, setUpgradeRequired] = useState(false)
   const [isUnlocking, setIsUnlocking] = useState(false)
-
-  // Ref para evitar loop infinito no useEffect de atualização do roadmap
   const lessonDataRef = useRef<LessonResponse | null>(null)
 
   useEffect(() => {
@@ -85,11 +84,13 @@ export default function DynamicLessonPage() {
         const courseId = updatedActiveCourse.id
         setIsLoading(true)
         setError(null)
+        setUpgradeRequired(false)
 
         try {
           const data = await getLessonBySlug(courseId, lessonSlug)
           if (isLessonUpgradeRequiredResult(data)) {
             setError(data.message)
+            setUpgradeRequired(true)
             return
           }
           if (data) {
@@ -126,32 +127,34 @@ export default function DynamicLessonPage() {
 
       setIsLoading(true)
       setError(null)
+      setUpgradeRequired(false)
 
-        try {
-          const data = await getLessonBySlug(activeCourse.id, lessonSlug)
-          if (isLessonUpgradeRequiredResult(data)) {
-            setError(data.message)
+      try {
+        const data = await getLessonBySlug(activeCourse.id, lessonSlug)
+        if (isLessonUpgradeRequiredResult(data)) {
+          setError(data.message)
+          setUpgradeRequired(true)
+          return
+        }
+        if (data) {
+          // Se a aula estiver bloqueada, redireciona para /classroom
+          if (data.status === 'locked') {
+            router.replace('/classroom')
             return
           }
-          if (data) {
-            // Se a aula estiver bloqueada, redireciona para /classroom
-            if (data.status === 'locked') {
-              router.replace('/classroom')
-              return
-            }
 
-            setLessonData(data)
+          setLessonData(data)
 
-            // Atualiza o store com a lição atual, incluindo o status do nível raiz
-            const lessonWithStatus = {
-              ...data.lesson,
-              status: data.status, // Usa o status do nível raiz da resposta
-            }
-            setLessonForPage(lessonWithStatus)
-          } else {
-            setError('Aula não encontrada')
+          // Atualiza o store com a lição atual, incluindo o status do nível raiz
+          const lessonWithStatus = {
+            ...data.lesson,
+            status: data.status, // Usa o status do nível raiz da resposta
           }
-        } catch (err) {
+          setLessonForPage(lessonWithStatus)
+        } else {
+          setError('Aula não encontrada')
+        }
+      } catch (err) {
         console.error('Erro ao carregar aula:', err)
         setError(err instanceof Error ? err.message : 'Erro ao carregar aula')
       } finally {
@@ -333,7 +336,6 @@ export default function DynamicLessonPage() {
   }, [activeCourse?.id, lessonSlug, navigateToLesson])
 
   if (isLoading) {
-    // Mantém o mesmo layout (sidebar + área principal) para não ficar tela preta; conteúdo central com loading
     return (
       <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
         <aside
@@ -418,9 +420,10 @@ export default function DynamicLessonPage() {
   }
 
   const isUpgradeRequired =
-    error?.toLowerCase().includes('exclusivo') ||
-    error?.toLowerCase().includes('assinantes') ||
-    error?.toLowerCase().includes('upgrade')
+    upgradeRequired ||
+    (error?.toLowerCase().includes('exclusivo') ?? false) ||
+    (error?.toLowerCase().includes('assinantes') ?? false) ||
+    (error?.toLowerCase().includes('upgrade') ?? false)
 
   // Paywall: conteúdo exclusivo para assinantes — mantém sidebar e layout, mostra paywall no lugar do vídeo
   if (isUpgradeRequired && activeCourse) {
