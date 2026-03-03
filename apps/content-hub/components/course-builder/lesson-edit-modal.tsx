@@ -29,10 +29,16 @@ export function LessonEditModal({
 }: LessonEditModalProps) {
     const [loading, setLoading] = useState(false);
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+    const normalizeType = (type: string) => {
+        const allowed = ["video", "article", "text", "quiz", "project"] as const;
+        return allowed.includes(type as any) ? type : "video";
+    };
+
     const [formData, setFormData] = useState({
         title: lesson.title,
         description: lesson.description,
-        type: lesson.type,
+        type: normalizeType(lesson.type),
         slug: lesson.slug,
         url: lesson.url || "",
         video_url: lesson.video_url || lesson.video?.url || "",
@@ -48,7 +54,7 @@ export function LessonEditModal({
             setFormData({
                 title: lesson.title,
                 description: lesson.description,
-                type: lesson.type,
+                type: normalizeType(lesson.type),
                 slug: lesson.slug,
                 url: lesson.url || "",
                 video_url: lesson.video_url || lesson.video?.url || "",
@@ -165,7 +171,6 @@ export function LessonEditModal({
                                     <option value="article">Artigo</option>
                                     <option value="text">Texto</option>
                                     <option value="quiz">Quiz</option>
-                                    <option value="exercise">Exercício</option>
                                     <option value="project">Projeto</option>
                                 </Select>
                             </div>

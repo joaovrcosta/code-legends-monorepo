@@ -159,7 +159,7 @@ async function checkIfLessonIsUnlocked(
   const modules = await prisma.module.findMany({
     where: { courseId },
     include: {
-      groups: {
+      submodules: {
         include: {
           lessons: {
             orderBy: {
@@ -180,7 +180,7 @@ async function checkIfLessonIsUnlocked(
   // Construir lista de todas as aulas em ordem
   const allLessons: Array<{ id: number }> = [];
   modules.forEach((module) => {
-    module.groups.forEach((group) => {
+    module.submodules.forEach((group) => {
       group.lessons.forEach((lesson) => {
         allLessons.push({ id: lesson.id });
       });

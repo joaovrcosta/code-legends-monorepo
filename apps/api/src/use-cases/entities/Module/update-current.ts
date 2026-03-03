@@ -63,7 +63,7 @@ export class UpdateCurrentModuleUseCase {
     const allModules = await prisma.module.findMany({
       where: { courseId },
       include: {
-        groups: {
+        submodules: {
           include: {
             lessons: {
               select: {
@@ -106,7 +106,7 @@ export class UpdateCurrentModuleUseCase {
     const moduleWithLessons = await prisma.module.findUnique({
       where: { id: moduleId },
       include: {
-        groups: {
+        submodules: {
           orderBy: {
             id: "asc",
           },
@@ -144,13 +144,13 @@ export class UpdateCurrentModuleUseCase {
         currentTaskId = userCourse.currentTaskId;
       } else {
         // Se não pertence mais, usar a primeira lesson do módulo
-        const firstGroup = moduleWithLessons?.groups[0];
+        const firstGroup = moduleWithLessons?.submodules[0];
         const firstLesson = firstGroup?.lessons[0];
         currentTaskId = firstLesson?.id ?? null;
       }
     } else {
       // Se está mudando de módulo, usar a primeira lesson do novo módulo
-      const firstGroup = moduleWithLessons?.groups[0];
+      const firstGroup = moduleWithLessons?.submodules[0];
       const firstLesson = firstGroup?.lessons[0];
       currentTaskId = firstLesson?.id ?? null;
     }
@@ -215,7 +215,7 @@ export class UpdateCurrentModuleUseCase {
     if (targetModuleIndex < currentModuleIndex) {
       // Verificar se o módulo anterior está 100% completo
       const targetModule = modules[targetModuleIndex];
-      const totalLessons = targetModule.groups.reduce(
+      const totalLessons = targetModule.submodules.reduce(
         (acc: number, group: any) => acc + group.lessons.length,
         0
       );
@@ -230,7 +230,7 @@ export class UpdateCurrentModuleUseCase {
     // Se está tentando acessar um módulo posterior ao atual
     // Verificar se o módulo atual está 100% completo
     const currentModule = modules[currentModuleIndex];
-    const currentModuleTotalLessons = currentModule.groups.reduce(
+    const currentModuleTotalLessons = currentModule.submodules.reduce(
       (acc: number, group: any) => acc + group.lessons.length,
       0
     );

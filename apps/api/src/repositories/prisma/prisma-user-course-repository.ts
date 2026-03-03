@@ -19,7 +19,7 @@ export class PrismaUserCourseRepository implements IUserCourseRepository {
             id: "asc",
           },
           include: {
-            groups: {
+            submodules: {
               orderBy: {
                 id: "asc",
               },
@@ -42,7 +42,7 @@ export class PrismaUserCourseRepository implements IUserCourseRepository {
     }
 
     const firstModule = course.modules[0];
-    const firstGroup = firstModule?.groups[0];
+    const firstGroup = firstModule?.submodules[0];
     const firstLesson = firstGroup?.lessons[0];
 
     // Criar inscrição SEM definir currentModule/Task (não ativa automaticamente)

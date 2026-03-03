@@ -1,4 +1,4 @@
-import { Group } from "@prisma/client";
+import { Submodule } from "@prisma/client";
 import { IGroupRepository } from "../../../repositories/group-repository";
 
 interface ListGroupsRequest {
@@ -6,7 +6,7 @@ interface ListGroupsRequest {
 }
 
 interface ListGroupsResponse {
-  groups: Group[];
+  groups: Submodule[];
 }
 
 export class ListGroupsUseCase {

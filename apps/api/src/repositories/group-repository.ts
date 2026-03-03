@@ -1,4 +1,4 @@
-import { Group } from "@prisma/client";
+import { Submodule } from "@prisma/client";
 
 interface CreateGroupData {
   title: string;
@@ -10,13 +10,13 @@ interface UpdateGroupData {
 }
 
 export interface IGroupRepository {
-  create(data: CreateGroupData): Promise<Group>;
-  findAll(moduleId?: string): Promise<Group[]>;
-  findById(id: number): Promise<Group | null>;
+  create(data: CreateGroupData): Promise<Submodule>;
+  findAll(moduleId?: string): Promise<Submodule[]>;
+  findById(id: number): Promise<Submodule | null>;
   findByTitleAndModuleId(
     title: string,
     moduleId: string
-  ): Promise<Group | null>;
-  update(id: number, data: UpdateGroupData): Promise<Group>;
+  ): Promise<Submodule | null>;
+  update(id: number, data: UpdateGroupData): Promise<Submodule>;
   delete(id: number): Promise<void>;
 }

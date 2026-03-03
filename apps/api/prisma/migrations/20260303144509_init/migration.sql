@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "LessonType" AS ENUM ('video', 'article', 'text', 'quiz', 'project');
+
+-- CreateEnum
 CREATE TYPE "MaritalStatus" AS ENUM ('SINGLE', 'MARRIED', 'DIVORCED', 'WIDOWED');
 
 -- CreateEnum
@@ -157,7 +160,7 @@ CREATE TABLE "Lesson" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
+    "type" "LessonType" NOT NULL,
     "slug" TEXT NOT NULL,
     "url" TEXT,
     "isFree" BOOLEAN NOT NULL DEFAULT false,

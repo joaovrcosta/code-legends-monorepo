@@ -1,29 +1,37 @@
-import { Lesson } from "@prisma/client";
-import { ILessonRepository } from "../lesson-repository";
-import { prisma } from "../../lib/prisma";
+import { Lesson } from '@prisma/client'
+import { ILessonRepository } from '../lesson-repository'
+import { prisma } from '../../lib/prisma'
 
 interface CreateLessonData {
-  title: string;
-  description: string;
-  type: string;
-  slug: string;
-  url?: string;
-  isFree?: boolean;
-  locked?: boolean;
-  submoduleId: number;
-  order?: number;
-  authorId: string;
+  title: string
+  description: string
+  type: string
+  slug: string
+  url?: string
+  isFree?: boolean
+  locked?: boolean
+  submoduleId: number
+  order?: number
+  authorId: string
 }
 
 interface UpdateLessonData {
-  title?: string;
-  description?: string;
-  type?: string;
-  slug?: string;
-  url?: string;
-  isFree?: boolean;
-  locked?: boolean;
-  order?: number;
+  title?: string
+  description?: string
+  type?: string
+  slug?: string
+  url?: string
+  isFree?: boolean
+  locked?: boolean
+  order?: number
+}
+
+const LESSON_TYPE_MAP: Record<string, string> = {
+  video: 'VIDEO',
+  article: 'ARTICLE',
+  text: 'TEXT',
+  quiz: 'QUIZ',
+  project: 'PROJECT',
 }
 
 export class PrismaLessonRepository implements ILessonRepository {
@@ -32,7 +40,7 @@ export class PrismaLessonRepository implements ILessonRepository {
       data: {
         title: data.title,
         description: data.description,
-        type: data.type,
+        type: (LESSON_TYPE_MAP[data.type] ?? 'VIDEO') as any,
         slug: data.slug,
         url: data.url,
         isFree: data.isFree ?? false,
@@ -62,47 +70,32 @@ export class PrismaLessonRepository implements ILessonRepository {
         quiz: true,
         project: true,
       },
-    });
+    })
 
-    return lesson;
+    return lesson
   }
 
   async findAll(groupId?: number): Promise<Lesson[]> {
-    const where: any = {};
+    const where: any = {}
 
     if (groupId !== undefined) {
-      where.submoduleId = groupId;
+      where.submoduleId = groupId
     }
 
     const lessons = await prisma.lesson.findMany({
       where,
       include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
-          },
-        },
-        submodule: {
-          select: {
-            id: true,
-            title: true,
-            moduleId: true,
-          },
-        },
         video: true,
         article: true,
         quiz: true,
         project: true,
       },
       orderBy: {
-        order: "asc",
+        order: 'asc',
       },
-    });
+    })
 
-    return lessons;
+    return lessons
   }
 
   async findById(id: number): Promise<Lesson | null> {
@@ -141,9 +134,9 @@ export class PrismaLessonRepository implements ILessonRepository {
         quiz: true,
         project: true,
       },
-    });
+    })
 
-    return lesson;
+    return lesson
   }
 
   async findBySlug(slug: string): Promise<Lesson | null> {
@@ -182,12 +175,15 @@ export class PrismaLessonRepository implements ILessonRepository {
         quiz: true,
         project: true,
       },
-    });
+    })
 
-    return lesson;
+    return lesson
   }
 
-  async findByCourseIdAndSlug(courseId: string, slug: string): Promise<Lesson | null> {
+  async findByCourseIdAndSlug(
+    courseId: string,
+    slug: string,
+  ): Promise<Lesson | null> {
     const lesson = await prisma.lesson.findFirst({
       where: {
         slug,
@@ -228,12 +224,15 @@ export class PrismaLessonRepository implements ILessonRepository {
         quiz: true,
         project: true,
       },
-    });
+    })
 
-    return lesson;
+    return lesson
   }
 
-  async findBySlugAndSubmoduleId(slug: string, submoduleId: number): Promise<Lesson | null> {
+  async findBySlugAndSubmoduleId(
+    slug: string,
+    submoduleId: number,
+  ): Promise<Lesson | null> {
     const lesson = await prisma.lesson.findFirst({
       where: {
         slug,
@@ -270,17 +269,22 @@ export class PrismaLessonRepository implements ILessonRepository {
         quiz: true,
         project: true,
       },
-    });
+    })
 
-    return lesson;
+    return lesson
   }
 
   async update(id: number, data: UpdateLessonData): Promise<Lesson> {
+    const updateData: any = { ...data }
+    if (updateData.type) {
+      updateData.type = (LESSON_TYPE_MAP[updateData.type] ?? 'VIDEO') as any
+    }
+
     const lesson = await prisma.lesson.update({
       where: {
         id,
       },
-      data,
+      data: updateData,
       include: {
         author: {
           select: {
@@ -302,9 +306,9 @@ export class PrismaLessonRepository implements ILessonRepository {
         quiz: true,
         project: true,
       },
-    });
+    })
 
-    return lesson;
+    return lesson
   }
 
   async delete(id: number): Promise<void> {
@@ -312,6 +316,6 @@ export class PrismaLessonRepository implements ILessonRepository {
       where: {
         id,
       },
-    });
+    })
   }
 }

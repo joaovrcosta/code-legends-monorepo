@@ -31,7 +31,7 @@ export class PrismaModuleRepository implements IModuleRepository {
         },
         _count: {
           select: {
-            groups: true,
+            submodules: true,
           },
         },
       },
@@ -59,7 +59,7 @@ export class PrismaModuleRepository implements IModuleRepository {
         },
         _count: {
           select: {
-            groups: true,
+            submodules: true,
           },
         },
       },
@@ -84,7 +84,7 @@ export class PrismaModuleRepository implements IModuleRepository {
             slug: true,
           },
         },
-        groups: {
+        submodules: {
           include: {
             _count: {
               select: {
@@ -112,7 +112,7 @@ export class PrismaModuleRepository implements IModuleRepository {
             slug: true,
           },
         },
-        groups: {
+        submodules: {
           include: {
             _count: {
               select: {
@@ -141,7 +141,7 @@ export class PrismaModuleRepository implements IModuleRepository {
             slug: true,
           },
         },
-        groups: {
+        submodules: {
           include: {
             _count: {
               select: {

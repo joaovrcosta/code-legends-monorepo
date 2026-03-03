@@ -14,7 +14,7 @@ export async function calculateCourseTotalDuration(
             where: { courseId },
             select: {
                 id: true,
-                groups: {
+                submodules: {
                     select: {
                         id: true,
                         lessons: {
@@ -31,9 +31,9 @@ export async function calculateCourseTotalDuration(
 
         let totalSeconds = 0;
 
-        // Itera por todos os módulos, grupos e lições
+        // Itera por todos os módulos, submodules e lições
         for (const module of modules) {
-            for (const group of module.groups) {
+            for (const group of module.submodules) {
                 for (const lesson of group.lessons) {
                     const duration = lesson.video?.duration?.trim();
                     if (duration) {

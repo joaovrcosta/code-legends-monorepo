@@ -1,4 +1,4 @@
-import { Group } from "@prisma/client";
+import { Submodule } from "@prisma/client";
 import { IGroupRepository } from "../../../repositories/group-repository";
 import { IModuleRepository } from "../../../repositories/module-repository";
 import { GroupAlreadyExistsError } from "../../errors/group-already-exists";
@@ -10,7 +10,7 @@ interface CreateGroupRequest {
 }
 
 interface CreateGroupResponse {
-  group: Group;
+  group: Submodule;
 }
 
 export class CreateGroupUseCase {

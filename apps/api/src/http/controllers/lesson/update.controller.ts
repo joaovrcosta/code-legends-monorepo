@@ -12,7 +12,7 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
   const updateLessonBodySchema = z.object({
     title: z.string().optional(),
     description: z.string().optional(),
-    type: z.string().optional(),
+    type: z.enum(["video", "article", "text", "quiz", "project"]).optional(),
     slug: z.string().optional(),
     url: z.string().optional(),
     isFree: z.boolean().optional(),

@@ -1,4 +1,4 @@
-import { Group } from "@prisma/client";
+import { Submodule } from "@prisma/client";
 import { IGroupRepository } from "../group-repository";
 import { prisma } from "../../lib/prisma";
 
@@ -12,8 +12,8 @@ interface UpdateGroupData {
 }
 
 export class PrismaGroupRepository implements IGroupRepository {
-  async create(data: CreateGroupData): Promise<Group> {
-    const group = await prisma.group.create({
+  async create(data: CreateGroupData): Promise<Submodule> {
+    const group = await prisma.submodule.create({
       data: {
         title: data.title,
         moduleId: data.moduleId,
@@ -37,14 +37,14 @@ export class PrismaGroupRepository implements IGroupRepository {
     return group;
   }
 
-  async findAll(moduleId?: string): Promise<Group[]> {
+  async findAll(moduleId?: string): Promise<Submodule[]> {
     const where: any = {};
 
     if (moduleId) {
       where.moduleId = moduleId;
     }
 
-    const groups = await prisma.group.findMany({
+    const groups = await prisma.submodule.findMany({
       where,
       include: {
         module: {
@@ -68,8 +68,8 @@ export class PrismaGroupRepository implements IGroupRepository {
     return groups;
   }
 
-  async findById(id: number): Promise<Group | null> {
-    const group = await prisma.group.findUnique({
+  async findById(id: number): Promise<Submodule | null> {
+    const group = await prisma.submodule.findUnique({
       where: {
         id,
       },
@@ -95,8 +95,8 @@ export class PrismaGroupRepository implements IGroupRepository {
   async findByTitleAndModuleId(
     title: string,
     moduleId: string
-  ): Promise<Group | null> {
-    const group = await prisma.group.findFirst({
+  ): Promise<Submodule | null> {
+    const group = await prisma.submodule.findFirst({
       where: {
         title,
         moduleId,
@@ -106,8 +106,8 @@ export class PrismaGroupRepository implements IGroupRepository {
     return group;
   }
 
-  async update(id: number, data: UpdateGroupData): Promise<Group> {
-    const group = await prisma.group.update({
+  async update(id: number, data: UpdateGroupData): Promise<Submodule> {
+    const group = await prisma.submodule.update({
       where: {
         id,
       },
@@ -132,7 +132,7 @@ export class PrismaGroupRepository implements IGroupRepository {
   }
 
   async delete(id: number): Promise<void> {
-    await prisma.group.delete({
+    await prisma.submodule.delete({
       where: {
         id,
       },

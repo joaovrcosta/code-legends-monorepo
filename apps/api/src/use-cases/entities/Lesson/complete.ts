@@ -55,7 +55,7 @@ export class CompleteLessonUseCase {
     }
 
     // Buscar o grupo (submodule) para obter o moduleId
-    const group = await prisma.group.findUnique({
+    const group = await prisma.submodule.findUnique({
       where: { id: lesson.submoduleId },
       include: {
         module: true,
@@ -198,7 +198,7 @@ export class CompleteLessonUseCase {
     const moduleWithLessons = await prisma.module.findUnique({
       where: { id: group.moduleId },
       include: {
-        groups: {
+        submodules: {
           include: {
             lessons: {
               orderBy: {
@@ -218,7 +218,7 @@ export class CompleteLessonUseCase {
     }
 
     // Calcular total de aulas do módulo
-    const totalTasksInModule = moduleWithLessons.groups.reduce(
+    const totalTasksInModule = moduleWithLessons.submodules.reduce(
       (acc, group) => acc + group.lessons.length,
       0
     );
@@ -297,7 +297,7 @@ export class CompleteLessonUseCase {
       : null;
 
     if (nextLesson && nextLessonId !== null) {
-      const nextLessonGroup = await prisma.group.findFirst({
+      const nextLessonGroup = await prisma.submodule.findFirst({
         where: {
           lessons: {
             some: {
@@ -435,7 +435,7 @@ export class CompleteLessonUseCase {
     const modules = await prisma.module.findMany({
       where: { courseId },
       include: {
-        groups: {
+        submodules: {
           include: {
             lessons: {
               orderBy: {
@@ -455,7 +455,7 @@ export class CompleteLessonUseCase {
 
     const allLessons: Array<{ id: number; order: number }> = [];
     for (const module of modules) {
-      for (const group of module.groups) {
+      for (const group of module.submodules) {
         for (const lesson of group.lessons) {
           allLessons.push({
             id: lesson.id,

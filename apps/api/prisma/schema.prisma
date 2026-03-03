@@ -137,7 +137,7 @@ model Module {
   courseId           String
   orderIndex         Int                  @default(0)
   course             Course               @relation(fields: [courseId], references: [id])
-  groups             Group[]
+  submodules         Submodule[]
   userCourses        UserCourse[]
   userModuleProgress UserModuleProgress[]
   unlockedModules    UnlockedModule[]
@@ -145,20 +145,22 @@ model Module {
   @@unique([slug, courseId])
 }
 
-model Group {
+model Submodule {
   id         Int      @id @default(autoincrement())
   title      String
   moduleId   String
   orderIndex Int      @default(0)
   module     Module   @relation(fields: [moduleId], references: [id])
   lessons    Lesson[]
+
+  @@map("Group")
 }
 
 model Lesson {
   id             Int            @id @default(autoincrement())
   title          String
   description    String
-  type           String
+  type           LessonType
   slug           String
   url            String?
   isFree         Boolean        @default(false)
@@ -173,7 +175,7 @@ model Lesson {
   updatedAt      DateTime       @updatedAt
   authorId       String
   author         User           @relation("LessonAuthor", fields: [authorId], references: [id])
-  submodule      Group          @relation(fields: [submoduleId], references: [id])
+  submodule      Submodule      @relation(fields: [submoduleId], references: [id])
   userCourses    UserCourse[]
   userProgress   UserProgress[]
 
@@ -183,6 +185,14 @@ model Lesson {
   project Project?
 
   @@unique([slug, submoduleId])
+}
+
+enum LessonType {
+  VIDEO   @map("video")
+  ARTICLE @map("article")
+  TEXT    @map("text")
+  QUIZ    @map("quiz")
+  PROJECT @map("project")
 }
 
 model Video {

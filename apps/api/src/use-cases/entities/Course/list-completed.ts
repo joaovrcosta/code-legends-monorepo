@@ -55,7 +55,7 @@ export class ListCompletedCoursesUseCase {
       const modules = await prisma.module.findMany({
         where: { courseId: userCourse.courseId },
         include: {
-          groups: {
+          submodules: {
             include: {
               lessons: {
                 select: {
@@ -70,7 +70,7 @@ export class ListCompletedCoursesUseCase {
       // Calcular progresso do curso
       const allLessons: Array<{ id: number }> = [];
       modules.forEach((module) => {
-        module.groups.forEach((group) => {
+        module.submodules.forEach((group) => {
           group.lessons.forEach((lesson) => {
             allLessons.push({ id: lesson.id });
           });

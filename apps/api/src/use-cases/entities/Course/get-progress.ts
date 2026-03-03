@@ -87,11 +87,11 @@ export class GetCourseProgressUseCase {
       throw new Error("User is not enrolled in this course");
     }
 
-    // Buscar todos os módulos do curso com seus groups e lessons
+    // Buscar todos os módulos do curso com seus submodules e lessons
     const modules = await prisma.module.findMany({
       where: { courseId: finalCourseId },
       include: {
-        groups: {
+        submodules: {
           include: {
             lessons: {
               select: {
@@ -115,7 +115,7 @@ export class GetCourseProgressUseCase {
     const modulesProgress: ModuleProgress[] = await Promise.all(
       modules.map(async (module) => {
         // Contar total de lessons no módulo
-        const totalLessons = module.groups.reduce(
+        const totalLessons = module.submodules.reduce(
           (acc, group) => acc + group.lessons.length,
           0
         );
@@ -150,7 +150,7 @@ export class GetCourseProgressUseCase {
     // Calcular progresso total do curso
     const allLessons: Array<{ id: number }> = [];
     modules.forEach((module) => {
-      module.groups.forEach((group) => {
+      module.submodules.forEach((group) => {
         group.lessons.forEach((lesson) => {
           allLessons.push({ id: lesson.id });
         });

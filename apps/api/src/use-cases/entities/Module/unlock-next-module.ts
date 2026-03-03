@@ -51,7 +51,7 @@ export class UnlockNextModuleUseCase {
     const allModules = await prisma.module.findMany({
       where: { courseId },
       include: {
-        groups: {
+        submodules: {
           orderBy: {
             id: "asc",
           },
@@ -87,7 +87,7 @@ export class UnlockNextModuleUseCase {
       
       // Encontrar a primeira lesson do primeiro módulo (primeiro grupo com lessons, primeira lesson em ordem)
       let firstLesson: { id: number } | null = null;
-      for (const group of firstModule.groups) {
+      for (const group of firstModule.submodules) {
         if (group.lessons.length > 0) {
           firstLesson = group.lessons[0];
           break;
@@ -116,7 +116,7 @@ export class UnlockNextModuleUseCase {
     const currentModule = allModules[currentModuleIndex];
 
     // Verificar se o módulo atual está 100% completo
-    const totalLessons = currentModule.groups.reduce(
+    const totalLessons = currentModule.submodules.reduce(
       (acc, group) => acc + group.lessons.length,
       0
     );
@@ -145,7 +145,7 @@ export class UnlockNextModuleUseCase {
     
     // Encontrar a primeira lesson do próximo módulo (primeiro grupo com lessons, primeira lesson em ordem)
     let nextModuleFirstLesson: { id: number } | null = null;
-    for (const group of nextModule.groups) {
+    for (const group of nextModule.submodules) {
       if (group.lessons.length > 0) {
         nextModuleFirstLesson = group.lessons[0];
         break;

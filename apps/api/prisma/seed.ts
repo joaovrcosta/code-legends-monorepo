@@ -1,43 +1,45 @@
-import { PrismaClient } from "@prisma/client";
-import { hashSync } from "bcryptjs";
+import { PrismaClient, LessonType } from '@prisma/client'
+import { hashSync } from 'bcryptjs'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
-const COURSE_SLUG = "fundamentos-frontend-completo";
-const INSTRUCTOR_EMAIL = "seed-instructor@codelegends.com.br";
+const COURSE_SLUG = 'fundamentos-frontend-completo'
+const INSTRUCTOR_EMAIL = 'seed-instructor@codelegends.com.br'
 
 const PLANS = [
   {
-    slug: "FREE",
-    name: "Plano gratuito",
-    description: "Acesso a conteúdos gratuitos do catálogo.",
+    slug: 'FREE',
+    name: 'Plano gratuito',
+    description: 'Acesso a conteúdos gratuitos do catálogo.',
     amountCents: 0,
     order: 0,
     externalId: null,
     productName: null,
   },
   {
-    slug: "PRO",
-    name: "Code Legends PRO",
-    description: "Acesso a todos os conteúdos do catálogo, certificados e suporte. Assinatura anual.",
+    slug: 'PRO',
+    name: 'Code Legends PRO',
+    description:
+      'Acesso a todos os conteúdos do catálogo, certificados e suporte. Assinatura anual.',
     amountCents: 19700,
     order: 1,
-    externalId: "CODE-LEGENDS-PRO",
-    productName: "Code Legends PRO - Assinatura anual",
+    externalId: 'CODE-LEGENDS-PRO',
+    productName: 'Code Legends PRO - Assinatura anual',
   },
   {
-    slug: "PREMIUM",
-    name: "Code Legends PREMIUM",
-    description: "Tudo do PRO com mentorias, vagas e certificados ilimitados. Assinatura anual.",
+    slug: 'PREMIUM',
+    name: 'Code Legends PREMIUM',
+    description:
+      'Tudo do PRO com mentorias, vagas e certificados ilimitados. Assinatura anual.',
     amountCents: 39700,
     order: 2,
-    externalId: "CODE-LEGENDS-PREMIUM",
-    productName: "Code Legends PREMIUM - Assinatura anual",
+    externalId: 'CODE-LEGENDS-PREMIUM',
+    productName: 'Code Legends PREMIUM - Assinatura anual',
   },
-];
+]
 
 async function main() {
-  console.log("🌱 Seeding database...");
+  console.log('🌱 Seeding database...')
 
   // 0. Planos
   for (const plan of PLANS) {
@@ -45,222 +47,398 @@ async function main() {
       where: { slug: plan.slug },
       update: {},
       create: plan,
-    });
+    })
   }
-  console.log("✅ Plans seeded!");
+  console.log('✅ Plans seeded!')
 
   // 1. Categorias
   const categories = [
     {
-      name: "Front-end",
-      slug: "front-end",
-      description: "Desenvolvimento de interfaces e experiência do usuário",
-      icon: "💻",
-      color: "#3B82F6",
+      name: 'Front-end',
+      slug: 'front-end',
+      description: 'Desenvolvimento de interfaces e experiência do usuário',
+      icon: '💻',
+      color: '#3B82F6',
       order: 1,
     },
     {
-      name: "Back-end",
-      slug: "back-end",
-      description: "Desenvolvimento de APIs e lógica de servidor",
-      icon: "⚙️",
-      color: "#10B981",
+      name: 'Back-end',
+      slug: 'back-end',
+      description: 'Desenvolvimento de APIs e lógica de servidor',
+      icon: '⚙️',
+      color: '#10B981',
       order: 2,
     },
     {
-      name: "Designer",
-      slug: "designer",
-      description: "Design UI/UX e interfaces visuais",
-      icon: "🎨",
-      color: "#EC4899",
+      name: 'Designer',
+      slug: 'designer',
+      description: 'Design UI/UX e interfaces visuais',
+      icon: '🎨',
+      color: '#EC4899',
       order: 3,
     },
     {
-      name: "Inglês",
-      slug: "ingles",
-      description: "Aprendizado de idiomas",
-      icon: "🗣️",
-      color: "#F59E0B",
+      name: 'Inglês',
+      slug: 'ingles',
+      description: 'Aprendizado de idiomas',
+      icon: '🗣️',
+      color: '#F59E0B',
       order: 4,
     },
     {
-      name: "Empreendedorismo",
-      slug: "empreendedorismo",
-      description: "Negócios e gestão",
-      icon: "💼",
-      color: "#8B5CF6",
+      name: 'Empreendedorismo',
+      slug: 'empreendedorismo',
+      description: 'Negócios e gestão',
+      icon: '💼',
+      color: '#8B5CF6',
       order: 5,
     },
-  ];
+  ]
 
   for (const category of categories) {
     await prisma.category.upsert({
       where: { slug: category.slug },
       update: {},
       create: category,
-    });
+    })
   }
 
   const frontEndCategory = await prisma.category.findUniqueOrThrow({
-    where: { slug: "front-end" },
-  });
-  console.log("✅ Categories seeded!");
+    where: { slug: 'front-end' },
+  })
+  console.log('✅ Categories seeded!')
 
   // 2. Instrutor para o curso
-  const hashedPassword = hashSync("instructor123", 10);
+  const hashedPassword = hashSync('instructor123', 10)
   const instructor = await prisma.user.upsert({
     where: { email: INSTRUCTOR_EMAIL },
     update: {},
     create: {
       email: INSTRUCTOR_EMAIL,
-      name: "Instrutor Code Legends",
+      name: 'Instrutor Code Legends',
       password: hashedPassword,
-      role: "INSTRUCTOR",
-      slug: "instrutor-code-legends",
+      role: 'INSTRUCTOR',
+      slug: 'instrutor-code-legends',
     },
-  });
-  console.log("✅ Instructor seeded!");
+  })
+  console.log('✅ Instructor seeded!')
 
   // 3. Curso completo (só cria se não existir)
   const existingCourse = await prisma.course.findUnique({
     where: { slug: COURSE_SLUG },
-  });
+  })
 
   if (existingCourse) {
-    console.log("⏭️  Course already exists, skipping course seed.");
-    return;
+    console.log('⏭️  Course already exists, skipping course seed.')
+    return
   }
 
   const course = await prisma.course.create({
     data: {
-      title: "Fundamentos de Front-end: do zero ao deploy",
+      title: 'Full Stack',
       slug: COURSE_SLUG,
       description:
-        "Aprenda HTML, CSS, JavaScript e React em um curso completo e prático. Do primeiro tag à sua primeira aplicação publicada na web. Inclui projetos reais e boas práticas do mercado.",
-      level: "Iniciante",
+        'Aprenda HTML, CSS, JavaScript e React em um curso completo e prático. Do primeiro tag à sua primeira aplicação publicada na web. Inclui projetos reais e boas práticas do mercado.',
+      level: 'Iniciante',
       instructorId: instructor.id,
       categoryId: frontEndCategory.id,
-      status: "PUBLISHED",
+      status: 'PUBLISHED',
       publishedAt: new Date(),
       isFree: false,
       active: true,
       releaseAt: new Date(),
-      colorHex: "#3B82F6",
-      icon: "https://xesque.rocketseat.dev/platform/1760965821149.svg",
+      colorHex: '#3B82F6',
+      icon: 'https://xesque.rocketseat.dev/platform/1760965821149.svg',
       tags: {
         connectOrCreate: [
-          { where: { name: "HTML" }, create: { name: "HTML" } },
-          { where: { name: "CSS" }, create: { name: "CSS" } },
-          { where: { name: "JavaScript" }, create: { name: "JavaScript" } },
-          { where: { name: "React" }, create: { name: "React" } },
+          { where: { name: 'HTML' }, create: { name: 'HTML' } },
+          { where: { name: 'CSS' }, create: { name: 'CSS' } },
+          { where: { name: 'JavaScript' }, create: { name: 'JavaScript' } },
+          { where: { name: 'React' }, create: { name: 'React' } },
         ],
       },
     },
-  });
+  })
 
   // 4. Módulos e conteúdo
+  const LESSON_TYPE_MAP: Record<string, LessonType> = {
+    video: LessonType.VIDEO,
+    article: LessonType.ARTICLE,
+    text: LessonType.TEXT,
+    quiz: LessonType.QUIZ,
+    project: LessonType.PROJECT,
+  }
+
   const modulesData = [
     {
-      title: "Módulo 1: HTML e estrutura da web",
-      slug: "modulo-1-html",
+      title: 'Módulo 1: HTML e estrutura da web',
+      slug: 'modulo-1-html',
       orderIndex: 0,
       groups: [
         {
-          title: "Introdução ao HTML",
+          title: 'Introdução ao HTML',
           orderIndex: 0,
           lessons: [
-            { title: "O que é HTML e por que aprender", description: "História da web e papel do HTML.", type: "video", slug: "o-que-e-html", order: 0, video_duration: "8:00" },
-            { title: "Estrutura básica de um documento", description: "DOCTYPE, html, head e body.", type: "video", slug: "estrutura-basica", order: 1, video_duration: "12:00" },
-            { title: "Tags de texto e headings", description: "h1 a h6, p, strong, em.", type: "video", slug: "tags-texto-headings", order: 2, video_duration: "15:00" },
+            {
+              title: 'O que é HTML e por que aprender',
+              description: 'História da web e papel do HTML.',
+              type: 'video',
+              slug: 'o-que-e-html',
+              order: 0,
+              video_duration: '8:00',
+            },
+            {
+              title: 'Estrutura básica de um documento',
+              description: 'DOCTYPE, html, head e body.',
+              type: 'video',
+              slug: 'estrutura-basica',
+              order: 1,
+              video_duration: '12:00',
+            },
+            {
+              title: 'Tags de texto e headings',
+              description: 'h1 a h6, p, strong, em.',
+              type: 'video',
+              slug: 'tags-texto-headings',
+              order: 2,
+              video_duration: '15:00',
+            },
           ],
         },
         {
-          title: "Links, listas e imagens",
+          title: 'Links, listas e imagens',
           orderIndex: 1,
           lessons: [
-            { title: "Links e âncoras", description: "Tag a, href, target e acessibilidade.", type: "video", slug: "links-ancoras", order: 0, video_duration: "10:00" },
-            { title: "Listas ordenadas e não ordenadas", description: "ul, ol, li.", type: "video", slug: "listas", order: 1, video_duration: "8:00" },
-            { title: "Imagens e atributos alt", description: "Tag img e boas práticas.", type: "video", slug: "imagens-alt", order: 2, video_duration: "11:00" },
+            {
+              title: 'Links e âncoras',
+              description: 'Tag a, href, target e acessibilidade.',
+              type: 'video',
+              slug: 'links-ancoras',
+              order: 0,
+              video_duration: '10:00',
+            },
+            {
+              title: 'Listas ordenadas e não ordenadas',
+              description: 'ul, ol, li.',
+              type: 'video',
+              slug: 'listas',
+              order: 1,
+              video_duration: '8:00',
+            },
+            {
+              title: 'Imagens e atributos alt',
+              description: 'Tag img e boas práticas.',
+              type: 'video',
+              slug: 'imagens-alt',
+              order: 2,
+              video_duration: '11:00',
+            },
           ],
         },
       ],
     },
     {
-      title: "Módulo 2: CSS e layout",
-      slug: "modulo-2-css",
+      title: 'Módulo 2: CSS e layout',
+      slug: 'modulo-2-css',
       orderIndex: 1,
       groups: [
         {
-          title: "CSS do zero",
+          title: 'CSS do zero',
           orderIndex: 0,
           lessons: [
-            { title: "Introdução ao CSS", description: "Seletores, propriedades e valores.", type: "video", slug: "introducao-css", order: 0, video_duration: "14:00" },
-            { title: "Cores, fontes e espaçamento", description: "color, font-family, margin, padding.", type: "video", slug: "cores-fontes-espacamento", order: 1, video_duration: "18:00" },
-            { title: "Box model na prática", description: "content, padding, border, margin.", type: "video", slug: "box-model", order: 2, video_duration: "12:00" },
+            {
+              title: 'Introdução ao CSS',
+              description: 'Seletores, propriedades e valores.',
+              type: 'video',
+              slug: 'introducao-css',
+              order: 0,
+              video_duration: '14:00',
+            },
+            {
+              title: 'Cores, fontes e espaçamento',
+              description: 'color, font-family, margin, padding.',
+              type: 'video',
+              slug: 'cores-fontes-espacamento',
+              order: 1,
+              video_duration: '18:00',
+            },
+            {
+              title: 'Box model na prática',
+              description: 'content, padding, border, margin.',
+              type: 'video',
+              slug: 'box-model',
+              order: 2,
+              video_duration: '12:00',
+            },
           ],
         },
         {
-          title: "Layout com Flexbox e Grid",
+          title: 'Layout com Flexbox e Grid',
           orderIndex: 1,
           lessons: [
-            { title: "Flexbox: conceitos e eixos", description: "display flex, flex-direction, justify e align.", type: "video", slug: "flexbox-conceitos", order: 0, video_duration: "20:00" },
-            { title: "CSS Grid: linhas e áreas", description: "grid-template-columns, gap, grid-area.", type: "video", slug: "css-grid", order: 1, video_duration: "22:00" },
-            { title: "Projeto: layout responsivo", description: "Montando uma página que se adapta ao mobile.", type: "video", slug: "projeto-layout-responsivo", order: 2, video_duration: "25:00" },
+            {
+              title: 'Flexbox: conceitos e eixos',
+              description: 'display flex, flex-direction, justify e align.',
+              type: 'video',
+              slug: 'flexbox-conceitos',
+              order: 0,
+              video_duration: '20:00',
+            },
+            {
+              title: 'CSS Grid: linhas e áreas',
+              description: 'grid-template-columns, gap, grid-area.',
+              type: 'video',
+              slug: 'css-grid',
+              order: 1,
+              video_duration: '22:00',
+            },
+            {
+              title: 'Projeto: layout responsivo',
+              description: 'Montando uma página que se adapta ao mobile.',
+              type: 'video',
+              slug: 'projeto-layout-responsivo',
+              order: 2,
+              video_duration: '25:00',
+            },
           ],
         },
       ],
     },
     {
-      title: "Módulo 3: JavaScript no navegador",
-      slug: "modulo-3-javascript",
+      title: 'Módulo 3: JavaScript no navegador',
+      slug: 'modulo-3-javascript',
       orderIndex: 2,
       groups: [
         {
-          title: "Sintaxe e fundamentos",
+          title: 'Sintaxe e fundamentos',
           orderIndex: 0,
           lessons: [
-            { title: "Variáveis e tipos", description: "let, const, string, number, boolean.", type: "video", slug: "variaveis-tipos", order: 0, video_duration: "16:00" },
-            { title: "Funções e escopo", description: "Declaração, parâmetros e return.", type: "video", slug: "funcoes-escopo", order: 1, video_duration: "18:00" },
-            { title: "Arrays e objetos", description: "Manipulação de dados e métodos comuns.", type: "video", slug: "arrays-objetos", order: 2, video_duration: "20:00" },
+            {
+              title: 'Variáveis e tipos',
+              description: 'let, const, string, number, boolean.',
+              type: 'video',
+              slug: 'variaveis-tipos',
+              order: 0,
+              video_duration: '16:00',
+            },
+            {
+              title: 'Funções e escopo',
+              description: 'Declaração, parâmetros e return.',
+              type: 'video',
+              slug: 'funcoes-escopo',
+              order: 1,
+              video_duration: '18:00',
+            },
+            {
+              title: 'Arrays e objetos',
+              description: 'Manipulação de dados e métodos comuns.',
+              type: 'video',
+              slug: 'arrays-objetos',
+              order: 2,
+              video_duration: '20:00',
+            },
           ],
         },
         {
-          title: "DOM e eventos",
+          title: 'DOM e eventos',
           orderIndex: 1,
           lessons: [
-            { title: "Acessando o DOM", description: "querySelector, getElementById e navegação.", type: "video", slug: "acessando-dom", order: 0, video_duration: "15:00" },
-            { title: "Eventos do usuário", description: "addEventListener, click, submit e preventDefault.", type: "video", slug: "eventos-usuario", order: 1, video_duration: "19:00" },
-            { title: "Projeto: lista interativa", description: "Criando uma lista com add/remove em JS puro.", type: "video", slug: "projeto-lista-interativa", order: 2, video_duration: "24:00" },
+            {
+              title: 'Acessando o DOM',
+              description: 'querySelector, getElementById e navegação.',
+              type: 'video',
+              slug: 'acessando-dom',
+              order: 0,
+              video_duration: '15:00',
+            },
+            {
+              title: 'Eventos do usuário',
+              description: 'addEventListener, click, submit e preventDefault.',
+              type: 'video',
+              slug: 'eventos-usuario',
+              order: 1,
+              video_duration: '19:00',
+            },
+            {
+              title: 'Projeto: lista interativa',
+              description: 'Criando uma lista com add/remove em JS puro.',
+              type: 'video',
+              slug: 'projeto-lista-interativa',
+              order: 2,
+              video_duration: '24:00',
+            },
           ],
         },
       ],
     },
     {
-      title: "Módulo 4: React na prática",
-      slug: "modulo-4-react",
+      title: 'Módulo 4: React na prática',
+      slug: 'modulo-4-react',
       orderIndex: 3,
       groups: [
         {
-          title: "Primeiros passos em React",
+          title: 'Primeiros passos em React',
           orderIndex: 0,
           lessons: [
-            { title: "O que é React e por que usar", description: "Componentes, virtual DOM e ecossistema.", type: "video", slug: "o-que-e-react", order: 0, video_duration: "12:00" },
-            { title: "Componentes e JSX", description: "Criando seu primeiro componente.", type: "video", slug: "componentes-jsx", order: 1, video_duration: "18:00" },
-            { title: "Props e composição", description: "Passando dados entre componentes.", type: "video", slug: "props-composicao", order: 2, video_duration: "16:00" },
+            {
+              title: 'O que é React e por que usar',
+              description: 'Componentes, virtual DOM e ecossistema.',
+              type: 'video',
+              slug: 'o-que-e-react',
+              order: 0,
+              video_duration: '12:00',
+            },
+            {
+              title: 'Componentes e JSX',
+              description: 'Criando seu primeiro componente.',
+              type: 'video',
+              slug: 'componentes-jsx',
+              order: 1,
+              video_duration: '18:00',
+            },
+            {
+              title: 'Props e composição',
+              description: 'Passando dados entre componentes.',
+              type: 'video',
+              slug: 'props-composicao',
+              order: 2,
+              video_duration: '16:00',
+            },
           ],
         },
         {
-          title: "Estado e ciclo de vida",
+          title: 'Estado e ciclo de vida',
           orderIndex: 1,
           lessons: [
-            { title: "useState na prática", description: "Estado local e atualizações.", type: "video", slug: "usestate-pratica", order: 0, video_duration: "20:00" },
-            { title: "useEffect e side effects", description: "Requisições e subscriptions.", type: "video", slug: "useeffect-side-effects", order: 1, video_duration: "22:00" },
-            { title: "Projeto: app de tarefas", description: "CRUD completo com React e persistência.", type: "video", slug: "projeto-app-tarefas", order: 2, video_duration: "30:00" },
+            {
+              title: 'useState na prática',
+              description: 'Estado local e atualizações.',
+              type: 'video',
+              slug: 'usestate-pratica',
+              order: 0,
+              video_duration: '20:00',
+            },
+            {
+              title: 'useEffect e side effects',
+              description: 'Requisições e subscriptions.',
+              type: 'video',
+              slug: 'useeffect-side-effects',
+              order: 1,
+              video_duration: '22:00',
+            },
+            {
+              title: 'Projeto: app de tarefas',
+              description: 'CRUD completo com React e persistência.',
+              type: 'video',
+              slug: 'projeto-app-tarefas',
+              order: 2,
+              video_duration: '30:00',
+            },
           ],
         },
       ],
     },
-  ];
+  ]
 
   for (const mod of modulesData) {
     const createdModule = await prisma.module.create({
@@ -270,23 +448,23 @@ async function main() {
         courseId: course.id,
         orderIndex: mod.orderIndex,
       },
-    });
+    })
 
     for (const grp of mod.groups) {
-      const createdGroup = await prisma.group.create({
+      const createdGroup = await prisma.submodule.create({
         data: {
           title: grp.title,
           moduleId: createdModule.id,
           orderIndex: grp.orderIndex,
         },
-      });
+      })
 
       for (const les of grp.lessons) {
         await prisma.lesson.create({
           data: {
             title: les.title,
             description: les.description,
-            type: les.type,
+            type: LESSON_TYPE_MAP[les.type] ?? LessonType.VIDEO,
             slug: les.slug,
             submoduleId: createdGroup.id,
             order: les.order,
@@ -295,19 +473,21 @@ async function main() {
             isFree: false,
             locked: false,
           },
-        });
+        })
       }
     }
   }
 
-  console.log("✅ Course 'Fundamentos de Front-end' created with 4 modules and 24 lessons!");
+  console.log(
+    "✅ Course 'Fundamentos de Front-end' created with 4 modules and 24 lessons!",
+  )
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Error seeding database:", e);
-    process.exit(1);
+    console.error('❌ Error seeding database:', e)
+    process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect();
-  });
+    await prisma.$disconnect()
+  })

@@ -1,41 +1,36 @@
-import { ICourseRepository } from "../../../repositories/course-repository";
-import { IUserCourseRepository } from "../../../repositories/user-course-repository";
-import { ILessonRepository } from "../../../repositories/lesson-repository";
-import { IUsersRepository } from "../../../repositories/users-repository";
-import { IUserProgressRepository } from "../../../repositories/user-progress-repository";
-import { CourseNotFoundError } from "../../errors/course-not-found";
-import { prisma } from "../../../lib/prisma";
+import { ICourseRepository } from '../../../repositories/course-repository'
+import { IUserCourseRepository } from '../../../repositories/user-course-repository'
+import { ILessonRepository } from '../../../repositories/lesson-repository'
+import { IUsersRepository } from '../../../repositories/users-repository'
+import { IUserProgressRepository } from '../../../repositories/user-progress-repository'
+import { CourseNotFoundError } from '../../errors/course-not-found'
+import { prisma } from '../../../lib/prisma'
+import { LessonWithContentDTO } from '../../../domain/lesson'
 
 interface ContinueCourseRequest {
-  userId: string;
-  courseId?: string; // Opcional: se não fornecido, busca o curso ativo
+  userId: string
+  courseId?: string
 }
 
 interface ContinueCourseResponse {
-  lesson: {
-    id: number;
-    title: string;
-    slug: string;
-    description: string;
-    type: string;
-    video_url: string | null;
-    video_duration: string | null;
-    video?: { url: string | null; duration: string | null } | null;
-    article?: { body: string } | null;
-    order: number;
-  } | null;
+  lesson:
+    | (LessonWithContentDTO & {
+        video_url: string | null
+        video_duration: string | null
+      })
+    | null
   module: {
-    id: string;
-    title: string;
-    slug: string;
-  } | null;
+    id: string
+    title: string
+    slug: string
+  } | null
   course: {
-    id: string;
-    title: string;
-    slug: string;
-    progress: number;
-    isCompleted: boolean;
-  };
+    id: string
+    title: string
+    slug: string
+    progress: number
+    isCompleted: boolean
+  }
 }
 
 export class ContinueCourseUseCase {
@@ -44,7 +39,7 @@ export class ContinueCourseUseCase {
     private userCourseRepository: IUserCourseRepository,
     private lessonRepository: ILessonRepository,
     private usersRepository: IUsersRepository,
-    private userProgressRepository: IUserProgressRepository
+    private userProgressRepository: IUserProgressRepository,
   ) {}
 
   async execute({
@@ -52,11 +47,11 @@ export class ContinueCourseUseCase {
     courseId,
   }: ContinueCourseRequest): Promise<ContinueCourseResponse> {
     // Se courseId não for fornecido, buscar o curso ativo do usuário
-    let activeCourseId: string | undefined = courseId;
+    let activeCourseId: string | undefined = courseId
 
     if (!activeCourseId) {
-      const user = await this.usersRepository.findById(userId);
-      activeCourseId = user?.activeCourseId ?? undefined;
+      const user = await this.usersRepository.findById(userId)
+      activeCourseId = user?.activeCourseId ?? undefined
 
       if (!activeCourseId) {
         // Se não tem curso ativo e não foi fornecido courseId, retornar null
@@ -64,27 +59,27 @@ export class ContinueCourseUseCase {
           lesson: null,
           module: null,
           course: {
-            id: "",
-            title: "",
-            slug: "",
+            id: '',
+            title: '',
+            slug: '',
             progress: 0,
             isCompleted: false,
           },
-        };
+        }
       }
     }
 
     // Verificar se o curso existe
-    const course = await this.courseRepository.findById(activeCourseId);
+    const course = await this.courseRepository.findById(activeCourseId)
     if (!course) {
-      throw new CourseNotFoundError();
+      throw new CourseNotFoundError()
     }
 
     // Buscar inscrição do usuário
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,
-      activeCourseId
-    );
+      activeCourseId,
+    )
 
     if (!userCourse) {
       // Se não está inscrito, retornar null para a aula
@@ -98,7 +93,7 @@ export class ContinueCourseUseCase {
           progress: 0,
           isCompleted: false,
         },
-      };
+      }
     }
 
     // Se o curso está concluído, retornar null
@@ -113,69 +108,69 @@ export class ContinueCourseUseCase {
           progress: userCourse.progress,
           isCompleted: true,
         },
-      };
+      }
     }
 
     // Buscar progressos do usuário
     const userProgresses = await this.userProgressRepository.findByUserCourse(
-      userCourse.id
-    );
+      userCourse.id,
+    )
 
     // Verificar se há progresso (lições completadas)
-    const hasProgress = userProgresses.some((p) => p.isCompleted);
+    const hasProgress = userProgresses.some((p) => p.isCompleted)
 
-    // Buscar todos os módulos com grupos e aulas para determinar a primeira lição
+    // Buscar todos os módulos com submodules e aulas para determinar a primeira lição
     const modules = await prisma.module.findMany({
       where: { courseId: activeCourseId },
       include: {
-        groups: {
+        submodules: {
           include: {
             lessons: {
               orderBy: {
-                order: "asc",
+                order: 'asc',
               },
             },
           },
           orderBy: {
-            id: "asc",
+            id: 'asc',
           },
         },
       },
       orderBy: {
-        id: "asc",
+        id: 'asc',
       },
-    });
+    })
 
     // Construir todas as aulas em ordem (módulo -> grupo -> order)
     const allLessons: Array<{
-      id: number;
-      order: number;
-      moduleIndex: number;
-      groupIndex: number;
-    }> = [];
+      id: number
+      order: number
+      moduleIndex: number
+      groupIndex: number
+    }> = []
     modules.forEach((module, moduleIndex) => {
-      module.groups.forEach((group, groupIndex) => {
+      module.submodules.forEach((group, groupIndex) => {
         group.lessons.forEach((lesson) => {
           allLessons.push({
             id: lesson.id,
             order: lesson.order,
             moduleIndex,
             groupIndex,
-          });
-        });
-      });
-    });
+          })
+        })
+      })
+    })
 
     // Ordenar todas as lições por: módulo -> grupo -> order
     allLessons.sort((a, b) => {
       if (a.moduleIndex !== b.moduleIndex) {
-        return a.moduleIndex - b.moduleIndex;
+        return a.moduleIndex - b.moduleIndex
       }
       if (a.groupIndex !== b.groupIndex) {
-        return a.groupIndex - b.groupIndex;
+        return a.groupIndex - b.groupIndex
       }
-      return a.order - b.order;
-    });
+      return a.order - b.order
+    })
 
     // Determinar qual será a lição atual
     // Se não houver progresso, ignorar currentTaskId e usar a primeira lição
@@ -184,37 +179,37 @@ export class ContinueCourseUseCase {
       userCourse.currentTaskId &&
       allLessons.some((l) => l.id === userCourse.currentTaskId)
         ? userCourse.currentTaskId
-        : allLessons[0]?.id ?? null;
+        : (allLessons[0]?.id ?? null)
 
     // Buscar a aula atual
-    let lesson = null;
-    let moduleData = null;
+    let lesson = null
+    let moduleData = null
 
     if (validCurrentTaskId) {
-      const foundLesson = await this.lessonRepository.findById(
-        validCurrentTaskId
-      );
+      const foundLesson =
+        await this.lessonRepository.findById(validCurrentTaskId)
 
       if (foundLesson) {
         const lessonWithContent = foundLesson as typeof foundLesson & {
-          video?: { url: string | null; duration: string | null } | null;
-          article?: { body: string } | null;
-        };
+          video?: { url: string | null; duration: string | null } | null
+          article?: { body: string } | null
+        }
         lesson = {
           id: foundLesson.id,
           title: foundLesson.title,
           slug: foundLesson.slug,
           description: foundLesson.description,
-          type: foundLesson.type,
-          video_url: lessonWithContent.video?.url ?? null,
-          video_duration: lessonWithContent.video?.duration ?? null,
+          type: foundLesson.type.toString().toLowerCase(),
+          isFree: foundLesson.isFree,
+          order: foundLesson.order,
           video: lessonWithContent.video ?? null,
           article: lessonWithContent.article ?? null,
-          order: foundLesson.order,
-        };
+          video_url: lessonWithContent.video?.url ?? null,
+          video_duration: lessonWithContent.video?.duration ?? null,
+        }
 
         // Buscar o módulo da lição atual
-        const lessonGroup = await prisma.group.findFirst({
+        const lessonGroup = await prisma.submodule.findFirst({
           where: {
             lessons: {
               some: {
@@ -231,10 +226,10 @@ export class ContinueCourseUseCase {
               },
             },
           },
-        });
+        })
 
         if (lessonGroup?.module) {
-          moduleData = lessonGroup.module;
+          moduleData = lessonGroup.module
         }
       }
     }
@@ -249,6 +244,6 @@ export class ContinueCourseUseCase {
         progress: userCourse.progress,
         isCompleted: userCourse.isCompleted,
       },
-    };
+    }
   }
 }

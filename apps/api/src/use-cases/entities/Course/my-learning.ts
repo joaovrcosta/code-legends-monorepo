@@ -62,7 +62,7 @@ export class MyLearningUseCase {
         courseId: { in: courseIds },
       },
       include: {
-        groups: {
+        submodules: {
           include: {
             lessons: {
               select: {
@@ -105,7 +105,7 @@ export class MyLearningUseCase {
       // Calcular progresso do curso
       const allLessons: Array<{ id: number }> = [];
       modules.forEach((module) => {
-        module.groups.forEach((group) => {
+        module.submodules.forEach((group) => {
           group.lessons.forEach((lesson) => {
             allLessons.push({ id: lesson.id });
           });

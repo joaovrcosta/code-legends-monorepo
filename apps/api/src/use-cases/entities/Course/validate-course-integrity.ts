@@ -47,7 +47,7 @@ export class ValidateCourseIntegrityUseCase {
     const modules = await prisma.module.findMany({
       where: { courseId },
       include: {
-        groups: {
+        submodules: {
           include: {
             lessons: true,
           },
@@ -62,7 +62,7 @@ export class ValidateCourseIntegrityUseCase {
     // Validar se existe ao menos uma aula
     let totalLessons = 0;
     for (const module of modules) {
-      for (const group of module.groups) {
+      for (const group of module.submodules) {
         totalLessons += group.lessons.length;
       }
     }

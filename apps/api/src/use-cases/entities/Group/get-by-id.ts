@@ -1,4 +1,4 @@
-import { Group } from "@prisma/client";
+import { Submodule } from "@prisma/client";
 import { IGroupRepository } from "../../../repositories/group-repository";
 import { GroupNotFoundError } from "../../errors/group-not-found";
 
@@ -7,7 +7,7 @@ interface GetGroupByIdRequest {
 }
 
 interface GetGroupByIdResponse {
-  group: Group;
+  group: Submodule;
 }
 
 export class GetGroupByIdUseCase {

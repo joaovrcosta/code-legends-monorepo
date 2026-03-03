@@ -58,7 +58,7 @@ export class StartCourseUseCase {
               id: "asc",
             },
             include: {
-              groups: {
+              submodules: {
                 orderBy: {
                   id: "asc",
                 },
@@ -78,7 +78,7 @@ export class StartCourseUseCase {
 
       if (courseWithModules) {
         const firstModule = courseWithModules.modules[0];
-        const firstGroup = firstModule?.groups[0];
+        const firstGroup = firstModule?.submodules[0];
         const firstLesson = firstGroup?.lessons[0];
 
         currentModuleId = firstModule?.id ?? null;
