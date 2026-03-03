@@ -203,20 +203,27 @@ export default function ClassroomPage() {
   ])
 
   // Memoiza cálculos de navegação
-  const { hasNextLesson, hasPreviousLesson, nextLesson, previousLesson } =
-    useMemo(() => {
-      const hasNext = currentIndex < lessons.length - 1
-      const hasPrevious = currentIndex > 0
-      const next = hasNext ? lessons[currentIndex + 1] : null
-      const previous = hasPrevious ? lessons[currentIndex - 1] : null
+  const {
+    hasNextLesson,
+    hasPreviousLesson,
+    nextLesson,
+    previousLesson,
+    isNextLessonLocked,
+  } = useMemo(() => {
+    const hasNext = currentIndex < lessons.length - 1
+    const hasPrevious = currentIndex > 0
+    const next = hasNext ? lessons[currentIndex + 1] : null
+    const previous = hasPrevious ? lessons[currentIndex - 1] : null
+    const isNextLocked = next?.status === 'locked'
 
-      return {
-        hasNextLesson: hasNext,
-        hasPreviousLesson: hasPrevious,
-        nextLesson: next,
-        previousLesson: previous,
-      }
-    }, [currentIndex, lessons])
+    return {
+      hasNextLesson: hasNext,
+      hasPreviousLesson: hasPrevious,
+      nextLesson: next,
+      previousLesson: previous,
+      isNextLessonLocked: isNextLocked,
+    }
+  }, [currentIndex, lessons])
 
   // Função para navegar para uma aula usando URL dinâmica
   const navigateToLesson = useCallback(
@@ -233,10 +240,14 @@ export default function ClassroomPage() {
   )
 
   const handleNextLesson = useCallback(() => {
-    if (nextLesson) {
+    // Só permite ir para a próxima se a aula atual estiver concluída
+    if (currentLesson?.status !== 'completed') {
+      return
+    }
+    if (nextLesson && !isNextLessonLocked) {
       navigateToLesson(nextLesson)
     }
-  }, [nextLesson, navigateToLesson])
+  }, [currentLesson?.status, nextLesson, isNextLessonLocked, navigateToLesson])
 
   const handlePreviousLesson = useCallback(() => {
     if (previousLesson) {
@@ -535,7 +546,9 @@ export default function ClassroomPage() {
                 variant="outline"
                 onClick={handleNextLesson}
                 disabled={
-                  !hasNextLesson
+                  !hasNextLesson ||
+                  isNextLessonLocked ||
+                  currentLesson?.status !== 'completed'
                 }
                 className="h-[64px] lg:min-h-[84px] w-1/2 max-w-[320px] rounded-none text-base bg-black border-none
       lg:rounded-br-[20px] rounded-br-none disabled:opacity-50"

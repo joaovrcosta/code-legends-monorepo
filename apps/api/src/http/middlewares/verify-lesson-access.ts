@@ -178,25 +178,32 @@ async function checkIfLessonIsUnlocked(
   });
 
   // Construir lista de todas as aulas em ordem
-  const allLessons: Array<{ id: number }> = [];
+  const allLessons: Array<{ id: number; locked: boolean }> = [];
   modules.forEach((module) => {
     module.submodules.forEach((group) => {
       group.lessons.forEach((lesson) => {
-        allLessons.push({ id: lesson.id });
+        allLessons.push({ id: lesson.id, locked: lesson.locked });
       });
     });
   });
 
   const lessonIndex = allLessons.findIndex((l) => l.id === lessonId);
 
-  // Primeira aula sempre está desbloqueada
-  if (lessonIndex === 0) {
-    return true;
-  }
-
   // Se não encontrou a aula na lista, não está desbloqueada
   if (lessonIndex === -1) {
     return false;
+  }
+
+  const targetLesson = allLessons[lessonIndex];
+
+  // Se a aula estiver marcada como bloqueada no conteúdo, permanece bloqueada
+  if (targetLesson.locked) {
+    return false;
+  }
+
+  // Primeira aula (não bloqueada manualmente) sempre está desbloqueada
+  if (lessonIndex === 0) {
+    return true;
   }
 
   // Verificar se a aula anterior foi concluída

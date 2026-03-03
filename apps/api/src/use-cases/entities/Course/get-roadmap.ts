@@ -42,7 +42,7 @@ interface RoadmapLesson {
   video?: { url: string | null; duration: string | null } | null
   article?: { body: string } | null
   order: number
-  status: 'unlocked' | 'completed'
+  status: 'locked' | 'unlocked' | 'completed'
   isCurrent: boolean
   canReview: boolean
   isFree: boolean
@@ -270,12 +270,35 @@ export class GetRoadmapUseCase {
       const roadmapGroups: RoadmapGroup[] = module.submodules.map((group) => {
         const roadmapLessons: RoadmapLesson[] = group.lessons.map((lesson) => {
           const isCompleted = progressMap.get(lesson.id) ?? false
+          const lessonIndex = allLessons.findIndex((l) => l.id === lesson.id)
 
-          // Determinar status
-          // Removido conceito de "locked": toda aula não concluída fica "unlocked"
-          const status: 'unlocked' | 'completed' = isCompleted
-            ? 'completed'
-            : 'unlocked'
+          const manualLocked = lesson.locked
+
+          // Determinar se a lição está desbloqueada para o usuário:
+          // - completed: sempre desbloqueada (revisão)
+          // - se marcada como locked no conteúdo: permanece bloqueada
+          // - primeira lição: desbloqueada por padrão
+          // - demais: desbloqueada apenas se a lição anterior estiver completa
+          let isUnlockedForUser = false
+          if (isCompleted) {
+            isUnlockedForUser = true
+          } else if (manualLocked) {
+            isUnlockedForUser = false
+          } else if (lessonIndex === 0) {
+            isUnlockedForUser = true
+          } else if (lessonIndex > 0) {
+            const previousLesson = allLessons[lessonIndex - 1]
+            const previousCompleted =
+              progressMap.get(previousLesson.id) ?? false
+            isUnlockedForUser = previousCompleted
+          }
+
+          let status: 'locked' | 'unlocked' | 'completed'
+          if (isCompleted) {
+            status = 'completed'
+          } else {
+            status = isUnlockedForUser ? 'unlocked' : 'locked'
+          }
 
           const isCurrent = lesson.id === validCurrentTaskId
 

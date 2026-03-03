@@ -93,6 +93,12 @@ export default function DynamicLessonPage() {
             return
           }
           if (data) {
+            // Se a aula estiver bloqueada, redireciona para /classroom
+            if (data.status === 'locked') {
+              router.replace('/classroom')
+              return
+            }
+
             setLessonData(data)
 
             // Atualiza o store com a lição atual, incluindo o status do nível raiz
@@ -121,25 +127,31 @@ export default function DynamicLessonPage() {
       setIsLoading(true)
       setError(null)
 
-      try {
-        const data = await getLessonBySlug(activeCourse.id, lessonSlug)
-        if (isLessonUpgradeRequiredResult(data)) {
-          setError(data.message)
-          return
-        }
-        if (data) {
-          setLessonData(data)
-
-          // Atualiza o store com a lição atual, incluindo o status do nível raiz
-          const lessonWithStatus = {
-            ...data.lesson,
-            status: data.status, // Usa o status do nível raiz da resposta
+        try {
+          const data = await getLessonBySlug(activeCourse.id, lessonSlug)
+          if (isLessonUpgradeRequiredResult(data)) {
+            setError(data.message)
+            return
           }
-          setLessonForPage(lessonWithStatus)
-        } else {
-          setError('Aula não encontrada')
-        }
-      } catch (err) {
+          if (data) {
+            // Se a aula estiver bloqueada, redireciona para /classroom
+            if (data.status === 'locked') {
+              router.replace('/classroom')
+              return
+            }
+
+            setLessonData(data)
+
+            // Atualiza o store com a lição atual, incluindo o status do nível raiz
+            const lessonWithStatus = {
+              ...data.lesson,
+              status: data.status, // Usa o status do nível raiz da resposta
+            }
+            setLessonForPage(lessonWithStatus)
+          } else {
+            setError('Aula não encontrada')
+          }
+        } catch (err) {
         console.error('Erro ao carregar aula:', err)
         setError(err instanceof Error ? err.message : 'Erro ao carregar aula')
       } finally {

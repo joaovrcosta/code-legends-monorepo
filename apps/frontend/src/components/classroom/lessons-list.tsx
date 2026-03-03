@@ -233,6 +233,7 @@ export const LessonsList = memo(function LessonsList({
                               const lessonIndexInAll = lessons.findIndex(
                                 (l) => l.id === lesson.id,
                               )
+                              const isLocked = lesson.status === 'locked'
                               const isPaidLesson = lesson.isFree === false
                               const isFreePlan = userPlan === 'FREE'
 
@@ -253,15 +254,17 @@ export const LessonsList = memo(function LessonsList({
                                         lessonIndexInAll,
                                       )
                                     }
-                                    disabled={false}
+                                    disabled={isLocked}
                                     className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${
                                       isActive
                                         ? 'bg-zinc-800/50 shadow-xl'
                                         : 'hover:bg-zinc-800/30'
                                     } ${
-                                      isFreePlan && isPaidLesson
-                                        ? 'opacity-50'
-                                        : ''
+                                      isLocked
+                                        ? 'opacity-50 cursor-not-allowed'
+                                        : isFreePlan && isPaidLesson
+                                          ? 'opacity-50'
+                                          : ''
                                     }`}
                                   >
                                     <div
