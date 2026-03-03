@@ -10,7 +10,6 @@ import {
   getCourseRoadmapFresh,
   revalidateRoadmapCache,
 } from '@/actions/course'
-import { isLessonAccessibleForUser } from '@/utils/lesson-access'
 import { LessonContent } from '@/components/classroom/lesson-content'
 import { LessonPaywall } from '@/components/classroom/lesson-paywall'
 import { Button } from '@/components/ui/button'
@@ -27,7 +26,6 @@ import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
 import type { RoadmapResponse } from '@/types/roadmap'
-import { generateLessonUrl, findLessonContext } from '@/utils/lesson-url'
 import { useSession } from 'next-auth/react'
 
 function isLessonUpgradeRequiredResult(

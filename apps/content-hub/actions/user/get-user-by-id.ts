@@ -1,9 +1,9 @@
 "use server";
 
-import type { UserFull } from "./list-users";
+import type { User } from "./list-users";
 
 export interface UserResponse {
-  user: UserFull;
+  user: User;
 }
 
 /**
@@ -12,7 +12,7 @@ export interface UserResponse {
 export async function getUserById(
   id: string,
   token: string
-): Promise<UserFull | null> {
+): Promise<User | null> {
   if (!id) return null;
 
   try {

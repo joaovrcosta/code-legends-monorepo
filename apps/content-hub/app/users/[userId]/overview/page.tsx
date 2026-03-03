@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/layout/main-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +18,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-export default function UserOverviewPage() {
+function UserOverviewPageContent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1080,5 +1080,20 @@ export default function UserOverviewPage() {
         )}
       </div>
     </MainLayout>
+  );
+}
+
+export default function UserOverviewPage() {
+  return (
+    <Suspense fallback={
+      <MainLayout>
+        <div className="space-y-6">
+          <div className="h-8 w-48 animate-pulse rounded bg-muted" />
+          <div className="h-64 animate-pulse rounded bg-muted" />
+        </div>
+      </MainLayout>
+    }>
+      <UserOverviewPageContent />
+    </Suspense>
   );
 }

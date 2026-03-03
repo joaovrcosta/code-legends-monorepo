@@ -11,7 +11,7 @@ export interface Author {
   expertise?: string[];
 }
 
-export interface Module {
+export interface LessonModule {
   id: string;
   title: string;
   slug: string;
@@ -22,7 +22,7 @@ export interface Submodule {
   id: number;
   title: string;
   moduleId: string;
-  module?: Module;
+  module?: LessonModule;
 }
 
 export interface LessonDetail extends Omit<Lesson, 'id'> {

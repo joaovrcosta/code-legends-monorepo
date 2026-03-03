@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
-export default function NewLessonPage() {
+function NewLessonPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const groupId = searchParams.get("groupId") || "";
@@ -40,7 +40,7 @@ export default function NewLessonPage() {
     if (formData.title && !slugManuallyEdited) {
       setFormData((prev) => ({
         ...prev,
-        slug: generateSlug(formData.title),
+        slug: generateSlug(prev.title ?? ''),
       }));
     }
   }, [formData.title, slugManuallyEdited]);
@@ -241,6 +241,21 @@ export default function NewLessonPage() {
         </Card>
       </div>
     </MainLayout>
+  );
+}
+
+export default function NewLessonPage() {
+  return (
+    <Suspense fallback={
+      <MainLayout>
+        <div className="space-y-6">
+          <div className="h-8 w-48 animate-pulse rounded bg-muted" />
+          <div className="h-64 animate-pulse rounded bg-muted" />
+        </div>
+      </MainLayout>
+    }>
+      <NewLessonPageContent />
+    </Suspense>
   );
 }
 

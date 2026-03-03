@@ -31,7 +31,7 @@ export default function EditModulePage() {
     if (formData.title && !slugManuallyEdited) {
       setFormData((prev) => ({
         ...prev,
-        slug: generateSlug(formData.title),
+        slug: generateSlug(prev.title ?? ''),
       }));
     }
   }, [formData.title, slugManuallyEdited]);

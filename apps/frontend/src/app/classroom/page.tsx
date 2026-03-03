@@ -203,27 +203,20 @@ export default function ClassroomPage() {
   ])
 
   // Memoiza cálculos de navegação
-  const {
-    hasNextLesson,
-    hasPreviousLesson,
-    nextLesson,
-    previousLesson,
-    isNextLessonLocked,
-  } = useMemo(() => {
-    const hasNext = currentIndex < lessons.length - 1
-    const hasPrevious = currentIndex > 0
-    const next = hasNext ? lessons[currentIndex + 1] : null
-    const previous = hasPrevious ? lessons[currentIndex - 1] : null
-    const isNextLocked = false
+  const { hasNextLesson, hasPreviousLesson, nextLesson, previousLesson } =
+    useMemo(() => {
+      const hasNext = currentIndex < lessons.length - 1
+      const hasPrevious = currentIndex > 0
+      const next = hasNext ? lessons[currentIndex + 1] : null
+      const previous = hasPrevious ? lessons[currentIndex - 1] : null
 
-    return {
-      hasNextLesson: hasNext,
-      hasPreviousLesson: hasPrevious,
-      nextLesson: next,
-      previousLesson: previous,
-      isNextLessonLocked: isNextLocked,
-    }
-  }, [currentIndex, lessons])
+      return {
+        hasNextLesson: hasNext,
+        hasPreviousLesson: hasPrevious,
+        nextLesson: next,
+        previousLesson: previous,
+      }
+    }, [currentIndex, lessons])
 
   // Função para navegar para uma aula usando URL dinâmica
   const navigateToLesson = useCallback(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
-export default function NewSubmodulePage() {
+function NewSubmodulePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const moduleId = searchParams.get("moduleId") || "";
@@ -91,6 +91,21 @@ export default function NewSubmodulePage() {
         </Card>
       </div>
     </MainLayout>
+  );
+}
+
+export default function NewSubmodulePage() {
+  return (
+    <Suspense fallback={
+      <MainLayout>
+        <div className="space-y-6">
+          <div className="h-8 w-48 animate-pulse rounded bg-muted" />
+          <div className="h-64 animate-pulse rounded bg-muted" />
+        </div>
+      </MainLayout>
+    }>
+      <NewSubmodulePageContent />
+    </Suspense>
   );
 }
 

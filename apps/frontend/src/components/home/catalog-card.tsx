@@ -2,7 +2,6 @@
 
 import Image, { StaticImageData } from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { ArrowUpRight, ChartNoAxesColumnIncreasing } from 'lucide-react'
 import { Check, Plus, Star } from '@phosphor-icons/react/dist/ssr'
 import { enrollInCourse } from '@/actions/course'
@@ -10,7 +9,6 @@ import { useState } from 'react'
 import { useEnrolledCoursesStore } from '@/stores/enrolled-courses-store'
 import coverBackground from '../../../public/cover-background.png'
 
-// Componente para o botão de enroll
 function EnrollButton({
   courseId,
   onEnrollSuccess,
@@ -192,8 +190,6 @@ export function CatalogCard({
   isFree,
   position = 'middle',
 }: RecomendationCardProps) {
-  const router = useRouter()
-
   const { label, className: statusClass } = getStatusInfo(status)
 
   const transformOriginClass =

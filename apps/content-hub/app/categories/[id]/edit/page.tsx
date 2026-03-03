@@ -63,7 +63,7 @@ export default function EditCategoryPage() {
     if (formData.name && !slugManuallyEdited) {
       setFormData((prev) => ({
         ...prev,
-        slug: generateSlug(formData.name),
+        slug: generateSlug(prev.name ?? ''),
       }));
     }
   }, [formData.name, slugManuallyEdited]);
