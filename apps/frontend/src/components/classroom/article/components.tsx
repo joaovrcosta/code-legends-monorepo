@@ -1,17 +1,17 @@
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import type { Lesson } from "@/types/roadmap";
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import type { Lesson } from '@/types/roadmap'
 
 interface ComponentsArticleProps {
-  lesson: Lesson;
+  lesson: Lesson
 }
 
 export function ComponentsArticle({ lesson }: ComponentsArticleProps) {
-  const body = lesson.article?.body?.trim();
+  const body = lesson.article?.body?.trim()
 
   return (
     <div>
-      <div className="bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.25)] p-6 lg:h-64 h-56 flex flex-col justify-center items-center">
+      <div className="bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.25)] p-6 lg:h-64 h-56 flex flex-col justify-center items-center rounded-[20px]">
         <div className="text-center">
           <h1 className="text-3xl font-semibold text-white">{lesson.title}</h1>
           {lesson.description && (
@@ -36,5 +36,5 @@ export function ComponentsArticle({ lesson }: ComponentsArticleProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -33,14 +33,12 @@ export default function ClassroomHeader({
   const [isAutoplay, setIsAutoplay] = useState(false)
   const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
 
-  // Sincroniza o curso ativo do layout (SSR) com o store para a página do classroom ter curso imediato
   useEffect(() => {
     if (initialActiveCourse?.id && !activeCourse?.id) {
       setActiveCourse(initialActiveCourse)
     }
   }, [initialActiveCourse, activeCourse?.id, setActiveCourse])
 
-  // Custom hook gerencia toda a lógica de atualização do roadmap
   useRoadmapUpdater({
     isOpen: true,
     courseId: activeCourse?.id,
@@ -49,7 +47,6 @@ export default function ClassroomHeader({
     onRoadmapUpdate: setRoadmap,
   })
 
-  // Usa o activeCourse do store se disponível, senão usa o inicial
   const currentActiveCourse = activeCourse || initialActiveCourse
 
   // Constrói o path do curso dinamicamente
@@ -89,7 +86,7 @@ export default function ClassroomHeader({
 
   return (
     <div className="fixed top-0 left-0 w-full z-40 bg-white shadow-md">
-      <header className="fixed top-0 left-0 w-full z-40 bg-[#121214] shadow-lg border-b-[1px] border-[#25252a] lg:py-0 pt-2 pb-0">
+      <header className="fixed top-0 left-0 w-full z-40 bg-[#121214] shadow-lg lg:py-0 pt-2 pb-0">
         <ul className="relative z-10 flex justify-between items-center lg:pt-2 pt-0 lg:pb-2 pb-2 lpb-0 w-full mx-auto px-4">
           <li className="flex items-center lg:space-x-6">
             <button

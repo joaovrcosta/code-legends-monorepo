@@ -17,9 +17,9 @@ export const LessonContent = memo(function LessonContent({
   lesson,
 }: LessonContentProps) {
   return (
-    <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 flex flex-col min-h-0 lg:px-4 px-0">
-        <div className="flex-1 min-h-0 flex flex-col lg:px-4 px-0 lg:pt-4 pt-0 pb-[54px] lg:pb-[84px]">
+    <div className="flex-1 flex flex-col min-h-0 mx-4">
+      <div className="flex-1 flex flex-col min-h-0 px-0 border border-[#25252A] rounded-[20px] bg-[#121214]">
+        <div className="flex-1 min-h-0 flex flex-col lg:px-2 px-0 lg:pt-2 pt-0 pb-[54px] lg:pb-[84px]">
           {lesson?.type === 'video' && (
             <VideoComponent
               description={lesson.description}

@@ -339,7 +339,7 @@ export default function DynamicLessonPage() {
     return (
       <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
         <aside
-          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
+          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
             isSidebarOpen ? 'w-[378px]' : 'w-0'
           }`}
         >
@@ -431,7 +431,7 @@ export default function DynamicLessonPage() {
       <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
         {/* Sidebar com lista de aulas */}
         <aside
-          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
+          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
             isSidebarOpen ? 'w-[378px]' : 'w-0'
           }`}
         >
@@ -447,9 +447,52 @@ export default function DynamicLessonPage() {
                   <LessonsList lessons={allLessons} roadmap={roadmap} />
                 ) : (
                   <div className="flex items-center justify-center p-4">
-                    <p className="text-sm text-[#71717a]">
-                      Carregando lista de aulas...
-                    </p>
+                    <div className="w-full space-y-4 px-2">
+                      {[1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className="space-y-3 border-b border-zinc-900 pb-4 last:border-b-0"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Skeleton
+                              variant="circular"
+                              width={44}
+                              height={44}
+                              className="shrink-0 dark:bg-zinc-800"
+                            />
+                            <div className="flex-1 space-y-2">
+                              <Skeleton
+                                variant="text"
+                                width="30%"
+                                className="h-3 dark:bg-zinc-800"
+                              />
+                              <Skeleton
+                                variant="text"
+                                width="70%"
+                                className="h-4 dark:bg-zinc-800"
+                              />
+                            </div>
+                          </div>
+                          <div className="pl-11 space-y-2">
+                            <Skeleton
+                              variant="text"
+                              width="100%"
+                              className="h-3 dark:bg-zinc-800"
+                            />
+                            <Skeleton
+                              variant="text"
+                              width="90%"
+                              className="h-3 dark:bg-zinc-800"
+                            />
+                            <Skeleton
+                              variant="text"
+                              width="95%"
+                              className="h-3 dark:bg-zinc-800"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -457,7 +500,6 @@ export default function DynamicLessonPage() {
           )}
         </aside>
 
-        {/* Conteúdo principal — no mobile: accordion em cima, paywall centralizado abaixo */}
         <div
           className={`flex-1 w-full min-h-0 flex flex-col lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)]
@@ -535,7 +577,7 @@ export default function DynamicLessonPage() {
     <div className="flex h-[100dvh] w-full">
       {/* Sidebar com lista de aulas - apenas no desktop */}
       <aside
-        className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
+        className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
           isSidebarOpen ? 'w-[378px]' : 'w-0'
         }`}
       >
@@ -566,7 +608,7 @@ export default function DynamicLessonPage() {
              }`}
       >
         {/* Header */}
-        <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
+        <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none mb-0 flex-shrink-0 lg:block hidden">
           <div className="flex items-center justify-between w-full px-4">
             <div className="lg:hidden flex">
               <Menu size={32} className="text-white" />
