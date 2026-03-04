@@ -6,7 +6,7 @@ import { findLessonContext, generateLessonUrl } from '@/utils/lesson-url'
 import { useRouter } from 'next/navigation'
 import { useMemo, memo, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Video, FileText, HelpCircle, Code2 } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
@@ -15,6 +15,31 @@ import {
 } from '@/components/ui/accordion'
 import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { Skeleton } from '@/components/skeleton'
+
+function getLessonMeta(lesson: Lesson) {
+  const typeLabel =
+    lesson.type === 'video'
+      ? 'Vídeo'
+      : lesson.type === 'article' || lesson.type === 'text'
+        ? 'Leitura'
+        : lesson.type === 'quiz'
+          ? 'Quiz'
+          : lesson.type === 'project'
+            ? 'Projeto'
+            : lesson.type
+
+  const duration = lesson.video?.duration ?? lesson.video_duration
+
+  return duration ? `${typeLabel} • ${duration}` : typeLabel
+}
+
+function getLessonTypeIcon(lesson: Lesson) {
+  if (lesson.type === 'video') return Video
+  if (lesson.type === 'article' || lesson.type === 'text') return FileText
+  if (lesson.type === 'quiz') return HelpCircle
+  if (lesson.type === 'project') return Code2
+  return FileText
+}
 
 interface LessonsListProps {
   lessons: Lesson[]
@@ -267,13 +292,19 @@ export const LessonsList = memo(function LessonsList({
                                           : ''
                                     }`}
                                   >
-                                    <div
-                                      className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
-                                        isActive
-                                          ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]'
-                                          : 'bg-cyan-400'
-                                      }`}
-                                    />
+                                    {(() => {
+                                      const TypeIcon = getLessonTypeIcon(lesson)
+                                      return (
+                                        <TypeIcon
+                                          size={16}
+                                          className={`shrink-0 transition-colors ${
+                                            isActive
+                                              ? 'text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]'
+                                              : 'text-cyan-400'
+                                          }`}
+                                        />
+                                      )
+                                    })()}
 
                                     <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                                       <span
@@ -285,19 +316,15 @@ export const LessonsList = memo(function LessonsList({
                                       >
                                         {lesson.title}
                                       </span>
-                                      {(lesson.video?.duration ??
-                                        lesson.video_duration) && (
-                                        <span
-                                          className={`text-xs tabular-nums ${
-                                            isActive
-                                              ? 'text-cyan-400/80'
-                                              : 'text-zinc-500'
-                                          }`}
-                                        >
-                                          {lesson.video?.duration ??
-                                            lesson.video_duration}
-                                        </span>
-                                      )}
+                                      <span
+                                        className={`text-xs tabular-nums ${
+                                          isActive
+                                            ? 'text-cyan-400/80'
+                                            : 'text-zinc-500'
+                                        }`}
+                                      >
+                                        {getLessonMeta(lesson)}
+                                      </span>
                                     </div>
 
                                     {userPlan === 'FREE' && (

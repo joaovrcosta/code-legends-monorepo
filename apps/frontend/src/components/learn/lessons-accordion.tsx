@@ -18,6 +18,23 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { ChevronDown } from 'lucide-react'
 
+function getLessonMeta(lesson: Lesson) {
+  const typeLabel =
+    lesson.type === 'video'
+      ? 'Vídeo'
+      : lesson.type === 'article' || lesson.type === 'text'
+        ? 'Leitura'
+        : lesson.type === 'quiz'
+          ? 'Quiz'
+          : lesson.type === 'project'
+            ? 'Projeto'
+            : lesson.type
+
+  const duration = lesson.video?.duration ?? lesson.video_duration
+
+  return duration ? `${typeLabel} • ${duration}` : typeLabel
+}
+
 export function LessonsAccordion() {
   const { currentLesson } = useCourseModalStore()
   const { activeCourse } = useActiveCourseStore()
@@ -277,17 +294,15 @@ export function LessonsAccordion() {
                                       >
                                         {lesson.title}
                                       </span>
-                                      {(lesson.video?.duration ?? lesson.video_duration) && (
-                                        <span
-                                          className={`text-xs tabular-nums ${
-                                            isActive
-                                              ? 'text-cyan-400/80'
-                                              : 'text-zinc-500'
-                                          }`}
-                                        >
-                                          {lesson.video?.duration ?? lesson.video_duration}
-                                        </span>
-                                      )}
+                                      <span
+                                        className={`text-xs tabular-nums ${
+                                          isActive
+                                            ? 'text-cyan-400/80'
+                                            : 'text-zinc-500'
+                                        }`}
+                                      >
+                                        {getLessonMeta(lesson)}
+                                      </span>
                                     </div>
 
                                     {userPlan === 'FREE' && (
