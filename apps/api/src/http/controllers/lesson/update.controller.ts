@@ -19,6 +19,7 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
     video_url: z.string().optional(),
     video_duration: z.string().optional(),
     body: z.string().optional(),
+    quiz_content: z.array(z.unknown()).optional(),
     locked: z.boolean().optional(),
     order: z.number().optional(),
   });

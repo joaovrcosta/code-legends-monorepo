@@ -2,6 +2,7 @@ import { Lesson } from "@prisma/client";
 import { ILessonRepository } from "../../../repositories/lesson-repository";
 import { IVideoRepository } from "../../../repositories/video-repository";
 import { IArticleRepository } from "../../../repositories/article-repository";
+import { IQuizRepository } from "../../../repositories/quiz-repository";
 import { LessonNotFoundError } from "../../errors/lesson-not-found";
 import { LessonAlreadyExistsError } from "../../errors/lesson-already-exists";
 
@@ -16,6 +17,7 @@ interface UpdateLessonRequest {
   video_url?: string;
   video_duration?: string;
   body?: string;
+  quiz_content?: unknown[];
   locked?: boolean;
   order?: number;
 }
@@ -28,7 +30,8 @@ export class UpdateLessonUseCase {
   constructor(
     private lessonRepository: ILessonRepository,
     private videoRepository: IVideoRepository,
-    private articleRepository: IArticleRepository
+    private articleRepository: IArticleRepository,
+    private quizRepository: IQuizRepository
   ) {}
 
   async execute(data: UpdateLessonRequest): Promise<UpdateLessonResponse> {
@@ -47,7 +50,7 @@ export class UpdateLessonUseCase {
       }
     }
 
-    const { video_url, video_duration, body, ...updateData } = data;
+    const { video_url, video_duration, body, quiz_content, ...updateData } = data;
     const updatedLesson = await this.lessonRepository.update(data.id, updateData);
 
     if (data.type === "video") {
@@ -60,6 +63,9 @@ export class UpdateLessonUseCase {
       await this.articleRepository.upsert(lesson.id, {
         body: body.trim() || " ",
       });
+    }
+    if (data.type === "quiz" && Array.isArray(quiz_content)) {
+      await this.quizRepository.upsert(lesson.id, quiz_content);
     }
 
     const lessonWithContent = await this.lessonRepository.findById(data.id);

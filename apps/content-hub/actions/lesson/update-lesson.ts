@@ -1,6 +1,6 @@
 "use server";
 
-import type { Lesson } from "./list-lessons";
+import type { Lesson, Challenge } from "./list-lessons";
 
 export interface UpdateLessonData {
   title?: string;
@@ -12,6 +12,7 @@ export interface UpdateLessonData {
   video_url?: string;
   video_duration?: string;
   body?: string;
+  quiz_content?: Challenge[];
   locked?: boolean;
   order?: number;
   authorId?: string;

@@ -4,6 +4,7 @@ import { IGroupRepository } from "../../../repositories/group-repository";
 import { IUsersRepository } from "../../../repositories/users-repository";
 import { IVideoRepository } from "../../../repositories/video-repository";
 import { IArticleRepository } from "../../../repositories/article-repository";
+import { IQuizRepository } from "../../../repositories/quiz-repository";
 import { LessonAlreadyExistsError } from "../../errors/lesson-already-exists";
 import { GroupNotFoundError } from "../../errors/group-not-found";
 import { UserNotFoundError } from "../../errors/user-not-found";
@@ -18,6 +19,7 @@ interface CreateLessonRequest {
   video_url?: string;
   video_duration?: string;
   body?: string;
+  quiz_content?: unknown[];
   locked?: boolean;
   submoduleId: number;
   order?: number;
@@ -34,7 +36,8 @@ export class CreateLessonUseCase {
     private groupRepository: IGroupRepository,
     private usersRepository: IUsersRepository,
     private videoRepository: IVideoRepository,
-    private articleRepository: IArticleRepository
+    private articleRepository: IArticleRepository,
+    private quizRepository: IQuizRepository
   ) {}
 
   async execute(data: CreateLessonRequest): Promise<CreateLessonResponse> {
@@ -56,7 +59,7 @@ export class CreateLessonUseCase {
       throw new LessonAlreadyExistsError();
     }
 
-    const { video_url, video_duration, body, ...lessonData } = data;
+    const { video_url, video_duration, body, quiz_content, ...lessonData } = data;
     const lesson = await this.lessonRepository.create(lessonData);
 
     if (data.type === "video" && (video_url != null || video_duration != null)) {
@@ -71,6 +74,9 @@ export class CreateLessonUseCase {
         lessonId: lesson.id,
         body: body.trim(),
       });
+    }
+    if (data.type === "quiz" && Array.isArray(data.quiz_content)) {
+      await this.quizRepository.upsert(lesson.id, data.quiz_content);
     }
 
     const lessonWithContent = await this.lessonRepository.findById(lesson.id);

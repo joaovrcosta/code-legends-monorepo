@@ -2,6 +2,25 @@ export type LessonStatus = "completed" | "unlocked" | "locked";
 
 export type LessonType = "video" | "article" | "text" | "quiz" | "project";
 
+export type ChallengeType =
+  | "prediction"
+  | "bug"
+  | "refactor"
+  | "complete"
+  | "conceptual";
+
+export interface Challenge {
+  type: ChallengeType;
+  question: string;
+  code?: string;
+  language?: string;
+  options?: string[];
+  correctAnswer?: string;
+  correctAnswers?: string[];
+  explanation?: string;
+  placeholder?: string;
+}
+
 export type Lesson = {
   id: number;
   title: string;
@@ -12,6 +31,7 @@ export type Lesson = {
   video_duration?: string | null;
   video?: { url?: string | null; duration?: string | null } | null;
   article?: { body: string } | null;
+  quiz?: { content: Challenge[] } | null;
   order: number;
   status: LessonStatus;
   isCurrent: boolean;

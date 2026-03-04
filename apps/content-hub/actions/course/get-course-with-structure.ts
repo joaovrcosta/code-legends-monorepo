@@ -34,6 +34,7 @@ export interface LessonWithStructure {
   video_duration: string | null;
   video?: { url: string | null; duration: string | null } | null;
   article?: { body: string } | null;
+  quiz?: { content: import('../lesson/list-lessons').Challenge[] } | null;
   locked: boolean;
   completed: boolean;
   submoduleId: number;
@@ -90,6 +91,7 @@ export async function getCourseWithStructure(
                 video_duration: lesson.video?.duration ?? lesson.video_duration ?? null,
                 video: lesson.video ?? null,
                 article: lesson.article ?? null,
+                quiz: lesson.quiz ?? null,
                 locked: lesson.locked,
                 completed: false,
                 submoduleId: lesson.submoduleId,

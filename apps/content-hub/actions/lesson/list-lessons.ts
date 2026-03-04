@@ -1,5 +1,24 @@
 "use server";
 
+export type ChallengeType =
+  | "prediction"
+  | "bug"
+  | "refactor"
+  | "complete"
+  | "conceptual";
+
+export interface Challenge {
+  type: ChallengeType;
+  question: string;
+  code?: string;
+  language?: string;
+  options?: string[];
+  correctAnswer?: string;
+  correctAnswers?: string[];
+  explanation?: string;
+  placeholder?: string;
+}
+
 export interface Lesson {
   id: string;
   title: string;
@@ -12,6 +31,7 @@ export interface Lesson {
   video_duration?: string | null;
   video?: { url: string | null; duration: string | null } | null;
   article?: { body: string } | null;
+  quiz?: { content: Challenge[] } | null;
   locked: boolean;
   order?: number | null;
   submoduleId: number;

@@ -208,6 +208,8 @@ export class GetLessonByCourseIdAndSlugUseCase {
       }
     }
 
+    const rawQuiz = (lessonEntity as any).quiz ?? null;
+
     const lesson: LessonWithContentDTO = {
       id: lessonEntity.id,
       title: lessonEntity.title,
@@ -218,6 +220,9 @@ export class GetLessonByCourseIdAndSlugUseCase {
       order: lessonEntity.order,
       video: (lessonEntity as any).video ?? null,
       article: (lessonEntity as any).article ?? null,
+      quiz: rawQuiz
+        ? { content: Array.isArray(rawQuiz.content) ? rawQuiz.content : [] }
+        : null,
     }
 
     return {

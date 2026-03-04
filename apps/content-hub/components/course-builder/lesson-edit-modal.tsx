@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { ArticleBodyEditor } from './article-body-editor'
+import { QuizEditor } from './quiz-editor'
 import { Select } from '@/components/ui/select'
+import type { Challenge } from '@/actions/lesson/list-lessons'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { updateLesson } from '@/actions/lesson/update-lesson'
 import { getAuthTokenFromClient } from '@/lib/auth'
@@ -52,6 +54,9 @@ export function LessonEditModal({
     locked: lesson.locked,
     order: lesson.order,
   })
+  const [quizContent, setQuizContent] = useState<Challenge[]>(
+    lesson.quiz?.content ?? [],
+  )
 
   useEffect(() => {
     if (isOpen) {
@@ -68,6 +73,7 @@ export function LessonEditModal({
         locked: lesson.locked,
         order: lesson.order,
       })
+      setQuizContent(lesson.quiz?.content ?? [])
       setSlugManuallyEdited(false)
     }
   }, [lesson, isOpen])
@@ -90,7 +96,12 @@ export function LessonEditModal({
         return
       }
 
-      await updateLesson(lesson.id.toString(), formData, token)
+      const payload =
+        formData.type === 'quiz'
+          ? { ...formData, quiz_content: quizContent }
+          : formData
+
+      await updateLesson(lesson.id.toString(), payload, token)
       onSave({
         ...lesson,
         ...formData,
@@ -109,6 +120,7 @@ export function LessonEditModal({
           formData.body
             ? { body: formData.body }
             : null,
+        quiz: formData.type === 'quiz' ? { content: quizContent } : null,
       })
       onClose()
     } catch (error) {
@@ -122,16 +134,17 @@ export function LessonEditModal({
   if (!isOpen) return null
 
   const isArticle = formData.type === 'article'
+  const isFullScreen = isArticle || formData.type === 'quiz'
 
   return (
     <div
       className={`fixed inset-0 bg-black/50 z-50 ${
-        isArticle ? 'flex' : 'flex items-center justify-center'
+        isFullScreen ? 'flex' : 'flex items-center justify-center'
       }`}
     >
       <Card
         className={
-          isArticle
+          isFullScreen
             ? 'h-full w-full max-w-none rounded-none overflow-y-auto'
             : 'w-full max-w-2xl max-h-[90vh] overflow-y-auto'
         }
@@ -282,6 +295,16 @@ export function LessonEditModal({
                 rows={12}
                 isArticle={formData.type === 'article'}
               />
+            )}
+
+            {formData.type === 'quiz' && (
+              <div className="space-y-2">
+                <Label>Desafios do Quiz</Label>
+                <QuizEditor
+                  challenges={quizContent}
+                  onChange={setQuizContent}
+                />
+              </div>
             )}
 
             <div className="space-y-2">

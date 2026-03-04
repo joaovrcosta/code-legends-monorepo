@@ -2,6 +2,7 @@
 
 import VideoComponent from '@/components/classroom/video'
 import { ComponentsArticle } from '@/components/classroom/article/components'
+import { QuizView } from '@/components/classroom/challenge/QuizView'
 import type { Lesson } from '@/types/roadmap'
 import { memo } from 'react'
 
@@ -31,7 +32,14 @@ export const LessonContent = memo(function LessonContent({
           {(lesson?.type === 'article' || lesson?.type === 'text') && (
             <ComponentsArticle lesson={lesson} moduleTitle={moduleTitle} />
           )}
-          {lesson?.type === 'quiz' && <p>Quiz bb</p>}
+          {lesson?.type === 'quiz' && (
+            <QuizView
+              lessonId={lesson.id}
+              title={lesson.title}
+              description={lesson.description}
+              challenges={lesson.quiz?.content ?? []}
+            />
+          )}
           {lesson?.type === 'project' && <p>Projeto</p>}
         </div>
       </div>

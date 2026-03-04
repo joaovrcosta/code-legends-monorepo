@@ -3,23 +3,58 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useState } from 'react'
-import type { Lesson } from '@/types/roadmap'
+import type { ComponentProps } from 'react'
+import type { Lesson, Challenge } from '@/types/roadmap'
 import { CodeBlockPre, InlineCode } from './CodeBlock'
 import { CalloutBlockquote } from './CalloutBlockquote'
+import { ChallengeBlock } from '@/components/classroom/challenge/ChallengeBlock'
 import { continueCourse } from '@/actions/course'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { Button } from '@/components/ui/button'
 import { Check } from '@phosphor-icons/react/dist/ssr'
 
-/**
- * Convenção de callouts para autores (Content Hub):
- * Use blockquotes no Markdown com a primeira palavra em negrito:
- * - > **Note** ou **Nota** → caixa azul (informação)
- * - > **Warning** ou **Aviso** → caixa âmbar (aviso)
- * - > **Tip** ou **Dica** → caixa verde (dica)
- * - > **Success** ou **Sucesso** → caixa verde escura (sucesso)
- */
+function isReactElement(
+  node: React.ReactNode,
+): node is React.ReactElement<{
+  className?: string
+  children?: React.ReactNode
+}> {
+  return !!node && typeof node === 'object' && 'props' in node
+}
+
+function getCodeString(children: React.ReactNode): string {
+  if (typeof children === 'string') return children
+  return Array.isArray(children)
+    ? children.map((c) => (typeof c === 'string' ? c : '')).join('')
+    : String(children ?? '')
+}
+
+function ArticleCodeBlockPre({ children }: ComponentProps<'pre'>) {
+  const codeEl = Array.isArray(children) ? children[0] : children
+  const className = isReactElement(codeEl) ? codeEl.props.className : undefined
+  const match =
+    typeof className === 'string' ? className.match(/language-(\w+)/) : null
+  const lang = match ? match[1] : 'text'
+
+  if (lang === 'challenge') {
+    const raw = isReactElement(codeEl)
+      ? getCodeString(codeEl.props.children)
+      : getCodeString(codeEl)
+    try {
+      const challenge = JSON.parse(raw) as Challenge
+      return <ChallengeBlock challenge={challenge} />
+    } catch {
+      return (
+        <div className="my-4 rounded-[12px] border border-[#f87171]/40 bg-[#3b1515] px-4 py-3 text-sm text-[#f87171]">
+          Desafio inválido (JSON malformado).
+        </div>
+      )
+    }
+  }
+
+  return <CodeBlockPre>{children}</CodeBlockPre>
+}
 
 interface ComponentsArticleProps {
   lesson: Lesson
@@ -34,7 +69,8 @@ export function ComponentsArticle({
   const [isMarking, setIsMarking] = useState(false)
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
   const { currentLesson, updateCurrentLessonStatus } = useCourseModalStore()
-  const isMarked = currentLesson?.id === lesson?.id && currentLesson?.status === 'completed'
+  const isMarked =
+    currentLesson?.id === lesson?.id && currentLesson?.status === 'completed'
 
   const handleMarkAsComplete = async () => {
     if (!currentLesson?.id || currentLesson.id !== lesson.id) return
@@ -42,14 +78,17 @@ export function ComponentsArticle({
     try {
       setIsMarking(true)
       const result = await continueCourse(currentLesson.id, activeCourse?.id)
-      if (!result?.success) throw new Error('A API não retornou sucesso ao completar a lição')
+      if (!result?.success)
+        throw new Error('A API não retornou sucesso ao completar a lição')
       updateCurrentLessonStatus('completed')
       await fetchActiveCourse()
     } catch (error) {
       console.error('Erro ao marcar como concluído:', error)
       const msg = error instanceof Error ? error.message : 'Erro desconhecido'
       if (msg.includes('locked') || msg.includes('bloqueada')) {
-        alert('Esta aula está bloqueada. Complete as aulas anteriores para desbloqueá-la.')
+        alert(
+          'Esta aula está bloqueada. Complete as aulas anteriores para desbloqueá-la.',
+        )
       } else {
         alert(`Erro ao marcar como concluído: ${msg}. Tente novamente.`)
       }
@@ -82,7 +121,7 @@ export function ComponentsArticle({
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  pre: CodeBlockPre,
+                  pre: ArticleCodeBlockPre,
                   code: InlineCode,
                   blockquote: CalloutBlockquote,
                   h1: ({ children, ...props }) => (
@@ -130,7 +169,11 @@ export function ComponentsArticle({
               }`}
             >
               <Check weight="bold" size={20} />
-              {isMarking ? 'Marcando...' : isMarked ? 'Concluído' : 'Marcar como concluído'}
+              {isMarking
+                ? 'Marcando...'
+                : isMarked
+                  ? 'Concluído'
+                  : 'Marcar como concluído'}
             </Button>
           </div>
         </div>
