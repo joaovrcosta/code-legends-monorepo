@@ -97,7 +97,7 @@ export function CodeBlockPre({ children }: CodeBlockPreProps) {
 
   return (
     <div
-      className="group relative my-4 overflow-hidden rounded-xl border border-[#25252A] bg-[#0d0d0f]"
+      className="group relative my-4 overflow-hidden rounded-[20px] border border-[#25252A] bg-[#0d0d0f]"
       role="region"
       aria-label="Bloco de código"
     >

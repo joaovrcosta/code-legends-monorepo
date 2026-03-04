@@ -3,15 +3,15 @@
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
-interface CodeBlockHighlighterProps {
+interface ArticleCodeHighlighterProps {
   code: string
   language: string
 }
 
-export function CodeBlockHighlighter({
+export function ArticleCodeHighlighter({
   code,
   language,
-}: CodeBlockHighlighterProps) {
+}: ArticleCodeHighlighterProps) {
   return (
     <SyntaxHighlighter
       language={language}
@@ -19,9 +19,9 @@ export function CodeBlockHighlighter({
       PreTag="div"
       customStyle={{
         margin: 0,
-        padding: '1rem 1.25rem',
+        padding: '0.75rem 0.9rem',
         background: 'transparent',
-        fontSize: '0.875rem',
+        fontSize: '0.75rem',
         lineHeight: 1.6,
       }}
       codeTagProps={{
@@ -37,3 +37,4 @@ export function CodeBlockHighlighter({
     </SyntaxHighlighter>
   )
 }
+

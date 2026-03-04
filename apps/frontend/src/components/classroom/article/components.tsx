@@ -15,18 +15,27 @@ import { CalloutBlockquote } from './CalloutBlockquote'
 
 interface ComponentsArticleProps {
   lesson: Lesson
+  moduleTitle?: string
 }
 
-export function ComponentsArticle({ lesson }: ComponentsArticleProps) {
+export function ComponentsArticle({
+  lesson,
+  moduleTitle,
+}: ComponentsArticleProps) {
   const body = lesson.article?.body?.trim()
 
   return (
     <div>
-      <div className="bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.25)] p-6 lg:h-64 h-56 flex flex-col justify-center items-center rounded-[20px]">
-        <div className="text-center">
+      <div className="bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.25)] px-6 py-5 lg:h-64 h-56 flex flex-col justify-center items-start lg:rounded-[20px] rounded-none">
+        <div className="text-left space-y-1">
+          {moduleTitle && (
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9ca3af]">
+              {moduleTitle.split(':')[0] ?? moduleTitle}
+            </p>
+          )}
           <h1 className="text-3xl font-semibold text-white">{lesson.title}</h1>
           {lesson.description && (
-            <p className="text-muted-foreground mt-2 text-sm max-w-xl">
+            <p className="text-muted-foreground mt-1 text-sm max-w-xl">
               {lesson.description}
             </p>
           )}

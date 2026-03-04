@@ -54,6 +54,9 @@ export default {
           "5": "hsl(var(--chart-5))",
         },
       },
+      fontFamily: {
+        mono: ['"Space Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
       backgroundImage: {
         "silver-gradient": "linear-gradient(0deg, #828282 0%, #fff 100%);",
         "gray-gradient":
