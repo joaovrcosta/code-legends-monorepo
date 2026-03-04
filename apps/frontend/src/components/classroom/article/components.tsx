@@ -1,8 +1,16 @@
+'use client'
+
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useState } from 'react'
 import type { Lesson } from '@/types/roadmap'
 import { CodeBlockPre, InlineCode } from './CodeBlock'
 import { CalloutBlockquote } from './CalloutBlockquote'
+import { continueCourse } from '@/actions/course'
+import { useActiveCourseStore } from '@/stores/active-course-store'
+import { useCourseModalStore } from '@/stores/course-modal-store'
+import { Button } from '@/components/ui/button'
+import { Check } from '@phosphor-icons/react/dist/ssr'
 
 /**
  * Convenção de callouts para autores (Content Hub):
@@ -23,6 +31,32 @@ export function ComponentsArticle({
   moduleTitle,
 }: ComponentsArticleProps) {
   const body = lesson.article?.body?.trim()
+  const [isMarking, setIsMarking] = useState(false)
+  const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
+  const { currentLesson, updateCurrentLessonStatus } = useCourseModalStore()
+  const isMarked = currentLesson?.id === lesson?.id && currentLesson?.status === 'completed'
+
+  const handleMarkAsComplete = async () => {
+    if (!currentLesson?.id || currentLesson.id !== lesson.id) return
+    if (isMarking || isMarked) return
+    try {
+      setIsMarking(true)
+      const result = await continueCourse(currentLesson.id, activeCourse?.id)
+      if (!result?.success) throw new Error('A API não retornou sucesso ao completar a lição')
+      updateCurrentLessonStatus('completed')
+      await fetchActiveCourse()
+    } catch (error) {
+      console.error('Erro ao marcar como concluído:', error)
+      const msg = error instanceof Error ? error.message : 'Erro desconhecido'
+      if (msg.includes('locked') || msg.includes('bloqueada')) {
+        alert('Esta aula está bloqueada. Complete as aulas anteriores para desbloqueá-la.')
+      } else {
+        alert(`Erro ao marcar como concluído: ${msg}. Tente novamente.`)
+      }
+    } finally {
+      setIsMarking(false)
+    }
+  }
 
   return (
     <div>
@@ -85,6 +119,20 @@ export function ComponentsArticle({
               Conteúdo em produção. Em breve você poderá ler este artigo aqui.
             </p>
           )}
+          <div className="mt-10 pt-8 border-t border-[#25252A]">
+            <Button
+              onClick={handleMarkAsComplete}
+              disabled={isMarking || isMarked || !currentLesson}
+              className={`gap-2 rounded-full px-6 ${
+                isMarked
+                  ? 'bg-[#00b3e4]/20 text-[#00b3e4] border border-[#00b3e4] hover:bg-[#00b3e4]/20'
+                  : 'bg-[#25252A] text-white border border-[#25252A] hover:border-[#00b3e4] hover:bg-[#25252A]'
+              }`}
+            >
+              <Check weight="bold" size={20} />
+              {isMarking ? 'Marcando...' : isMarked ? 'Concluído' : 'Marcar como concluído'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -141,8 +141,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
           <span
             className={cn(
               'font-bold text-xl',
-              !course.colorHex &&
-                'bg-blue-gradient-500 bg-clip-text text-transparent',
+              !course.colorHex && 'text-white',
             )}
             style={course.colorHex ? { color: course.colorHex } : undefined}
           >
