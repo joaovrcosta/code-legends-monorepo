@@ -15,9 +15,10 @@ interface LessonContentProps {
 
 export const LessonContent = memo(function LessonContent({
   lesson,
+  moduleTitle,
 }: LessonContentProps) {
   return (
-    <div className="flex-1 flex flex-col min-h-0 mx-4">
+    <div className="flex-1 flex flex-col min-h-0 lg:mx-4 mx-0">
       <div className="flex-1 flex flex-col min-h-0 px-0 border border-[#25252A] rounded-[20px] bg-[#121214]">
         <div className="flex-1 min-h-0 flex flex-col lg:px-2 px-0 lg:pt-2 pt-0 pb-[54px] lg:pb-[84px]">
           {lesson?.type === 'video' && (
@@ -28,7 +29,7 @@ export const LessonContent = memo(function LessonContent({
             />
           )}
           {(lesson?.type === 'article' || lesson?.type === 'text') && (
-            <ComponentsArticle lesson={lesson} />
+            <ComponentsArticle lesson={lesson} moduleTitle={moduleTitle} />
           )}
           {lesson?.type === 'quiz' && <p>Quiz bb</p>}
           {lesson?.type === 'project' && <p>Projeto</p>}

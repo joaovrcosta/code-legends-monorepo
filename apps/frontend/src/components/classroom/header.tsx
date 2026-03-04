@@ -49,15 +49,12 @@ export default function ClassroomHeader({
 
   const currentActiveCourse = activeCourse || initialActiveCourse
 
-  // Constrói o path do curso dinamicamente
   const coursePath = currentActiveCourse?.slug
     ? `/learn/paths/${currentActiveCourse.slug}`
     : '/learn/catalog'
 
-  // Nome do curso para exibir (fallback para "Curso" se não tiver título)
   const courseName = currentActiveCourse?.title || 'Curso'
 
-  // Busca moduleTitle e groupTitle do roadmap
   const { moduleTitle, groupTitle } = useMemo(() => {
     let moduleTitleValue: string | undefined
     let groupTitleValue: string | undefined
@@ -97,8 +94,6 @@ export default function ClassroomHeader({
             </button>
 
             <div className="flex items-center space-x-4">
-              {/* <LoggedSheet /> */}
-
               <div>
                 <Link href="/">
                   <Image
@@ -120,8 +115,28 @@ export default function ClassroomHeader({
             </div>
             {currentActiveCourse && (
               <Link href={coursePath}>
-                <div className="border rounded-[8px] border-[#25252a] py-2 lg:block hidden px-3 hover:bg-[#25252a] cursor-pointer transition-colors duration-150 ease-in-out">
-                  <span className="text-[14px]">{courseName}</span>
+                <div className="border rounded-[12px] border-[#25252a] py-2 lg:flex hidden items-center gap-2 px-3 hover:bg-[#25252a] cursor-pointer transition-colors duration-150 ease-in-out">
+                  {currentActiveCourse?.icon ? (
+                    <div className="w-6 h-6 rounded-full overflow-hidden">
+                      <Image
+                        src={currentActiveCourse.icon}
+                        alt={courseName}
+                        width={32}
+                        height={32}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">
+                        {courseName[0]?.toUpperCase() || 'C'}
+                      </span>
+                    </div>
+                  )}
+
+                  <span className="text-[14px] truncate max-w-[160px]">
+                    {courseName}
+                  </span>
                 </div>
               </Link>
             )}
