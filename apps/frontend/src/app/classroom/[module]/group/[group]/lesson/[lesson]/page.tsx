@@ -632,9 +632,9 @@ export default function DynamicLessonPage() {
           />
         </div>
 
-        {/* Footer */}
+        {/* Footer - mesma largura que o lesson-content (lg:mx-4) */}
         <footer
-          className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 transition-all duration-300 ease-in-out ${
+          className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 transition-all duration-300 ease-in-out lg:mx-4 ${
             isSidebarOpen ? 'lg:left-[378px]' : 'lg:left-0'
           }`}
         >
