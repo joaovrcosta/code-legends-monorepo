@@ -25,11 +25,7 @@ function getCodeString(children: React.ReactNode): string {
 
 function trimWrappingBackticks(raw: string): string {
   let s = raw.trim()
-
-  // Se vierem backticks escapados (\`), converte para backticks normais
   s = s.replace(/\\`/g, '`')
-
-  // Remove fences/backticks do começo e fim (simples)
   s = s.replace(/^`+[\r\n]*/, '')
   s = s.replace(/[\r\n]*`+$/, '')
 
@@ -72,11 +68,6 @@ function isReactElement(node: React.ReactNode): node is React.ReactElement<{
   return !!node && typeof node === 'object' && 'props' in node
 }
 
-/**
- * Bloco de código (fenced). Usado como custom component do `pre` no react-markdown.
- *
- * Importante: usar no `pre` evita `<div>` dentro de `<p>` (hidratação).
- */
 export function CodeBlockPre({ children }: CodeBlockPreProps) {
   const codeEl = useMemo(() => {
     if (Array.isArray(children)) return children[0]
