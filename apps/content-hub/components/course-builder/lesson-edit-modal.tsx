@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ArticleBodyEditor } from "./article-body-editor";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { updateLesson } from "@/actions/lesson/update-lesson";
@@ -223,19 +224,12 @@ export function LessonEditModal({
                         </div>
 
                         {(formData.type === "article" || formData.type === "text") && (
-                            <div className="space-y-2">
-                                <Label htmlFor="body">Conteúdo do artigo (Markdown)</Label>
-                                <Textarea
-                                    id="body"
-                                    value={formData.body}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, body: e.target.value })
-                                    }
-                                    rows={12}
-                                    className="font-mono text-sm"
-                                    placeholder="Escreva o conteúdo em Markdown..."
-                                />
-                            </div>
+                            <ArticleBodyEditor
+                                id="body"
+                                value={formData.body}
+                                onChange={(body) => setFormData({ ...formData, body })}
+                                rows={12}
+                            />
                         )}
 
                         <div className="space-y-2">
