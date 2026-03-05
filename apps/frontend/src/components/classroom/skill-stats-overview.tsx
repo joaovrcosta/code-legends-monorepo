@@ -1,47 +1,14 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import confetti from 'canvas-confetti'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { getCourseSkillsProgress } from '@/actions/course'
 import type { CourseSkillsProgressResponse } from '@/actions/course/skills-progress'
 import { SkillModuleProgressBar } from '@/components/classroom/skill-module-progress-bar'
 import { ProgressRing } from '@/components/classroom/module-progress-ring'
-
-// Ícones SVG para as skills
-const CodeIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="text-[#9ca3af]"
-  >
-    <polyline points="16 18 22 12 16 6"></polyline>
-    <polyline points="8 6 2 12 8 18"></polyline>
-  </svg>
-)
-const MonitorIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="text-[#9ca3af]"
-  >
-    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-    <line x1="8" y1="21" x2="16" y2="21"></line>
-    <line x1="12" y1="17" x2="12" y2="21"></line>
-  </svg>
-)
+import { Code, Monitor } from '@phosphor-icons/react/dist/ssr'
 
 export function SkillStatsOverview() {
   const { activeCourse } = useActiveCourseStore()
@@ -49,8 +16,8 @@ export function SkillStatsOverview() {
 
   const [data, setData] = useState<CourseSkillsProgressResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const hasFiredConfetti = useRef(false)
 
-  const moduleTitle = lastModuleCompletion?.moduleTitle
   const xpGained = lastModuleCompletion?.xpGained ?? 0
   const xpGainedInModuleBySkill = lastModuleCompletion?.xpGainedInModuleBySkill
 
@@ -63,8 +30,8 @@ export function SkillStatsOverview() {
   const xpTotalDisplay = hasEnrichedResponse
     ? (data.xpGainedInModule ?? 0)
     : (lastModuleCompletion?.xpGainedInModule ??
-       lastModuleCompletion?.xpGained ??
-       0)
+      lastModuleCompletion?.xpGained ??
+      0)
 
   const axisMaxFallback = useMemo(() => {
     if (!data?.skills?.length) return 3000
@@ -113,6 +80,34 @@ export function SkillStatsOverview() {
     : topSkillsFallback[0]
 
   useEffect(() => {
+    if (lastModuleCompletion?.moduleCompleted && !hasFiredConfetti.current) {
+      hasFiredConfetti.current = true
+      const duration = 2_000
+      const end = Date.now() + duration
+      const colors = ['#facc15', '#fbbf24', '#f59e0b', '#e5e7eb', '#9ca3af']
+
+      const frame = () => {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors,
+        })
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors,
+        })
+        if (Date.now() < end) requestAnimationFrame(frame)
+      }
+      frame()
+    }
+  }, [lastModuleCompletion?.moduleCompleted])
+
+  useEffect(() => {
     const load = async () => {
       if (!activeCourse?.id) return
       setIsLoading(true)
@@ -147,28 +142,14 @@ export function SkillStatsOverview() {
 
   return (
     <div className="rounded-2xl px-5 py-5 lg:px-6 lg:py-6 space-y-8">
-      {/* 1. SEÇÃO ORIGINAL SUPERIOR */}
       <div className="space-y-6">
         <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9ca3af]">
-            Módulo concluído
+          <p className="text-xl font-semibold uppercase tracking-[0.18em] text-[#9ca3af]">
+            Módulo concluído!🎉
           </p>
-          <h2 className="text-xl lg:text-2xl font-semibold text-white">
-            {moduleTitle || 'Você concluiu este módulo!'}
-          </h2>
         </div>
 
-        <div className="rounded-2xl border border-[#1f2933] bg-[#020617] px-4 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9ca3af]">
-              O que você está desenvolvendo
-            </p>
-            <p className="text-sm text-[#e5e7eb] max-w-md">
-              Este módulo ajudou você a evoluir nas principais skills técnicas
-              deste curso.
-            </p>
-          </div>
-
+        <div className="rounded-2xl px-4 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           {topSkillForHighlight && (
             <div className="flex items-center gap-4 self-start md:self-auto">
               <ProgressRing
@@ -185,7 +166,7 @@ export function SkillStatsOverview() {
                 })()}
                 size={64}
                 strokeWidth={3}
-                progressColor="stroke-[#facc15]"
+                progressColor="stroke-[#00c8ff]"
                 trackColor="stroke-[#1f2933]"
                 isCurrent
               />
@@ -209,7 +190,7 @@ export function SkillStatsOverview() {
           {xpTotalDisplay > 0 ? (
             <>
               Você ganhou{' '}
-              <span className="font-semibold text-[#facc15]">
+              <span className="font-semibold text-[#00c8ff]">
                 +{xpTotalDisplay.toLocaleString('pt-BR')} XP
               </span>{' '}
               distribuídos entre as skills abaixo neste módulo.
@@ -282,7 +263,7 @@ export function SkillStatsOverview() {
                         {/* Nome da Skill */}
                         <div className="w-56 shrink-0 flex items-center gap-3">
                           <div className="p-1.5 rounded-md border border-white/10 bg-white/5">
-                            {isWebDesign ? <MonitorIcon /> : <CodeIcon />}
+                            {isWebDesign ? <Monitor /> : <Code />}
                           </div>
                           <span className="text-white font-semibold text-sm">
                             {skill.name}
@@ -300,7 +281,7 @@ export function SkillStatsOverview() {
                             {previousXp.toLocaleString('en-US')} XP
                           </span>
                           <span className="text-white font-bold">→</span>
-                          <span className="text-[#facc15] font-bold">
+                          <span className="text-[#00c8ff] font-bold">
                             {currentXp.toLocaleString('en-US')} XP
                           </span>
                         </div>
