@@ -30,10 +30,12 @@ interface CompleteLessonResponse {
   level?: number
   xpToNextLevel?: number
   progress?: number
+  xpGainedInModule?: number
+  xpGainedInModuleBySkill?: { skillId: string; xp: number }[]
 }
 
 export class CompleteLessonUseCase {
-  private readonly XP_PER_LESSON = 50 // XP fixo por lição completada
+  private readonly XP_PER_LESSON = 15 // XP fixo por lição completada
 
   constructor(
     private userProgressRepository: IUserProgressRepository,
@@ -385,6 +387,35 @@ export class CompleteLessonUseCase {
       }
     }
 
+    // XP total do módulo (soma de todas as lições): só quando o módulo acabou de ser completado
+    let xpGainedInModule: number | undefined
+    let xpGainedInModuleBySkill: { skillId: string; xp: number }[] | undefined
+
+    if (moduleCompleted) {
+      const moduleLessonIds = moduleWithLessons.submodules.flatMap((s) =>
+        s.lessons.map((l) => l.id),
+      )
+
+      const historyRows = await prisma.userSkillXpHistory.findMany({
+        where: {
+          userId,
+          source: 'lesson_completed',
+          sourceId: { in: moduleLessonIds },
+        },
+        select: { skillId: true, xpAmount: true },
+      })
+
+      const bySkill = new Map<string, number>()
+      for (const row of historyRows) {
+        bySkill.set(row.skillId, (bySkill.get(row.skillId) ?? 0) + row.xpAmount)
+      }
+
+      xpGainedInModule = [...bySkill.values()].reduce((a, b) => a + b, 0)
+      xpGainedInModuleBySkill = [...bySkill.entries()]
+        .filter(([, xp]) => xp > 0)
+        .map(([skillId, xp]) => ({ skillId, xp }))
+    }
+
     return {
       success: true,
       nextLessonId,
@@ -398,6 +429,10 @@ export class CompleteLessonUseCase {
       level,
       xpToNextLevel,
       progress: Math.round(moduleProgress * 100), // Progresso do módulo em porcentagem (0-100)
+      ...(moduleCompleted && {
+        xpGainedInModule,
+        xpGainedInModuleBySkill,
+      }),
     }
   }
 

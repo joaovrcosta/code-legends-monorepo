@@ -61,6 +61,8 @@ export function TitleAccordion({ title, description }: TitleAccordinProps) {
           moduleTitle: result.moduleTitle,
           progress: result.progress,
           xpGained: result.xpGained,
+          xpGainedInModule: result.xpGainedInModule,
+          xpGainedInModuleBySkill: result.xpGainedInModuleBySkill,
         })
       }
 

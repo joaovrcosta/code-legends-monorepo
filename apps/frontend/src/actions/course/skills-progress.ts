@@ -8,15 +8,21 @@ export interface CourseSkillProgressItem {
   slug: string;
   weight: number;
   totalXp: number;
+  gainedXpInModule?: number;
+  previousXp?: number;
 }
 
 export interface CourseSkillsProgressResponse {
   courseId: string;
   skills: CourseSkillProgressItem[];
+  xpGainedInModule?: number;
+  axisMax?: number;
+  topSkills?: CourseSkillProgressItem[];
 }
 
 export async function getCourseSkillsProgress(
-  courseId: string
+  courseId: string,
+  moduleId?: string
 ): Promise<CourseSkillsProgressResponse | null> {
   try {
     const token = await getAuthToken();
@@ -28,17 +34,21 @@ export async function getCourseSkillsProgress(
       return null;
     }
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/skills-progress`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        cache: "no-store",
-      }
+    const url = new URL(
+      `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/skills-progress`
     );
+    if (moduleId) {
+      url.searchParams.set("moduleId", moduleId);
+    }
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
 
     if (!response.ok) {
       console.error(

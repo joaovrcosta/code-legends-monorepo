@@ -1,42 +1,38 @@
 // store/courseModalStore.ts
-import { create } from "zustand";
-import type { Lesson, LessonStatus, LessonType } from "@/types/roadmap";
-import type { Task } from "../../db";
+import { create } from 'zustand'
+import type { Lesson, LessonStatus, LessonType } from '@/types/roadmap'
+import type { Task } from '../../db'
 
 interface ModuleCompletionInfo {
-  moduleCompleted: boolean;
-  moduleId?: string;
-  moduleTitle?: string;
-  /**
-   * Progresso do módulo em porcentagem (0–100)
-   */
-  progress?: number;
-  /**
-   * XP ganho ao completar a lição que finalizou o módulo
-   */
-  xpGained?: number;
+  moduleCompleted: boolean
+  moduleId?: string
+  moduleTitle?: string
+  progress?: number
+  xpGained?: number
+  xpGainedInModule?: number
+  xpGainedInModuleBySkill?: { skillId: string; xp: number }[]
 }
 
 interface CourseModalStore {
-  isOpen: boolean;
-  lessons: Lesson[];
-  currentIndex: number;
-  openModalWithLessons: (lessons: Lesson[], startIndex?: number) => void;
-  closeModal: () => void;
-  goToNextLesson: () => void;
-  goToPreviousLesson: () => void;
-  openModalWithLesson: (lesson: Lesson) => void;
-  openModalWithTask: (task: Task) => void;
-  setLessonsForPage: (lessons: Lesson[], startIndex?: number) => void;
-  setLessonForPage: (lesson: Lesson) => void;
-  setTaskForPage: (task: Task) => void;
-  currentLesson: Lesson | null;
-  updateCurrentLessonStatus: (status: LessonStatus) => void;
-  lessonCompletedTimestamp: number | null;
-  moduleUnlockedTimestamp: number | null;
-  setModuleUnlockedTimestamp: () => void;
-  lastModuleCompletion: ModuleCompletionInfo | null;
-  setLastModuleCompletion: (info: ModuleCompletionInfo | null) => void;
+  isOpen: boolean
+  lessons: Lesson[]
+  currentIndex: number
+  openModalWithLessons: (lessons: Lesson[], startIndex?: number) => void
+  closeModal: () => void
+  goToNextLesson: () => void
+  goToPreviousLesson: () => void
+  openModalWithLesson: (lesson: Lesson) => void
+  openModalWithTask: (task: Task) => void
+  setLessonsForPage: (lessons: Lesson[], startIndex?: number) => void
+  setLessonForPage: (lesson: Lesson) => void
+  setTaskForPage: (task: Task) => void
+  currentLesson: Lesson | null
+  updateCurrentLessonStatus: (status: LessonStatus) => void
+  lessonCompletedTimestamp: number | null
+  moduleUnlockedTimestamp: number | null
+  setModuleUnlockedTimestamp: () => void
+  lastModuleCompletion: ModuleCompletionInfo | null
+  setLastModuleCompletion: (info: ModuleCompletionInfo | null) => void
 }
 
 export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
@@ -68,28 +64,28 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
     }),
 
   goToNextLesson: () => {
-    const { currentIndex, lessons, currentLesson } = get();
+    const { currentIndex, lessons, currentLesson } = get()
     // Só permite navegar se a aula atual estiver completa
-    if (currentLesson?.status !== "completed") {
-      return;
+    if (currentLesson?.status !== 'completed') {
+      return
     }
-    const nextIndex = currentIndex + 1;
+    const nextIndex = currentIndex + 1
     if (nextIndex < lessons.length) {
       set({
         currentIndex: nextIndex,
         currentLesson: lessons[nextIndex],
-      });
+      })
     }
   },
 
   goToPreviousLesson: () => {
-    const { currentIndex, lessons } = get();
-    const prevIndex = currentIndex - 1;
+    const { currentIndex, lessons } = get()
+    const prevIndex = currentIndex - 1
     if (prevIndex >= 0) {
       set({
         currentIndex: prevIndex,
         currentLesson: lessons[prevIndex],
-      });
+      })
     }
   },
 
@@ -107,26 +103,26 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
       id: task.id,
       title: task.title,
       slug: `task-${task.id}`, // Gera um slug baseado no ID
-      description: task.category || "",
-      type: (task.type as LessonType) || "video",
-      video_url: task.videoUrl || "",
-      video_duration: "",
+      description: task.category || '',
+      type: (task.type as LessonType) || 'video',
+      video_url: task.videoUrl || '',
+      video_duration: '',
       order: task.id,
       status: task.locked
-        ? "locked"
+        ? 'locked'
         : task.completed
-        ? "completed"
-        : "unlocked",
+          ? 'completed'
+          : 'unlocked',
       isCurrent: false,
       canReview: false,
-    };
+    }
 
     set({
       isOpen: true,
       lessons: [lesson],
       currentIndex: 0,
       currentLesson: lesson,
-    });
+    })
   },
 
   // Funções para atualizar as aulas sem abrir o modal (para navegação para página)
@@ -152,45 +148,45 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
       id: task.id,
       title: task.title,
       slug: `task-${task.id}`,
-      description: task.category || "",
-      type: (task.type as LessonType) || "video",
-      video_url: task.videoUrl || "",
-      video_duration: "",
+      description: task.category || '',
+      type: (task.type as LessonType) || 'video',
+      video_url: task.videoUrl || '',
+      video_duration: '',
       order: task.id,
       status: task.locked
-        ? "locked"
+        ? 'locked'
         : task.completed
-        ? "completed"
-        : "unlocked",
+          ? 'completed'
+          : 'unlocked',
       isCurrent: false,
       canReview: false,
-    };
+    }
 
     set({
       isOpen: false, // Não abre o modal
       lessons: [lesson],
       currentIndex: 0,
       currentLesson: lesson,
-    });
+    })
   },
 
   updateCurrentLessonStatus: (status: LessonStatus) => {
-    const { currentLesson, lessons, currentIndex } = get();
+    const { currentLesson, lessons, currentIndex } = get()
     if (currentLesson) {
-      const updatedLesson = { ...currentLesson, status };
-      const updatedLessons = [...lessons];
-      updatedLessons[currentIndex] = updatedLesson;
+      const updatedLesson = { ...currentLesson, status }
+      const updatedLessons = [...lessons]
+      updatedLessons[currentIndex] = updatedLesson
       const updates: Partial<CourseModalStore> = {
         currentLesson: updatedLesson,
         lessons: updatedLessons,
-      };
-
-      // Se a lição foi marcada como concluída, atualiza o timestamp
-      if (status === "completed" && currentLesson.status !== "completed") {
-        updates.lessonCompletedTimestamp = Date.now();
       }
 
-      set(updates);
+      // Se a lição foi marcada como concluída, atualiza o timestamp
+      if (status === 'completed' && currentLesson.status !== 'completed') {
+        updates.lessonCompletedTimestamp = Date.now()
+      }
+
+      set(updates)
     }
   },
-}));
+}))

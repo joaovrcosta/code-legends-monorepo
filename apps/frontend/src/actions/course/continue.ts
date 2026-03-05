@@ -20,6 +20,10 @@ export interface ContinueCourseResult {
    * Progresso do módulo em porcentagem (0–100)
    */
   progress?: number;
+  /** Total de XP ganho em todo o módulo */
+  xpGainedInModule?: number;
+  /** XP por skill ganho no módulo */
+  xpGainedInModuleBySkill?: { skillId: string; xp: number }[];
 }
 
 /**

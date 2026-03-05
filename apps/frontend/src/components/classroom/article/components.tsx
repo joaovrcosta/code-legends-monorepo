@@ -91,6 +91,8 @@ export function ComponentsArticle({
           moduleTitle: result.moduleTitle ?? moduleTitle,
           progress: result.progress,
           xpGained: result.xpGained,
+          xpGainedInModule: result.xpGainedInModule,
+          xpGainedInModuleBySkill: result.xpGainedInModuleBySkill,
         })
       }
       updateCurrentLessonStatus('completed')

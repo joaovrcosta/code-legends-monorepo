@@ -6,6 +6,7 @@ import { useCourseModalStore } from '@/stores/course-modal-store'
 import { getCourseSkillsProgress } from '@/actions/course'
 import type { CourseSkillsProgressResponse } from '@/actions/course/skills-progress'
 import { SkillModuleProgressBar } from '@/components/classroom/skill-module-progress-bar'
+import { ProgressRing } from '@/components/classroom/module-progress-ring'
 
 // Ícones SVG para as skills
 const CodeIcon = () => (
@@ -49,16 +50,42 @@ export function SkillStatsOverview() {
   const [data, setData] = useState<CourseSkillsProgressResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  const xpGained = lastModuleCompletion?.xpGained ?? 0
   const moduleTitle = lastModuleCompletion?.moduleTitle
+  const xpGained = lastModuleCompletion?.xpGained ?? 0
+  const xpGainedInModuleBySkill = lastModuleCompletion?.xpGainedInModuleBySkill
 
-  // Cálculos para o gráfico e evolução
-  const skillsWithGain = useMemo(() => {
+  const hasEnrichedResponse =
+    data != null &&
+    data.xpGainedInModule != null &&
+    data.axisMax != null &&
+    Array.isArray(data.topSkills)
+
+  const xpTotalDisplay = hasEnrichedResponse
+    ? (data.xpGainedInModule ?? 0)
+    : (lastModuleCompletion?.xpGainedInModule ??
+       lastModuleCompletion?.xpGained ??
+       0)
+
+  const axisMaxFallback = useMemo(() => {
+    if (!data?.skills?.length) return 3000
+    const max = Math.max(...data.skills.map((s) => s.totalXp), 0)
+    return Math.max(3000, Math.ceil(max / 1500) * 1500)
+  }, [data?.skills])
+
+  const skillsWithGainFallback = useMemo(() => {
     if (!data?.skills?.length) return []
+
+    const bySkillFromModule =
+      xpGainedInModuleBySkill && xpGainedInModuleBySkill.length > 0
+        ? new Map(xpGainedInModuleBySkill.map((s) => [s.skillId, s.xp]))
+        : null
 
     return data.skills
       .map((skill) => {
-        const gainedXp = Math.round((xpGained * skill.weight) / 100)
+        const gainedXp =
+          bySkillFromModule !== null
+            ? (bySkillFromModule.get(skill.skillId) ?? 0)
+            : Math.round((xpGained * skill.weight) / 100)
         const currentXp = skill.totalXp
         const previousXp = Math.max(0, currentXp - gainedXp)
 
@@ -66,37 +93,39 @@ export function SkillStatsOverview() {
           ...skill,
           gainedXp,
           previousXp,
-          currentXp,
+          currentXp: currentXp,
         }
       })
       .sort((a, b) => b.gainedXp - a.gainedXp)
-  }, [data, xpGained])
+  }, [data, xpGained, xpGainedInModuleBySkill])
 
-  // Lógica de escala dinâmica para o Eixo X do gráfico (múltiplos de 1500)
-  const axisMax = useMemo(() => {
-    if (!skillsWithGain.length) return 3000
-    const max = Math.max(...skillsWithGain.map((s) => s.currentXp))
-    const step = 1500
-    return Math.max(3000, Math.ceil(max / step) * step)
-  }, [skillsWithGain])
-
-  // Cálculos originais para o card superior
-  const topSkills = useMemo(() => {
+  const topSkillsFallback = useMemo(() => {
     if (!data?.skills?.length) return []
     return [...data.skills].sort((a, b) => b.totalXp - a.totalXp).slice(0, 2)
   }, [data])
 
-  const maxXp = useMemo(() => {
-    if (!data?.skills?.length) return 1
-    return Math.max(...data.skills.map((s) => s.totalXp), 1)
-  }, [data])
+  const displayList = hasEnrichedResponse ? data.skills : skillsWithGainFallback
+  const axisMaxValue = hasEnrichedResponse
+    ? (data.axisMax ?? 3000)
+    : axisMaxFallback
+  const topSkillForHighlight = hasEnrichedResponse
+    ? data.topSkills?.[0]
+    : topSkillsFallback[0]
 
   useEffect(() => {
     const load = async () => {
       if (!activeCourse?.id) return
       setIsLoading(true)
       try {
-        const progress = await getCourseSkillsProgress(activeCourse.id)
+        const moduleId =
+          lastModuleCompletion?.moduleCompleted &&
+          lastModuleCompletion?.moduleId
+            ? lastModuleCompletion.moduleId
+            : undefined
+        const progress = await getCourseSkillsProgress(
+          activeCourse.id,
+          moduleId,
+        )
         setData(progress)
       } catch (error) {
         console.error('Erro ao carregar progresso de skills do curso:', error)
@@ -106,7 +135,11 @@ export function SkillStatsOverview() {
     }
 
     load()
-  }, [activeCourse?.id])
+  }, [
+    activeCourse?.id,
+    lastModuleCompletion?.moduleCompleted,
+    lastModuleCompletion?.moduleId,
+  ])
 
   if (!lastModuleCompletion?.moduleCompleted) {
     return null
@@ -136,32 +169,36 @@ export function SkillStatsOverview() {
             </p>
           </div>
 
-          {topSkills[0] && (
+          {topSkillForHighlight && (
             <div className="flex items-center gap-4 self-start md:self-auto">
-              <div className="relative h-16 w-16 rounded-full bg-[#020617] border border-[#1f2933] flex items-center justify-center">
-                <div className="absolute inset-1 rounded-full bg-[#020617]" />
-                <div className="relative flex items-center justify-center h-full w-full">
-                  <span className="text-lg font-semibold text-[#facc15]">
-                    {Math.min(
-                      99,
-                      Math.max(
-                        10,
-                        Math.round((topSkills[0].totalXp / maxXp) * 100),
-                      ),
-                    )}
-                    %
-                  </span>
-                </div>
-              </div>
+              <ProgressRing
+                progress={(() => {
+                  const p = activeCourse?.progress ?? 0
+                  return p <= 1
+                    ? Math.min(1, Math.max(0, p))
+                    : Math.min(1, p / 100)
+                })()}
+                moduleNumber={(() => {
+                  const p = activeCourse?.progress ?? 0
+                  const percent = p <= 1 ? p * 100 : p
+                  return Math.min(100, Math.max(0, Math.round(percent)))
+                })()}
+                size={64}
+                strokeWidth={3}
+                progressColor="stroke-[#facc15]"
+                trackColor="stroke-[#1f2933]"
+                isCurrent
+              />
               <div className="space-y-1">
                 <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[#9ca3af]">
                   Skill em destaque
                 </span>
                 <p className="text-sm font-medium text-white">
-                  {topSkills[0].name}
+                  {topSkillForHighlight.name}
                 </p>
                 <p className="text-xs text-[#9ca3af]">
-                  {topSkills[0].totalXp.toLocaleString('pt-BR')} XP totais
+                  {topSkillForHighlight.totalXp.toLocaleString('pt-BR')} XP
+                  totais
                 </p>
               </div>
             </div>
@@ -169,11 +206,11 @@ export function SkillStatsOverview() {
         </div>
 
         <p className="text-sm text-[#e5e7eb]">
-          {xpGained > 0 ? (
+          {xpTotalDisplay > 0 ? (
             <>
               Você ganhou{' '}
               <span className="font-semibold text-[#facc15]">
-                +{xpGained.toLocaleString('pt-BR')} XP
+                +{xpTotalDisplay.toLocaleString('pt-BR')} XP
               </span>{' '}
               distribuídos entre as skills abaixo neste módulo.
             </>
@@ -187,7 +224,7 @@ export function SkillStatsOverview() {
         <div className="rounded-xl py-6 overflow-hidden">
           {isLoading ? (
             <div className="px-6 text-[#9ca3af]">Carregando gráfico...</div>
-          ) : skillsWithGain.length > 0 ? (
+          ) : displayList.length > 0 ? (
             <div className="w-full overflow-x-auto">
               <div className="min-w-[650px]">
                 {/* Eixo X */}
@@ -196,10 +233,10 @@ export function SkillStatsOverview() {
                   <div className="flex-1 flex justify-between text-sm font-medium text-[#9ca3af] pb-2 relative">
                     <span className="-translate-x-1/2 absolute left-0">0</span>
                     <span className="-translate-x-1/2 absolute left-1/2">
-                      {(axisMax / 2).toLocaleString('en-US')}
+                      {(axisMaxValue / 2).toLocaleString('en-US')}
                     </span>
                     <span className="absolute right-0 translate-x-1/2">
-                      {axisMax.toLocaleString('en-US')}
+                      {axisMaxValue.toLocaleString('en-US')}
                     </span>
                   </div>
                   <div className="w-48 shrink-0" />
@@ -217,10 +254,18 @@ export function SkillStatsOverview() {
                     <div className="w-48 shrink-0" />
                   </div>
 
-                  {skillsWithGain.map((skill, index) => {
+                  {displayList.map((skill, index) => {
+                    const skillWithCurrent = skill as {
+                      totalXp: number
+                      previousXp?: number
+                      currentXp?: number
+                    }
+                    const currentXp =
+                      skillWithCurrent.currentXp ?? skillWithCurrent.totalXp
+                    const previousXp = skillWithCurrent.previousXp ?? 0
                     const percentage = Math.max(
                       2,
-                      Math.min(100, (skill.currentXp / axisMax) * 100),
+                      Math.min(100, (currentXp / axisMaxValue) * 100),
                     )
                     // Define o ícone com base no nome da skill para exemplificar
                     const isWebDesign = skill.name
@@ -252,11 +297,11 @@ export function SkillStatsOverview() {
                         {/* Pontuação */}
                         <div className="w-48 shrink-0 flex justify-end items-center gap-3 text-[15px]">
                           <span className="text-white font-medium">
-                            {skill.previousXp.toLocaleString('en-US')} XP
+                            {previousXp.toLocaleString('en-US')} XP
                           </span>
                           <span className="text-white font-bold">→</span>
                           <span className="text-[#facc15] font-bold">
-                            {skill.currentXp.toLocaleString('en-US')} XP
+                            {currentXp.toLocaleString('en-US')} XP
                           </span>
                         </div>
                       </div>
