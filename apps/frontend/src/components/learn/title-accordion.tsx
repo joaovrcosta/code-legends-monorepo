@@ -22,7 +22,11 @@ interface TitleAccordinProps {
 export function TitleAccordion({ title, description }: TitleAccordinProps) {
   const [isMarking, setIsMarking] = useState(false)
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
-  const { currentLesson, updateCurrentLessonStatus } = useCourseModalStore()
+  const {
+    currentLesson,
+    updateCurrentLessonStatus,
+    setLastModuleCompletion,
+  } = useCourseModalStore()
 
   // Verifica se a lição atual já está marcada como completada
   const isMarked = currentLesson?.status === 'completed'
@@ -48,6 +52,16 @@ export function TitleAccordion({ title, description }: TitleAccordinProps) {
 
       if (!result || !result.success) {
         throw new Error('A API não retornou sucesso ao completar a lição')
+      }
+
+      if (result.moduleCompleted) {
+        setLastModuleCompletion({
+          moduleCompleted: true,
+          moduleId: result.moduleId,
+          moduleTitle: result.moduleTitle,
+          progress: result.progress,
+          xpGained: result.xpGained,
+        })
       }
 
       // Atualiza o status da lição atual no modal imediatamente

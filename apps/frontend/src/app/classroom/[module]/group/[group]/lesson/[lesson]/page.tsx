@@ -6,7 +6,6 @@ import {
   getLessonBySlug,
   type LessonResponse,
   type LessonUpgradeRequired,
-  unlockNextModule,
   getCourseRoadmapFresh,
   revalidateRoadmapCache,
 } from '@/actions/course'
@@ -16,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Menu, X } from 'lucide-react'
 import { LevelProgressBar } from '@/components/learn/level-progress-bar'
 import { SkipForward } from '@phosphor-icons/react'
-import { SkipBack, LockOpen } from '@phosphor-icons/react/dist/ssr'
+import { SkipBack } from '@phosphor-icons/react/dist/ssr'
 import Link from 'next/link'
 import { LessonsList } from '@/components/classroom/lessons-list'
 import { Skeleton } from '@/components/skeleton'
@@ -48,8 +47,12 @@ export default function DynamicLessonPage() {
   const isPaidUser = userPlan === 'PRO' || userPlan === 'PREMIUM'
 
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
-  const { setLessonForPage, lessonCompletedTimestamp, currentLesson } =
-    useCourseModalStore()
+  const {
+    setLessonForPage,
+    lessonCompletedTimestamp,
+    currentLesson,
+    lastModuleCompletion,
+  } = useCourseModalStore()
   const { isOpen: isSidebarOpen } = useClassroomSidebarStore()
 
   const _moduleSlug = params.module as string
@@ -62,6 +65,7 @@ export default function DynamicLessonPage() {
   const [upgradeRequired, setUpgradeRequired] = useState(false)
   const [isUnlocking, setIsUnlocking] = useState(false)
   const lessonDataRef = useRef<LessonResponse | null>(null)
+  const [showModuleStats, setShowModuleStats] = useState(false)
 
   useEffect(() => {
     lessonDataRef.current = lessonData
@@ -576,6 +580,9 @@ export default function DynamicLessonPage() {
             moduleTitle={lessonData.moduleTitle}
             groupTitle={lessonData.groupTitle}
             courseIcon={activeCourse?.icon}
+            showModuleCompletionStats={
+              showModuleStats && !!lastModuleCompletion?.moduleCompleted
+            }
           />
           {activeCourse?.id && (
             <div className="px-4 pb-28 lg:pb-32">
@@ -615,13 +622,25 @@ export default function DynamicLessonPage() {
             <Button
               variant="outline"
               onClick={() => {
-                if (navigation?.next) {
-                  navigateToLesson(
-                    navigation.next.slug,
-                    navigation.next.moduleSlug,
-                    navigation.next.groupSlug,
-                  )
+                if (!navigation?.next) return
+
+                // Se o módulo atual foi concluído e a próxima aula é de outro módulo,
+                // mostramos primeiro o painel de stats dentro do conteúdo.
+                if (
+                  lastModuleCompletion?.moduleCompleted &&
+                  navigation.next.moduleSlug !== _moduleSlug
+                ) {
+                  if (!showModuleStats) {
+                    setShowModuleStats(true)
+                    return
+                  }
                 }
+
+                navigateToLesson(
+                  navigation.next.slug,
+                  navigation.next.moduleSlug,
+                  navigation.next.groupSlug,
+                )
               }}
               disabled={!navigation?.next}
               className="h-[54px] lg:min-h-[84px] w-1/2 max-w-[320px] text-base bg-black border-none

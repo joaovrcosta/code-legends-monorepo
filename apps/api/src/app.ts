@@ -89,7 +89,7 @@ app.register(fastifyJwt, {
 
 // @ts-ignore - skip é uma propriedade válida do fastify-rate-limit
 app.register(fastifyRateLimit, {
-  max: 100,
+  max: 1000,
   timeWindow: 60 * 1000,
   keyGenerator: async (request) => {
     if (request.url?.includes('/notifications/sse')) {

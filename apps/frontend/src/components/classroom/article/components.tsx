@@ -68,7 +68,11 @@ export function ComponentsArticle({
   const body = lesson.article?.body?.trim()
   const [isMarking, setIsMarking] = useState(false)
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
-  const { currentLesson, updateCurrentLessonStatus } = useCourseModalStore()
+  const {
+    currentLesson,
+    updateCurrentLessonStatus,
+    setLastModuleCompletion,
+  } = useCourseModalStore()
   const isMarked =
     currentLesson?.id === lesson?.id && currentLesson?.status === 'completed'
 
@@ -80,6 +84,15 @@ export function ComponentsArticle({
       const result = await continueCourse(currentLesson.id, activeCourse?.id)
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao completar a lição')
+      if (result.moduleCompleted) {
+        setLastModuleCompletion({
+          moduleCompleted: true,
+          moduleId: result.moduleId,
+          moduleTitle: result.moduleTitle ?? moduleTitle,
+          progress: result.progress,
+          xpGained: result.xpGained,
+        })
+      }
       updateCurrentLessonStatus('completed')
       await fetchActiveCourse()
     } catch (error) {

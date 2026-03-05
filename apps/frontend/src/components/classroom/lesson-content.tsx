@@ -5,6 +5,8 @@ import { ComponentsArticle } from '@/components/classroom/article/components'
 import { QuizView } from '@/components/classroom/challenge/QuizView'
 import type { Lesson } from '@/types/roadmap'
 import { memo } from 'react'
+import { useCourseModalStore } from '@/stores/course-modal-store'
+import { SkillStatsOverview } from '@/components/classroom/skill-stats-overview'
 
 interface LessonContentProps {
   lesson: Lesson
@@ -12,12 +14,37 @@ interface LessonContentProps {
   moduleTitle?: string
   groupTitle?: string
   courseIcon?: string
+  /**
+   * Quando true e o módulo tiver sido concluído,
+   * mostra apenas os stats de skills em vez do conteúdo da aula.
+   */
+  showModuleCompletionStats?: boolean
 }
 
 export const LessonContent = memo(function LessonContent({
   lesson,
   moduleTitle,
+  showModuleCompletionStats,
 }: LessonContentProps) {
+  const { lastModuleCompletion } = useCourseModalStore()
+
+  const shouldShowStats =
+    showModuleCompletionStats && lastModuleCompletion?.moduleCompleted
+
+  // Quando for o momento de mostrar os stats de conclusão de módulo,
+  // substitui completamente o conteúdo da aula pelo componente de stats.
+  if (shouldShowStats) {
+    return (
+      <div className="flex-1 flex flex-col min-h-0 lg:mx-4 mx-0">
+        <div className="flex-1 flex flex-col min-h-0 px-0 border border-[#25252A] rounded-[20px] bg-[#121214]">
+          <div className="flex-1 min-h-0 flex flex-col lg:px-4 px-3 lg:pt-4 pt-3 pb-[54px] lg:pb-[84px]">
+            <SkillStatsOverview />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex-1 flex flex-col min-h-0 lg:mx-4 mx-0">
       <div className="flex-1 flex flex-col min-h-0 px-0 border border-[#25252A] rounded-[20px] bg-[#121214]">

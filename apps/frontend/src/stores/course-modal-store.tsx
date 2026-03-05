@@ -3,6 +3,20 @@ import { create } from "zustand";
 import type { Lesson, LessonStatus, LessonType } from "@/types/roadmap";
 import type { Task } from "../../db";
 
+interface ModuleCompletionInfo {
+  moduleCompleted: boolean;
+  moduleId?: string;
+  moduleTitle?: string;
+  /**
+   * Progresso do módulo em porcentagem (0–100)
+   */
+  progress?: number;
+  /**
+   * XP ganho ao completar a lição que finalizou o módulo
+   */
+  xpGained?: number;
+}
+
 interface CourseModalStore {
   isOpen: boolean;
   lessons: Lesson[];
@@ -21,6 +35,8 @@ interface CourseModalStore {
   lessonCompletedTimestamp: number | null;
   moduleUnlockedTimestamp: number | null;
   setModuleUnlockedTimestamp: () => void;
+  lastModuleCompletion: ModuleCompletionInfo | null;
+  setLastModuleCompletion: (info: ModuleCompletionInfo | null) => void;
 }
 
 export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
@@ -30,8 +46,10 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
   currentLesson: null,
   lessonCompletedTimestamp: null,
   moduleUnlockedTimestamp: null,
+  lastModuleCompletion: null,
   setModuleUnlockedTimestamp: () =>
     set({ moduleUnlockedTimestamp: Date.now() }),
+  setLastModuleCompletion: (info) => set({ lastModuleCompletion: info }),
 
   openModalWithLessons: (lessons, startIndex = 0) =>
     set({

@@ -1,8 +1,26 @@
 "use server";
 
+import { revalidatePath, revalidateTag } from "next/cache";
 import { getAuthToken } from "../auth/session";
-import { revalidateTag, revalidatePath } from "next/cache";
 import { getActiveCourse } from "../user/get-active-course";
+
+export interface ContinueCourseResult {
+  success: boolean;
+  nextLessonId: number | null;
+  moduleCompleted: boolean;
+  moduleId?: string;
+  moduleTitle?: string;
+  courseCompleted: boolean;
+  courseProgress: number;
+  xpGained?: number;
+  totalXp?: number;
+  level?: number;
+  xpToNextLevel?: number;
+  /**
+   * Progresso do módulo em porcentagem (0–100)
+   */
+  progress?: number;
+}
 
 /**
  * Marca a lição atual como concluída e avança para a próxima.
@@ -12,7 +30,7 @@ export async function continueCourse(
   lessonId: number,
   courseId?: string,
   score?: number
-): Promise<{ success: boolean }> {
+): Promise<ContinueCourseResult> {
   try {
     const token = await getAuthToken();
 
@@ -51,9 +69,12 @@ export async function continueCourse(
       const errorData = await response.json().catch(() => ({}));
       console.error("Erro na resposta da API:", errorData);
       throw new Error(
-        errorData.message || "Erro ao marcar lição como completa"
+        (errorData as { message?: string }).message ||
+          "Erro ao marcar lição como completa"
       );
     }
+
+    const data = (await response.json()) as ContinueCourseResult;
 
     // Invalida o cache do roadmap após marcar a lição como completa
     try {
@@ -71,7 +92,10 @@ export async function continueCourse(
       console.warn("Erro ao invalidar cache do roadmap:", cacheError);
     }
 
-    return { success: true };
+    return {
+      ...data,
+      success: true,
+    };
   } catch (error) {
     console.error("Erro ao continuar curso:", error);
     throw error instanceof Error ? error : new Error("Erro ao continuar curso");

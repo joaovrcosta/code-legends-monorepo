@@ -21,6 +21,8 @@ interface CompleteLessonResponse {
   success: boolean
   nextLessonId: number | null
   moduleCompleted: boolean
+  moduleId?: string
+  moduleTitle?: string
   courseCompleted: boolean
   courseProgress: number
   xpGained?: number
@@ -387,6 +389,8 @@ export class CompleteLessonUseCase {
       success: true,
       nextLessonId,
       moduleCompleted,
+      moduleId: group.moduleId,
+      moduleTitle: group.module.title,
       courseCompleted,
       courseProgress,
       xpGained,

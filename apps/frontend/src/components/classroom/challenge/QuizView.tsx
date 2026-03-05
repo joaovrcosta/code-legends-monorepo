@@ -37,7 +37,11 @@ export function QuizView({
   const [quizFinished, setQuizFinished] = useState(false)
   const [isMarking, setIsMarking] = useState(false)
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
-  const { currentLesson, updateCurrentLessonStatus } = useCourseModalStore()
+  const {
+    currentLesson,
+    updateCurrentLessonStatus,
+    setLastModuleCompletion,
+  } = useCourseModalStore()
   const isMarked =
     currentLesson?.id === lessonId && currentLesson?.status === 'completed'
 
@@ -63,6 +67,15 @@ export function QuizView({
       const result = await continueCourse(currentLesson.id, activeCourse?.id)
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao completar a lição')
+      if (result.moduleCompleted) {
+        setLastModuleCompletion({
+          moduleCompleted: true,
+          moduleId: result.moduleId,
+          moduleTitle: result.moduleTitle,
+          progress: result.progress,
+          xpGained: result.xpGained,
+        })
+      }
       updateCurrentLessonStatus('completed')
       await fetchActiveCourse()
     } catch (error) {
@@ -92,6 +105,15 @@ export function QuizView({
       const result = await continueCourse(lessonId, activeCourse?.id, score)
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao salvar o resultado')
+      if (result.moduleCompleted) {
+        setLastModuleCompletion({
+          moduleCompleted: true,
+          moduleId: result.moduleId,
+          moduleTitle: result.moduleTitle,
+          progress: result.progress,
+          xpGained: result.xpGained,
+        })
+      }
       updateCurrentLessonStatus(passed ? 'completed' : 'unlocked')
       await fetchActiveCourse()
     } catch (error) {
