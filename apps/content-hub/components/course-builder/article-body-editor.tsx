@@ -18,6 +18,7 @@ import {
   ChevronUp,
   Maximize2,
   Minimize2,
+  Target,
 } from 'lucide-react'
 
 const ArticleCodeHighlighter = dynamic(
@@ -54,6 +55,34 @@ const SNIPPETS = [
     icon: CheckCircle2,
     // ATUALIZADO: Formato que gera o visual "Card com Título"
     text: '> Sucesso **Título aqui**\n> \n> Escreva o conteúdo aqui...',
+  },
+  {
+    label: 'Desafio (pergunta com código)',
+    icon: Target,
+    text: `\`\`\`challenge
+{
+  "type": "prediction",
+  "question": "O que será mostrado no console? (edite a pergunta)",
+  "code": "const x = 1\\nconsole.log(x)",
+  "language": "javascript",
+  "options": ["1", "undefined", "erro", "nada"],
+  "correctAnswer": "1",
+  "explanation": "O valor de x é 1, então o console mostra 1."
+}
+\`\`\``,
+  },
+  {
+    label: 'Desafio (só pergunta, sem código)',
+    icon: Target,
+    text: `\`\`\`challenge
+{
+  "type": "conceptual",
+  "question": "Qual a diferença entre props e state no React? (edite a pergunta)",
+  "options": ["Props vêm de fora, state é interno", "São a mesma coisa", "State não existe", "Props mudam, state não"],
+  "correctAnswer": "Props vêm de fora, state é interno",
+  "explanation": "Props são passadas pelo componente pai; state é gerenciado dentro do componente."
+}
+\`\`\``,
   },
 ] as const
 
@@ -432,6 +461,17 @@ export function ArticleBodyEditor({
                   para o card verde escuro.
                 </li>
               </ul>
+              <p>
+                <strong className="text-zinc-900 dark:text-zinc-200">
+                  Desafio (quiz no artigo):
+                </strong>
+                <br />
+                Use o botão <strong>Desafio (pergunta com código)</strong> ou{' '}
+                <strong>Desafio (só pergunta, sem código)</strong> acima. O bloco
+                será inserido com um exemplo; basta editar os textos entre aspas
+                (pergunta, opções, resposta correta e explicação) sem apagar as
+                aspas nem as vírgulas.
+              </p>
             </div>
           </div>
         )}
