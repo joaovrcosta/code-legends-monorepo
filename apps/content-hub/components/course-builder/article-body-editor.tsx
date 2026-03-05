@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useCallback, useState } from 'react'
+import React, { useRef, useCallback, useState, useEffect } from 'react'
 import type { ComponentProps, ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -562,6 +562,12 @@ export function ArticleBodyEditor({
   const [showHelp, setShowHelp] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [insertChallengeOpen, setInsertChallengeOpen] = useState(false)
+  const [previewValue, setPreviewValue] = useState(value)
+
+  useEffect(() => {
+    const t = setTimeout(() => setPreviewValue(value), 300)
+    return () => clearTimeout(t)
+  }, [value])
 
   const insertAtCursor = useCallback(
     (snippet: string) => {
@@ -602,7 +608,7 @@ export function ArticleBodyEditor({
             pre: PreviewCodeBlock,
           }}
         >
-          {value}
+          {previewValue}
         </ReactMarkdown>
       </div>
     </div>

@@ -58,7 +58,7 @@ export function useNotificationSSE() {
 
                 // Verificar se o content-type está correto
                 const contentType = response.headers.get("content-type");
-                if (contentType && !contentType.includes("text/event-stream")) {
+                if (contentType && !contentType.includes("text/event-stream") && process.env.NODE_ENV === "development") {
                     console.warn(`Unexpected content-type: ${contentType}`);
                 }
 
@@ -71,7 +71,9 @@ export function useNotificationSSE() {
 
                 if (mountedRef.current) {
                     setIsConnected(true);
-                    console.log("[SSE] Conectado ao servidor SSE");
+                    if (process.env.NODE_ENV === "development") {
+                        console.log("[SSE] Conectado ao servidor SSE");
+                    }
                 }
 
                 const readStream = async () => {
@@ -119,16 +121,21 @@ export function useNotificationSSE() {
                                 if (dataLine) {
                                     try {
                                         const data = JSON.parse(dataLine) as NotificationSSEData;
-                                        console.log("[SSE] Mensagem recebida:", { eventType, data });
+                                        if (process.env.NODE_ENV === "development") {
+                                            console.log("[SSE] Mensagem recebida:", { eventType, data });
+                                        }
                                         if (mountedRef.current && data.count !== undefined) {
-                                            console.log(`[SSE] Atualizando contador para: ${data.count}`);
+                                            if (process.env.NODE_ENV === "development") {
+                                                console.log(`[SSE] Atualizando contador para: ${data.count}`);
+                                            }
                                             setUnreadCount(data.count);
                                         }
                                     } catch (parseError) {
-                                        // Ignorar erros de parse
-                                        console.warn("[SSE] Erro ao parsear mensagem SSE:", parseError, "dataLine:", dataLine);
+                                        if (process.env.NODE_ENV === "development") {
+                                            console.warn("[SSE] Erro ao parsear mensagem SSE:", parseError, "dataLine:", dataLine);
+                                        }
                                     }
-                                } else {
+                                } else if (process.env.NODE_ENV === "development") {
                                     console.log("[SSE] Mensagem sem dataLine:", message);
                                 }
                             }
@@ -150,8 +157,9 @@ export function useNotificationSSE() {
                 readStream();
             } catch (error) {
                 if (error instanceof Error && error.name === "AbortError") {
-                    // Abortado intencionalmente, não reconectar
-                    console.log("[SSE] Conexão abortada intencionalmente");
+                    if (process.env.NODE_ENV === "development") {
+                        console.log("[SSE] Conexão abortada intencionalmente");
+                    }
                     return;
                 }
 

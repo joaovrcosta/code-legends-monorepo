@@ -74,7 +74,9 @@ export async function requireAuth(): Promise<User> {
   const user = await getCurrentSession();
 
   if (!user) {
-    console.log("Usuário não autenticado, redirecionando para login...");
+    if (process.env.NODE_ENV === "development") {
+      console.log("Usuário não autenticado, redirecionando para login...");
+    }
     redirect("/login");
   }
 

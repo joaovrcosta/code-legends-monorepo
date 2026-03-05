@@ -13,8 +13,9 @@ export const useAuth = (requireAuth: boolean = false) => {
   useEffect(() => {
     const sessionError = (session as { error?: string })?.error;
     if (sessionError === "RefreshAccessTokenError") {
-      // Fazer logout quando houver erro de refresh token
-      console.log("🔒 Erro de refresh token detectado, fazendo logout...");
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔒 Erro de refresh token detectado, fazendo logout...");
+      }
       signOut({ redirect: true, callbackUrl: "/login" });
     }
   }, [session]);

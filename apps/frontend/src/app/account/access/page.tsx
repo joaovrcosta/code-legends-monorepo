@@ -42,14 +42,12 @@ export default function AccountAccessPage() {
     async function fetchUserData() {
       try {
         const user = await getUserFromAPI();
-        console.log("📦 Dados do usuário recebidos:", user);
         if (user) {
           const userDataToSet = {
             email: user.email,
             googleId: user.googleId ?? null,
             hasPassword: user.hasPassword ?? false,
           };
-          console.log("📦 Dados processados:", userDataToSet);
           setUserData(userDataToSet);
         } else {
           console.error("❌ Usuário não encontrado");

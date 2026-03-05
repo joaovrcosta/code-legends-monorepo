@@ -312,8 +312,6 @@ export function PlansGrid({ apiPlans = [] }: PlansGridProps) {
   const paidCards = apiPlans.map((p, i) => apiPlanToCardData(p, i))
   const plansData: PlanCardData[] = [FREE_PLAN, ...paidCards]
 
-  console.log(plansData)
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
       {plansData.map((plan) => (

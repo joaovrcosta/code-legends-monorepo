@@ -49,8 +49,6 @@ export function LearnPageContent({
     moduleUnlockedTimestamp,
   } = useCourseModalStore();
 
-  console.log(activeCourse);
-
   const { data: session } = useSession();
   const userPlan = (session?.user as { plan?: string } | undefined)?.plan;
   const isPaidUser = userPlan === "PRO" || userPlan === "PREMIUM";
