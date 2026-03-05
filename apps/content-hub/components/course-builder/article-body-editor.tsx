@@ -8,6 +8,9 @@ import dynamic from 'next/dynamic'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
   Code,
   Info,
@@ -19,13 +22,15 @@ import {
   Maximize2,
   Minimize2,
   Target,
+  Plus,
+  Trash2,
+  X,
 } from 'lucide-react'
+import type { Challenge, ChallengeType } from '@/actions/lesson/list-lessons'
 
 const ArticleCodeHighlighter = dynamic(
   () =>
-    import('./article-code-highlighter').then(
-      (m) => m.ArticleCodeHighlighter,
-    ),
+    import('./article-code-highlighter').then((m) => m.ArticleCodeHighlighter),
   { ssr: false },
 )
 
@@ -164,6 +169,90 @@ function PreviewCalloutBlockquote({
   )
 }
 
+interface PreviewChallenge {
+  type?: string
+  question?: string
+  code?: string
+  language?: string
+  options?: string[]
+  correctAnswer?: string
+  explanation?: string
+}
+
+const challengeTypeLabels: Record<string, string> = {
+  prediction: 'Previsão',
+  bug: 'Encontre o Bug',
+  refactor: 'Refatoração',
+  complete: 'Complete o Código',
+  conceptual: 'Conceitual',
+}
+
+const CHALLENGE_TYPES: ChallengeType[] = [
+  'prediction',
+  'conceptual',
+  'bug',
+  'refactor',
+  'complete',
+]
+
+const LANGUAGES = [
+  'javascript',
+  'typescript',
+  'tsx',
+  'jsx',
+  'python',
+  'html',
+  'css',
+  'json',
+  'text',
+]
+
+function PreviewChallengeBlock({ challenge }: { challenge: PreviewChallenge }) {
+  const typeLabel =
+    challengeTypeLabels[challenge.type ?? ''] ?? challenge.type ?? 'Desafio'
+  const hasOptions =
+    Array.isArray(challenge.options) && challenge.options.length > 0
+
+  return (
+    <div className="my-3 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900/80 text-sm text-zinc-100">
+      <div className="flex flex-wrap items-center gap-2 border-b border-zinc-700 px-3 py-2">
+        <span className="rounded-md bg-zinc-700 px-2 py-0.5 text-[11px] font-medium text-zinc-200">
+          {typeLabel}
+        </span>
+      </div>
+      <div className="space-y-3 p-3">
+        {challenge.question && (
+          <p className="font-medium text-zinc-100">{challenge.question}</p>
+        )}
+        {challenge.code && (
+          <div className="rounded-md bg-zinc-950 text-xs">
+            <ArticleCodeHighlighter
+              code={challenge.code}
+              language={challenge.language ?? 'text'}
+            />
+          </div>
+        )}
+        {hasOptions && (
+          <p className="text-xs text-zinc-400">
+            Opções:{' '}
+            {(challenge.options ?? []).map((o, i) => (
+              <span key={i}>
+                {i > 0 && ', '}
+                <span className="text-zinc-300">{o}</span>
+              </span>
+            ))}
+          </p>
+        )}
+        {challenge.explanation && (
+          <p className="border-t border-zinc-700 pt-2 text-xs text-zinc-500">
+            Explicação: {challenge.explanation}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function PreviewCodeBlock({ children }: ComponentProps<'pre'>) {
   const node = Array.isArray(children) ? children[0] : children
 
@@ -189,9 +278,256 @@ function PreviewCodeBlock({ children }: ComponentProps<'pre'>) {
   const match = className?.match(/language-(\w+)/)
   const language = match ? match[1] : 'text'
 
+  if (language === 'challenge') {
+    try {
+      const challenge = JSON.parse(text) as PreviewChallenge
+      return <PreviewChallengeBlock challenge={challenge} />
+    } catch {
+      return (
+        <div className="my-3 rounded-md border border-red-500/40 bg-red-950/30 px-3 py-2 text-sm text-red-400">
+          Desafio inválido (JSON malformado).
+        </div>
+      )
+    }
+  }
+
   return (
     <div className="my-3 overflow-hidden rounded-md bg-zinc-900 text-xs leading-relaxed text-zinc-100">
       <ArticleCodeHighlighter code={text} language={language} />
+    </div>
+  )
+}
+
+function buildChallengeBlock(challenge: Challenge): string {
+  const obj: Record<string, unknown> = {
+    type: challenge.type,
+    question: challenge.question,
+  }
+  if (challenge.code != null && challenge.code.trim() !== '') {
+    obj.code = challenge.code.trim()
+    obj.language = challenge.language ?? 'javascript'
+  }
+  if (
+    Array.isArray(challenge.options) &&
+    challenge.options.some((o) => o != null && String(o).trim() !== '')
+  ) {
+    obj.options = challenge.options.map((o) => String(o).trim()).filter(Boolean)
+  }
+  if (challenge.correctAnswer != null && String(challenge.correctAnswer).trim() !== '') {
+    obj.correctAnswer = String(challenge.correctAnswer).trim()
+  }
+  if (challenge.explanation != null && String(challenge.explanation).trim() !== '') {
+    obj.explanation = String(challenge.explanation).trim()
+  }
+  if (challenge.placeholder != null && String(challenge.placeholder).trim() !== '') {
+    obj.placeholder = String(challenge.placeholder).trim()
+  }
+  const json = JSON.stringify(obj, null, 2)
+  return '```challenge\n' + json + '\n```'
+}
+
+interface InsertChallengeModalProps {
+  open: boolean
+  onClose: () => void
+  onInsert: (block: string) => void
+}
+
+function InsertChallengeModal({
+  open,
+  onClose,
+  onInsert,
+}: InsertChallengeModalProps) {
+  const [challengeType, setChallengeType] = useState<ChallengeType>('prediction')
+  const [question, setQuestion] = useState('')
+  const [code, setCode] = useState('')
+  const [language, setLanguage] = useState('javascript')
+  const [options, setOptions] = useState<string[]>(['', ''])
+  const [correctAnswer, setCorrectAnswer] = useState('')
+  const [explanation, setExplanation] = useState('')
+
+  const hasOptions =
+    challengeType === 'prediction' ||
+    challengeType === 'conceptual' ||
+    challengeType === 'bug'
+  const showCode = challengeType !== 'conceptual'
+
+  const addOption = () => setOptions((o) => [...o, ''])
+  const removeOption = (i: number) =>
+    setOptions((o) => o.filter((_, idx) => idx !== i))
+  const setOption = (i: number, val: string) =>
+    setOptions((o) => {
+      const next = [...o]
+      next[i] = val
+      return next
+    })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const challenge: Challenge = {
+      type: challengeType,
+      question: question.trim(),
+      explanation: explanation.trim() || undefined,
+    }
+    if (showCode && code.trim()) {
+      challenge.code = code.trim()
+      challenge.language = language
+    }
+    if (hasOptions && options.some((o) => o.trim())) {
+      challenge.options = options.map((o) => o.trim()).filter(Boolean)
+      if (correctAnswer.trim()) challenge.correctAnswer = correctAnswer.trim()
+    } else if (correctAnswer.trim()) {
+      challenge.correctAnswer = correctAnswer.trim()
+    }
+    const block = buildChallengeBlock(challenge)
+    onInsert(block)
+    onClose()
+    setQuestion('')
+    setCode('')
+    setOptions(['', ''])
+    setCorrectAnswer('')
+    setExplanation('')
+  }
+
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-black/60"
+        onClick={onClose}
+        aria-hidden
+      />
+      <Card className="relative z-10 w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h3 className="text-lg font-semibold">Inserir desafio</h3>
+          <Button type="button" variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="overflow-y-auto flex-1">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Tipo de desafio</Label>
+              <Select
+                value={challengeType}
+                onChange={(e) =>
+                  setChallengeType(e.target.value as ChallengeType)
+                }
+              >
+                {CHALLENGE_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {challengeTypeLabels[t]}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Pergunta *</Label>
+              <Textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                rows={3}
+                required
+                placeholder="Ex.: O que será mostrado no console?"
+              />
+            </div>
+
+            {showCode && (
+              <>
+                <div className="space-y-2">
+                  <Label>Código (opcional)</Label>
+                  <Textarea
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    rows={4}
+                    className="font-mono text-sm"
+                    placeholder="const x = 1&#10;console.log(x)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Linguagem</Label>
+                  <Select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                  >
+                    {LANGUAGES.map((lang) => (
+                      <option key={lang} value={lang}>
+                        {lang}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </>
+            )}
+
+            {hasOptions && (
+              <div className="space-y-2">
+                <Label>Opções (mín. 2)</Label>
+                {options.map((opt, i) => (
+                  <div key={i} className="flex gap-2">
+                    <Input
+                      value={opt}
+                      onChange={(e) => setOption(i, e.target.value)}
+                      placeholder={`Opção ${i + 1}`}
+                    />
+                    {options.length > 2 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeOption(i)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addOption}
+                  className="gap-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  Adicionar opção
+                </Button>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label>Resposta correta</Label>
+              <Input
+                value={correctAnswer}
+                onChange={(e) => setCorrectAnswer(e.target.value)}
+                placeholder={
+                  hasOptions
+                    ? 'Digite ou escolha uma das opções acima'
+                    : 'Resposta esperada'
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Explicação (Markdown)</Label>
+              <Textarea
+                value={explanation}
+                onChange={(e) => setExplanation(e.target.value)}
+                rows={3}
+                placeholder="Por que a resposta está correta..."
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button type="submit">Inserir no artigo</Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }
@@ -203,19 +539,29 @@ interface ArticleBodyEditorProps {
   placeholder?: string
   rows?: number
   isArticle?: boolean
+  /** Se definido, Ctrl+Enter (ou Cmd+Enter) no editor dispara este callback (ex.: salvar sem fechar o modal). */
+  onSaveRequested?: () => void
 }
+
+const ARTICLE_PLACEHOLDER =
+  'Ex.: # Título do artigo\n\nParágrafo de abertura...\n\nUse os botões acima para inserir código, callouts e desafios.'
 
 export function ArticleBodyEditor({
   id,
   value,
   onChange,
-  placeholder = 'Escreva o conteúdo em Markdown...',
+  placeholder,
   rows = 12,
   isArticle = false,
+  onSaveRequested,
 }: ArticleBodyEditorProps) {
+  const effectivePlaceholder =
+    placeholder ??
+    (isArticle ? ARTICLE_PLACEHOLDER : 'Escreva o conteúdo em Markdown...')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [showHelp, setShowHelp] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [insertChallengeOpen, setInsertChallengeOpen] = useState(false)
 
   const insertAtCursor = useCallback(
     (snippet: string) => {
@@ -262,8 +608,40 @@ export function ArticleBodyEditor({
     </div>
   ) : null
 
+  const handleInsertChallenge = useCallback(
+    (block: string) => {
+      insertAtCursor(block)
+      setInsertChallengeOpen(false)
+      requestAnimationFrame(() => textareaRef.current?.focus())
+    },
+    [insertAtCursor],
+  )
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault()
+        onSaveRequested?.()
+      }
+    },
+    [onSaveRequested],
+  )
+
   const snippetsToolbar = (
     <div className="flex flex-wrap gap-2">
+      {isArticle && (
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          onClick={() => setInsertChallengeOpen(true)}
+          className="gap-2"
+          title="Abrir formulário para inserir desafio sem editar JSON"
+        >
+          <Target className="h-4 w-4" />
+          Inserir desafio
+        </Button>
+      )}
       {SNIPPETS.map(({ label, icon: Icon, text }) => (
         <Button
           key={label}
@@ -283,6 +661,11 @@ export function ArticleBodyEditor({
 
   return (
     <div className="space-y-3">
+      <InsertChallengeModal
+        open={insertChallengeOpen}
+        onClose={() => setInsertChallengeOpen(false)}
+        onInsert={handleInsertChallenge}
+      />
       <div className="flex items-center justify-between">
         <Label htmlFor={id}>Conteúdo do artigo (Markdown)</Label>
         {!isArticle && (
@@ -332,9 +715,10 @@ export function ArticleBodyEditor({
                 id={id}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
+                onKeyDown={handleKeyDown}
                 rows={rows}
                 className="font-mono text-sm leading-relaxed h-full min-h-[200px]"
-                placeholder={placeholder}
+                placeholder={effectivePlaceholder}
               />
             </div>
             <div>{previewNode}</div>
@@ -349,9 +733,10 @@ export function ArticleBodyEditor({
             id={id}
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
             rows={rows}
             className="font-mono text-sm leading-relaxed"
-            placeholder={placeholder}
+            placeholder={effectivePlaceholder}
           />
           {previewNode}
         </>
@@ -391,9 +776,10 @@ export function ArticleBodyEditor({
                   id={`${id}-fullscreen`}
                   value={value}
                   onChange={(e) => onChange(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   rows={rows}
                   className="font-mono text-sm leading-relaxed flex-1 min-h-0 resize-none bg-transparent"
-                  placeholder={placeholder}
+                  placeholder={effectivePlaceholder}
                 />
               </div>
               <div className="min-h-0 overflow-y-auto rounded-md border border-zinc-800 bg-zinc-900/60 p-3">
@@ -466,11 +852,12 @@ export function ArticleBodyEditor({
                   Desafio (quiz no artigo):
                 </strong>
                 <br />
-                Use o botão <strong>Desafio (pergunta com código)</strong> ou{' '}
-                <strong>Desafio (só pergunta, sem código)</strong> acima. O bloco
-                será inserido com um exemplo; basta editar os textos entre aspas
-                (pergunta, opções, resposta correta e explicação) sem apagar as
-                aspas nem as vírgulas.
+                Use o botão <strong>Inserir desafio</strong> para preencher
+                pergunta, opções e explicação em um formulário — o JSON é
+                gerado automaticamente. Ou use os snippets{' '}
+                <strong>Desafio (pergunta com código)</strong> /{' '}
+                <strong>Desafio (só pergunta, sem código)</strong> e edite os
+                textos entre aspas no bloco, se preferir.
               </p>
             </div>
           </div>

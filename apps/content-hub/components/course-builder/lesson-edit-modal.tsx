@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { updateLesson } from '@/actions/lesson/update-lesson'
 import { getAuthTokenFromClient } from '@/lib/auth'
 import { generateSlug } from '@/lib/utils'
-import { X } from 'lucide-react'
+import { X, ChevronDown, ChevronUp } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface LessonEditModalProps {
@@ -32,16 +32,33 @@ export function LessonEditModal({
 }: LessonEditModalProps) {
   const [loading, setLoading] = useState(false)
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
+  const [metadadosOpen, setMetadadosOpen] = useState(false)
 
   const normalizeType = (type: string | null | undefined) => {
-    const allowed = ['video', 'article', 'text', 'quiz', 'multi_quiz', 'project'] as const
-    const normalized = (type ?? 'video').toString().toLowerCase()
-    return (allowed as readonly string[]).includes(normalized)
-      ? (normalized as (typeof allowed)[number])
-      : 'video'
+    const allowed = [
+      'video',
+      'article',
+      'text',
+      'quiz',
+      'multi_quiz',
+      'project',
+    ] as const
+    const raw = (type ?? '').toString().trim().toLowerCase()
+    if (!raw) return 'video'
+    if ((allowed as readonly string[]).includes(raw))
+      return raw as (typeof allowed)[number]
+    const fromEnum: Record<string, (typeof allowed)[number]> = {
+      article: 'article',
+      video: 'video',
+      text: 'text',
+      quiz: 'quiz',
+      multi_quiz: 'multi_quiz',
+      project: 'project',
+    }
+    return fromEnum[raw] ?? 'video'
   }
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => ({
     title: lesson.title,
     description: lesson.description,
     type: normalizeType(lesson.type),
@@ -53,7 +70,7 @@ export function LessonEditModal({
     isFree: false,
     locked: lesson.locked,
     order: lesson.order,
-  })
+  }))
   const [quizContent, setQuizContent] = useState<Challenge[]>(
     lesson.quiz?.content ?? [],
   )
@@ -97,7 +114,7 @@ export function LessonEditModal({
       }
 
       const payload =
-        (formData.type === 'quiz' || formData.type === 'multi_quiz')
+        formData.type === 'quiz' || formData.type === 'multi_quiz'
           ? { ...formData, quiz_content: quizContent }
           : formData
 
@@ -120,7 +137,10 @@ export function LessonEditModal({
           formData.body
             ? { body: formData.body }
             : null,
-        quiz: (formData.type === 'quiz' || formData.type === 'multi_quiz') ? { content: quizContent } : null,
+        quiz:
+          formData.type === 'quiz' || formData.type === 'multi_quiz'
+            ? { content: quizContent }
+            : null,
       })
       onClose()
     } catch (error) {
@@ -134,7 +154,8 @@ export function LessonEditModal({
   if (!isOpen) return null
 
   const isArticle = formData.type === 'article'
-  const isFullScreen = isArticle || formData.type === 'quiz' || formData.type === 'multi_quiz'
+  const isFullScreen =
+    isArticle || formData.type === 'quiz' || formData.type === 'multi_quiz'
 
   return (
     <div
@@ -172,33 +193,35 @@ export function LessonEditModal({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="slug">Slug *</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="slug"
-                    value={formData.slug}
-                    onChange={(e) => {
-                      setFormData({ ...formData, slug: e.target.value })
-                      setSlugManuallyEdited(true)
-                    }}
-                    required
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const newSlug = generateSlug(formData.title)
-                      setFormData({ ...formData, slug: newSlug })
-                      setSlugManuallyEdited(true)
-                    }}
-                  >
-                    Gerar
-                  </Button>
+              {formData.type !== 'article' && (
+                <div className="space-y-2">
+                  <Label htmlFor="slug">Slug *</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="slug"
+                      value={formData.slug}
+                      onChange={(e) => {
+                        setFormData({ ...formData, slug: e.target.value })
+                        setSlugManuallyEdited(true)
+                      }}
+                      required
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newSlug = generateSlug(formData.title)
+                        setFormData({ ...formData, slug: newSlug })
+                        setSlugManuallyEdited(true)
+                      }}
+                    >
+                      Gerar
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="type">Tipo *</Label>
@@ -228,22 +251,24 @@ export function LessonEditModal({
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="order">Ordem</Label>
-                <Input
-                  id="order"
-                  type="number"
-                  value={formData.order}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      order: parseInt(e.target.value) || 0,
-                    })
-                  }
-                />
-              </div>
-
               {formData.type !== 'article' && (
+                <div className="space-y-2">
+                  <Label htmlFor="order">Ordem</Label>
+                  <Input
+                    id="order"
+                    type="number"
+                    value={formData.order}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        order: parseInt(e.target.value) || 0,
+                      })
+                    }
+                  />
+                </div>
+              )}
+
+              {(formData.type !== 'article' && formData.type !== 'text') && (
                 <div className="space-y-2">
                   <Label htmlFor="url">URL</Label>
                   <Input
@@ -296,6 +321,7 @@ export function LessonEditModal({
                 onChange={(body) => setFormData({ ...formData, body })}
                 rows={12}
                 isArticle={formData.type === 'article'}
+                onSaveRequested={handleSave}
               />
             )}
 
@@ -309,44 +335,155 @@ export function LessonEditModal({
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição *</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={4}
-                required
-              />
-            </div>
+            {formData.type === 'article' && (
+              <div className="border rounded-lg">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left font-medium hover:bg-muted/50 rounded-t-lg"
+                  onClick={() => setMetadadosOpen((o) => !o)}
+                >
+                  <span>Metadados</span>
+                  {metadadosOpen ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </button>
+                {metadadosOpen && (
+                  <div className="px-4 pb-4 pt-0 space-y-4 border-t">
+                    <div className="space-y-2 pt-4">
+                      <Label htmlFor="article-slug">Slug *</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="article-slug"
+                          value={formData.slug}
+                          onChange={(e) => {
+                            setFormData({ ...formData, slug: e.target.value })
+                            setSlugManuallyEdited(true)
+                          }}
+                          required
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const newSlug = generateSlug(formData.title)
+                            setFormData({ ...formData, slug: newSlug })
+                            setSlugManuallyEdited(true)
+                          }}
+                        >
+                          Gerar
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="article-order">Ordem</Label>
+                      <Input
+                        id="article-order"
+                        type="number"
+                        value={formData.order}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            order: parseInt(e.target.value) || 0,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="article-description">Descrição *</Label>
+                      <Textarea
+                        id="article-description"
+                        value={formData.description}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            description: e.target.value,
+                          })
+                        }
+                        rows={4}
+                        required
+                      />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.isFree}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              isFree: e.target.checked,
+                            })
+                          }
+                          className="rounded"
+                        />
+                        <span>Aula Gratuita</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.locked}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              locked: e.target.checked,
+                            })
+                          }
+                          className="rounded"
+                        />
+                        <span>Bloqueada</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.isFree}
-                  onChange={(e) =>
-                    setFormData({ ...formData, isFree: e.target.checked })
-                  }
-                  className="rounded"
-                />
-                <span>Aula Gratuita</span>
-              </label>
+            {formData.type !== 'article' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Descrição *</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    rows={4}
+                    required
+                  />
+                </div>
 
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.locked}
-                  onChange={(e) =>
-                    setFormData({ ...formData, locked: e.target.checked })
-                  }
-                  className="rounded"
-                />
-                <span>Bloqueada</span>
-              </label>
-            </div>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.isFree}
+                      onChange={(e) =>
+                        setFormData({ ...formData, isFree: e.target.checked })
+                      }
+                      className="rounded"
+                    />
+                    <span>Aula Gratuita</span>
+                  </label>
+
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.locked}
+                      onChange={(e) =>
+                        setFormData({ ...formData, locked: e.target.checked })
+                      }
+                      className="rounded"
+                    />
+                    <span>Bloqueada</span>
+                  </label>
+                </div>
+              </>
+            )}
 
             <div className="flex justify-end gap-4 pt-4">
               <Button variant="outline" onClick={onClose} disabled={loading}>
