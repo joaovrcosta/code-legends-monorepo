@@ -14,6 +14,7 @@ import { lessonRoutes } from './http/controllers/lesson/routes'
 import { favoriteCourseRoutes } from './http/controllers/favorite-course/routes'
 import { certificateRoutes } from './http/controllers/certificate/routes'
 import { tagRoutes } from './http/controllers/tag/routes'
+import { skillRoutes } from './http/controllers/skill/routes'
 import { requestRoutes } from './http/controllers/request/routes'
 import { notificationRoutes } from './http/controllers/notification/routes'
 import { planRoutes } from './http/controllers/plan/routes'
@@ -150,6 +151,7 @@ app.register(lessonRoutes)
 app.register(favoriteCourseRoutes)
 app.register(certificateRoutes)
 app.register(tagRoutes)
+app.register(skillRoutes)
 app.register(requestRoutes)
 app.register(notificationRoutes)
 app.register(planRoutes)

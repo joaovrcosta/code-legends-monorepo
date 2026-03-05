@@ -336,6 +336,41 @@ function UserOverviewPageContent() {
           </Card>
         </div>
 
+      {overview.skills && overview.skills.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5" />
+              Skills do aluno
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Skill</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead className="text-right">XP</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {overview.skills.map((skill) => (
+                  <TableRow key={skill.skillId}>
+                    <TableCell>{skill.name}</TableCell>
+                    <TableCell className="text-sm text-gray-500 dark:text-gray-400">
+                      {skill.slug}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {skill.xp.toLocaleString("pt-BR")} XP
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
         {/* Informações do Usuário */}
         <Card>
           <CardHeader>

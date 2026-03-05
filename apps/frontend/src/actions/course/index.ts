@@ -11,3 +11,4 @@ export { continueNextModule } from "./continue-next-module";
 export { revalidateRoadmapCache } from "./revalidate-roadmap";
 export { getLessonBySlug } from "./get-lesson-by-slug";
 export type { LessonResponse, LessonUpgradeRequired } from "./get-lesson-by-slug";
+export { getCourseSkillsProgress } from "./skills-progress";

@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "LessonType" AS ENUM ('video', 'article', 'text', 'quiz', 'project');
+CREATE TYPE "LessonType" AS ENUM ('video', 'article', 'text', 'quiz', 'multi_quiz', 'project');
 
 -- CreateEnum
 CREATE TYPE "MaritalStatus" AS ENUM ('SINGLE', 'MARRIED', 'DIVORCED', 'WIDOWED');
@@ -205,6 +205,7 @@ CREATE TABLE "Article" (
 CREATE TABLE "Quiz" (
     "id" TEXT NOT NULL,
     "lessonId" INTEGER NOT NULL,
+    "content" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -221,6 +222,54 @@ CREATE TABLE "Project" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Project_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Skill" (
+    "id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Skill_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CourseSkill" (
+    "id" TEXT NOT NULL,
+    "courseId" TEXT NOT NULL,
+    "skillId" TEXT NOT NULL,
+    "weight" INTEGER NOT NULL,
+
+    CONSTRAINT "CourseSkill_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "UserSkillXp" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "skillId" TEXT NOT NULL,
+    "xp" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "UserSkillXp_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "UserSkillXpHistory" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "skillId" TEXT NOT NULL,
+    "xpAmount" INTEGER NOT NULL,
+    "source" TEXT NOT NULL,
+    "sourceId" INTEGER,
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "UserSkillXpHistory_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -478,6 +527,24 @@ CREATE UNIQUE INDEX "Quiz_lessonId_key" ON "Quiz"("lessonId");
 CREATE UNIQUE INDEX "Project_lessonId_key" ON "Project"("lessonId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Skill_slug_key" ON "Skill"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CourseSkill_courseId_skillId_key" ON "CourseSkill"("courseId", "skillId");
+
+-- CreateIndex
+CREATE INDEX "UserSkillXp_userId_idx" ON "UserSkillXp"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UserSkillXp_userId_skillId_key" ON "UserSkillXp"("userId", "skillId");
+
+-- CreateIndex
+CREATE INDEX "UserSkillXpHistory_userId_idx" ON "UserSkillXpHistory"("userId");
+
+-- CreateIndex
+CREATE INDEX "UserSkillXpHistory_userId_createdAt_idx" ON "UserSkillXpHistory"("userId", "createdAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "UserCourse_userId_courseId_key" ON "UserCourse"("userId", "courseId");
 
 -- CreateIndex
@@ -575,6 +642,24 @@ ALTER TABLE "Quiz" ADD CONSTRAINT "Quiz_lessonId_fkey" FOREIGN KEY ("lessonId") 
 
 -- AddForeignKey
 ALTER TABLE "Project" ADD CONSTRAINT "Project_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CourseSkill" ADD CONSTRAINT "CourseSkill_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CourseSkill" ADD CONSTRAINT "CourseSkill_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserSkillXp" ADD CONSTRAINT "UserSkillXp_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserSkillXp" ADD CONSTRAINT "UserSkillXp_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserSkillXpHistory" ADD CONSTRAINT "UserSkillXpHistory_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserSkillXpHistory" ADD CONSTRAINT "UserSkillXpHistory_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UserCourse" ADD CONSTRAINT "UserCourse_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE;

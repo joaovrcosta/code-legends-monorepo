@@ -48,13 +48,11 @@ export class CompleteLessonUseCase {
     lessonId,
     score,
   }: CompleteLessonRequest): Promise<CompleteLessonResponse> {
-    // Buscar a aula com todas as relações necessárias
     const lesson = await this.lessonRepository.findById(lessonId)
     if (!lesson) {
       throw new LessonNotFoundError()
     }
 
-    // Buscar o grupo (submodule) para obter o moduleId
     const group = await prisma.submodule.findUnique({
       where: { id: lesson.submoduleId },
       include: {
@@ -68,13 +66,15 @@ export class CompleteLessonUseCase {
 
     const courseId = group.module.courseId
 
-    // Verificar se o curso existe
+    const courseSkills = await prisma.courseSkill.findMany({
+      where: { courseId },
+    })
+
     const course = await this.courseRepository.findById(courseId)
     if (!course) {
       throw new CourseNotFoundError()
     }
 
-    // Verificar se o usuário está inscrito no curso
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,
       courseId,
@@ -145,6 +145,44 @@ export class CompleteLessonUseCase {
           },
         })
 
+        if (courseSkills.length > 0 && xpAmount > 0) {
+          for (const courseSkill of courseSkills) {
+            const skillXp = Math.round(xpAmount * (courseSkill.weight / 100))
+
+            if (skillXp <= 0) continue
+
+            await tx.userSkillXp.upsert({
+              where: {
+                userId_skillId: {
+                  userId,
+                  skillId: courseSkill.skillId,
+                },
+              },
+              update: {
+                xp: {
+                  increment: skillXp,
+                },
+              },
+              create: {
+                userId,
+                skillId: courseSkill.skillId,
+                xp: skillXp,
+              },
+            })
+
+            await tx.userSkillXpHistory.create({
+              data: {
+                userId,
+                skillId: courseSkill.skillId,
+                xpAmount: skillXp,
+                source: 'lesson_completed',
+                sourceId: lessonId,
+                description: `XP de skill ao completar lição: ${lesson.title}`,
+              },
+            })
+          }
+        }
+
         if (levelUp) {
           try {
             const notificationData =
@@ -187,7 +225,6 @@ export class CompleteLessonUseCase {
       }
     }
 
-    // Buscar todas as aulas do módulo para calcular o progresso
     const moduleWithLessons = await prisma.module.findUnique({
       where: { id: group.moduleId },
       include: {
@@ -210,7 +247,6 @@ export class CompleteLessonUseCase {
       throw new Error('Module not found')
     }
 
-    // Calcular total de aulas do módulo
     const totalTasksInModule = moduleWithLessons.submodules.reduce(
       (acc, group) => acc + group.lessons.length,
       0,
@@ -301,15 +337,10 @@ export class CompleteLessonUseCase {
         },
       })
 
-      // Verificar se a próxima lesson está em outro módulo
       const nextModuleId = nextLessonGroup?.moduleId
       const currentModuleId = group.moduleId
 
-      // Se a próxima lesson está em outro módulo, NÃO avançar automaticamente
-      // O usuário deve usar o botão "Desbloquear próximo módulo" para avançar
       if (nextModuleId && nextModuleId !== currentModuleId) {
-        // Não pode avançar para o próximo módulo automaticamente
-        // Manter no módulo atual e usar a lesson atual (completada) como currentTaskId
         await this.userCourseRepository.update(userCourse.id, {
           currentTaskId: lessonId,
           currentModuleId: userCourse.currentModuleId ?? currentModuleId,
@@ -318,7 +349,6 @@ export class CompleteLessonUseCase {
           completedAt: courseCompleted ? new Date() : null,
         })
       } else {
-        // A próxima lesson está no mesmo módulo, pode avançar normalmente (ou permanece na atual se quiz reprovado)
         await this.userCourseRepository.update(userCourse.id, {
           currentTaskId: effectiveNextTaskId,
           currentModuleId: userCourse.currentModuleId ?? currentModuleId,
@@ -367,38 +397,15 @@ export class CompleteLessonUseCase {
     }
   }
 
-  /**
-   * Calcula o XP total necessário para alcançar um determinado nível
-   * Fórmula progressiva: XP total = 100 * level + 50 * (level - 1) * level / 2
-   * Exemplo:
-   * - Nível 1: 100 XP total
-   * - Nível 2: 250 XP total (100 + 150)
-   * - Nível 3: 450 XP total (250 + 200)
-   * - Nível 4: 700 XP total (450 + 250)
-   */
   private calculateXpForLevel(level: number): number {
     if (level <= 1) return 100
-    // XP total = 100 * level + 50 * (level - 1) * level / 2
-    // Simplificado: 100 * level + 25 * (level - 1) * level
     return 100 * level + 25 * (level - 1) * level
   }
 
-  /**
-   * Calcula o XP necessário apenas para o próximo nível (não acumulado)
-   * Fórmula: XP necessário = 100 + (level - 1) * 50
-   * Exemplo:
-   * - Para nível 2: 100 + (2-1) * 50 = 150 XP
-   * - Para nível 3: 100 + (3-1) * 50 = 200 XP
-   * - Para nível 4: 100 + (4-1) * 50 = 250 XP
-   */
   private calculateXpRequiredForNextLevel(level: number): number {
     return 100 + (level - 1) * 50
   }
 
-  /**
-   * Calcula o nível baseado no XP total
-   * Usa busca binária ou iteração para encontrar o nível correto
-   */
   private calculateLevel(totalXp: number): number {
     if (totalXp < 100) return 1
 
@@ -409,10 +416,6 @@ export class CompleteLessonUseCase {
     return level
   }
 
-  /**
-   * Calcula o XP necessário para alcançar o próximo nível
-   * Retorna quanto XP falta para subir de nível
-   */
   private calculateXpToNextLevel(level: number, totalXp: number): number {
     const xpForCurrentLevel = this.calculateXpForLevel(level)
     const xpForNextLevel = this.calculateXpForLevel(level + 1)
@@ -464,12 +467,10 @@ export class CompleteLessonUseCase {
   ): Promise<boolean> {
     const lessonIndex = allLessons.findIndex((l) => l.id === lessonId)
 
-    // Primeira aula sempre está desbloqueada
     if (lessonIndex === 0) {
       return true
     }
 
-    // Verificar se a aula anterior foi concluída
     const previousLesson = allLessons[lessonIndex - 1]
     const previousProgress =
       await this.userProgressRepository.findByUserAndTask(

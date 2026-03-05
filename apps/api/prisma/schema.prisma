@@ -39,6 +39,7 @@ model Course {
   Certificate     Certificate[]
   favoriteCourses FavoriteCourse[]
   activeUsers     User[]           @relation("ActiveCourse")
+  skills          CourseSkill[]
 }
 
 model Tag {
@@ -118,6 +119,8 @@ model User {
   coursesAsInstructor Course[]         @relation("CourseInstructor")
   lessonsAsAuthor     Lesson[]         @relation("LessonAuthor")
   xpHistory           UserXpHistory[]
+  skillXp             UserSkillXp[]
+  skillXpHistory      UserSkillXpHistory[]
   requests            Request[]
   notifications       Notification[]
   payments            Payment[]
@@ -232,6 +235,63 @@ model Project {
   badgeId     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Skill {
+  id          String           @id @default(cuid())
+  slug        String           @unique
+  name        String
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  courses CourseSkill[]
+  users   UserSkillXp[]
+  xpLog   UserSkillXpHistory[]
+}
+
+model CourseSkill {
+  id       String @id @default(cuid())
+  courseId String
+  skillId  String
+  weight   Int
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  skill  Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, skillId])
+}
+
+model UserSkillXp {
+  id        String   @id @default(cuid())
+  userId    String
+  skillId   String
+  xp        Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([userId])
+}
+
+model UserSkillXpHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  skillId     String
+  xpAmount    Int
+  source      String
+  sourceId    Int?
+  description String?
+  createdAt   DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
 }
 
 model UserCourse {

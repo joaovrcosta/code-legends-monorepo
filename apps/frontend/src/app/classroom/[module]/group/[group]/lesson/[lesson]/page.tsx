@@ -27,6 +27,7 @@ import { useCourseModalStore } from '@/stores/course-modal-store'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
 import type { RoadmapResponse } from '@/types/roadmap'
 import { useSession } from 'next-auth/react'
+import { SkillProgressPanel } from '@/components/classroom/SkillProgressPanel'
 
 function isLessonUpgradeRequiredResult(
   data: LessonResponse | LessonUpgradeRequired | null,
@@ -630,6 +631,11 @@ export default function DynamicLessonPage() {
             groupTitle={lessonData.groupTitle}
             courseIcon={activeCourse?.icon}
           />
+          {activeCourse?.id && (
+            <div className="px-4 pb-28 lg:pb-32">
+              <SkillProgressPanel courseId={activeCourse.id} />
+            </div>
+          )}
         </div>
 
         {/* Footer - mesma largura que o lesson-content (lg:mx-4) */}

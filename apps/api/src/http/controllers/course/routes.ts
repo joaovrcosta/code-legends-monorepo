@@ -21,6 +21,9 @@ import { getCourseProgress } from "./get-progress.controller";
 import { getLessonBySlug } from "./get-lesson-by-slug.controller";
 import { publish } from "./publish.controller";
 import { unpublish } from "./unpublish.controller";
+import { getSkillsConfig } from "./get-skills-config.controller";
+import { updateSkillsConfig } from "./update-skills-config.controller";
+import { getSkillsProgress } from "./get-skills-progress.controller";
 import { verifyJWT } from "../../middlewares/verify-jwt";
 import { verifyJWTOptional } from "../../middlewares/verify-jwt-optional";
 import { verifyAdmin } from "../../middlewares/verify-admin";
@@ -41,6 +44,16 @@ export async function courseRoutes(app: FastifyInstance) {
   app.delete("/courses/:id", { onRequest: [verifyAdmin] }, remove);
   app.post("/courses/:id/publish", { onRequest: [verifyAdmin] }, publish);
   app.post("/courses/:id/unpublish", { onRequest: [verifyAdmin] }, unpublish);
+  app.get(
+    "/courses/:id/skills-config",
+    { onRequest: [verifyAdmin] },
+    getSkillsConfig
+  );
+  app.put(
+    "/courses/:id/skills-config",
+    { onRequest: [verifyAdmin] },
+    updateSkillsConfig
+  );
 
   app.get(
     "/courses/:courseId/lessons/:lessonSlug",
@@ -56,6 +69,11 @@ export async function courseRoutes(app: FastifyInstance) {
   app.post("/courses/:id/reset-progress", { onRequest: [verifyJWT] }, resetProgress);
   app.get("/courses/:id/continue", { onRequest: [verifyJWT] }, continueCourse);
   app.get("/courses/continue", { onRequest: [verifyJWT] }, continueCourse); // Sem ID: usa curso ativo
+  app.get(
+    "/courses/:id/skills-progress",
+    { onRequest: [verifyJWT] },
+    getSkillsProgress
+  );
   app.get("/courses/enrolled", { onRequest: [verifyJWT] }, listEnrolled);
   app.get("/courses/completed", { onRequest: [verifyJWT] }, listCompleted);
   app.get("/account/active-course", { onRequest: [verifyJWT] }, getActive);

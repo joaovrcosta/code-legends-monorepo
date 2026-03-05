@@ -22,6 +22,12 @@ import {
 import { listCategories } from "@/actions/category";
 import { listInstructors } from "@/actions/user";
 import { listTags } from "@/actions/tag/list-tags";
+import { listSkills } from "@/actions/skill/list-skills";
+import {
+  getCourseSkillsConfig,
+  updateCourseSkillsConfig,
+  type CourseSkillsConfigResponse,
+} from "@/actions/skill/get-course-skills";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
@@ -50,6 +56,13 @@ export default function EditCoursePage() {
   const [publishPassword, setPublishPassword] = useState("");
   const [verifyingPassword, setVerifyingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [availableSkills, setAvailableSkills] = useState<
+    Array<{ id: string; name: string; slug: string }>
+  >([]);
+  const [courseSkills, setCourseSkills] = useState<
+    Array<{ skillId: string; name: string; slug: string; weight: number }>
+  >([]);
+  const [selectedSkillId, setSelectedSkillId] = useState("");
   const [formData, setFormData] = useState<UpdateCourseData>({
     title: "",
     slug: "",
@@ -79,6 +92,8 @@ export default function EditCoursePage() {
     loadInstructors();
     loadCourse();
     loadCourseStructure();
+    loadSkills();
+    loadCourseSkills();
   }, [courseId]);
 
   useEffect(() => {
@@ -122,6 +137,48 @@ export default function EditCoursePage() {
       );
     } catch (error) {
       console.error("Erro ao carregar instrutores:", error);
+    }
+  };
+
+  const loadSkills = async () => {
+    try {
+      const { skills } = await listSkills();
+      setAvailableSkills(
+        skills.map((skill) => ({
+          id: skill.id,
+          name: skill.name,
+          slug: skill.slug,
+        }))
+      );
+    } catch (error) {
+      console.error("Erro ao carregar skills:", error);
+    }
+  };
+
+  const loadCourseSkills = async () => {
+    try {
+      const token = getAuthTokenFromClient();
+      if (!token) {
+        return;
+      }
+      const config: CourseSkillsConfigResponse | null = await getCourseSkillsConfig(
+        courseId,
+        token
+      );
+      if (config && Array.isArray(config.skills)) {
+        setCourseSkills(
+          config.skills.map((item) => ({
+            skillId: item.skillId,
+            name: item.name,
+            slug: item.slug,
+            weight: item.weight,
+          }))
+        );
+      } else {
+        setCourseSkills([]);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar configuração de skills do curso:", error);
     }
   };
 
@@ -181,6 +238,17 @@ export default function EditCoursePage() {
         return;
       }
       await updateCourse(courseId, formData, token);
+
+      // Atualizar configuração de skills do curso
+      await updateCourseSkillsConfig(
+        courseId,
+        courseSkills.map((item) => ({
+          skillId: item.skillId,
+          weight: item.weight,
+        })),
+        token
+      );
+
       // Não redireciona, apenas mostra sucesso
       toast.success("Curso atualizado com sucesso!");
     } catch (error: any) {
@@ -189,6 +257,31 @@ export default function EditCoursePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddSkillToCourse = () => {
+    if (!selectedSkillId) return;
+    const skill = availableSkills.find((s) => s.id === selectedSkillId);
+    if (!skill) return;
+
+    const alreadyAdded = courseSkills.some(
+      (cs) => cs.skillId === selectedSkillId
+    );
+    if (alreadyAdded) {
+      setSelectedSkillId("");
+      return;
+    }
+
+    setCourseSkills((prev) => [
+      ...prev,
+      {
+        skillId: skill.id,
+        name: skill.name,
+        slug: skill.slug,
+        weight: 100,
+      },
+    ]);
+    setSelectedSkillId("");
   };
 
   const validateCourseForPublishing = (): string[] => {
@@ -589,6 +682,91 @@ export default function EditCoursePage() {
                     Pressione Enter para adicionar uma tag
                   </p>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Skills deste curso</Label>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  As skills definem para onde o XP deste curso será distribuído
+                  (por exemplo, JavaScript, Web development, IA).
+                </p>
+                <div className="flex gap-2">
+                  <Select
+                    value={selectedSkillId}
+                    onChange={(e) => setSelectedSkillId(e.target.value)}
+                  >
+                    <option value="">Selecione uma skill</option>
+                    {availableSkills
+                      .filter(
+                        (skill) =>
+                          !courseSkills.some(
+                            (cs) => cs.skillId === skill.id
+                          )
+                      )
+                      .map((skill) => (
+                        <option key={skill.id} value={skill.id}>
+                          {skill.name} ({skill.slug})
+                        </option>
+                      ))}
+                  </Select>
+                  <Button type="button" variant="outline" onClick={handleAddSkillToCourse}>
+                    Adicionar
+                  </Button>
+                </div>
+
+                {courseSkills.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {courseSkills.map((item) => (
+                      <div
+                        key={item.skillId}
+                        className="flex items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm"
+                      >
+                        <div>
+                          <div className="font-medium">{item.name}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            slug: {item.slug}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={item.weight}
+                            onChange={(e) => {
+                              const value = Number(e.target.value) || 0;
+                              setCourseSkills((prev) =>
+                                prev.map((cs) =>
+                                  cs.skillId === item.skillId
+                                    ? { ...cs, weight: value }
+                                    : cs
+                                )
+                              );
+                            }}
+                            className="w-20"
+                          />
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            %
+                          </span>
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            onClick={() =>
+                              setCourseSkills((prev) =>
+                                prev.filter(
+                                  (cs) => cs.skillId !== item.skillId
+                                )
+                              )
+                            }
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-4">

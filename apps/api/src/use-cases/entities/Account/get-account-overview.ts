@@ -75,6 +75,12 @@ interface AccountOverviewResponse {
     level: number;
     xpToNextLevel: number;
   };
+  skills: {
+    skillId: string;
+    name: string;
+    slug: string;
+    xp: number;
+  }[];
 }
 
 export class GetAccountOverviewUseCase {
@@ -242,6 +248,22 @@ export class GetAccountOverviewUseCase {
     const completedCourses = enrolledCourses.filter((c) => c.isCompleted).length;
     const inProgressCourses = enrolledCourses.filter((c) => !c.isCompleted).length;
 
+    const userSkillXp = await prisma.userSkillXp.findMany({
+      where: { userId },
+      include: {
+        skill: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+      orderBy: {
+        xp: "desc",
+      },
+    });
+
     return {
       user,
       payments: payments.map((p) => ({
@@ -278,6 +300,12 @@ export class GetAccountOverviewUseCase {
         level: user.level,
         xpToNextLevel: user.xpToNextLevel,
       },
+      skills: userSkillXp.map((item) => ({
+        skillId: item.skillId,
+        name: item.skill.name,
+        slug: item.skill.slug,
+        xp: item.xp,
+      })),
     };
   }
 }

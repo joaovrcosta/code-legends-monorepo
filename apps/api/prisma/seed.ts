@@ -6,6 +6,34 @@ const prisma = new PrismaClient()
 const COURSE_SLUG = 'fundamentos-frontend-completo'
 const INSTRUCTOR_EMAIL = 'seed-instructor@codelegends.com.br'
 
+const SKILLS = [
+  {
+    slug: 'javascript',
+    name: 'JavaScript',
+    description: 'Fundamentos e práticas modernas de JavaScript para web.',
+  },
+  {
+    slug: 'web-development',
+    name: 'Web Development',
+    description: 'Desenvolvimento web full stack com foco em front-end.',
+  },
+  {
+    slug: 'html',
+    name: 'HTML',
+    description: 'Estruturação de documentos e semântica para a web.',
+  },
+  {
+    slug: 'css',
+    name: 'CSS',
+    description: 'Estilização, layout e responsividade para interfaces web.',
+  },
+  {
+    slug: 'react',
+    name: 'React',
+    description: 'Desenvolvimento de interfaces reativas com React.',
+  },
+]
+
 const PLANS = [
   {
     slug: 'FREE',
@@ -159,6 +187,54 @@ async function main() {
       },
     },
   })
+
+  // 3.1 Skills e vínculo com o curso (para XP por skill)
+  for (const skill of SKILLS) {
+    await prisma.skill.upsert({
+      where: { slug: skill.slug },
+      update: {},
+      create: skill,
+    })
+  }
+
+  const javascriptSkill = await prisma.skill.findUnique({
+    where: { slug: 'javascript' },
+  })
+  const webSkill = await prisma.skill.findUnique({
+    where: { slug: 'web-development' },
+  })
+  const reactSkill = await prisma.skill.findUnique({
+    where: { slug: 'react' },
+  })
+
+  if (javascriptSkill && webSkill && reactSkill) {
+    const existingCourseSkills = await prisma.courseSkill.findMany({
+      where: { courseId: course.id },
+    })
+
+    if (existingCourseSkills.length === 0) {
+      await prisma.courseSkill.createMany({
+        data: [
+          {
+            courseId: course.id,
+            skillId: javascriptSkill.id,
+            weight: 40,
+          },
+          {
+            courseId: course.id,
+            skillId: webSkill.id,
+            weight: 35,
+          },
+          {
+            courseId: course.id,
+            skillId: reactSkill.id,
+            weight: 25,
+          },
+        ],
+      })
+      console.log('✅ Skills e CourseSkills seeded para o curso principal!')
+    }
+  }
 
   // 4. Módulos e conteúdo
   const LESSON_TYPE_MAP: Record<string, LessonType> = {

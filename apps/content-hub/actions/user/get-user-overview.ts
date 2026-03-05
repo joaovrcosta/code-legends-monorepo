@@ -92,6 +92,12 @@ export interface UserOverview {
         level: number;
         xpToNextLevel: number;
     };
+    skills: Array<{
+        skillId: string;
+        name: string;
+        slug: string;
+        xp: number;
+    }>;
 }
 
 export interface UserOverviewResponse {
@@ -102,6 +108,7 @@ export interface UserOverviewResponse {
     enrolledCourses: UserOverview["enrolledCourses"];
     completedLessons: UserOverview["completedLessons"];
     statistics: UserOverview["statistics"];
+    skills: UserOverview["skills"];
 }
 
 /**
@@ -152,7 +159,7 @@ export async function getUserOverview(
         }
 
         const data: UserOverviewResponse = await response.json();
-        return data;
+        return data as unknown as UserOverview;
     } catch (error) {
         console.error("Erro ao buscar overview do usuário:", error);
         return null;
