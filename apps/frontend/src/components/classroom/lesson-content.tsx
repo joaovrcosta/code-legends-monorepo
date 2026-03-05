@@ -32,12 +32,13 @@ export const LessonContent = memo(function LessonContent({
           {(lesson?.type === 'article' || lesson?.type === 'text') && (
             <ComponentsArticle lesson={lesson} moduleTitle={moduleTitle} />
           )}
-          {lesson?.type === 'quiz' && (
+          {(lesson?.type === 'quiz' || lesson?.type === 'multi_quiz') && (
             <QuizView
               lessonId={lesson.id}
               title={lesson.title}
               description={lesson.description}
               challenges={lesson.quiz?.content ?? []}
+              isMultiQuiz={lesson.type === 'multi_quiz'}
             />
           )}
           {lesson?.type === 'project' && <p>Projeto</p>}

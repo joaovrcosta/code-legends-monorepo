@@ -24,9 +24,11 @@ function getLessonMeta(lesson: Lesson) {
         ? 'Leitura'
         : lesson.type === 'quiz'
           ? 'Quiz'
-          : lesson.type === 'project'
-            ? 'Projeto'
-            : lesson.type
+          : lesson.type === 'multi_quiz'
+            ? 'Desafios'
+            : lesson.type === 'project'
+              ? 'Projeto'
+              : lesson.type
 
   const duration = lesson.video?.duration ?? lesson.video_duration
 
@@ -36,7 +38,7 @@ function getLessonMeta(lesson: Lesson) {
 function getLessonTypeIcon(lesson: Lesson) {
   if (lesson.type === 'video') return Video
   if (lesson.type === 'article' || lesson.type === 'text') return FileText
-  if (lesson.type === 'quiz') return HelpCircle
+  if (lesson.type === 'quiz' || lesson.type === 'multi_quiz') return HelpCircle
   if (lesson.type === 'project') return Code2
   return FileText
 }

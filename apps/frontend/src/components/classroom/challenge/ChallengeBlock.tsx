@@ -38,9 +38,18 @@ function checkAnswer(challenge: Challenge, answer: string): boolean {
 interface ChallengeBlockProps {
   challenge: Challenge
   index?: number
+  /** Chamado ao submeter a resposta com o resultado (acertou/errou). Usado no fluxo de quiz multiperguntas. */
+  onAnswer?: (correct: boolean) => void
+  /** Se definido, após submeter mostra botão "Próxima" em vez de "Tentar novamente". */
+  onNext?: () => void
 }
 
-export function ChallengeBlock({ challenge, index }: ChallengeBlockProps) {
+export function ChallengeBlock({
+  challenge,
+  index,
+  onAnswer,
+  onNext,
+}: ChallengeBlockProps) {
   const [selected, setSelected] = useState<string | null>(null)
   const [typed, setTyped] = useState('')
   const [submitted, setSubmitted] = useState(false)
@@ -80,7 +89,8 @@ export function ChallengeBlock({ challenge, index }: ChallengeBlockProps) {
     const correct = checkAnswer(challenge, answer)
     setIsCorrect(correct)
     setSubmitted(true)
-  }, [submitted, isChoiceType, selected, typed, challenge])
+    onAnswer?.(correct)
+  }, [submitted, isChoiceType, selected, typed, challenge, onAnswer])
 
   const handleReset = useCallback(() => {
     setSelected(null)
@@ -249,6 +259,14 @@ export function ChallengeBlock({ challenge, index }: ChallengeBlockProps) {
             className="flex items-center gap-2 rounded-full bg-[#00b3e4] px-5 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Verificar <ArrowRight weight="bold" size={14} />
+          </button>
+        ) : onNext ? (
+          <button
+            type="button"
+            onClick={onNext}
+            className="flex items-center gap-2 rounded-full bg-[#00b3e4] px-5 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90"
+          >
+            Próxima <ArrowRight weight="bold" size={14} />
           </button>
         ) : (
           <button

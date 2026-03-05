@@ -26,9 +26,11 @@ function getLessonMeta(lesson: Lesson) {
         ? 'Leitura'
         : lesson.type === 'quiz'
           ? 'Quiz'
-          : lesson.type === 'project'
-            ? 'Projeto'
-            : lesson.type
+          : lesson.type === 'multi_quiz'
+            ? 'Desafios'
+            : lesson.type === 'project'
+              ? 'Projeto'
+              : lesson.type
 
   const duration = lesson.video?.duration ?? lesson.video_duration
 

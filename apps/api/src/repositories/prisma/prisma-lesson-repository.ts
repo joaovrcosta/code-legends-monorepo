@@ -31,6 +31,7 @@ const LESSON_TYPE_MAP: Record<string, string> = {
   article: 'ARTICLE',
   text: 'TEXT',
   quiz: 'QUIZ',
+  multi_quiz: 'MULTI_QUIZ',
   project: 'PROJECT',
 }
 

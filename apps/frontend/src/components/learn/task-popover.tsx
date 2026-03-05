@@ -100,7 +100,7 @@ export const TaskPopover = ({
               {task.locked ? <Lock /> : <CirclePlay />}
             </PrimaryButton>
 
-            {(task.type === "project" || task.type === "quiz") && (
+            {(task.type === "project" || task.type === "quiz" || task.type === "multi_quiz") && (
               <Link href={`/skip-task/${task.id}`}>
                 <PrimaryButton className="mt-2" disabled={task.locked}>
                   Pular

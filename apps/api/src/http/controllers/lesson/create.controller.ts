@@ -13,7 +13,7 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
   const createLessonBodySchema = z.object({
     title: z.string(),
     description: z.string(),
-    type: z.enum(["video", "article", "text", "quiz", "project"]),
+    type: z.enum(["video", "article", "text", "quiz", "multi_quiz", "project"]),
     slug: z.string(),
     url: z.string().optional(),
     isFree: z.boolean().optional(),

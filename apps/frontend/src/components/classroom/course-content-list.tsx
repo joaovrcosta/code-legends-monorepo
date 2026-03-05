@@ -81,7 +81,7 @@ export function CourseContentList({ course, pathName }: CourseContentList) {
                                   />
                                 ) : task.type === "video" ? (
                                   <Circle size={16} weight="bold" />
-                                ) : task.type === "quiz" ? (
+                                ) : task.type === "quiz" || task.type === "multi_quiz" ? (
                                   <Brain size={16} weight="fill" />
                                 ) : task.type === "article" ? (
                                   <Article size={16} weight="fill" />

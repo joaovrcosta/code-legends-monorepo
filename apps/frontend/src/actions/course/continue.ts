@@ -5,11 +5,13 @@ import { revalidateTag, revalidatePath } from "next/cache";
 import { getActiveCourse } from "../user/get-active-course";
 
 /**
- * Marca a lição atual como concluída e avança para a próxima
+ * Marca a lição atual como concluída e avança para a próxima.
+ * Para lições do tipo quiz, envie score (0–100); o backend só marca como concluído se score >= 70.
  */
 export async function continueCourse(
   lessonId: number,
-  courseId?: string
+  courseId?: string,
+  score?: number
 ): Promise<{ success: boolean }> {
   try {
     const token = await getAuthToken();
@@ -19,6 +21,9 @@ export async function continueCourse(
       throw new Error("Token de autenticação não encontrado");
     }
 
+    const body =
+      score !== undefined ? JSON.stringify({ score }) : undefined;
+
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/lessons/${lessonId}/complete`,
       {
@@ -27,6 +32,7 @@ export async function continueCourse(
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body,
         cache: "no-store",
       }
     );

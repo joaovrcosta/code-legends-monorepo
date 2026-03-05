@@ -64,7 +64,10 @@ export class UpdateLessonUseCase {
         body: body.trim() || " ",
       });
     }
-    if (data.type === "quiz" && Array.isArray(quiz_content)) {
+    if (
+      (data.type === "quiz" || data.type === "multi_quiz") &&
+      Array.isArray(quiz_content)
+    ) {
       await this.quizRepository.upsert(lesson.id, quiz_content);
     }
 

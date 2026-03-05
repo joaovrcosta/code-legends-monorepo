@@ -1,6 +1,6 @@
 export type LessonStatus = "completed" | "unlocked" | "locked";
 
-export type LessonType = "video" | "article" | "text" | "quiz" | "project";
+export type LessonType = "video" | "article" | "text" | "quiz" | "multi_quiz" | "project";
 
 export type ChallengeType =
   | "prediction"

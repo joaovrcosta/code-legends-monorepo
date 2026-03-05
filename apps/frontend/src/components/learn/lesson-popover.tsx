@@ -217,7 +217,7 @@ export const LessonPopover = ({
                 </PrimaryButton>
               )}
 
-              {(lesson.type === "project" || lesson.type === "quiz") && (
+              {(lesson.type === "project" || lesson.type === "quiz" || lesson.type === "multi_quiz") && (
                 <Link href={`/skip-lesson/${lesson.id}`}>
                   <PrimaryButton className="mt-2" disabled={locked}>
                     Pular

@@ -34,7 +34,7 @@ export function LessonEditModal({
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
 
   const normalizeType = (type: string | null | undefined) => {
-    const allowed = ['video', 'article', 'text', 'quiz', 'project'] as const
+    const allowed = ['video', 'article', 'text', 'quiz', 'multi_quiz', 'project'] as const
     const normalized = (type ?? 'video').toString().toLowerCase()
     return (allowed as readonly string[]).includes(normalized)
       ? (normalized as (typeof allowed)[number])
@@ -97,7 +97,7 @@ export function LessonEditModal({
       }
 
       const payload =
-        formData.type === 'quiz'
+        (formData.type === 'quiz' || formData.type === 'multi_quiz')
           ? { ...formData, quiz_content: quizContent }
           : formData
 
@@ -120,7 +120,7 @@ export function LessonEditModal({
           formData.body
             ? { body: formData.body }
             : null,
-        quiz: formData.type === 'quiz' ? { content: quizContent } : null,
+        quiz: (formData.type === 'quiz' || formData.type === 'multi_quiz') ? { content: quizContent } : null,
       })
       onClose()
     } catch (error) {
@@ -134,7 +134,7 @@ export function LessonEditModal({
   if (!isOpen) return null
 
   const isArticle = formData.type === 'article'
-  const isFullScreen = isArticle || formData.type === 'quiz'
+  const isFullScreen = isArticle || formData.type === 'quiz' || formData.type === 'multi_quiz'
 
   return (
     <div
@@ -213,6 +213,7 @@ export function LessonEditModal({
                         | 'video'
                         | 'text'
                         | 'quiz'
+                        | 'multi_quiz'
                         | 'project',
                     })
                   }
@@ -222,6 +223,7 @@ export function LessonEditModal({
                   <option value="article">Artigo</option>
                   <option value="text">Texto</option>
                   <option value="quiz">Quiz</option>
+                  <option value="multi_quiz">Multi quiz</option>
                   <option value="project">Projeto</option>
                 </Select>
               </div>
@@ -297,7 +299,7 @@ export function LessonEditModal({
               />
             )}
 
-            {formData.type === 'quiz' && (
+            {(formData.type === 'quiz' || formData.type === 'multi_quiz') && (
               <div className="space-y-2">
                 <Label>Desafios do Quiz</Label>
                 <QuizEditor

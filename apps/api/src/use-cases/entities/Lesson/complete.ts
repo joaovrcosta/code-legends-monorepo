@@ -88,41 +88,43 @@ export class CompleteLessonUseCase {
       await this.userProgressRepository.findByUserAndTask(userId, lessonId)
     const wasAlreadyCompleted = existingProgress?.isCompleted ?? false
 
-    // Marcar a aula como concluída
+    const lessonType = lesson.type as string
+    const isMultiQuiz = lessonType === 'MULTI_QUIZ'
+    const isCompleted = isMultiQuiz && score != null ? score >= 70 : true
+
     await this.userProgressRepository.upsert({
       userId,
       taskId: lessonId,
       userCourseId: userCourse.id,
-      isCompleted: true,
+      isCompleted,
       score,
     })
 
-    // Adicionar XP apenas se a lição não estava completa antes
     let xpGained = 0
     let totalXp = 0
     let level = 1
     let xpToNextLevel = 100
 
-    // Buscar usuário atual para obter XP atual (sempre necessário para retornar dados atualizados)
     const user = await this.usersRepository.findById(userId)
     if (!user) {
       throw new Error('User not found')
     }
 
-    // Calcular xpToNextLevel inicial baseado no nível atual do usuário
     xpToNextLevel = this.calculateXpToNextLevel(user.level, user.totalXp)
 
-    if (!wasAlreadyCompleted) {
-      // Calcular novo XP e nível
-      const newTotalXp = user.totalXp + this.XP_PER_LESSON
+    const xpAmount =
+      isMultiQuiz && score != null && score >= 70
+        ? Math.round(this.XP_PER_LESSON * 1.4)
+        : this.XP_PER_LESSON
+
+    if (!wasAlreadyCompleted && isCompleted && lessonType !== 'QUIZ') {
+      const newTotalXp = user.totalXp + xpAmount
       const newLevel = this.calculateLevel(newTotalXp)
       const newXpToNextLevel = this.calculateXpToNextLevel(newLevel, newTotalXp)
 
       const levelUp = newLevel > user.level
 
-      // Atualizar usuário com novo XP e nível usando transação
       await prisma.$transaction(async (tx) => {
-        // Atualizar XP e nível do usuário
         await tx.user.update({
           where: { id: userId },
           data: {
@@ -136,14 +138,13 @@ export class CompleteLessonUseCase {
         await tx.userXpHistory.create({
           data: {
             userId,
-            xpAmount: this.XP_PER_LESSON,
+            xpAmount,
             source: 'lesson_completed',
             sourceId: lessonId,
             description: `Completou lição: ${lesson.title}`,
           },
         })
 
-        // Criar notificação de level up dentro da transação
         if (levelUp) {
           try {
             const notificationData =
@@ -158,13 +159,12 @@ export class CompleteLessonUseCase {
               tx,
             })
           } catch (error) {
-            // Não quebra o fluxo se a notificação falhar
             console.error('Erro ao criar notificação de level up:', error)
           }
         }
       })
 
-      xpGained = this.XP_PER_LESSON
+      xpGained = xpAmount
       totalXp = newTotalXp
       level = newLevel
       xpToNextLevel = newXpToNextLevel
@@ -281,17 +281,18 @@ export class CompleteLessonUseCase {
     const wasCourseCompleted = userCourse.isCompleted
     const isNewlyCompleted = courseCompleted && !wasCourseCompleted
 
-    // Atualizar UserCourse
-    const nextLesson = nextLessonId
-      ? allLessons.find((l) => l.id === nextLessonId)
+    // Atualizar UserCourse (quiz reprovado: não avança, usuário permanece na mesma lição para tentar de novo)
+    const effectiveNextTaskId = isCompleted ? nextLessonId : lessonId
+    const nextLesson = effectiveNextTaskId
+      ? allLessons.find((l) => l.id === effectiveNextTaskId)
       : null
 
-    if (nextLesson && nextLessonId !== null) {
+    if (nextLesson && effectiveNextTaskId !== null) {
       const nextLessonGroup = await prisma.submodule.findFirst({
         where: {
           lessons: {
             some: {
-              id: nextLessonId,
+              id: effectiveNextTaskId,
             },
           },
         },
@@ -317,9 +318,9 @@ export class CompleteLessonUseCase {
           completedAt: courseCompleted ? new Date() : null,
         })
       } else {
-        // A próxima lesson está no mesmo módulo, pode avançar normalmente
+        // A próxima lesson está no mesmo módulo, pode avançar normalmente (ou permanece na atual se quiz reprovado)
         await this.userCourseRepository.update(userCourse.id, {
-          currentTaskId: nextLessonId,
+          currentTaskId: effectiveNextTaskId,
           currentModuleId: userCourse.currentModuleId ?? currentModuleId,
           progress: courseProgress,
           isCompleted: courseCompleted,

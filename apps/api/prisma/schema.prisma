@@ -188,11 +188,12 @@ model Lesson {
 }
 
 enum LessonType {
-  VIDEO   @map("video")
-  ARTICLE @map("article")
-  TEXT    @map("text")
-  QUIZ    @map("quiz")
-  PROJECT @map("project")
+  VIDEO      @map("video")
+  ARTICLE    @map("article")
+  TEXT       @map("text")
+  QUIZ       @map("quiz")
+  MULTI_QUIZ @map("multi_quiz")
+  PROJECT    @map("project")
 }
 
 model Video {

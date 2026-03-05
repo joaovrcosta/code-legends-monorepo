@@ -75,7 +75,10 @@ export class CreateLessonUseCase {
         body: body.trim(),
       });
     }
-    if (data.type === "quiz" && Array.isArray(data.quiz_content)) {
+    if (
+      (data.type === "quiz" || data.type === "multi_quiz") &&
+      Array.isArray(data.quiz_content)
+    ) {
       await this.quizRepository.upsert(lesson.id, data.quiz_content);
     }
 
