@@ -280,61 +280,7 @@ export default function DynamicLessonPage() {
       .flatMap((g) => g?.lessons || [])
   }, [roadmap?.modules])
 
-  const canUnlockNextModule = useMemo(() => {
-    return roadmap?.course.canUnlockNextModule ?? false
-  }, [roadmap?.course.canUnlockNextModule])
-
-  // Handler para desbloquear o próximo módulo (deve estar antes dos returns)
-  const handleUnlockNext = useCallback(async () => {
-    if (!activeCourse?.id) return
-
-    setIsUnlocking(true)
-    try {
-      const result = await unlockNextModule(activeCourse.id)
-      if (result.success) {
-        // Revalida o cache do roadmap
-        await revalidateRoadmapCache(activeCourse.id)
-
-        // Aguarda um pouco para garantir que o revalidateTag foi processado
-        await new Promise((resolve) => setTimeout(resolve, 200))
-
-        // Recarrega o roadmap atualizado
-        const roadmapData = await getCourseRoadmapFresh(activeCourse.id)
-        if (roadmapData) {
-          setRoadmap(roadmapData)
-
-          // Recarrega a lição atual para obter dados atualizados (incluindo navigation)
-          const refreshedLessonData = await getLessonBySlug(
-            activeCourse.id,
-            lessonSlug,
-          )
-          if (
-            refreshedLessonData &&
-            !isLessonUpgradeRequiredResult(refreshedLessonData)
-          ) {
-            setLessonData(refreshedLessonData)
-
-            // Se houver uma próxima aula disponível, navega automaticamente para ela
-            if (refreshedLessonData.navigation?.next) {
-              navigateToLesson(
-                refreshedLessonData.navigation.next.slug,
-                refreshedLessonData.navigation.next.moduleSlug,
-                refreshedLessonData.navigation.next.groupSlug,
-              )
-            }
-          }
-        }
-      } else {
-        console.error('Erro ao desbloquear módulo:', result.error)
-        alert(result.error || 'Erro ao desbloquear módulo')
-      }
-    } catch (error) {
-      console.error('Erro ao desbloquear módulo:', error)
-      alert('Erro ao desbloquear módulo')
-    } finally {
-      setIsUnlocking(false)
-    }
-  }, [activeCourse?.id, lessonSlug, navigateToLesson])
+  // Com a nova regra, não há mais "desbloquear módulo" manual no front
 
   if (isLoading) {
     return (
@@ -666,41 +612,23 @@ export default function DynamicLessonPage() {
             <div className="w-full lg:flex items-center justify-center px-8 hidden">
               <LevelProgressBar />
             </div>
-            {canUnlockNextModule ? (
-              <Button
-                variant="outline"
-                onClick={handleUnlockNext}
-                disabled={isUnlocking}
-                className="h-[54px] lg:min-h-[84px] w-1/2 max-w-[320px] rounded-none text-base bg-blue-gradient-500 border-none
-      rounded-br-none disabled:opacity-50"
-              >
-                {isUnlocking ? (
-                  'Desbloqueando...'
-                ) : (
-                  <>
-                    Desbloquear <LockOpen weight="fill" size={16} />
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (navigation?.next) {
-                    navigateToLesson(
-                      navigation.next.slug,
-                      navigation.next.moduleSlug,
-                      navigation.next.groupSlug,
-                    )
-                  }
-                }}
-                disabled={!navigation?.next}
-                className="h-[54px] lg:min-h-[84px] w-1/2 max-w-[320px] text-base bg-black border-none
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (navigation?.next) {
+                  navigateToLesson(
+                    navigation.next.slug,
+                    navigation.next.moduleSlug,
+                    navigation.next.groupSlug,
+                  )
+                }
+              }}
+              disabled={!navigation?.next}
+              className="h-[54px] lg:min-h-[84px] w-1/2 max-w-[320px] text-base bg-black border-none
       disabled:opacity-50"
-              >
-                Próxima <SkipForward weight="fill" size={16} />
-              </Button>
-            )}
+            >
+              Próxima <SkipForward weight="fill" size={16} />
+            </Button>
           </div>
         </footer>
       </div>

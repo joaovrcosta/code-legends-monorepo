@@ -16,9 +16,9 @@ import { ComponentsArticle } from '../classroom/article/components'
 import { Menu, X } from 'lucide-react'
 import { LevelProgressBar } from './level-progress-bar'
 import { SkipForward } from '@phosphor-icons/react'
-import { SkipBack, LockOpen } from '@phosphor-icons/react/dist/ssr'
+import { SkipBack } from '@phosphor-icons/react/dist/ssr'
 import { useState, useMemo } from 'react'
-import { getCourseRoadmapFresh, unlockNextModule } from '@/actions/course'
+import { getCourseRoadmapFresh } from '@/actions/course'
 import type { RoadmapResponse } from '@/types/roadmap'
 import { useRoadmapUpdater } from '@/hooks/use-roadmap-updater'
 import { findLessonContext } from '@/utils/lesson-url'
@@ -34,7 +34,6 @@ export const AulaModal = () => {
     goToPreviousLesson,
     lessonCompletedTimestamp,
     openModalWithLessons,
-    setModuleUnlockedTimestamp,
   } = useCourseModalStore()
 
   const { activeCourse } = useActiveCourseStore()
@@ -73,90 +72,6 @@ export const AulaModal = () => {
   const hasPreviousLesson = currentIndex > 0
   const nextLesson = hasNextLesson ? lessons[currentIndex + 1] : null
   const isNextLessonLocked = nextLesson?.status === 'locked'
-
-  // Usa os valores diretamente do back-end
-  const canUnlockNextModule = roadmap?.course.canUnlockNextModule ?? false
-
-  const handleUnlockNext = async () => {
-    if (!activeCourse?.id) return
-
-    setIsUnlocking(true)
-    try {
-      const result = await unlockNextModule(activeCourse.id)
-      if (result.success) {
-        // Notifica que um módulo foi desbloqueado para atualizar a barra de progresso
-        setModuleUnlockedTimestamp()
-
-        // Aguarda um pouco para garantir que o revalidateTag foi processado
-        await new Promise((resolve) => setTimeout(resolve, 200))
-        await new Promise((resolve) => setTimeout(resolve, 400))
-
-        // Atualiza o roadmap usando versão sem cache
-        const roadmapData = await getCourseRoadmapFresh(activeCourse.id)
-        if (roadmapData) {
-          setRoadmap(roadmapData)
-
-          // Coleta todas as aulas do roadmap atualizado
-          const allLessons = roadmapData.modules
-            .flatMap((module) => module?.groups || [])
-            .flatMap((group) => group?.lessons || [])
-
-          // Encontra a primeira aula do próximo módulo desbloqueado
-          const nextModuleNumber = roadmapData.course.nextModule
-          let nextLessonIndex = 0
-
-          if (nextModuleNumber && roadmapData.modules[nextModuleNumber - 1]) {
-            // Encontra o próximo módulo (1-based para 0-based)
-            const nextModule = roadmapData.modules[nextModuleNumber - 1]
-
-            // Procura a primeira aula do próximo módulo que não está bloqueada
-            for (const group of nextModule.groups || []) {
-              const firstUnlockedLesson = group.lessons?.find(
-                (lesson) => lesson.status !== 'locked',
-              )
-
-              if (firstUnlockedLesson) {
-                nextLessonIndex = allLessons.findIndex(
-                  (lesson) => lesson.id === firstUnlockedLesson.id,
-                )
-                break
-              }
-            }
-
-            // Se não encontrou nenhuma aula desbloqueada no próximo módulo,
-            // procura a primeira aula desbloqueada em todo o roadmap
-            if (nextLessonIndex === -1) {
-              nextLessonIndex = allLessons.findIndex(
-                (lesson) => lesson.status !== 'locked',
-              )
-            }
-          } else {
-            // Se não há próximo módulo definido, procura a primeira aula desbloqueada
-            nextLessonIndex = allLessons.findIndex(
-              (lesson) => lesson.status !== 'locked',
-            )
-          }
-
-          // Garante que o índice seja válido
-          if (nextLessonIndex === -1) {
-            nextLessonIndex = 0
-          }
-
-          // Atualiza o modal com as novas aulas, mantendo-o aberto
-          // Isso acontece após a barra de progresso ter tempo de atualizar
-          openModalWithLessons(allLessons, nextLessonIndex)
-        }
-      } else {
-        console.error('Erro ao desbloquear módulo:', result.error)
-        alert(result.error || 'Erro ao desbloquear módulo')
-      }
-    } catch (error) {
-      console.error('Erro ao desbloquear módulo:', error)
-      alert('Erro ao desbloquear módulo')
-    } finally {
-      setIsUnlocking(false)
-    }
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal()}>
@@ -228,37 +143,19 @@ export const AulaModal = () => {
             <div className="w-full lg:flex items-center justify-center px-8 hidden">
               <LevelProgressBar />
             </div>
-            {canUnlockNextModule ? (
-              <Button
-                variant="outline"
-                onClick={handleUnlockNext}
-                disabled={isUnlocking}
-                className="h-[64px] lg:min-h-[84px] w-1/2 max-w-[320px] rounded-none text-base bg-blue-gradient-500 border-none
+            <Button
+              variant="outline"
+              onClick={goToNextLesson}
+              disabled={
+                !hasNextLesson ||
+                isNextLessonLocked ||
+                currentLesson?.status !== 'completed'
+              }
+              className="h-[64px] lg:min-h-[84px] w-1/2 max-w-[320px] rounded-none text-base bg-black border-none
       rounded-br-[20px] disabled:opacity-50"
-              >
-                {isUnlocking ? (
-                  'Desbloqueando...'
-                ) : (
-                  <>
-                    Desbloquear módulo <LockOpen weight="fill" size={16} />
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={goToNextLesson}
-                disabled={
-                  !hasNextLesson ||
-                  isNextLessonLocked ||
-                  currentLesson?.status !== 'completed'
-                }
-                className="h-[64px] lg:min-h-[84px] w-1/2 max-w-[320px] rounded-none text-base bg-black border-none
-      rounded-br-[20px] disabled:opacity-50"
-              >
-                Próxima aula <SkipForward weight="fill" size={16} />
-              </Button>
-            )}
+            >
+              Próxima aula <SkipForward weight="fill" size={16} />
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>

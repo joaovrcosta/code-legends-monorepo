@@ -270,34 +270,19 @@ export class GetRoadmapUseCase {
       const roadmapGroups: RoadmapGroup[] = module.submodules.map((group) => {
         const roadmapLessons: RoadmapLesson[] = group.lessons.map((lesson) => {
           const isCompleted = progressMap.get(lesson.id) ?? false
-          const lessonIndex = allLessons.findIndex((l) => l.id === lesson.id)
-
           const manualLocked = lesson.locked
 
-          // Determinar se a lição está desbloqueada para o usuário:
-          // - completed: sempre desbloqueada (revisão)
-          // - se marcada como locked no conteúdo: permanece bloqueada
-          // - primeira lição: desbloqueada por padrão
-          // - demais: desbloqueada apenas se a lição anterior estiver completa
-          let isUnlockedForUser = false
-          if (isCompleted) {
-            isUnlockedForUser = true
-          } else if (manualLocked) {
-            isUnlockedForUser = false
-          } else if (lessonIndex === 0) {
-            isUnlockedForUser = true
-          } else if (lessonIndex > 0) {
-            const previousLesson = allLessons[lessonIndex - 1]
-            const previousCompleted =
-              progressMap.get(previousLesson.id) ?? false
-            isUnlockedForUser = previousCompleted
-          }
-
+          // Nova regra:
+          // - Se concluída: status "completed"
+          // - Se marcada como locked no conteúdo: "locked"
+          // - Caso contrário: "unlocked" (sem dependência de aulas anteriores)
           let status: 'locked' | 'unlocked' | 'completed'
           if (isCompleted) {
             status = 'completed'
+          } else if (manualLocked) {
+            status = 'locked'
           } else {
-            status = isUnlockedForUser ? 'unlocked' : 'locked'
+            status = 'unlocked'
           }
 
           const isCurrent = lesson.id === validCurrentTaskId

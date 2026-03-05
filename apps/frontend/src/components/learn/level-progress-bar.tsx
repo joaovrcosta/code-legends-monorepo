@@ -1,39 +1,39 @@
-"use client";
+'use client'
 
-import { useEffect, useState, useMemo } from "react";
-import { useActiveCourseStore } from "@/stores/active-course-store";
-import { useCourseModalStore } from "@/stores/course-modal-store";
-import { getCourseRoadmap } from "@/actions/course";
-import type { RoadmapResponse } from "@/types/roadmap";
-import { CertificateIcon, LockOpen } from "@phosphor-icons/react/dist/ssr";
-import Link from "next/link";
-import { ModuleProgressBar } from "./module-progress-bar";
+import { useEffect, useState, useMemo } from 'react'
+import { useActiveCourseStore } from '@/stores/active-course-store'
+import { useCourseModalStore } from '@/stores/course-modal-store'
+import { getCourseRoadmap } from '@/actions/course'
+import type { RoadmapResponse } from '@/types/roadmap'
+import { CertificateIcon, LockOpen } from '@phosphor-icons/react/dist/ssr'
+import Link from 'next/link'
+import { ModuleProgressBar } from './module-progress-bar'
+import { findLessonContext } from '@/utils/lesson-url'
 
 export function LevelProgressBar() {
-  const { activeCourse } = useActiveCourseStore();
-  const { lessonCompletedTimestamp, moduleUnlockedTimestamp } =
-    useCourseModalStore();
-  const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null);
+  const { activeCourse } = useActiveCourseStore()
+  const { lessonCompletedTimestamp, moduleUnlockedTimestamp, currentLesson } =
+    useCourseModalStore()
+  const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
 
   useEffect(() => {
     async function fetchRoadmap() {
-      if (!activeCourse?.id) return;
+      if (!activeCourse?.id) return
 
       try {
-        // Se uma lição foi completada ou um módulo foi desbloqueado, aguarda um delay para garantir que a API foi atualizada
         if (lessonCompletedTimestamp || moduleUnlockedTimestamp) {
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await new Promise((resolve) => setTimeout(resolve, 300))
         }
 
-        const roadmapData = await getCourseRoadmap(activeCourse.id);
-        setRoadmap(roadmapData);
+        const roadmapData = await getCourseRoadmap(activeCourse.id)
+        setRoadmap(roadmapData)
       } catch (error) {
-        console.error("Erro ao buscar roadmap:", error);
+        console.error('Erro ao buscar roadmap:', error)
       }
     }
 
-    fetchRoadmap();
-  }, [activeCourse?.id, lessonCompletedTimestamp, moduleUnlockedTimestamp]);
+    fetchRoadmap()
+  }, [activeCourse?.id, lessonCompletedTimestamp, moduleUnlockedTimestamp])
 
   const { currentModule, currentLevel, nextLevel, isLastModule } =
     useMemo(() => {
@@ -43,35 +43,56 @@ export function LevelProgressBar() {
           currentLevel: 1,
           nextLevel: null,
           isLastModule: false,
-        };
+        }
       }
 
-      // Usa os valores diretamente da API
-      const currentModuleNumber = roadmap.course.currentModule || 1;
-      const nextModuleNumber = roadmap.course.nextModule;
-      const totalModules =
-        roadmap.course.totalModules || roadmap.modules.length;
+      const totalModules = roadmap.course.totalModules || roadmap.modules.length
 
-      // Encontra o módulo atual usando o índice (1-based para 0-based)
-      const currentModuleIndex = currentModuleNumber - 1;
-      const currentModule = roadmap.modules[currentModuleIndex] || null;
+      if (currentLesson) {
+        const context = findLessonContext(currentLesson.id, roadmap.modules)
+        if (context) {
+          const moduleIndex = roadmap.modules.findIndex(
+            (m) => m.id === context.module.id,
+          )
+          const moduleNumber =
+            moduleIndex >= 0
+              ? moduleIndex + 1
+              : roadmap.course.currentModule || 1
+          const nextModuleNumber = roadmap.course.nextModule || moduleNumber + 1
 
-      // Verifica se é o último módulo
-      const isLastModule = currentModuleNumber === totalModules;
+          const isLastModule = moduleNumber === totalModules
+
+          return {
+            currentModule: context.module,
+            currentLevel: moduleNumber,
+            nextLevel: isLastModule ? null : nextModuleNumber,
+            isLastModule,
+          }
+        }
+      }
+
+      // Fallback: usa os valores diretamente da API
+      const currentModuleNumber = roadmap.course.currentModule || 1
+      const nextModuleNumber = roadmap.course.nextModule
+
+      const currentModuleIndex = currentModuleNumber - 1
+      const currentModule = roadmap.modules[currentModuleIndex] || null
+
+      const isLastModule = currentModuleNumber === totalModules
 
       return {
         currentModule,
         currentLevel: currentModuleNumber,
         nextLevel: nextModuleNumber || null,
         isLastModule,
-      };
-    }, [roadmap]);
+      }
+    }, [roadmap, currentLesson])
 
   const progressValue = currentModule
     ? Math.round(currentModule.progress * 100)
     : roadmap?.modules && roadmap.modules[0]
-    ? Math.round(roadmap.modules[0].progress * 100)
-    : 0;
+      ? Math.round(roadmap.modules[0].progress * 100)
+      : 0
 
   return (
     <div className="flex justify-between items-center w-full gap-3">
@@ -128,8 +149,8 @@ export function LevelProgressBar() {
             <div
               className={`w-[32px] h-[32px] rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
                 progressValue === 100
-                  ? "bg-blue-gradient-500 border-[#00C8FF] shadow-[0_0_12px_#00C8FF]"
-                  : "bg-[#19191b] border-[#484850]"
+                  ? 'bg-blue-gradient-500 border-[#00C8FF] shadow-[0_0_12px_#00C8FF]'
+                  : 'bg-[#19191b] border-[#484850]'
               }`}
             >
               {progressValue === 100 ? (
@@ -145,5 +166,5 @@ export function LevelProgressBar() {
         )}
       </div>
     </div>
-  );
+  )
 }

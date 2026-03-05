@@ -110,7 +110,7 @@ app.register(fastifyRateLimit, {
     return `ip:${request.ip}`
   },
   skip: (request: any) => {
-    if (env.NODE_ENV === 'development') return true
+    if (env.NODE_ENV !== 'production') return true
     return (
       (request.url?.includes('/notifications/sse') ?? false) ||
       (request.url?.includes('/webhooks/') ?? false) ||

@@ -170,16 +170,6 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
       // Se a lição foi marcada como concluída, atualiza o timestamp
       if (status === "completed" && currentLesson.status !== "completed") {
         updates.lessonCompletedTimestamp = Date.now();
-
-        // Desbloqueia a próxima lição se estiver locked
-        const nextIndex = currentIndex + 1;
-        if (nextIndex < updatedLessons.length) {
-          const nextLesson = updatedLessons[nextIndex];
-          if (nextLesson.status === "locked") {
-            updatedLessons[nextIndex] = { ...nextLesson, status: "unlocked" };
-            updates.lessons = updatedLessons;
-          }
-        }
       }
 
       set(updates);

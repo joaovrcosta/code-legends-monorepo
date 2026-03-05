@@ -123,104 +123,41 @@ export class ContinueToNextModuleUseCase {
     const currentModule = allModules[currentModuleIndex];
     const nextModule = allModules[currentModuleIndex + 1];
 
-    // Buscar módulos desbloqueados pelo usuário
-    const unlockedModules = await this.unlockedModuleRepository.findByUserAndCourse(
-      userId,
-      courseId
-    );
-    const unlockedModuleIds = new Set(unlockedModules.map((um) => um.moduleId));
-
-    // Verificar se o próximo módulo já está desbloqueado
-    const isNextModuleUnlocked = 
-      currentModuleIndex === 0 || // Primeiro módulo sempre desbloqueado
-      unlockedModuleIds.has(nextModule.id);
-
+    // Nova regra: módulos não ficam mais "bloqueados" por progresso.
+    // Sempre que o usuário avança, apenas escolhemos a próxima task adequada.
     let wasUnlocked = false;
     let nextTaskId: number | null = null;
 
-    if (isNextModuleUnlocked) {
-      // Módulo já está desbloqueado: continuar de onde parou
-      // Buscar a última lesson completada no próximo módulo
-      const nextModuleLessons: number[] = [];
-      nextModule.submodules.forEach((group) => {
-        group.lessons.forEach((lesson) => {
-          nextModuleLessons.push(lesson.id);
-        });
+    const nextModuleLessons: number[] = [];
+    nextModule.submodules.forEach((group) => {
+      group.lessons.forEach((lesson) => {
+        nextModuleLessons.push(lesson.id);
       });
+    });
 
-      // Buscar progressos do usuário no próximo módulo
-      const userProgresses = await this.userProgressRepository.findByUserCourse(
-        userCourse.id
-      );
+    const userProgresses = await this.userProgressRepository.findByUserCourse(
+      userCourse.id
+    );
 
-      // Encontrar as lessons completadas no próximo módulo
-      const completedLessonsInNextModule = new Set(
-        userProgresses
-          .filter((p) => p.isCompleted && nextModuleLessons.includes(p.taskId))
-          .map((p) => p.taskId)
-      );
+    const completedLessonsInNextModule = new Set(
+      userProgresses
+        .filter((p) => p.isCompleted && nextModuleLessons.includes(p.taskId))
+        .map((p) => p.taskId)
+    );
 
-      // Encontrar a primeira lesson não completada no próximo módulo
-      let foundNextTask = false;
-      for (const lessonId of nextModuleLessons) {
-        if (!completedLessonsInNextModule.has(lessonId)) {
-          nextTaskId = lessonId;
-          foundNextTask = true;
-          break;
-        }
+    let foundNextTask = false;
+    for (const lessonId of nextModuleLessons) {
+      if (!completedLessonsInNextModule.has(lessonId)) {
+        nextTaskId = lessonId;
+        foundNextTask = true;
+        break;
       }
+    }
 
-      // Se todas as lessons foram completadas, usar a última lesson do módulo
-      if (!foundNextTask && nextModuleLessons.length > 0) {
-        nextTaskId = nextModuleLessons[nextModuleLessons.length - 1];
-      } else if (!foundNextTask) {
-        // Se não há lessons no módulo, usar null
-        nextTaskId = null;
-      }
-    } else {
-      // Módulo não está desbloqueado: verificar se pode desbloquear
-      const totalLessons = currentModule.submodules.reduce(
-        (acc, group) => acc + group.lessons.length,
-        0
-      );
-
-      const completedLessons =
-        await this.userProgressRepository.countCompletedInModule(
-          userId,
-          currentModule.id
-        );
-
-      const isCurrentModuleCompleted = completedLessons === totalLessons && totalLessons > 0;
-
-      if (!isCurrentModuleCompleted) {
-        throw new Error(
-          "Current module is not completed. Complete all lessons before continuing to the next module."
-        );
-      }
-
-      // Desbloquear o próximo módulo
-      const existingUnlock = await this.unlockedModuleRepository.findByUserAndModule(
-        userId,
-        nextModule.id,
-        userCourse.id
-      );
-
-      if (!existingUnlock) {
-        await this.unlockedModuleRepository.create({
-          userId,
-          moduleId: nextModule.id,
-          userCourseId: userCourse.id,
-        });
-        wasUnlocked = true;
-      }
-
-      // Ir para a primeira lesson do próximo módulo
-      for (const group of nextModule.submodules) {
-        if (group.lessons.length > 0) {
-          nextTaskId = group.lessons[0].id;
-          break;
-        }
-      }
+    if (!foundNextTask && nextModuleLessons.length > 0) {
+      nextTaskId = nextModuleLessons[nextModuleLessons.length - 1];
+    } else if (!foundNextTask) {
+      nextTaskId = null;
     }
 
     // Atualizar o UserCourse

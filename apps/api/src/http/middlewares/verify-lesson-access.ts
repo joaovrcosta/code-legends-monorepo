@@ -128,17 +128,12 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         return; // Permite acesso para revisão
       }
 
-      // Se não foi concluída, verificar se está desbloqueada
-      const isUnlocked = await checkIfLessonIsUnlocked(
-        userId,
-        lesson.id,
-        courseId
-      );
-
-      if (!isUnlocked) {
+      // Nova regra de bloqueio:
+      // - Apenas respeita o flag manual "locked" da lição
+      // - Não depende mais da conclusão de aulas anteriores
+      if (lesson.locked) {
         return reply.status(403).send({
-          message:
-            "This lesson is locked. Complete previous lessons to unlock it.",
+          message: "This lesson is locked by the instructor.",
         });
       }
 
@@ -148,71 +143,4 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
       return reply.status(500).send({ message: "Internal server error" });
     }
   };
-}
-
-async function checkIfLessonIsUnlocked(
-  userId: string,
-  lessonId: number,
-  courseId: string
-): Promise<boolean> {
-  // Buscar todas as aulas do curso em ordem
-  const modules = await prisma.module.findMany({
-    where: { courseId },
-    include: {
-      submodules: {
-        include: {
-          lessons: {
-            orderBy: {
-              order: "asc",
-            },
-          },
-        },
-        orderBy: {
-          id: "asc",
-        },
-      },
-    },
-    orderBy: {
-      id: "asc",
-    },
-  });
-
-  // Construir lista de todas as aulas em ordem
-  const allLessons: Array<{ id: number; locked: boolean }> = [];
-  modules.forEach((module) => {
-    module.submodules.forEach((group) => {
-      group.lessons.forEach((lesson) => {
-        allLessons.push({ id: lesson.id, locked: lesson.locked });
-      });
-    });
-  });
-
-  const lessonIndex = allLessons.findIndex((l) => l.id === lessonId);
-
-  // Se não encontrou a aula na lista, não está desbloqueada
-  if (lessonIndex === -1) {
-    return false;
-  }
-
-  const targetLesson = allLessons[lessonIndex];
-
-  // Se a aula estiver marcada como bloqueada no conteúdo, permanece bloqueada
-  if (targetLesson.locked) {
-    return false;
-  }
-
-  // Primeira aula (não bloqueada manualmente) sempre está desbloqueada
-  if (lessonIndex === 0) {
-    return true;
-  }
-
-  // Verificar se a aula anterior foi concluída
-  const previousLesson = allLessons[lessonIndex - 1];
-  const userProgressRepository = new PrismaUserProgressRepository();
-  const previousProgress = await userProgressRepository.findByUserAndTask(
-    userId,
-    previousLesson.id
-  );
-
-  return previousProgress?.isCompleted ?? false;
 }

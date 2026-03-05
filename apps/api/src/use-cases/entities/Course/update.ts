@@ -1,68 +1,69 @@
-import { Course } from "@prisma/client";
-import { ICourseRepository } from "../../../repositories/course-repository";
-import { ICategoryRepository } from "../../../repositories/category-repository";
-import { CourseNotFoundError } from "../../errors/course-not-found";
-import { CourseAlreadyExistsError } from "../../errors/course-already-exists";
-import { CategoryNotFoundError } from "../../errors/category-not-found";
-import { NotificationBuilder } from "../../../utils/notification-builder";
-import { createNotificationsBatch } from "../../../utils/create-notification";
-import { prisma } from "../../../lib/prisma";
+import { Course } from '@prisma/client'
+import { ICourseRepository } from '../../../repositories/course-repository'
+import { ICategoryRepository } from '../../../repositories/category-repository'
+import { CourseNotFoundError } from '../../errors/course-not-found'
+import { CourseAlreadyExistsError } from '../../errors/course-already-exists'
+import { CategoryNotFoundError } from '../../errors/category-not-found'
+import { NotificationBuilder } from '../../../utils/notification-builder'
+import { createNotificationsBatch } from '../../../utils/create-notification'
+import { prisma } from '../../../lib/prisma'
 
 interface UpdateCourseRequest {
-  id: string;
-  title?: string;
-  slug?: string;
-  description?: string;
-  level?: string;
-  categoryId?: string | null;
-  thumbnail?: string | null;
-  icon?: string | null;
-  colorHex?: string | null;
-  tags?: string[];
-  isFree?: boolean;
-  active?: boolean;
-  releaseAt?: Date | null;
+  id: string
+  title?: string
+  slug?: string
+  description?: string
+  level?: string
+  categoryId?: string | null
+  thumbnail?: string | null
+  icon?: string | null
+  colorHex?: string | null
+  tags?: string[]
+  isFree?: boolean
+  active?: boolean
+  releaseAt?: Date | null
 }
 
 interface UpdateCourseResponse {
-  course: Course;
+  course: Course
 }
 
 export class UpdateCourseUseCase {
   constructor(
     private courseRepository: ICourseRepository,
-    private categoryRepository: ICategoryRepository
+    private categoryRepository: ICategoryRepository,
   ) {}
 
   async execute(data: UpdateCourseRequest): Promise<UpdateCourseResponse> {
     // Verificar se o curso existe
-    const course = await this.courseRepository.findById(data.id);
+    const course = await this.courseRepository.findById(data.id)
 
     if (!course) {
-      throw new CourseNotFoundError();
+      throw new CourseNotFoundError()
     }
 
     // Se está alterando o slug, verificar se não existe outro curso com o mesmo slug
     if (data.slug && data.slug !== course.slug) {
       const courseWithSameSlug = await this.courseRepository.findBySlug(
-        data.slug
-      );
+        data.slug,
+      )
 
       if (courseWithSameSlug) {
-        throw new CourseAlreadyExistsError();
+        throw new CourseAlreadyExistsError()
       }
     }
 
-    // Validar categoria (se fornecida)
     if (data.categoryId) {
-      const category = await this.categoryRepository.findById(data.categoryId);
+      const category = await this.categoryRepository.findById(data.categoryId)
 
       if (!category) {
-        throw new CategoryNotFoundError();
+        throw new CategoryNotFoundError()
       }
     }
 
-    const wasActive = course.active;
+    const wasActive = course.active
+    const wasFree = course.isFree
+
     const updatedCourse = await this.courseRepository.update(data.id, {
       title: data.title,
       slug: data.slug,
@@ -76,7 +77,46 @@ export class UpdateCourseUseCase {
       isFree: data.isFree,
       active: data.active,
       releaseAt: data.releaseAt,
-    });
+    })
+
+    // Se o curso passou de pago para gratuito, marcar todas as aulas como gratuitas
+    if (!wasFree && updatedCourse.isFree) {
+      const modulesWithLessons = await prisma.module.findMany({
+        where: { courseId: updatedCourse.id },
+        select: {
+          id: true,
+          submodules: {
+            select: {
+              id: true,
+              lessons: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      const lessonIds = modulesWithLessons.flatMap((module) =>
+        module.submodules.flatMap((group) =>
+          group.lessons.map((lesson) => lesson.id),
+        ),
+      )
+
+      if (lessonIds.length > 0) {
+        await prisma.lesson.updateMany({
+          where: {
+            id: {
+              in: lessonIds,
+            },
+          },
+          data: {
+            isFree: true,
+          },
+        })
+      }
+    }
 
     // Criar notificações se o curso foi ativado (de false para true)
     // Fazemos isso de forma assíncrona para não bloquear a resposta
@@ -88,10 +128,10 @@ export class UpdateCourseUseCase {
           const instructor = await prisma.user.findUnique({
             where: { id: course.instructorId },
             select: { name: true },
-          });
+          })
 
-          const thirtyDaysAgo = new Date();
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          const thirtyDaysAgo = new Date()
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
           // Buscar apenas usuários ativos (fizeram login nos últimos 30 dias)
           const users = await prisma.user.findMany({
@@ -101,7 +141,7 @@ export class UpdateCourseUseCase {
               },
             },
             select: { id: true },
-          });
+          })
 
           if (users.length > 0) {
             const notifications = users.map((user) =>
@@ -110,24 +150,24 @@ export class UpdateCourseUseCase {
                 courseTitle: updatedCourse.title,
                 courseSlug: updatedCourse.slug,
                 instructorName: instructor?.name,
-              })
-            );
+              }),
+            )
 
-            await createNotificationsBatch(notifications);
+            await createNotificationsBatch(notifications)
           }
         } catch (error) {
           // Não quebra o fluxo se a notificação falhar
-          console.error("Erro ao criar notificações de novo curso:", {
+          console.error('Erro ao criar notificações de novo curso:', {
             courseId: updatedCourse.id,
-            error: error instanceof Error ? error.message : "Unknown error",
+            error: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
-          });
+          })
         }
-      });
+      })
     }
 
     return {
       course: updatedCourse,
-    };
+    }
   }
 }
