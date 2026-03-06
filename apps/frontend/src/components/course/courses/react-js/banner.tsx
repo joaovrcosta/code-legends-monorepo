@@ -41,6 +41,7 @@ import {
 import { PrimaryButton } from '@/components/ui/primary-button'
 import { CourseDetail } from '@/types/course-types'
 import type { UserCourseProgressResponse } from '@/types/user-course.ts'
+import { useCourseModalStore } from '@/stores/course-modal-store'
 
 interface CourseBannerProps {
   course: CourseDetail
@@ -362,6 +363,8 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
 
                             if (result.success) {
                               setShowResetModal(false)
+                              // Limpa stats de conclusão de módulo para não mostrar stats indevidos após reset
+                              useCourseModalStore.getState().setLastModuleCompletion(null)
                               // Aguarda um pouco para garantir que o backend processou o reset
                               await new Promise((resolve) =>
                                 setTimeout(resolve, 500),

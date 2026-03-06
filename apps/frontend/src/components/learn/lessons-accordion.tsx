@@ -66,7 +66,6 @@ export function LessonsAccordion() {
 
   const handleLessonClick = useCallback(
     (lesson: Lesson, _: number) => {
-      if (lesson.status === 'locked') return
       if (!roadmap?.modules) return
 
       const context = findLessonContext(lesson.id, roadmap.modules)
@@ -246,7 +245,6 @@ export function LessonsAccordion() {
                               )
                               const isPaidLesson = lesson.isFree === false
                               const isFreePlan = userPlan === 'FREE'
-                              const isLocked = lesson.status === 'locked'
 
                               return (
                                 <div
@@ -265,17 +263,14 @@ export function LessonsAccordion() {
                                         lessonIndexInAll,
                                       )
                                     }
-                                    disabled={isLocked}
                                     className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${
                                       isActive
                                         ? 'bg-zinc-800/50 border border-cyan-400/50'
                                         : 'hover:bg-zinc-800/30 border border-transparent'
                                     } ${
-                                      isLocked
-                                        ? 'opacity-50 cursor-not-allowed'
-                                        : isFreePlan && isPaidLesson
-                                          ? 'opacity-50'
-                                          : ''
+                                      isFreePlan && isPaidLesson
+                                        ? 'opacity-50'
+                                        : ''
                                     }`}
                                   >
                                     <div

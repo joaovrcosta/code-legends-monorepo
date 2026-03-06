@@ -26,6 +26,7 @@ export function TitleAccordion({ title, description }: TitleAccordinProps) {
     currentLesson,
     updateCurrentLessonStatus,
     setLastModuleCompletion,
+    setShowModuleStatsOnce,
   } = useCourseModalStore()
 
   // Verifica se a lição atual já está marcada como completada
@@ -64,6 +65,7 @@ export function TitleAccordion({ title, description }: TitleAccordinProps) {
           xpGainedInModule: result.xpGainedInModule,
           xpGainedInModuleBySkill: result.xpGainedInModuleBySkill,
         })
+        setShowModuleStatsOnce(true)
       }
 
       // Atualiza o status da lição atual no modal imediatamente

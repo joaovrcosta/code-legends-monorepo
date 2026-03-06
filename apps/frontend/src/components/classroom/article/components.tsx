@@ -72,6 +72,7 @@ export function ComponentsArticle({
     currentLesson,
     updateCurrentLessonStatus,
     setLastModuleCompletion,
+    setShowModuleStatsOnce,
   } = useCourseModalStore()
   const isMarked =
     currentLesson?.id === lesson?.id && currentLesson?.status === 'completed'
@@ -94,6 +95,7 @@ export function ComponentsArticle({
           xpGainedInModule: result.xpGainedInModule,
           xpGainedInModuleBySkill: result.xpGainedInModuleBySkill,
         })
+        setShowModuleStatsOnce(true)
       }
       updateCurrentLessonStatus('completed')
       await fetchActiveCourse()

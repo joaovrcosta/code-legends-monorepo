@@ -41,6 +41,7 @@ export function QuizView({
     currentLesson,
     updateCurrentLessonStatus,
     setLastModuleCompletion,
+    setShowModuleStatsOnce,
   } = useCourseModalStore()
   const isMarked =
     currentLesson?.id === lessonId && currentLesson?.status === 'completed'
@@ -77,6 +78,7 @@ export function QuizView({
           xpGainedInModule: result.xpGainedInModule,
           xpGainedInModuleBySkill: result.xpGainedInModuleBySkill,
         })
+        setShowModuleStatsOnce(true)
       }
       updateCurrentLessonStatus('completed')
       await fetchActiveCourse()
@@ -117,6 +119,7 @@ export function QuizView({
           xpGainedInModule: result.xpGainedInModule,
           xpGainedInModuleBySkill: result.xpGainedInModuleBySkill,
         })
+        setShowModuleStatsOnce(true)
       }
       updateCurrentLessonStatus(passed ? 'completed' : 'unlocked')
       await fetchActiveCourse()

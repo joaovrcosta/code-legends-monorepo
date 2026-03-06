@@ -112,27 +112,17 @@ export class GetLessonByCourseIdAndSlugUseCase {
     // Encontrar índice da lesson atual
     const lessonIndex = allLessons.findIndex((l) => l.id === lessonEntity.id)
 
-    // Determinar status (mesma lógica do roadmap, considerando flag "locked")
+    // Determinar status: segue a mesma regra do roadmap,
+    // considerando apenas o flag manual "locked" e o progresso (sem dependência de aulas anteriores)
     const manualLocked = (lessonEntity as any).locked as boolean | undefined
-
-    let isUnlockedForUser = false
-    if (isCompleted) {
-      isUnlockedForUser = true
-    } else if (manualLocked) {
-      isUnlockedForUser = false
-    } else if (lessonIndex === 0) {
-      isUnlockedForUser = true
-    } else if (lessonIndex > 0) {
-      const previousLesson = allLessons[lessonIndex - 1]
-      const previousCompleted = progressMap.get(previousLesson.id) ?? false
-      isUnlockedForUser = previousCompleted
-    }
 
     let status: 'locked' | 'unlocked' | 'completed'
     if (isCompleted) {
       status = 'completed'
+    } else if (manualLocked) {
+      status = 'locked'
     } else {
-      status = isUnlockedForUser ? 'unlocked' : 'locked'
+      status = 'unlocked'
     }
 
     // Verificar se é a lesson atual

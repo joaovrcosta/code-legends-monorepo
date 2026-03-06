@@ -24,12 +24,11 @@ interface LessonContentProps {
 export const LessonContent = memo(function LessonContent({
   lesson,
   moduleTitle,
-  showModuleCompletionStats,
 }: LessonContentProps) {
-  const { lastModuleCompletion } = useCourseModalStore()
+  const { lastModuleCompletion, showModuleStatsOnce } = useCourseModalStore()
 
   const shouldShowStats =
-    showModuleCompletionStats && lastModuleCompletion?.moduleCompleted
+    lastModuleCompletion?.moduleCompleted && showModuleStatsOnce
 
   if (shouldShowStats) {
     return (

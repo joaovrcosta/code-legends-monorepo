@@ -33,6 +33,8 @@ interface CourseModalStore {
   setModuleUnlockedTimestamp: () => void
   lastModuleCompletion: ModuleCompletionInfo | null
   setLastModuleCompletion: (info: ModuleCompletionInfo | null) => void
+  showModuleStatsOnce: boolean
+  setShowModuleStatsOnce: (value: boolean) => void
 }
 
 export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
@@ -43,9 +45,11 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
   lessonCompletedTimestamp: null,
   moduleUnlockedTimestamp: null,
   lastModuleCompletion: null,
+  showModuleStatsOnce: false,
   setModuleUnlockedTimestamp: () =>
     set({ moduleUnlockedTimestamp: Date.now() }),
   setLastModuleCompletion: (info) => set({ lastModuleCompletion: info }),
+  setShowModuleStatsOnce: (value) => set({ showModuleStatsOnce: value }),
 
   openModalWithLessons: (lessons, startIndex = 0) =>
     set({

@@ -50,7 +50,7 @@ export default function DynamicLessonPage() {
     setLessonForPage,
     lessonCompletedTimestamp,
     currentLesson,
-    lastModuleCompletion,
+    setShowModuleStatsOnce,
   } = useCourseModalStore()
   const { isOpen: isSidebarOpen } = useClassroomSidebarStore()
 
@@ -64,11 +64,15 @@ export default function DynamicLessonPage() {
   const [upgradeRequired, setUpgradeRequired] = useState(false)
   const [_isUnlocking, _setIsUnlocking] = useState(false)
   const lessonDataRef = useRef<LessonResponse | null>(null)
-  const [showModuleStats, setShowModuleStats] = useState(false)
 
   useEffect(() => {
     lessonDataRef.current = lessonData
   }, [lessonData])
+
+  // Resetar flag de "mostrar stats uma vez" ao entrar/trocar de aula (stats só aparecem ao clicar Completar).
+  useEffect(() => {
+    setShowModuleStatsOnce(false)
+  }, [lessonSlug, _moduleSlug, setShowModuleStatsOnce])
 
   // Carrega a aula específica
   useEffect(() => {
@@ -98,12 +102,6 @@ export default function DynamicLessonPage() {
             return
           }
           if (data) {
-            // Se a aula estiver bloqueada, redireciona para /classroom
-            if (data.status === 'locked') {
-              router.replace('/classroom')
-              return
-            }
-
             setLessonData(data)
 
             // Atualiza o store com a lição atual, incluindo o status do nível raiz
@@ -141,12 +139,6 @@ export default function DynamicLessonPage() {
           return
         }
         if (data) {
-          // Se a aula estiver bloqueada, redireciona para /classroom
-          if (data.status === 'locked') {
-            router.replace('/classroom')
-            return
-          }
-
           setLessonData(data)
 
           // Atualiza o store com a lição atual, incluindo o status do nível raiz
@@ -283,7 +275,6 @@ export default function DynamicLessonPage() {
       .flatMap((g) => g?.lessons || [])
   }, [roadmap?.modules])
 
-  // Com a nova regra, não há mais "desbloquear módulo" manual no front
 
   if (isLoading) {
     return (
@@ -579,9 +570,6 @@ export default function DynamicLessonPage() {
             moduleTitle={lessonData.moduleTitle}
             groupTitle={lessonData.groupTitle}
             courseIcon={activeCourse?.icon}
-            showModuleCompletionStats={
-              showModuleStats && !!lastModuleCompletion?.moduleCompleted
-            }
           />
         </div>
 
@@ -617,19 +605,6 @@ export default function DynamicLessonPage() {
               variant="outline"
               onClick={() => {
                 if (!navigation?.next) return
-
-                // Se o módulo atual foi concluído e a próxima aula é de outro módulo,
-                // mostramos primeiro o painel de stats dentro do conteúdo.
-                if (
-                  lastModuleCompletion?.moduleCompleted &&
-                  navigation.next.moduleSlug !== _moduleSlug
-                ) {
-                  if (!showModuleStats) {
-                    setShowModuleStats(true)
-                    return
-                  }
-                }
-
                 navigateToLesson(
                   navigation.next.slug,
                   navigation.next.moduleSlug,
