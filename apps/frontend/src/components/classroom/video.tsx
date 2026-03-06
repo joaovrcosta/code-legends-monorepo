@@ -429,7 +429,7 @@ export default function VideoComponent({
               alt="Not Found"
               width={320}
               height={320}
-              className="rounded-lg"
+              className="rounded-[20px]"
             />
           </div>
         )}

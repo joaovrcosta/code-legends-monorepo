@@ -24,7 +24,7 @@ const CONFETTI_COLORS = [
 ]
 
 export function SkillStatsOverview() {
-  const { activeCourse } = useActiveCourseStore()
+  const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
   const { lastModuleCompletion } = useCourseModalStore()
   const hasFiredConfetti = useRef(false)
 
@@ -104,6 +104,11 @@ export function SkillStatsOverview() {
     ? data.topSkills?.[0]
     : topSkillsFallback[0]
 
+  const courseProgressPercent = (() => {
+    const p = activeCourse?.progress ?? 0
+    return Math.min(100, Math.max(0, p <= 1 ? Math.round(p * 100) : Math.round(p)))
+  })()
+
   useEffect(() => {
     if (!lastModuleCompletion?.moduleCompleted) return
     if (hasFiredConfetti.current) return
@@ -182,6 +187,7 @@ export function SkillStatsOverview() {
           moduleId,
         )
         setData(progress)
+        await fetchActiveCourse()
       } catch (error) {
         console.error('Erro ao carregar progresso de skills do curso:', error)
       } finally {
@@ -194,6 +200,7 @@ export function SkillStatsOverview() {
     activeCourse?.id,
     lastModuleCompletion?.moduleCompleted,
     lastModuleCompletion?.moduleId,
+    fetchActiveCourse,
   ])
 
   if (!lastModuleCompletion?.moduleCompleted) {
@@ -243,8 +250,11 @@ export function SkillStatsOverview() {
             className={`space-y-1 transition-all duration-500 ease-out ${showTitle ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
               }`}
           >
-            <p className="text-xl font-semibold uppercase tracking-[0.18em] text-[#9ca3af]">
+            <p className="text-xl font-semibold uppercase tracking-[0.18em] text-[#00c8ff] mb-4">
               Módulo concluído!🎉
+            </p>
+            <p className="text-sm text-[#e5e7eb]">
+              Curso <span className="font-semibold text-[#00c8ff]">{courseProgressPercent}%</span> completo
             </p>
           </div>
 

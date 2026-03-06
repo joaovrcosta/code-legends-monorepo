@@ -8,6 +8,7 @@ import { getUserCourseProgress } from '@/actions/progress'
 
 export async function CurrentCourseCard() {
   const activeCourse = await getActiveCourse()
+
   const userProgress = await getUserCourseProgress(activeCourse?.slug || '')
 
   if (!activeCourse) return null

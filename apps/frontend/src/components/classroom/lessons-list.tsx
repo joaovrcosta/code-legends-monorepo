@@ -6,7 +6,7 @@ import { findLessonContext, generateLessonUrl } from '@/utils/lesson-url'
 import { useRouter } from 'next/navigation'
 import { useMemo, memo, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { ChevronDown, Video, FileText, HelpCircle, Code2 } from 'lucide-react'
+import { ChevronDown, Video, FileText, HelpCircle, Code2, CheckIcon } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
@@ -212,11 +212,10 @@ export const LessonsList = memo(function LessonsList({
                       Módulo {String(moduleIndex + 1).padStart(2, '0')}
                     </span>
                     <span
-                      className={`font-bold text-[16px] ${
-                        isCurrentModule
-                          ? 'bg-blue-gradient-500 bg-clip-text text-transparent'
-                          : 'text-zinc-200'
-                      }`}
+                      className={`font-bold text-[16px] ${isCurrentModule
+                        ? 'bg-blue-gradient-500 bg-clip-text text-transparent'
+                        : 'text-zinc-200'
+                        }`}
                     >
                       {moduleItem.title}
                     </span>
@@ -247,9 +246,8 @@ export const LessonsList = memo(function LessonsList({
 
                         <div className="relative pl-[11px]">
                           <div
-                            className={`absolute left-[11px] top-0 bottom-0 w-[2px] bg-zinc-800/50 ${
-                              group.lessons.length === 0 ? 'hidden' : ''
-                            }`}
+                            className={`absolute left-[11px] top-0 bottom-0 w-[2px] bg-zinc-800/50 ${group.lessons.length === 0 ? 'hidden' : ''
+                              }`}
                           />
 
                           <div className="flex flex-col">
@@ -282,48 +280,50 @@ export const LessonsList = memo(function LessonsList({
                                       )
                                     }
                                     disabled={isLocked}
-                                    className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${
-                                      isActive
-                                        ? 'bg-zinc-800/50 shadow-xl'
-                                        : 'hover:bg-zinc-800/30'
-                                    } ${
-                                      isLocked
+                                    className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${isActive
+                                      ? 'bg-zinc-800/50 shadow-xl'
+                                      : 'hover:bg-zinc-800/30'
+                                      } ${isLocked
                                         ? 'opacity-50 cursor-not-allowed'
                                         : isFreePlan && isPaidLesson
                                           ? 'opacity-50'
                                           : ''
-                                    }`}
+                                      }`}
                                   >
-                                    {(() => {
-                                      const TypeIcon = getLessonTypeIcon(lesson)
-                                      return (
-                                        <TypeIcon
-                                          size={16}
-                                          className={`shrink-0 transition-colors ${
-                                            isActive
+                                    {lesson.status === 'completed' ? (
+                                      <CheckIcon
+                                        size={16}
+                                        className="shrink-0 text-[#00c8ff]"
+                                      />
+                                    ) : (
+                                      (() => {
+                                        const TypeIcon = getLessonTypeIcon(lesson)
+                                        return (
+                                          <TypeIcon
+                                            size={16}
+                                            className={`shrink-0 transition-colors ${isActive
                                               ? 'text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]'
                                               : 'text-cyan-400'
-                                          }`}
-                                        />
-                                      )
-                                    })()}
+                                              }`}
+                                          />
+                                        )
+                                      })()
+                                    )}
 
                                     <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                                       <span
-                                        className={`text-sm truncate transition-colors duration-200 ${
-                                          isActive
-                                            ? 'text-cyan-50 font-semibold'
-                                            : 'text-zinc-400 font-medium group-hover:text-zinc-200'
-                                        }`}
+                                        className={`text-sm truncate transition-colors duration-200 ${isActive
+                                          ? 'text-cyan-50 font-semibold'
+                                          : 'text-zinc-400 font-medium group-hover:text-zinc-200'
+                                          }`}
                                       >
                                         {lesson.title}
                                       </span>
                                       <span
-                                        className={`text-xs tabular-nums ${
-                                          isActive
-                                            ? 'text-cyan-400/80'
-                                            : 'text-zinc-500'
-                                        }`}
+                                        className={`text-xs tabular-nums ${isActive
+                                          ? 'text-cyan-400/80'
+                                          : 'text-zinc-500'
+                                          }`}
                                       >
                                         {getLessonMeta(lesson)}
                                       </span>
@@ -331,11 +331,10 @@ export const LessonsList = memo(function LessonsList({
 
                                     {userPlan === 'FREE' && (
                                       <span
-                                        className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${
-                                          lesson.isFree
-                                            ? 'bg-lime-500/10 text-lime-400 border border-lime-500/20'
-                                            : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
-                                        }`}
+                                        className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${lesson.isFree
+                                          ? 'bg-lime-500/10 text-lime-400 border border-lime-500/20'
+                                          : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                          }`}
                                       >
                                         {lesson.isFree ? 'G' : 'P'}
                                       </span>
