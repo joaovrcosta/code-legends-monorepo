@@ -14,6 +14,14 @@ interface AuthenticateGoogleResponse {
   isNewUser: boolean;
 }
 
+function shouldUseGoogleAvatar(currentAvatar?: string | null) {
+  if (!currentAvatar) {
+    return true;
+  }
+
+  return currentAvatar.includes("ui-avatars.com/api/");
+}
+
 export class AuthenticateGoogleUseCase {
   constructor(private userRepository: IUsersRepository) { }
 
@@ -32,7 +40,10 @@ export class AuthenticateGoogleUseCase {
         googleId,
         lastLogin: new Date(),
       };
-      if (!user.avatar && avatar) {
+
+      // Se o usuário só tem o avatar automático do cadastro,
+      // prioriza a foto real vinda da conta Google.
+      if (avatar && shouldUseGoogleAvatar(user.avatar)) {
         updateData.avatar = avatar;
       }
       user = await this.userRepository.update(user.id, updateData);
