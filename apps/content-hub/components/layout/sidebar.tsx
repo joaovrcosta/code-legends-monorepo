@@ -12,6 +12,7 @@ import {
   GraduationCap,
   LogOut,
   Tag,
+  Brain,
   MessageSquare,
   CreditCard,
   Crown,
@@ -24,6 +25,7 @@ const navigation = [
   { name: "Pagamentos", href: "/payments", icon: CreditCard },
   { name: "Planos", href: "/plans", icon: Crown },
   { name: "Categorias", href: "/categories", icon: Tag },
+  { name: "Skills", href: "/skills", icon: Brain },
   { name: "Solicitações", href: "/requests", icon: MessageSquare },
 ];
 
