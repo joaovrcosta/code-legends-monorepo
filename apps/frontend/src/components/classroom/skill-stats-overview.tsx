@@ -9,16 +9,31 @@ import type { CourseSkillsProgressResponse } from '@/actions/course/skills-progr
 import { SkillModuleProgressBar } from '@/components/classroom/skill-module-progress-bar'
 import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { CompactNumber } from '@/components/ui/compact-number'
+import { Skeleton } from '@/components/ui/skeleton'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Code, Monitor } from '@phosphor-icons/react/dist/ssr'
+
+const CONFETTI_COLORS = [
+  '#00C8FF',
+  '#00b3ff',
+  '#00a3e0',
+  '#0099cc',
+  '#33d4ff',
+  '#66dfff',
+  '#0077aa',
+]
 
 export function SkillStatsOverview() {
   const { activeCourse } = useActiveCourseStore()
   const { lastModuleCompletion } = useCourseModalStore()
+  const hasFiredConfetti = useRef(false)
 
   const [data, setData] = useState<CourseSkillsProgressResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const hasFiredConfetti = useRef(false)
+  const [showTitle, setShowTitle] = useState(false)
+  const [showStats, setShowStats] = useState(false)
+  const [showBars, setShowBars] = useState(false)
+  const [barRevealIndex, setBarRevealIndex] = useState(0)
 
   const xpGained = lastModuleCompletion?.xpGained ?? 0
   const xpGainedInModuleBySkill = lastModuleCompletion?.xpGainedInModuleBySkill
@@ -34,12 +49,6 @@ export function SkillStatsOverview() {
     : (lastModuleCompletion?.xpGainedInModule ??
       lastModuleCompletion?.xpGained ??
       0)
-
-  const axisMaxFallback = useMemo(() => {
-    if (!data?.skills?.length) return 3000
-    const max = Math.max(...data.skills.map((s) => s.totalXp), 0)
-    return Math.max(3000, Math.ceil(max / 1500) * 1500)
-  }, [data?.skills])
 
   const skillsWithGainFallback = useMemo(() => {
     if (!data?.skills?.length) return []
@@ -74,40 +83,89 @@ export function SkillStatsOverview() {
   }, [data])
 
   const displayList = hasEnrichedResponse ? data.skills : skillsWithGainFallback
-  const axisMaxValue = hasEnrichedResponse
-    ? (data.axisMax ?? 3000)
-    : axisMaxFallback
+
+  const axisMaxValue = useMemo(() => {
+    if (!displayList.length) return 100
+    const maxXp = Math.max(
+      ...displayList.map((s) => {
+        const skill = s as { totalXp: number; currentXp?: number }
+        return skill.currentXp ?? skill.totalXp ?? 0
+      }),
+      0
+    )
+    if (maxXp === 0) return 100
+    const withHeadroom = maxXp * 1.25
+    const step = withHeadroom <= 100 ? 10 : withHeadroom <= 500 ? 50 : 100
+    const nice = Math.ceil(withHeadroom / step) * step
+    return Math.max(50, nice)
+  }, [displayList])
+
   const topSkillForHighlight = hasEnrichedResponse
     ? data.topSkills?.[0]
     : topSkillsFallback[0]
 
   useEffect(() => {
-    if (lastModuleCompletion?.moduleCompleted && !hasFiredConfetti.current) {
-      hasFiredConfetti.current = true
+    if (!lastModuleCompletion?.moduleCompleted) return
+    if (hasFiredConfetti.current) return
+    hasFiredConfetti.current = true
+
+    const z = 99999
+    const colors = CONFETTI_COLORS
+
+    const runFalling = () => {
       const duration = 2_000
       const end = Date.now() + duration
-      const colors = ['#facc15', '#fbbf24', '#f59e0b', '#e5e7eb', '#9ca3af']
-
-      const frame = () => {
-        confetti({
-          particleCount: 3,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors,
-        })
-        confetti({
-          particleCount: 3,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors,
-        })
-        if (Date.now() < end) requestAnimationFrame(frame)
+      const opts = {
+        particleCount: 4,
+        spread: 50,
+        startVelocity: 45,
+        origin: { x: 0.5, y: 0 },
+        colors,
+        zIndex: z,
       }
-      frame()
+      const frame = () => {
+        if (Date.now() > end) return
+        void confetti({ ...opts, angle: 270 })
+        requestAnimationFrame(frame)
+      }
+      requestAnimationFrame(frame)
+    }
+
+    void confetti({
+      particleCount: 30,
+      spread: 70,
+      origin: { x: 0.5, y: 0.5 },
+      colors,
+      zIndex: z,
+    })
+    const t = setTimeout(runFalling, 200)
+    return () => clearTimeout(t)
+  }, [lastModuleCompletion?.moduleCompleted])
+
+  useEffect(() => {
+    if (!lastModuleCompletion?.moduleCompleted) return
+    setShowTitle(false)
+    setShowStats(false)
+    setShowBars(false)
+    setBarRevealIndex(0)
+
+    const t1 = setTimeout(() => setShowTitle(true), 50)
+    const t2 = setTimeout(() => setShowStats(true), 350)
+    const t3 = setTimeout(() => setShowBars(true), 650)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
     }
   }, [lastModuleCompletion?.moduleCompleted])
+
+  const displayListLength = displayList.length
+  useEffect(() => {
+    if (!showBars || displayListLength === 0) return
+    if (barRevealIndex >= displayListLength) return
+    const t = setTimeout(() => setBarRevealIndex((i) => i + 1), 100)
+    return () => clearTimeout(t)
+  }, [showBars, barRevealIndex, displayListLength])
 
   useEffect(() => {
     const load = async () => {
@@ -116,7 +174,7 @@ export function SkillStatsOverview() {
       try {
         const moduleId =
           lastModuleCompletion?.moduleCompleted &&
-          lastModuleCompletion?.moduleId
+            lastModuleCompletion?.moduleId
             ? lastModuleCompletion.moduleId
             : undefined
         const progress = await getCourseSkillsProgress(
@@ -142,17 +200,58 @@ export function SkillStatsOverview() {
     return null
   }
 
+  if (isLoading) {
+    return (
+      <TooltipProvider delayDuration={300}>
+        <div className="rounded-2xl px-5 py-5 lg:px-6 lg:py-6 space-y-8">
+          <div className="space-y-6">
+            <Skeleton className="h-6 w-64" />
+            <div className="flex items-center gap-4 py-4">
+              <Skeleton className="h-16 w-16 rounded-full shrink-0" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full max-w-md" />
+              <Skeleton className="h-4 w-3/4 max-w-sm" />
+            </div>
+          </div>
+          <div className="space-y-6 w-full pt-4 border-t border-[#1f2933]/50">
+            <div className="rounded-xl py-6 px-6 space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="h-5 w-40 shrink-0" />
+                  <Skeleton className="h-[18px] flex-1 rounded-full" />
+                  <Skeleton className="h-5 w-24 shrink-0" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </TooltipProvider>
+    )
+  }
+
   return (
     <TooltipProvider delayDuration={300}>
       <div className="rounded-2xl px-5 py-5 lg:px-6 lg:py-6 space-y-8">
         <div className="space-y-6">
-          <div className="space-y-1">
+          <div
+            className={`space-y-1 transition-all duration-500 ease-out ${showTitle ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+              }`}
+          >
             <p className="text-xl font-semibold uppercase tracking-[0.18em] text-[#9ca3af]">
               Módulo concluído!🎉
             </p>
           </div>
 
-          <div className="rounded-2xl py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div
+            className={`rounded-2xl py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between transition-all duration-500 ease-out ${showStats ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+              }`}
+          >
             {topSkillForHighlight && (
               <div className="flex items-center gap-4 self-start md:self-auto">
                 <ProgressRing
@@ -192,26 +291,32 @@ export function SkillStatsOverview() {
             )}
           </div>
 
-          <p className="text-sm text-[#e5e7eb]">
-            {xpTotalDisplay > 0 ? (
-              <>
-                Você ganhou{' '}
-                <span className="font-semibold text-[#00c8ff]">
-                  +<CompactNumber value={xpTotalDisplay} suffix=" XP" enableCountUp />
-                </span>{' '}
-                distribuídos entre as skills abaixo neste módulo.
-              </>
-            ) : (
-              'Você não ganhou XP em skills neste módulo.'
-            )}
-          </p>
+          <div
+            className={`transition-all duration-500 ease-out ${showStats ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+              }`}
+          >
+            <p className="text-sm text-[#e5e7eb]">
+              {xpTotalDisplay > 0 ? (
+                <>
+                  Trabalho incrível, você ganhou{' '}
+                  <span className="font-semibold text-[#00c8ff]">
+                    +<CompactNumber value={xpTotalDisplay} suffix=" XP" enableCountUp />
+                  </span>{' '}
+                  nesse módulo, distribuídos entre as skills abaixo.
+                </>
+              ) : (
+                'Você não ganhou XP em skills neste módulo.'
+              )}
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-6 w-full pt-4 border-t border-[#1f2933]/50">
+        <div
+          className={`space-y-6 w-full pt-4 border-t border-[#1f2933]/50 transition-all duration-500 ease-out ${showBars ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+            }`}
+        >
           <div className="rounded-xl py-6 overflow-hidden">
-            {isLoading ? (
-              <div className="px-6 text-[#9ca3af]">Carregando gráfico...</div>
-            ) : displayList.length > 0 ? (
+            {displayList.length > 0 ? (
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[650px]">
                   {/* Eixo X */}
@@ -264,9 +369,8 @@ export function SkillStatsOverview() {
                       return (
                         <div
                           key={skill.skillId}
-                          className={`flex items-center relative z-10 py-4 px-6 ${
-                            index % 2 !== 0 ? 'bg-white/[0.02]' : ''
-                          }`}
+                          className={`flex items-center relative z-10 py-4 px-6 ${index % 2 !== 0 ? 'bg-white/[0.02]' : ''
+                            }`}
                         >
                           {/* Nome da Skill */}
                           <div className="w-56 shrink-0 flex items-center gap-3">
@@ -278,9 +382,11 @@ export function SkillStatsOverview() {
                             </span>
                           </div>
 
-                          {/* Barra */}
+                          {/* Barra: enche em sequência após a seção aparecer */}
                           <div className="flex-1 py-2 pr-4 relative flex items-center">
-                            <SkillModuleProgressBar value={percentage} />
+                            <SkillModuleProgressBar
+                              value={barRevealIndex > index ? percentage : 0}
+                            />
                           </div>
 
                           {/* Pontuação */}

@@ -31,8 +31,6 @@ export const LessonContent = memo(function LessonContent({
   const shouldShowStats =
     showModuleCompletionStats && lastModuleCompletion?.moduleCompleted
 
-  // Quando for o momento de mostrar os stats de conclusão de módulo,
-  // substitui completamente o conteúdo da aula pelo componente de stats.
   if (shouldShowStats) {
     return (
       <div className="flex-1 flex flex-col min-h-0 lg:mx-4 mx-0">
