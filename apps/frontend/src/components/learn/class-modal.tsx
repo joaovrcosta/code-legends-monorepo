@@ -18,7 +18,6 @@ import { LevelProgressBar } from './level-progress-bar'
 import { SkipForward } from '@phosphor-icons/react'
 import { SkipBack } from '@phosphor-icons/react/dist/ssr'
 import { useState, useMemo } from 'react'
-import { getCourseRoadmapFresh } from '@/actions/course'
 import type { RoadmapResponse } from '@/types/roadmap'
 import { useRoadmapUpdater } from '@/hooks/use-roadmap-updater'
 import { findLessonContext } from '@/utils/lesson-url'
@@ -33,12 +32,12 @@ export const AulaModal = () => {
     goToNextLesson,
     goToPreviousLesson,
     lessonCompletedTimestamp,
-    openModalWithLessons,
+    openModalWithLessons: _openModalWithLessons,
   } = useCourseModalStore()
 
   const { activeCourse } = useActiveCourseStore()
   const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
-  const [isUnlocking, setIsUnlocking] = useState(false)
+  const [_isUnlocking, _setIsUnlocking] = useState(false)
 
   // Custom hook gerencia toda a lógica de atualização do roadmap
   useRoadmapUpdater({

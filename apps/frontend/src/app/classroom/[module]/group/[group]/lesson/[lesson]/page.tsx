@@ -62,7 +62,7 @@ export default function DynamicLessonPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [upgradeRequired, setUpgradeRequired] = useState(false)
-  const [isUnlocking, setIsUnlocking] = useState(false)
+  const [_isUnlocking, _setIsUnlocking] = useState(false)
   const lessonDataRef = useRef<LessonResponse | null>(null)
   const [showModuleStats, setShowModuleStats] = useState(false)
 

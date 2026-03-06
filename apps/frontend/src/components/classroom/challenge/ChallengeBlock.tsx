@@ -226,7 +226,7 @@ export function ChallengeBlock({
                   remarkPlugins={[remarkGfm]}
                   components={{
                     pre: ({ children }) => <CodeBlockPre>{children}</CodeBlockPre>,
-                    code: ({ node, className, children, ...props }) =>
+                    code: ({ node: _node, className, children, ...props }) =>
                       className ? (
                         <code className={className} {...props}>
                           {children}

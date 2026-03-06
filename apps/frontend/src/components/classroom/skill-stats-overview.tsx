@@ -8,6 +8,8 @@ import { getCourseSkillsProgress } from '@/actions/course'
 import type { CourseSkillsProgressResponse } from '@/actions/course/skills-progress'
 import { SkillModuleProgressBar } from '@/components/classroom/skill-module-progress-bar'
 import { ProgressRing } from '@/components/classroom/module-progress-ring'
+import { CompactNumber } from '@/components/ui/compact-number'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { Code, Monitor } from '@phosphor-icons/react/dist/ssr'
 
 export function SkillStatsOverview() {
@@ -141,163 +143,170 @@ export function SkillStatsOverview() {
   }
 
   return (
-    <div className="rounded-2xl px-5 py-5 lg:px-6 lg:py-6 space-y-8">
-      <div className="space-y-6">
-        <div className="space-y-1">
-          <p className="text-xl font-semibold uppercase tracking-[0.18em] text-[#9ca3af]">
-            Módulo concluído!🎉
+    <TooltipProvider delayDuration={300}>
+      <div className="rounded-2xl px-5 py-5 lg:px-6 lg:py-6 space-y-8">
+        <div className="space-y-6">
+          <div className="space-y-1">
+            <p className="text-xl font-semibold uppercase tracking-[0.18em] text-[#9ca3af]">
+              Módulo concluído!🎉
+            </p>
+          </div>
+
+          <div className="rounded-2xl py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            {topSkillForHighlight && (
+              <div className="flex items-center gap-4 self-start md:self-auto">
+                <ProgressRing
+                  progress={(() => {
+                    const p = activeCourse?.progress ?? 0
+                    return p <= 1
+                      ? Math.min(1, Math.max(0, p))
+                      : Math.min(1, p / 100)
+                  })()}
+                  moduleNumber={(() => {
+                    const p = activeCourse?.progress ?? 0
+                    const percent = p <= 1 ? p * 100 : p
+                    return Math.min(100, Math.max(0, Math.round(percent)))
+                  })()}
+                  size={64}
+                  strokeWidth={3}
+                  progressColor="stroke-[#00c8ff]"
+                  trackColor="stroke-[#1f2933]"
+                  isCurrent
+                />
+                <div className="space-y-1">
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[#9ca3af]">
+                    Skill em destaque
+                  </span>
+                  <p className="text-sm font-medium text-white">
+                    {topSkillForHighlight.name}
+                  </p>
+                  <p className="text-xs text-[#9ca3af]">
+                    <CompactNumber
+                      value={topSkillForHighlight.totalXp}
+                      suffix=" XP totais"
+                      enableCountUp
+                    />
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <p className="text-sm text-[#e5e7eb]">
+            {xpTotalDisplay > 0 ? (
+              <>
+                Você ganhou{' '}
+                <span className="font-semibold text-[#00c8ff]">
+                  +<CompactNumber value={xpTotalDisplay} suffix=" XP" enableCountUp />
+                </span>{' '}
+                distribuídos entre as skills abaixo neste módulo.
+              </>
+            ) : (
+              'Você não ganhou XP em skills neste módulo.'
+            )}
           </p>
         </div>
 
-        <div className="rounded-2xl px-4 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          {topSkillForHighlight && (
-            <div className="flex items-center gap-4 self-start md:self-auto">
-              <ProgressRing
-                progress={(() => {
-                  const p = activeCourse?.progress ?? 0
-                  return p <= 1
-                    ? Math.min(1, Math.max(0, p))
-                    : Math.min(1, p / 100)
-                })()}
-                moduleNumber={(() => {
-                  const p = activeCourse?.progress ?? 0
-                  const percent = p <= 1 ? p * 100 : p
-                  return Math.min(100, Math.max(0, Math.round(percent)))
-                })()}
-                size={64}
-                strokeWidth={3}
-                progressColor="stroke-[#00c8ff]"
-                trackColor="stroke-[#1f2933]"
-                isCurrent
-              />
-              <div className="space-y-1">
-                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[#9ca3af]">
-                  Skill em destaque
-                </span>
-                <p className="text-sm font-medium text-white">
-                  {topSkillForHighlight.name}
-                </p>
-                <p className="text-xs text-[#9ca3af]">
-                  {topSkillForHighlight.totalXp.toLocaleString('pt-BR')} XP
-                  totais
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <p className="text-sm text-[#e5e7eb]">
-          {xpTotalDisplay > 0 ? (
-            <>
-              Você ganhou{' '}
-              <span className="font-semibold text-[#00c8ff]">
-                +{xpTotalDisplay.toLocaleString('pt-BR')} XP
-              </span>{' '}
-              distribuídos entre as skills abaixo neste módulo.
-            </>
-          ) : (
-            'Você não ganhou XP em skills neste módulo.'
-          )}
-        </p>
-      </div>
-
-      <div className="space-y-6 w-full pt-4 border-t border-[#1f2933]/50">
-        <div className="rounded-xl py-6 overflow-hidden">
-          {isLoading ? (
-            <div className="px-6 text-[#9ca3af]">Carregando gráfico...</div>
-          ) : displayList.length > 0 ? (
-            <div className="w-full overflow-x-auto">
-              <div className="min-w-[650px]">
-                {/* Eixo X */}
-                <div className="flex pr-6 pl-6">
-                  <div className="w-56 shrink-0" />
-                  <div className="flex-1 flex justify-between text-sm font-medium text-[#9ca3af] pb-2 relative">
-                    <span className="-translate-x-1/2 absolute left-0">0</span>
-                    <span className="-translate-x-1/2 absolute left-1/2">
-                      {(axisMaxValue / 2).toLocaleString('en-US')}
-                    </span>
-                    <span className="absolute right-0 translate-x-1/2">
-                      {axisMaxValue.toLocaleString('en-US')}
-                    </span>
-                  </div>
-                  <div className="w-48 shrink-0" />
-                </div>
-
-                {/* Grade e Barras */}
-                <div className="relative flex flex-col mt-2">
-                  <div className="absolute inset-y-0 right-6 left-6 flex pointer-events-none">
+        <div className="space-y-6 w-full pt-4 border-t border-[#1f2933]/50">
+          <div className="rounded-xl py-6 overflow-hidden">
+            {isLoading ? (
+              <div className="px-6 text-[#9ca3af]">Carregando gráfico...</div>
+            ) : displayList.length > 0 ? (
+              <div className="w-full overflow-x-auto">
+                <div className="min-w-[650px]">
+                  {/* Eixo X */}
+                  <div className="flex pr-6 pl-6">
                     <div className="w-56 shrink-0" />
-                    <div className="flex-1 flex justify-between relative">
-                      <div className="w-px h-full bg-[#1f2937] absolute left-0" />
-                      <div className="w-px h-full bg-[#1f2937] absolute left-1/2" />
-                      <div className="w-px h-full bg-[#1f2937] absolute right-0" />
+                    <div className="flex-1 flex justify-between text-sm font-medium text-[#9ca3af] pb-2 relative">
+                      <span className="-translate-x-1/2 absolute left-0">
+                        0
+                      </span>
+                      <span className="-translate-x-1/2 absolute left-1/2">
+                        <CompactNumber value={axisMaxValue / 2} enableCountUp />
+                      </span>
+                      <span className="absolute right-0 translate-x-1/2">
+                        <CompactNumber value={axisMaxValue} enableCountUp />
+                      </span>
                     </div>
                     <div className="w-48 shrink-0" />
                   </div>
 
-                  {displayList.map((skill, index) => {
-                    const skillWithCurrent = skill as {
-                      totalXp: number
-                      previousXp?: number
-                      currentXp?: number
-                    }
-                    const currentXp =
-                      skillWithCurrent.currentXp ?? skillWithCurrent.totalXp
-                    const previousXp = skillWithCurrent.previousXp ?? 0
-                    const percentage = Math.max(
-                      2,
-                      Math.min(100, (currentXp / axisMaxValue) * 100),
-                    )
-                    // Define o ícone com base no nome da skill para exemplificar
-                    const isWebDesign = skill.name
-                      .toLowerCase()
-                      .includes('design')
-
-                    return (
-                      <div
-                        key={skill.skillId}
-                        className={`flex items-center relative z-10 py-4 px-6 ${
-                          index % 2 !== 0 ? 'bg-white/[0.02]' : ''
-                        }`}
-                      >
-                        {/* Nome da Skill */}
-                        <div className="w-56 shrink-0 flex items-center gap-3">
-                          <div className="p-1.5 rounded-md border border-white/10 bg-white/5">
-                            {isWebDesign ? <Monitor /> : <Code />}
-                          </div>
-                          <span className="text-white font-semibold text-sm">
-                            {skill.name}
-                          </span>
-                        </div>
-
-                        {/* Barra */}
-                        <div className="flex-1 py-2 pr-4 relative flex items-center">
-                          <SkillModuleProgressBar value={percentage} />
-                        </div>
-
-                        {/* Pontuação */}
-                        <div className="w-48 shrink-0 flex justify-end items-center gap-3 text-[15px]">
-                          <span className="text-white font-medium">
-                            {previousXp.toLocaleString('en-US')} XP
-                          </span>
-                          <span className="text-white font-bold">→</span>
-                          <span className="text-[#00c8ff] font-bold">
-                            {currentXp.toLocaleString('en-US')} XP
-                          </span>
-                        </div>
+                  {/* Grade e Barras */}
+                  <div className="relative flex flex-col mt-2">
+                    <div className="absolute inset-y-0 right-6 left-6 flex pointer-events-none">
+                      <div className="w-56 shrink-0" />
+                      <div className="flex-1 flex justify-between relative">
+                        <div className="w-px h-full bg-[#1f2937] absolute left-0" />
+                        <div className="w-px h-full bg-[#1f2937] absolute left-1/2" />
+                        <div className="w-px h-full bg-[#1f2937] absolute right-0" />
                       </div>
-                    )
-                  })}
+                      <div className="w-48 shrink-0" />
+                    </div>
+
+                    {displayList.map((skill, index) => {
+                      const skillWithCurrent = skill as {
+                        totalXp: number
+                        previousXp?: number
+                        currentXp?: number
+                      }
+                      const currentXp =
+                        skillWithCurrent.currentXp ?? skillWithCurrent.totalXp
+                      const previousXp = skillWithCurrent.previousXp ?? 0
+                      const percentage = Math.max(
+                        2,
+                        Math.min(100, (currentXp / axisMaxValue) * 100),
+                      )
+                      // Define o ícone com base no nome da skill para exemplificar
+                      const isWebDesign = skill.name
+                        .toLowerCase()
+                        .includes('design')
+
+                      return (
+                        <div
+                          key={skill.skillId}
+                          className={`flex items-center relative z-10 py-4 px-6 ${
+                            index % 2 !== 0 ? 'bg-white/[0.02]' : ''
+                          }`}
+                        >
+                          {/* Nome da Skill */}
+                          <div className="w-56 shrink-0 flex items-center gap-3">
+                            <div className="p-1.5 rounded-md border border-white/10 bg-white/5">
+                              {isWebDesign ? <Monitor /> : <Code />}
+                            </div>
+                            <span className="text-white font-semibold text-sm">
+                              {skill.name}
+                            </span>
+                          </div>
+
+                          {/* Barra */}
+                          <div className="flex-1 py-2 pr-4 relative flex items-center">
+                            <SkillModuleProgressBar value={percentage} />
+                          </div>
+
+                          {/* Pontuação */}
+                          <div className="w-48 shrink-0 flex justify-end items-center gap-3 text-[15px]">
+                            <span className="text-white font-medium">
+                              <CompactNumber value={previousXp} suffix=" XP" enableCountUp />
+                            </span>
+                            <span className="text-white font-bold">→</span>
+                            <span className="text-[#00c8ff] font-bold">
+                              <CompactNumber value={currentXp} suffix=" XP" enableCountUp />
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="px-6 text-[#9ca3af]">
-              Nenhuma skill evoluída neste módulo.
-            </div>
-          )}
+            ) : (
+              <div className="px-6 text-[#9ca3af]">
+                Nenhuma skill evoluída neste módulo.
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   )
 }
