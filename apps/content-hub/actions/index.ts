@@ -19,3 +19,6 @@ export * from "./category";
 // Auth Actions
 export * from "./auth";
 
+// Dashboard Actions
+export * from "./dashboard";
+

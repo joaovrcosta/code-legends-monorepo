@@ -140,7 +140,7 @@ export default function UsersPage() {
   const getPlanBadgeColor = (plan: string | undefined) => {
     switch (plan) {
       case "PRO":
-        return "bg-orange-900/20 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300";
+        return "bg-purple-900/20 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300";
       case "PREMIUM":
         return "bg-amber-900/20 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300";
       default:
@@ -281,126 +281,124 @@ export default function UsersPage() {
                   </p>
                 )}
                 <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Avatar</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Função</TableHead>
-                    <TableHead>Plan</TableHead>
-                    <TableHead>Nível</TableHead>
-                    <TableHead>XP Total</TableHead>
-                    <TableHead>Onboarding</TableHead>
-                    <TableHead>Criado em</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.length === 0 ? (
+                  <TableHeader>
                     <TableRow>
-                      <TableCell
-                        colSpan={10}
-                        className="text-center py-8 text-gray-500"
-                      >
-                        {users.length === 0
-                          ? "Nenhum usuário encontrado"
-                          : "Nenhum usuário corresponde aos filtros"}
-                      </TableCell>
+                      <TableHead>Avatar</TableHead>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Função</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Nível</TableHead>
+                      <TableHead>XP Total</TableHead>
+                      <TableHead>Onboarding</TableHead>
+                      <TableHead>Criado em</TableHead>
+                      <TableHead>Ações</TableHead>
                     </TableRow>
-                  ) : (
-                    filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          {user.avatar ? (
-                            <Image
-                              src={user.avatar}
-                              alt={user.name}
-                              width={40}
-                              height={40}
-                              className="rounded-full"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium">
-                              {user.name.charAt(0).toUpperCase()}
-                            </div>
-                          )}
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={10}
+                          className="text-center py-8 text-gray-500"
+                        >
+                          {users.length === 0
+                            ? "Nenhum usuário encontrado"
+                            : "Nenhum usuário corresponde aos filtros"}
                         </TableCell>
-                        <TableCell className="font-medium">
-                          {user.name}
-                        </TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(
-                              user.role
-                            )}`}
-                          >
+                      </TableRow>
+                    ) : (
+                      filteredUsers.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>
+                            {user.avatar ? (
+                              <Image
+                                src={user.avatar}
+                                alt={user.name}
+                                width={40}
+                                height={40}
+                                className="rounded-full"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium">
+                                {user.name.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {user.name}
+                          </TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>
                             <span
-                              className={`w-1.5 h-1.5 rounded-full ${getRoleDotColor(
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(
                                 user.role
                               )}`}
-                            />
-                            {getRoleLabel(user.role)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getPlanBadgeColor(
-                              user.plan
-                            )}`}
-                          >
-                            {getPlanLabel(user.plan)}
-                          </span>
-                        </TableCell>
-                        <TableCell>Nível {user.level}</TableCell>
-                        <TableCell>{user.totalXp.toLocaleString("pt-BR")}</TableCell>
-                        <TableCell>
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                              user.onboardingCompleted
+                            >
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${getRoleDotColor(
+                                  user.role
+                                )}`}
+                              />
+                              {getRoleLabel(user.role)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getPlanBadgeColor(
+                                user.plan
+                              )}`}
+                            >
+                              {getPlanLabel(user.plan)}
+                            </span>
+                          </TableCell>
+                          <TableCell>Nível {user.level}</TableCell>
+                          <TableCell>{user.totalXp.toLocaleString("pt-BR")}</TableCell>
+                          <TableCell>
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${user.onboardingCompleted
                                 ? "bg-emerald-900/20 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
                                 : "bg-amber-900/20 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300"
-                            }`}
-                          >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                user.onboardingCompleted
+                                }`}
+                            >
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${user.onboardingCompleted
                                   ? "bg-emerald-700 dark:bg-emerald-400"
                                   : "bg-amber-700 dark:bg-amber-400"
-                              }`}
-                            />
-                            {user.onboardingCompleted
-                              ? "Completo"
-                              : "Pendente"}
-                          </span>
-                        </TableCell>
-                        <TableCell>{formatDate(user.createdAt)}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Link href={`/users/${user.id}/overview`}>
+                                  }`}
+                              />
+                              {user.onboardingCompleted
+                                ? "Completo"
+                                : "Pendente"}
+                            </span>
+                          </TableCell>
+                          <TableCell>{formatDate(user.createdAt)}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Link href={`/users/${user.id}/overview`}>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  title="Ver overview"
+                                >
+                                  <Eye className="h-4 w-4 text-blue-600" />
+                                </Button>
+                              </Link>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                title="Ver overview"
+                                onClick={() => handleDelete(user.id)}
+                                title="Excluir"
                               >
-                                <Eye className="h-4 w-4 text-blue-600" />
+                                <Trash2 className="h-4 w-4 text-red-600" />
                               </Button>
-                            </Link>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDelete(user.id)}
-                              title="Excluir"
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               </>
             )}
           </CardContent>
@@ -496,11 +494,10 @@ export default function UsersPage() {
                   <div>
                     <p className="text-sm text-gray-500">Onboarding</p>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs inline-block ${
-                        selectedUser.onboardingCompleted
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
+                      className={`px-2 py-1 rounded-full text-xs inline-block ${selectedUser.onboardingCompleted
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                        }`}
                     >
                       {selectedUser.onboardingCompleted ? "Completo" : "Pendente"}
                     </span>
