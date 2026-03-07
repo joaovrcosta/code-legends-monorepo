@@ -1,5 +1,6 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
 import type { User } from "./list-users";
 
 export interface InstructorsListResponse {
@@ -11,17 +12,9 @@ export interface InstructorsListResponse {
  */
 export async function listInstructors(token?: string): Promise<InstructorsListResponse> {
     try {
-        const headers: HeadersInit = {
-            "Content-Type": "application/json",
-        };
-
-        if (token) {
-            headers.Authorization = `Bearer ${token}`;
-        }
-
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/instructors`, {
             method: "GET",
-            headers,
+            headers: await buildApiHeaders(undefined, token),
             cache: "no-store",
         });
 

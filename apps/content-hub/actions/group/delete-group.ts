@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 /**
  * Exclui um grupo
  */
@@ -9,10 +11,7 @@ export async function deleteGroup(id: number, token: string): Promise<void> {
       `${process.env.NEXT_PUBLIC_API_URL}/groups/${id}`,
       {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         cache: "no-store",
       }
     );

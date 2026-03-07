@@ -13,7 +13,7 @@ export async function listUsers(request: FastifyRequest, reply: FastifyReply) {
     const sanitized = sanitizeUsers(users, {
       requestingUserId: request.user.id,
       requestingUserRole: request.user.role as Role,
-      isAdmin: true,
+      isAdmin: request.user.role === Role.ADMIN,
     });
 
     return reply.status(200).send({

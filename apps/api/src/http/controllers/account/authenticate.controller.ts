@@ -54,7 +54,6 @@ export async function authenticate(
 
     return reply.status(200).send({
       token,
-      refreshToken,
       onboardingCompleted: user.onboardingCompleted ?? false,
       onboardingGoal: user.onboardingGoal ?? null,
       onboardingCareer: user.onboardingCareer ?? null,

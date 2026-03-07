@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 /**
  * Deleta uma categoria
  */
@@ -10,10 +12,7 @@ export async function deleteCategory(
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${id}`, {
             method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
+            headers: await buildApiHeaders(undefined, token),
             cache: "no-store",
         });
 

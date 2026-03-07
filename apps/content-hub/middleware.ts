@@ -1,143 +1,168 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
 
-/**
- * Decodifica base64url (compatível com Edge Runtime)
- */
-function base64UrlDecode(str: string): string {
-  // Converte base64url para base64
-  let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+const ACCESS_TOKEN_COOKIE = "auth_token";
+const REFRESH_TOKEN_COOKIE = "refresh_token";
+const SESSION_MARKER_COOKIE = "auth_session";
 
-  // Adiciona padding se necessário
-  while (base64.length % 4) {
-    base64 += "=";
+type SessionPayload = {
+  role?: string;
+  exp?: number;
+};
+
+function getJwtSecret() {
+  const secret = process.env.CONTENT_HUB_JWT_SECRET ?? process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error("JWT secret não configurado para o Content Hub");
   }
 
-  // Decodifica usando atob (disponível no Edge Runtime)
-  try {
-    return atob(base64);
-  } catch {
-    return "";
-  }
+  return new TextEncoder().encode(secret);
 }
 
-/**
- * Decodifica o payload do JWT e retorna os dados do usuário
- */
-function decodeJWT(token: string): { role?: string; exp?: number } | null {
+function getCookieOptions(httpOnly: boolean) {
+  const isProduction = process.env.NODE_ENV === "production";
+
+  return {
+    httpOnly,
+    secure: isProduction,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  };
+}
+
+function extractRefreshTokenFromHeaders(headers: Headers) {
+  const getSetCookie = (headers as Headers & {
+    getSetCookie?: () => string[];
+  }).getSetCookie;
+
+  const setCookieValues = typeof getSetCookie === "function"
+    ? getSetCookie.call(headers)
+    : [headers.get("set-cookie")].filter((value): value is string => Boolean(value));
+
+  if (setCookieValues.length === 0) {
+    return null;
+  }
+
+  for (const setCookieHeader of setCookieValues) {
+    const match = setCookieHeader.match(/refreshToken=([^;]+)/);
+    if (match) {
+      return decodeURIComponent(match[1]);
+    }
+  }
+
+  return null;
+}
+
+async function verifyToken(token: string): Promise<SessionPayload | null> {
   try {
-    const parts = token.split(".");
-    if (parts.length !== 3) {
-      return null;
-    }
-
-    const payload = parts[1];
-    const decodedPayloadStr = base64UrlDecode(payload);
-
-    if (!decodedPayloadStr) {
-      return null;
-    }
-
-    return JSON.parse(decodedPayloadStr);
+    const { payload } = await jwtVerify(token, getJwtSecret());
+    return payload as SessionPayload;
   } catch {
     return null;
   }
 }
 
-/**
- * Decodifica e valida um token JWT
- * Retorna true se o token é válido e não está expirado, false caso contrário
- */
-function isTokenValid(token: string): boolean {
-  try {
-    // JWT tem formato: header.payload.signature
-    const parts = token.split(".");
-    if (parts.length !== 3) {
-      return false;
-    }
+async function refreshSession(refreshToken: string) {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/token/refresh`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: `refreshToken=${encodeURIComponent(refreshToken)}`,
+    },
+    cache: "no-store",
+  });
 
-    // Decodifica o payload (segunda parte)
-    const payload = parts[1];
-    const decodedPayloadStr = base64UrlDecode(payload);
-
-    if (!decodedPayloadStr) {
-      return false;
-    }
-
-    const decodedPayload = JSON.parse(decodedPayloadStr);
-
-    // Verifica se o token tem expiração
-    if (decodedPayload.exp) {
-      // exp está em segundos, Date.now() está em milissegundos
-      const expirationTime = decodedPayload.exp * 1000;
-      const currentTime = Date.now();
-
-      // Se o token expirou, retorna false
-      if (currentTime >= expirationTime) {
-        return false;
-      }
-    }
-
-    return true;
-  } catch (error) {
-    // Se houver erro ao decodificar, considera inválido
-    return false;
+  if (!response.ok) {
+    return null;
   }
+
+  const data = (await response.json()) as { token?: string };
+  if (!data.token) {
+    return null;
+  }
+
+  const payload = await verifyToken(data.token);
+  if (!payload) {
+    return null;
+  }
+
+  return {
+    accessToken: data.token,
+    refreshToken:
+      extractRefreshTokenFromHeaders(response.headers) ?? refreshToken,
+    payload,
+  };
 }
 
-export function middleware(request: NextRequest) {
-  const token = request.cookies.get("auth_token")?.value;
+export async function middleware(request: NextRequest) {
+  const token = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
+  const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
+  const hasSessionMarker = request.cookies.get(SESSION_MARKER_COOKIE)?.value === "1";
   const { pathname } = request.nextUrl;
 
-  const publicRoutes = ["/login"];
+  const publicRoutes = ["/login", "/auth/login"];
   const isPublicRoute = publicRoutes.includes(pathname);
 
-  let isValidToken = false;
+  let payload: SessionPayload | null = null;
   if (token) {
-    isValidToken = isTokenValid(token);
-
-    if (!isValidToken) {
-      const response = NextResponse.next();
-      response.cookies.delete("auth_token");
-
-      if (!isPublicRoute) {
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
-
-      return response;
-    }
+    payload = await verifyToken(token);
   }
 
-  // Se não é rota pública, verificar autenticação e role
+  let refreshedSession:
+    | { accessToken: string; refreshToken: string; payload: SessionPayload }
+    | null = null;
+
+  if (!payload && refreshToken) {
+    refreshedSession = await refreshSession(refreshToken);
+    payload = refreshedSession?.payload ?? null;
+  }
+
+  const clearSessionAndRedirect = () => {
+    const response = NextResponse.redirect(new URL("/login", request.url));
+    response.cookies.delete(ACCESS_TOKEN_COOKIE);
+    response.cookies.delete(REFRESH_TOKEN_COOKIE);
+    response.cookies.delete(SESSION_MARKER_COOKIE);
+    return response;
+  };
+
   if (!isPublicRoute) {
-    if (!token || !isValidToken) {
-      return NextResponse.redirect(new URL("/login", request.url));
+    if (!payload && !token && !refreshToken && !hasSessionMarker) {
+      return clearSessionAndRedirect();
     }
 
-    // Decodificar token e verificar role
-    const payload = decodeJWT(token);
     if (payload?.role === "STUDENT") {
-      const response = NextResponse.redirect(
-        new URL("/login?error=access_denied", request.url)
-      );
-      response.cookies.delete("auth_token");
+      const response = NextResponse.redirect(new URL("/login?error=access_denied", request.url));
+      response.cookies.delete(ACCESS_TOKEN_COOKIE);
+      response.cookies.delete(REFRESH_TOKEN_COOKIE);
+      response.cookies.delete(SESSION_MARKER_COOKIE);
       return response;
     }
   }
 
-  // Se está na página de login e já está autenticado com role válida
-  if (pathname === "/login" && isValidToken && token) {
-    const payload = decodeJWT(token);
-    if (payload?.role && payload.role !== "STUDENT") {
+  if (pathname === "/login" && ((payload?.role && payload.role !== "STUDENT") || hasSessionMarker)) {
       return NextResponse.redirect(new URL("/", request.url));
-    }
   }
 
-  if (!isPublicRoute && !isValidToken) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  const response = NextResponse.next();
+
+  if (refreshedSession) {
+    response.cookies.set(
+      ACCESS_TOKEN_COOKIE,
+      refreshedSession.accessToken,
+      getCookieOptions(true)
+    );
+    response.cookies.set(
+      REFRESH_TOKEN_COOKIE,
+      refreshedSession.refreshToken,
+      getCookieOptions(true)
+    );
+    response.cookies.set(SESSION_MARKER_COOKIE, "1", getCookieOptions(false));
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

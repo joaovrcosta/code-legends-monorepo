@@ -1,74 +1,21 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { authenticateUser } from '@/actions/user'
-import { setAuthToken } from '@/lib/auth'
-import { toast } from 'sonner'
-
-function decodeJwtPayload(token: string): { role?: string } | null {
-  try {
-    const parts = token.split('.')
-    if (parts.length !== 3) return null
-    let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-    while (base64.length % 4) base64 += '='
-    return JSON.parse(atob(base64))
-  } catch {
-    return null
-  }
-}
 
 function LoginPageContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  })
-
   const errorParam = searchParams.get('error')
-  useEffect(() => {
-    if (errorParam === 'access_denied') {
-      setError(
-        'Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.',
-      )
-    }
-  }, [errorParam])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    try {
-      setLoading(true)
-      const token = await authenticateUser(formData.email, formData.password)
-
-      const payload = decodeJwtPayload(token)
-      if (payload?.role === 'STUDENT') {
-        setError(
-          'Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.',
-        )
-        toast.error(
-          'Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.',
-        )
-        return
-      }
-
-      setAuthToken(token)
-      router.push('/')
-    } catch (error: any) {
-      console.error('Erro ao fazer login:', error)
-      setError(error.message || 'Erro ao fazer login')
-      toast.error(error.message || 'Erro ao fazer login')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const messageParam = searchParams.get('message')
+  const displayError =
+    messageParam ??
+    (errorParam === 'access_denied'
+      ? 'Acesso negado. Apenas administradores e instrutores podem acessar o Content Hub.'
+      : '')
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#121214]">
@@ -80,10 +27,10 @@ function LoginPageContent() {
           </p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
+          <form action="/auth/login" method="POST" className="space-y-4">
+            {displayError && (
               <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800">
-                {error}
+                {displayError}
               </div>
             )}
 
@@ -91,11 +38,8 @@ function LoginPageContent() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
                 required
               />
             </div>
@@ -104,17 +48,14 @@ function LoginPageContent() {
               <Label htmlFor="password">Senha</Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
                 required
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Entrando...' : 'Entrar'}
+            <Button type="submit" className="w-full">
+              Entrar
             </Button>
           </form>
         </CardContent>

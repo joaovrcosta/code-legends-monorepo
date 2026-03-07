@@ -1,5 +1,6 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
 import type { Module } from "./list-modules";
 
 export interface CreateModuleData {
@@ -24,10 +25,7 @@ export async function createModule(
       `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/modules`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         body: JSON.stringify(moduleData),
         cache: "no-store",
       }

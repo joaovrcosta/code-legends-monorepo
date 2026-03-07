@@ -1,5 +1,14 @@
 import Credentials from "next-auth/providers/credentials";
 
+function extractRefreshTokenFromSetCookie(setCookieHeader: string | null) {
+    if (!setCookieHeader) {
+        return null;
+    }
+
+    const match = setCookieHeader.match(/refreshToken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
 export const credentialsProvider = Credentials({
     name: "Credentials",
     credentials: {
@@ -32,9 +41,9 @@ export const credentialsProvider = Credentials({
 
             const data = await response.json();
             const token = data.token;
-            const refreshToken = data.refreshToken;
+            const refreshToken = extractRefreshTokenFromSetCookie(response.headers.get("set-cookie"));
 
-            if (!token) {
+            if (!token || !refreshToken) {
                 return null;
             }
 

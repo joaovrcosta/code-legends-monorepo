@@ -1,4 +1,6 @@
-import { getAuthTokenFromClient } from "@/lib/auth";
+"use server";
+
+import { buildApiHeaders } from "@/actions/auth";
 
 export interface VerifyPasswordResponse {
     success: boolean;
@@ -9,21 +11,10 @@ export async function verifyPassword(
     password: string
 ): Promise<VerifyPasswordResponse> {
     try {
-        const token = getAuthTokenFromClient();
-
-        if (!token) {
-            return {
-                success: false,
-                message: "Usuário não autenticado",
-            };
-        }
-
         const userResponse = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/me`,
             {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: await buildApiHeaders(),
                 cache: "no-store",
             }
         );

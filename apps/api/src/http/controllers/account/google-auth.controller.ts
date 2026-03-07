@@ -69,7 +69,6 @@ export async function googleAuth(
 
     return reply.status(200).send({
       token,
-      refreshToken,
       isNewUser,
       onboardingCompleted: user.onboardingCompleted ?? false,
       onboardingGoal: user.onboardingGoal ?? null,

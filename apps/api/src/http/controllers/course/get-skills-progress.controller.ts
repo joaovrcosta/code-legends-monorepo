@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../../../lib/prisma'
+import { canViewUserSkills } from '../../utils/skill-visibility'
 
 export async function getSkillsProgress(
   request: FastifyRequest,
@@ -11,11 +12,24 @@ export async function getSkillsProgress(
   })
   const querySchema = z.object({
     moduleId: z.string().optional(),
+    userId: z.string().optional(),
   })
 
   const { id: courseId } = paramsSchema.parse(request.params)
-  const { moduleId } = querySchema.parse(request.query ?? {})
-  const userId = request.user.id
+  const { moduleId, userId: requestedUserId } = querySchema.parse(request.query ?? {})
+  const targetUserId = requestedUserId ?? request.user.id
+
+  if (
+    !canViewUserSkills({
+      requestingUserId: request.user.id,
+      requestingUserRole: request.user.role,
+      targetUserId,
+    })
+  ) {
+    return reply.status(403).send({
+      message: 'Forbidden Access: You are not authorized to access this resource',
+    })
+  }
 
   try {
     const course = await prisma.course.findUnique({
@@ -54,7 +68,7 @@ export async function getSkillsProgress(
 
     const userSkills = await prisma.userSkillXp.findMany({
       where: {
-        userId,
+        userId: targetUserId,
         skillId: {
           in: skillIds,
         },
@@ -96,7 +110,7 @@ export async function getSkillsProgress(
 
         const historyRows = await prisma.userSkillXpHistory.findMany({
           where: {
-            userId,
+            userId: targetUserId,
             source: 'lesson_completed',
             sourceId: { in: moduleLessonIds },
           },

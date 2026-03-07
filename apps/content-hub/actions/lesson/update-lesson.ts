@@ -1,5 +1,6 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
 import type { Lesson, Challenge } from "./list-lessons";
 
 export interface UpdateLessonData {
@@ -36,10 +37,7 @@ export async function updateLesson(
       `${process.env.NEXT_PUBLIC_API_URL}/lessons/${id}`,
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         body: JSON.stringify(lessonData),
         cache: "no-store",
       }

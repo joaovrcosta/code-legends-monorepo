@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { removeAuthToken } from "@/lib/auth";
+import { logoutUser } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
@@ -33,9 +33,10 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = () => {
-    removeAuthToken();
+  const handleLogout = async () => {
+    await logoutUser();
     router.push("/login");
+    router.refresh();
   };
 
   return (

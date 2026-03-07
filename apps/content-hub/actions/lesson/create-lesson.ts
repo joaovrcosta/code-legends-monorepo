@@ -1,5 +1,6 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
 import type { Lesson } from "./list-lessons";
 
 export interface CreateLessonData {
@@ -33,10 +34,7 @@ export async function createLesson(
       `${process.env.NEXT_PUBLIC_API_URL}/groups/${groupId}/lessons`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         body: JSON.stringify(lessonData),
         cache: "no-store",
       }

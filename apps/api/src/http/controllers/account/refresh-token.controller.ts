@@ -1,5 +1,4 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
 import { makeRefreshTokenUseCase } from "../../../utils/factories/make-refresh-token-use-case";
 import { UserNotFoundError } from "../../../use-cases/errors/user-not-found";
 import { env } from "../../../env/index";
@@ -8,35 +7,8 @@ export async function refreshToken(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const refreshTokenBodySchema = z.object({
-    refreshToken: z.string().optional(),
-  });
-
-  const body = refreshTokenBodySchema.parse(request.body);
-
   try {
-    // Tentar pegar o refresh token do body primeiro, senão do cookie
-    let token = body.refreshToken;
-
-    if (token) {
-      // Se veio no body, verificar o token manualmente
-      const decoded = (await request.server.jwt.verify(token)) as {
-        id: string;
-        email: string;
-        name: string;
-        role: string;
-      };
-      request.user = {
-        id: decoded.id,
-        email: decoded.email,
-        name: decoded.name,
-        role: decoded.role,
-      };
-    } else {
-      // Se não veio no body, verificar o cookie
-      await request.jwtVerify({ onlyCookie: true });
-      token = request.cookies.refreshToken;
-    }
+    await request.jwtVerify({ onlyCookie: true });
 
     const refreshTokenUseCase = makeRefreshTokenUseCase();
 
@@ -81,7 +53,6 @@ export async function refreshToken(
       .status(200)
       .send({
         token: newToken,
-        refreshToken: newRefreshToken,
       });
   } catch (err) {
     if (err instanceof UserNotFoundError) {

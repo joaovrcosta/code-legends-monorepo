@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 export interface Plan {
   id: string;
   slug: string;
@@ -22,12 +24,9 @@ export async function listPlans(
   token?: string
 ): Promise<ListPlansResponse> {
   try {
-    const headers: HeadersInit = { "Content-Type": "application/json" };
-    if (token) headers.Authorization = `Bearer ${token}`;
-
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/plans`,
-      { method: "GET", headers, cache: "no-store" }
+      { method: "GET", headers: await buildApiHeaders(undefined, token), cache: "no-store" }
     );
 
     if (!response.ok) {

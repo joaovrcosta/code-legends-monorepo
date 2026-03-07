@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 export interface UpdatePlanData {
   slug?: string;
   name?: string;
@@ -30,10 +32,7 @@ export async function updatePlan(
     `${process.env.NEXT_PUBLIC_API_URL}/plans/${id}`,
     {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await buildApiHeaders(undefined, token),
       body: JSON.stringify(payload),
       cache: "no-store",
     }

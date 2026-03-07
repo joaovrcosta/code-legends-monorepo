@@ -21,7 +21,7 @@ export async function getById(request: FastifyRequest, reply: FastifyReply) {
     const sanitized = sanitizeUser(user, {
       requestingUserId: request.user.id,
       requestingUserRole: request.user.role as Role,
-      isAdmin: true,
+      isAdmin: request.user.role === Role.ADMIN,
     });
 
     return reply.status(200).send({

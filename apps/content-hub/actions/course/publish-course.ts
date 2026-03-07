@@ -1,6 +1,6 @@
 "use server";
 
-import { getAuthTokenFromClient } from "@/lib/auth";
+import { buildApiHeaders } from "@/actions/auth";
 
 export interface PublishCourseResponse {
   course: {
@@ -22,10 +22,7 @@ export async function publishCourse(
       `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/publish`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         cache: "no-store",
       }
     );

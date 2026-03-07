@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 export interface CourseSkillConfigItem {
   skillId: string;
   name: string;
@@ -22,10 +24,7 @@ export async function getCourseSkillsConfig(
       `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/skills-config`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: await buildApiHeaders(undefined, token),
         cache: "no-store",
       }
     );
@@ -56,10 +55,7 @@ export async function updateCourseSkillsConfig(
       `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/skills-config`,
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         body: JSON.stringify({ skills }),
       }
     );

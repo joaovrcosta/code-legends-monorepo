@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 export interface UserOverview {
     user: {
         id: string;
@@ -144,10 +146,7 @@ export async function getUserOverview(
 
         const response = await fetch(url.toString(), {
             method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
+            headers: await buildApiHeaders(undefined, token),
             cache: "no-store",
         });
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
 import type { User } from "./list-users";
 
 export interface UserResponse {
@@ -20,10 +21,7 @@ export async function getUserById(
       `${process.env.NEXT_PUBLIC_API_URL}/users/${id}`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         cache: "no-store",
       }
     );

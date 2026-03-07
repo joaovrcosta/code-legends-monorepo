@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 export interface Course {
   id: string;
   title: string;
@@ -46,18 +48,9 @@ export async function listCourses(params?: {
       searchParams.toString() ? `?${searchParams.toString()}` : ""
     }`;
 
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-
-    // Adicionar token se fornecido (para admin ver drafts)
-    if (params?.token) {
-      headers.Authorization = `Bearer ${params.token}`;
-    }
-
     const response = await fetch(url, {
       method: "GET",
-      headers,
+      headers: await buildApiHeaders(undefined, params?.token),
       cache: "no-store",
     });
 

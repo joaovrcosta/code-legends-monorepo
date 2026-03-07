@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 export interface UpdateRequestData {
   status?: "PENDING" | "APPROVED" | "REJECTED" | "IN_PROGRESS";
   response?: string;
@@ -16,22 +18,12 @@ export async function updateRequest(
   data: UpdateRequestData,
   token: string
 ): Promise<UpdateRequestResponse> {
-  if (!token) {
-    return {
-      success: false,
-      message: "Usuário não autenticado",
-    };
-  }
-
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/requests/${id}`,
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         body: JSON.stringify(data),
         cache: "no-store",
       }

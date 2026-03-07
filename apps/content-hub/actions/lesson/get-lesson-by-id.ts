@@ -1,5 +1,6 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
 import type { LessonDetail } from "./get-lesson-by-slug";
 
 export interface LessonResponse {
@@ -17,10 +18,7 @@ export async function getLessonById(id: string | number, token: string): Promise
       `${process.env.NEXT_PUBLIC_API_URL}/lessons/${id}`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         cache: "no-store",
       }
     );

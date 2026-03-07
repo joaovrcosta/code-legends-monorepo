@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 export interface CreatePlanData {
   slug: string;
   name: string;
@@ -19,10 +21,7 @@ export async function createPlan(
     `${process.env.NEXT_PUBLIC_API_URL}/plans`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await buildApiHeaders(undefined, token),
       body: JSON.stringify({
         slug: data.slug.toUpperCase(),
         name: data.name,

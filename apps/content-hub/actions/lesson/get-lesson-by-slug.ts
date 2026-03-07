@@ -1,5 +1,6 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
 import type { Lesson } from "./list-lessons";
 
 export interface Author {
@@ -48,10 +49,7 @@ export async function getLessonBySlug(slug: string, token: string): Promise<Less
       `${process.env.NEXT_PUBLIC_API_URL}/lessons/${slug}`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         cache: "no-store",
       }
     );

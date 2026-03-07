@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 export interface Request {
   id: string;
   userId: string;
@@ -25,19 +27,12 @@ export interface ListRequestsResponse {
 }
 
 export async function listRequests(token: string): Promise<ListRequestsResponse> {
-  if (!token) {
-    return { requests: [] };
-  }
-
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/requests`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         cache: "no-store",
       }
     );

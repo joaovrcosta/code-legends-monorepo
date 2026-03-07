@@ -1,5 +1,6 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
 import type { Group } from "./list-groups";
 
 export interface CreateGroupData {
@@ -23,10 +24,7 @@ export async function createGroup(
       `${process.env.NEXT_PUBLIC_API_URL}/modules/${moduleId}/groups`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         body: JSON.stringify(groupData),
         cache: "no-store",
       }

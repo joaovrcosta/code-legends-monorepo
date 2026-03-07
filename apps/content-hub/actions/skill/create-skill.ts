@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 interface CreateSkillInput {
   name: string;
   slug: string;
@@ -13,10 +15,7 @@ export async function createSkill(
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/skills`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await buildApiHeaders(undefined, token),
       body: JSON.stringify(data),
     });
 

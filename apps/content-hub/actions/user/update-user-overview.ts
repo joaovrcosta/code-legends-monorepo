@@ -1,5 +1,6 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
 import type { UserOverview } from "./get-user-overview";
 
 export type UserPlanValue = "FREE" | "PRO" | "PREMIUM";
@@ -50,10 +51,7 @@ export async function updateUserOverview(
       `${process.env.NEXT_PUBLIC_API_URL}/users/${userId}/overview`,
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         body: JSON.stringify(userData),
         cache: "no-store",
       }

@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 /**
  * Despublica um curso
  */
@@ -12,10 +14,7 @@ export async function unpublishCourse(
       `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/unpublish`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         cache: "no-store",
       }
     );

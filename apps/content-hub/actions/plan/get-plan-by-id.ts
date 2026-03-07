@@ -1,5 +1,6 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
 import type { Plan } from "./list-plans";
 
 export async function getPlanById(
@@ -7,12 +8,9 @@ export async function getPlanById(
   token?: string
 ): Promise<Plan | null> {
   try {
-    const headers: HeadersInit = { "Content-Type": "application/json" };
-    if (token) headers.Authorization = `Bearer ${token}`;
-
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/plans/${id}`,
-      { method: "GET", headers, cache: "no-store" }
+      { method: "GET", headers: await buildApiHeaders(undefined, token), cache: "no-store" }
     );
 
     if (!response.ok) return null;

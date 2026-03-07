@@ -10,11 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getUserOverview, type UserOverview } from "@/actions/user/get-user-overview";
+import { getUserSkills, type UserSkillsResponse } from "@/actions/user/get-user-skills";
 import { updateUserOverview, type UpdateUserOverviewData } from "@/actions/user/update-user-overview";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft, User, BookOpen, CheckCircle2, TrendingUp, Award, Clock, Target, Edit, X, CreditCard, Calendar } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -25,6 +25,7 @@ function UserOverviewPageContent() {
   const userId = params.userId as string;
   
   const [overview, setOverview] = useState<UserOverview | null>(null);
+  const [skillsProfile, setSkillsProfile] = useState<UserSkillsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -52,9 +53,16 @@ function UserOverviewPageContent() {
       const data = await getUserOverview(userId, token, lessonsLimit);
       if (data) {
         setOverview(data);
+        setSkillsProfile(null);
       } else {
-        toast.error("Usuário não encontrado");
-        router.push("/users");
+        const skillsData = await getUserSkills(userId, token);
+        if (skillsData) {
+          setOverview(null);
+          setSkillsProfile(skillsData);
+        } else {
+          toast.error("Usuário não encontrado");
+          router.push("/users");
+        }
       }
     } catch (error) {
       console.error("Erro ao carregar overview:", error);
@@ -102,9 +110,9 @@ function UserOverviewPageContent() {
       await updateUserOverview(userId, dataToSend, token);
       setShowEditModal(false);
       loadOverview(); // Recarrega os dados
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao atualizar usuário:", error);
-      toast.error(error.message || "Erro ao atualizar usuário");
+      toast.error(error instanceof Error ? error.message : "Erro ao atualizar usuário");
     } finally {
       setSaving(false);
     }
@@ -171,17 +179,6 @@ function UserOverviewPageContent() {
     }
   };
 
-  const getPlanBadgeColor = (plan: string | undefined) => {
-    switch (plan) {
-      case "PRO":
-        return "bg-orange-900/20 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300";
-      case "PREMIUM":
-        return "bg-amber-900/20 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300";
-      default:
-        return "bg-lime-900/20 dark:bg-lime-500/20 text-lime-700 dark:text-lime-300";
-    }
-  };
-
   const getPlanLabel = (plan: string | undefined) => plan === "PREMIUM" ? "Premium" : plan === "PRO" ? "Pro" : "Free";
 
   if (loading) {
@@ -197,6 +194,144 @@ function UserOverviewPageContent() {
   }
 
   if (!overview) {
+    if (skillsProfile) {
+      const totalSkillXp = skillsProfile.skills.reduce((sum, skill) => sum + skill.xp, 0);
+
+      return (
+        <MainLayout>
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.push("/users")}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center gap-4 flex-1">
+                {skillsProfile.user.avatar && (
+                  <Image
+                    src={skillsProfile.user.avatar}
+                    alt={skillsProfile.user.name}
+                    width={64}
+                    height={64}
+                    className="rounded-full"
+                  />
+                )}
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                    {skillsProfile.user.name}
+                  </h1>
+                  <p className="text-gray-600 dark:text-gray-400">{skillsProfile.user.email}</p>
+                </div>
+              </div>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="h-5 w-5" />
+                  Visão restrita
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Este perfil está sendo exibido em modo restrito. Apenas skills e dados básicos
+                  estão disponíveis para o seu papel.
+                </p>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Skills
+                  </CardTitle>
+                  <Award className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {skillsProfile.skills.length}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    XP total
+                  </CardTitle>
+                  <TrendingUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {totalSkillXp.toLocaleString("pt-BR")}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Nível atual
+                  </CardTitle>
+                  <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    Nível {skillsProfile.user.level}
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {skillsProfile.user.xpToNextLevel} XP para o próximo nível
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="h-5 w-5" />
+                  Skills do aluno
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {skillsProfile.skills.length === 0 ? (
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                    Nenhuma skill encontrada para este usuário
+                  </p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Skill</TableHead>
+                        <TableHead>Slug</TableHead>
+                        <TableHead className="text-right">XP</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {skillsProfile.skills.map((skill) => (
+                        <TableRow key={skill.skillId}>
+                          <TableCell>{skill.name}</TableCell>
+                          <TableCell className="text-sm text-gray-500 dark:text-gray-400">
+                            {skill.slug}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {skill.xp.toLocaleString("pt-BR")} XP
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </MainLayout>
+      );
+    }
+
     return null;
   }
 

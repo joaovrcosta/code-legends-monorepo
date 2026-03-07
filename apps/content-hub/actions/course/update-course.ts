@@ -1,5 +1,6 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
 import type { Course } from "./list-courses";
 
 export interface UpdateCourseData {
@@ -35,10 +36,7 @@ export async function updateCourse(
       `${process.env.NEXT_PUBLIC_API_URL}/courses/${id}`,
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         body: JSON.stringify(courseData),
         cache: "no-store",
       }

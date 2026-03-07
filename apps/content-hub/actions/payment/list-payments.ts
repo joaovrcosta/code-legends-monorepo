@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 export interface PaymentItem {
   id: string;
   userId: string;
@@ -24,17 +26,9 @@ export interface ListPaymentsResponse {
  */
 export async function listPayments(token?: string): Promise<ListPaymentsResponse> {
   try {
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments`, {
       method: "GET",
-      headers,
+      headers: await buildApiHeaders(undefined, token),
       cache: "no-store",
     });
 
@@ -64,19 +58,11 @@ export async function syncPayments(
   token?: string
 ): Promise<SyncPaymentsResponse> {
   try {
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/payments/sync`,
       {
         method: "POST",
-        headers,
+        headers: await buildApiHeaders(undefined, token),
         cache: "no-store",
       }
     );

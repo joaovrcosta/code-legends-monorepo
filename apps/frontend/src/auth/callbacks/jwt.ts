@@ -1,17 +1,28 @@
 import type { TokenWithRefresh } from "../types";
 
+function extractRefreshTokenFromSetCookie(setCookieHeader: string | null) {
+    if (!setCookieHeader) {
+        return null;
+    }
+
+    const match = setCookieHeader.match(/refreshToken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
 async function refreshAccessToken(token: TokenWithRefresh): Promise<TokenWithRefresh> {
     try {
+        if (!token.refreshToken) {
+            throw new Error("MissingRefreshToken");
+        }
+
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/token/refresh`,
             {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    "Cookie": `refreshToken=${encodeURIComponent(token.refreshToken)}`,
                 },
-                body: JSON.stringify({
-                    refreshToken: token.refreshToken,
-                }),
             }
         );
 
@@ -67,7 +78,7 @@ async function refreshAccessToken(token: TokenWithRefresh): Promise<TokenWithRef
         return {
             ...token,
             accessToken: newAccessToken,
-            refreshToken: data.refreshToken ?? token.refreshToken,
+            refreshToken: extractRefreshTokenFromSetCookie(response.headers.get("set-cookie")) ?? token.refreshToken,
             accessTokenExpires: Date.now() + 10 * 60 * 1000,
             ...onboardingData,
             plan,
@@ -149,9 +160,9 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
 
                 const data = await response.json();
                 const apiToken = data.token;
-                const refreshToken = data.refreshToken;
+                const refreshToken = extractRefreshTokenFromSetCookie(response.headers.get("set-cookie"));
 
-                if (!apiToken) {
+                if (!apiToken || !refreshToken) {
                     return null;
                 }
 

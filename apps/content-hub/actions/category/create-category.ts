@@ -1,5 +1,6 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
 import type { Category } from "./list-categories";
 
 export interface CreateCategoryData {
@@ -26,10 +27,7 @@ export async function createCategory(
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await buildApiHeaders(undefined, token),
       body: JSON.stringify(categoryData),
       cache: "no-store",
     });

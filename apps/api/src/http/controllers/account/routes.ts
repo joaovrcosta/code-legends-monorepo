@@ -15,6 +15,7 @@ import {
   getAccountOverview,
   updateAccountData,
 } from './account-overview.controller'
+import { getUserSkills } from './get-user-skills.controller'
 import { getCheckoutDados } from './get-checkout-dados.controller'
 import { getSubscriptionOverview } from './get-subscription-overview.controller'
 import { listPayments } from './list-payments.controller'
@@ -61,8 +62,9 @@ export async function usersRoutes(app: FastifyInstance) {
   // Rotas protegidas - apenas ADMIN
   app.get('/payments', { onRequest: [verifyAdmin] }, listPayments)
   app.post('/payments/sync', { onRequest: [verifyAdmin] }, syncPayments)
-  app.get('/users', { onRequest: [verifyAdmin] }, listUsers)
-  app.get('/users/:id', { onRequest: [verifyAdmin] }, getById)
+  app.get('/users', { onRequest: [verifyInstructorOrAdmin] }, listUsers)
+  app.get('/users/:id', { onRequest: [verifyInstructorOrAdmin] }, getById)
+  app.get('/users/:userId/skills', { onRequest: [verifyJWT] }, getUserSkills)
   app.delete('/users/:id', { onRequest: [verifyAdmin] }, remove)
   app.get(
     '/users/:userId/overview',

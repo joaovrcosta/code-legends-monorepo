@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 interface UpdateSkillInput {
   name?: string;
   slug?: string;
@@ -16,10 +18,7 @@ export async function updateSkill(
       `${process.env.NEXT_PUBLIC_API_URL}/skills/${id}`,
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: await buildApiHeaders(undefined, token),
         body: JSON.stringify(data),
       }
     );

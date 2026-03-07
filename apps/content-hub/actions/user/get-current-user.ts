@@ -1,5 +1,7 @@
 "use server";
 
+import { buildApiHeaders } from "@/actions/auth";
+
 export interface User {
   id: string;
   name: string;
@@ -17,14 +19,11 @@ export interface UserResponse {
 /**
  * Obtém o usuário atual
  */
-export async function getCurrentUser(token: string): Promise<User | null> {
+export async function getCurrentUser(token?: string): Promise<User | null> {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await buildApiHeaders(undefined, token),
       cache: "no-store",
     });
 
