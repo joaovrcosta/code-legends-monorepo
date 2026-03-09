@@ -44,11 +44,13 @@ export interface LessonUpgradeRequired {
 
 /**
  * Busca uma aula específica pelo slug do curso e slug da aula.
+ * moduleSlug: quando há aulas com mesmo slug em módulos diferentes (ex: "Aula 1"), desambigua pelo módulo.
  * Em 403 (conteúdo exclusivo), retorna { __upgradeRequired: true, message } para a página exibir o paywall.
  */
 export async function getLessonBySlug(
   courseId: string,
-  lessonSlug: string
+  lessonSlug: string,
+  moduleSlug?: string
 ): Promise<LessonResponse | LessonUpgradeRequired | null> {
   try {
     const token = await getAuthToken();
@@ -57,8 +59,14 @@ export async function getLessonBySlug(
       return null;
     }
 
+    const url = new URL(
+      `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/lessons/${lessonSlug}`
+    );
+    if (moduleSlug) {
+      url.searchParams.set("moduleSlug", moduleSlug);
+    }
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/lessons/${lessonSlug}`,
+      url.toString(),
       {
         method: "GET",
         headers: {

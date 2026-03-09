@@ -30,6 +30,11 @@ export interface ILessonRepository {
   findById(id: number): Promise<Lesson | null>
   findBySlug(slug: string): Promise<Lesson | null>
   findByCourseIdAndSlug(courseId: string, slug: string): Promise<Lesson | null>
+  findByCourseIdAndSlugAndModuleSlug(
+    courseId: string,
+    slug: string,
+    moduleSlug: string,
+  ): Promise<Lesson | null>
   findBySlugAndSubmoduleId(
     slug: string,
     submoduleId: number,

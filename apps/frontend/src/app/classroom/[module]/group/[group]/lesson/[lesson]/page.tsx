@@ -54,7 +54,7 @@ export default function DynamicLessonPage() {
   } = useCourseModalStore()
   const { isOpen: isSidebarOpen } = useClassroomSidebarStore()
 
-  const _moduleSlug = params.module as string
+  const moduleSlug = params.module as string
   const lessonSlug = params.lesson as string
 
   const [lessonData, setLessonData] = useState<LessonResponse | null>(null)
@@ -72,7 +72,7 @@ export default function DynamicLessonPage() {
   // Resetar flag de "mostrar stats uma vez" ao entrar/trocar de aula (stats só aparecem ao clicar Completar).
   useEffect(() => {
     setShowModuleStatsOnce(false)
-  }, [lessonSlug, _moduleSlug, setShowModuleStatsOnce])
+  }, [lessonSlug, moduleSlug, setShowModuleStatsOnce])
 
   // Carrega a aula específica
   useEffect(() => {
@@ -95,7 +95,7 @@ export default function DynamicLessonPage() {
         setUpgradeRequired(false)
 
         try {
-          const data = await getLessonBySlug(courseId, lessonSlug)
+          const data = await getLessonBySlug(courseId, lessonSlug, moduleSlug)
           if (isLessonUpgradeRequiredResult(data)) {
             setError(data.message)
             setUpgradeRequired(true)
@@ -132,7 +132,7 @@ export default function DynamicLessonPage() {
       setUpgradeRequired(false)
 
       try {
-        const data = await getLessonBySlug(activeCourse.id, lessonSlug)
+        const data = await getLessonBySlug(activeCourse.id, lessonSlug, moduleSlug)
         if (isLessonUpgradeRequiredResult(data)) {
           setError(data.message)
           setUpgradeRequired(true)
@@ -162,6 +162,7 @@ export default function DynamicLessonPage() {
   }, [
     activeCourse?.id,
     lessonSlug,
+    moduleSlug,
     setLessonForPage,
     router,
     fetchActiveCourse,

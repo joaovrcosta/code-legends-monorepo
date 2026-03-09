@@ -29,11 +29,13 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
 
       // Tentar obter lessonId ou slug dos parâmetros
       const params = request.params as Record<string, string>;
+      const query = (request.query as Record<string, string>) || {};
       const lessonId = params[lessonIdParam]
         ? Number(params[lessonIdParam])
         : null;
       const lessonSlug = params[lessonSlugParam];
       const courseIdFromRoute = courseIdParam ? params[courseIdParam] : undefined;
+      const moduleSlugFromQuery = query.moduleSlug;
 
       if (!lessonId && !lessonSlug) {
         return reply
@@ -41,7 +43,7 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
           .send({ message: "Lesson ID or slug is required" });
       }
 
-      // Buscar a aula (por slug sempre no contexto do curso quando courseId vier na rota)
+      // Buscar a aula (por slug sempre no contexto do curso quando courseId vier na rota; moduleSlug desambigua quando há slugs iguais em módulos diferentes)
       let lesson;
       if (lessonId) {
         lesson = await prisma.lesson.findUnique({
@@ -59,13 +61,22 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
           },
         });
       } else if (lessonSlug) {
-        lesson = await prisma.lesson.findFirst({
-          where: courseIdFromRoute
+        const whereBySlug =
+          courseIdFromRoute
             ? {
                 slug: lessonSlug,
-                submodule: { module: { courseId: courseIdFromRoute } },
+                submodule: {
+                  module: {
+                    courseId: courseIdFromRoute,
+                    ...(moduleSlugFromQuery
+                      ? { slug: moduleSlugFromQuery }
+                      : {}),
+                  },
+                },
               }
-            : { slug: lessonSlug },
+            : { slug: lessonSlug };
+        lesson = await prisma.lesson.findFirst({
+          where: whereBySlug,
           include: {
             submodule: {
               include: {

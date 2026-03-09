@@ -9,6 +9,8 @@ interface GetLessonByCourseIdAndSlugRequest {
   courseId: string
   slug: string
   userId: string
+  /** Quando há aulas com mesmo slug em módulos diferentes (ex: "Aula 1"), desambigua pelo módulo. */
+  moduleSlug?: string
 }
 
 interface NavigationItem {
@@ -41,11 +43,15 @@ export class GetLessonByCourseIdAndSlugUseCase {
     courseId,
     slug,
     userId,
+    moduleSlug,
   }: GetLessonByCourseIdAndSlugRequest): Promise<GetLessonByCourseIdAndSlugResponse> {
-    const lessonEntity = await this.lessonRepository.findByCourseIdAndSlug(
-      courseId,
-      slug,
-    )
+    const lessonEntity = moduleSlug
+      ? await this.lessonRepository.findByCourseIdAndSlugAndModuleSlug(
+          courseId,
+          slug,
+          moduleSlug,
+        )
+      : await this.lessonRepository.findByCourseIdAndSlug(courseId, slug)
 
     if (!lessonEntity) {
       throw new LessonNotFoundError()

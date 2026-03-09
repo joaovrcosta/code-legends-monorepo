@@ -8,8 +8,12 @@ export async function getLessonBySlug(request: FastifyRequest, reply: FastifyRep
     courseId: z.string(),
     lessonSlug: z.string(),
   });
+  const getLessonQuerySchema = z.object({
+    moduleSlug: z.string().optional(),
+  });
 
   const { courseId, lessonSlug } = getLessonParamsSchema.parse(request.params);
+  const { moduleSlug } = getLessonQuerySchema.parse(request.query || {});
 
   try {
     const getLessonByCourseIdAndSlugUseCase = makeGetLessonByCourseIdAndSlugUseCase();
@@ -18,6 +22,7 @@ export async function getLessonBySlug(request: FastifyRequest, reply: FastifyRep
       courseId,
       slug: lessonSlug,
       userId: request.user.id,
+      moduleSlug: moduleSlug ?? undefined,
     });
 
     return reply.status(200).send({ lesson, moduleTitle, status, isCurrent, canReview, navigation });
