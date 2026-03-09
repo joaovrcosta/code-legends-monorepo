@@ -321,6 +321,31 @@ export class CompleteLessonUseCase {
     const wasCourseCompleted = userCourse.isCompleted
     const isNewlyCompleted = courseCompleted && !wasCourseCompleted
 
+    // [COURSE_COMPLETION_DEBUG] Só loga quando há inconsistência (getAllLessons != count no DB)
+    const totalLessonsInDb = await prisma.lesson.count({
+      where: {
+        submodule: { module: { courseId } },
+      },
+    })
+    if (allLessons.length !== totalLessonsInDb) {
+      const lessonsWithTypes = await prisma.lesson.findMany({
+        where: { submodule: { module: { courseId } } },
+        select: { id: true, type: true, title: true },
+        orderBy: [{ submoduleId: 'asc' }, { order: 'asc' }],
+      })
+      console.warn('[COURSE_COMPLETION_DEBUG] Inconsistência na contagem de lições', {
+        courseId,
+        courseTitle: course.title,
+        allLessonsFromGetAll: allLessons.length,
+        totalLessonsInDb,
+        completedLessons,
+        courseProgress: Math.round(courseProgress * 100),
+        courseCompleted,
+        lessonIdsFromGetAll: allLessons.map((l) => l.id),
+        lessonsInDb: lessonsWithTypes.map((l) => ({ id: l.id, type: l.type, title: l.title })),
+      })
+    }
+
     // Atualizar UserCourse (quiz reprovado: não avança, usuário permanece na mesma lição para tentar de novo)
     const effectiveNextTaskId = isCompleted ? nextLessonId : lessonId
     const nextLesson = effectiveNextTaskId
@@ -362,11 +387,12 @@ export class CompleteLessonUseCase {
         })
       }
     } else {
+      // Sem próxima lição (ex.: última da lista). Só marcar curso completo se todas foram concluídas.
       await this.userCourseRepository.update(userCourse.id, {
         currentTaskId: null,
         progress: courseProgress,
-        isCompleted: true,
-        completedAt: new Date(),
+        isCompleted: courseCompleted,
+        completedAt: courseCompleted ? new Date() : null,
       })
     }
 

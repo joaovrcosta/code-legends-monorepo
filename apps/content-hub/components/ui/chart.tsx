@@ -5,8 +5,6 @@ import {
   Legend as RechartsLegend,
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
-  type LegendProps,
-  type TooltipProps,
 } from "recharts";
 import { cn } from "@/lib/utils";
 
@@ -43,13 +41,16 @@ export function ChartContainer({
   children: React.ReactNode;
 }) {
   const style = React.useMemo(() => {
-    return Object.entries(config).reduce<React.CSSProperties>((acc, [key, value]) => {
-      if (value.color) {
-        acc[`--color-${key}` as keyof React.CSSProperties] = value.color;
-      }
+    return Object.entries(config).reduce<React.CSSProperties & Record<string, string>>(
+      (acc, [key, value]) => {
+        if (value.color) {
+          acc[`--color-${key}`] = value.color;
+        }
 
-      return acc;
-    }, {});
+        return acc;
+      },
+      {}
+    );
   }, [config]);
 
   return (
@@ -73,6 +74,14 @@ export function ChartContainer({
 export const ChartTooltip = RechartsTooltip;
 export const ChartLegend = RechartsLegend;
 
+type TooltipPayloadItem = {
+  name?: string;
+  value?: number | string;
+  dataKey?: string | number;
+  color?: string;
+  payload?: Record<string, unknown> & { fill?: string };
+};
+
 export function ChartTooltipContent({
   active,
   payload,
@@ -80,7 +89,10 @@ export function ChartTooltipContent({
   className,
   hideLabel = false,
   valueFormatter,
-}: TooltipProps<number, string> & {
+}: {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
   className?: string;
   hideLabel?: boolean;
   valueFormatter?: (value: number, name: string) => React.ReactNode;
@@ -135,10 +147,17 @@ export function ChartTooltipContent({
   );
 }
 
+type LegendPayloadItem = {
+  value?: string;
+  dataKey?: string | number;
+  color?: string;
+};
+
 export function ChartLegendContent({
   payload,
   className,
-}: LegendProps & {
+}: {
+  payload?: LegendPayloadItem[];
   className?: string;
 }) {
   const { config } = useChart();
