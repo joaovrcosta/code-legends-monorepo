@@ -309,7 +309,7 @@ export function SkillStatsOverview() {
               {xpTotalDisplay > 0 ? (
                 <>
                   Trabalho incrível, você ganhou{' '}
-                  <span className="font-semibold text-[#00c8ff]">
+                  <span className="font-semibold bg-[linear-gradient(90deg,#ef4444_0%,#f97316_50%,#eab308_100%)] bg-clip-text text-transparent">
                     +<CompactNumber value={xpTotalDisplay} suffix=" XP" enableCountUp />
                   </span>{' '}
                   nesse módulo, distribuídos entre as skills abaixo.
@@ -396,6 +396,7 @@ export function SkillStatsOverview() {
                           <div className="flex-1 py-2 pr-4 relative flex items-center">
                             <SkillModuleProgressBar
                               value={barRevealIndex > index ? percentage : 0}
+                              flameGradient
                             />
                           </div>
 
@@ -405,8 +406,8 @@ export function SkillStatsOverview() {
                               <CompactNumber value={previousXp} suffix=" XP" enableCountUp />
                             </span>
                             <span className="text-white font-bold">→</span>
-                            <span className="text-[#00c8ff] font-bold">
-                              <CompactNumber value={currentXp} suffix=" XP" enableCountUp />
+                            <span className="font-bold">
+                              <CompactNumber value={currentXp} suffix=" XP" enableCountUp flameGradient />
                             </span>
                           </div>
                         </div>

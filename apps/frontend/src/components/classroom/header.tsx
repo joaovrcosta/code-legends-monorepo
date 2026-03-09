@@ -33,11 +33,12 @@ export default function ClassroomHeader({
   const [isAutoplay, setIsAutoplay] = useState(false)
   const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
 
+  // No classroom, o servidor é a fonte da verdade: sempre sincronizar curso ativo
   useEffect(() => {
-    if (initialActiveCourse?.id && !activeCourse?.id) {
-      setActiveCourse(initialActiveCourse)
+    if (initialActiveCourse !== undefined) {
+      setActiveCourse(initialActiveCourse ?? null)
     }
-  }, [initialActiveCourse, activeCourse?.id, setActiveCourse])
+  }, [initialActiveCourse, setActiveCourse])
 
   useRoadmapUpdater({
     isOpen: true,

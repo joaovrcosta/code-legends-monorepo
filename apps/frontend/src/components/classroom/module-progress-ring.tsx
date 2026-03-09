@@ -1,5 +1,6 @@
 'use client'
 
+import { Check } from '@phosphor-icons/react/dist/ssr'
 import { memo } from 'react'
 
 interface ProgressRingProps {
@@ -25,6 +26,7 @@ export const ProgressRing = memo(function ModuleProgressRing({
   isCurrent = false,
 }: ProgressRingProps) {
   const clampedProgress = Math.max(0, Math.min(1, progress))
+  const isComplete = clampedProgress >= 1
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const offset = circumference - clampedProgress * circumference
@@ -58,13 +60,20 @@ export const ProgressRing = memo(function ModuleProgressRing({
         className="absolute inset-0 flex items-center justify-center"
         aria-hidden
       >
-        <span
-          className={`text-sm font-bold tabular-nums ${
-            isCurrent ? 'text-cyan-400' : 'text-zinc-300'
-          }`}
-        >
-          {String(moduleNumber).padStart(2, '0')}
-        </span>
+        {isComplete ? (
+          <Check
+            size={20}
+            className="text-cyan-400 animate-check-in origin-center"
+            weight="bold"
+          />
+        ) : (
+          <span
+            className={`text-sm font-bold tabular-nums ${isCurrent ? 'text-cyan-400' : 'text-zinc-300'
+              }`}
+          >
+            {String(moduleNumber).padStart(2, '0')}
+          </span>
+        )}
       </div>
     </div>
   )

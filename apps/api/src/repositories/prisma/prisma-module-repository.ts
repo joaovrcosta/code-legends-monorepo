@@ -100,7 +100,7 @@ export class PrismaModuleRepository implements IModuleRepository {
   }
 
   async findBySlug(slug: string): Promise<Module | null> {
-    const module = await prisma.module.findUnique({
+    const module = await prisma.module.findFirst({
       where: {
         slug,
       },
@@ -172,7 +172,7 @@ export class PrismaModuleRepository implements IModuleRepository {
         },
         _count: {
           select: {
-            groups: true,
+            submodules: true,
           },
         },
       },
@@ -182,10 +182,21 @@ export class PrismaModuleRepository implements IModuleRepository {
   }
 
   async delete(id: string): Promise<void> {
+    const submodules = await prisma.submodule.findMany({
+      where: { moduleId: id },
+      select: { id: true },
+    });
+    const submoduleIds = submodules.map((s) => s.id);
+    if (submoduleIds.length > 0) {
+      await prisma.lesson.deleteMany({
+        where: { submoduleId: { in: submoduleIds } },
+      });
+    }
+    await prisma.submodule.deleteMany({
+      where: { moduleId: id },
+    });
     await prisma.module.delete({
-      where: {
-        id,
-      },
+      where: { id },
     });
   }
 }

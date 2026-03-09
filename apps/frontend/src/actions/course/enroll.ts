@@ -1,6 +1,7 @@
 "use server";
 
 import { getAuthToken } from "../auth/session";
+import { revalidateTag, revalidatePath } from "next/cache";
 
 /**
  * Inscreve o usuário em um curso
@@ -31,6 +32,14 @@ export async function enrollInCourse(courseId: string) {
     }
 
     const data = await response.json();
+
+    try {
+      revalidateTag("active-course");
+      revalidatePath("/classroom", "layout");
+    } catch {
+      // não falha a operação
+    }
+
     return { success: true, data };
   } catch (error) {
     console.error("Erro ao inscrever no curso:", error);

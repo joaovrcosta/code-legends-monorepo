@@ -834,22 +834,23 @@ export default function EditCoursePage() {
           <CardHeader>
             <CardTitle>Estrutura do Curso</CardTitle>
           </CardHeader>
-          <CardContent>
-            {loadingStructure ? (
-              <div className="text-center py-8">Carregando estrutura...</div>
-            ) : (
-              <CourseBuilder
-                courseId={courseId}
-                modules={modules}
-                onModulesChange={(updatedModules) => {
-                  setModules(updatedModules);
-                }}
-                onReloadStructure={() => {
-                  loadCourseStructure();
-                }}
-              />
-            )}
-          </CardContent>
+            <CardContent>
+              {loadingStructure ? (
+                <div className="text-center py-8">Carregando estrutura...</div>
+              ) : (
+                <CourseBuilder
+                  courseId={courseId}
+                  courseTitle={formData.title || ""}
+                  modules={modules}
+                  onModulesChange={(updatedModules) => {
+                    setModules(updatedModules);
+                  }}
+                  onReloadStructure={() => {
+                    loadCourseStructure();
+                  }}
+                />
+              )}
+            </CardContent>
         </Card>
 
         {showPublishModal && (

@@ -50,6 +50,7 @@ export async function startCourse(courseId: string) {
       }
       // Revalida a página do learn para forçar atualização
       revalidatePath("/learn", "page");
+      revalidatePath("/classroom", "layout");
     } catch (cacheError) {
       // Não falha a operação se houver erro ao invalidar cache
       console.warn("Erro ao invalidar cache:", cacheError);
