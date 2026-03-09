@@ -6,6 +6,8 @@ import { PrismaUserProgressRepository } from "../../repositories/prisma/prisma-u
 interface VerifyLessonAccessOptions {
   lessonIdParam?: string; // Nome do parâmetro que contém o lessonId (ex: "id")
   lessonSlugParam?: string; // Nome do parâmetro que contém o lessonSlug (ex: "slug")
+  /** Quando a rota tem courseId (ex: /courses/:courseId/lessons/:lessonSlug), passar o nome do param para buscar a aula no curso correto. Evita que slug ambíguo em outro curso libere acesso. */
+  courseIdParam?: string;
   allowInstructors?: boolean; // Permitir instrutores acessarem mesmo sem estar inscrito
 }
 
@@ -13,6 +15,7 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
   const {
     lessonIdParam = "id",
     lessonSlugParam = "slug",
+    courseIdParam,
     allowInstructors = true,
   } = options;
 
@@ -30,6 +33,7 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         ? Number(params[lessonIdParam])
         : null;
       const lessonSlug = params[lessonSlugParam];
+      const courseIdFromRoute = courseIdParam ? params[courseIdParam] : undefined;
 
       if (!lessonId && !lessonSlug) {
         return reply
@@ -37,7 +41,7 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
           .send({ message: "Lesson ID or slug is required" });
       }
 
-      // Buscar a aula
+      // Buscar a aula (por slug sempre no contexto do curso quando courseId vier na rota)
       let lesson;
       if (lessonId) {
         lesson = await prisma.lesson.findUnique({
@@ -56,7 +60,12 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         });
       } else if (lessonSlug) {
         lesson = await prisma.lesson.findFirst({
-          where: { slug: lessonSlug },
+          where: courseIdFromRoute
+            ? {
+                slug: lessonSlug,
+                submodule: { module: { courseId: courseIdFromRoute } },
+              }
+            : { slug: lessonSlug },
           include: {
             submodule: {
               include: {

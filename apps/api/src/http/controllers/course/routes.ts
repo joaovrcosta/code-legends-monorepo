@@ -58,7 +58,13 @@ export async function courseRoutes(app: FastifyInstance) {
   app.get(
     "/courses/:courseId/lessons/:lessonSlug",
     {
-      onRequest: [verifyJWT, verifyLessonAccess({ lessonSlugParam: "lessonSlug" })],
+      onRequest: [
+        verifyJWT,
+        verifyLessonAccess({
+          lessonSlugParam: "lessonSlug",
+          courseIdParam: "courseId",
+        }),
+      ],
     },
     getLessonBySlug
   );
