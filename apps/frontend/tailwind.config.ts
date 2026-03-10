@@ -99,6 +99,17 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
+        "shine-pulse": {
+          "0%": {
+            "background-position": "0% 0%",
+          },
+          "50%": {
+            "background-position": "100% 100%",
+          },
+          to: {
+            "background-position": "0% 0%",
+          },
+        },
         "accordion-down": {
           from: {
             height: "0",

@@ -2,31 +2,23 @@ import { getActiveCourse } from '@/actions/user/get-active-course'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Progress } from '../ui/progress'
-// Importei o MapTrifold para usar como ícone de "falta de trilha"
-import { BarbellIcon, Trophy, MapTrifold } from '@phosphor-icons/react/dist/ssr'
+import { BarbellIcon, Plus, Trophy } from '@phosphor-icons/react/dist/ssr'
 import { ContinueCourseButton } from './continue-course-button'
 import { getUserCourseProgress } from '@/actions/progress'
-import emptyCourseBackground from '../../../public/isometric-mockups-3.png'
+import { ShineBorder } from '../ui/border-beam'
 
 export async function CurrentCourseCard() {
   const activeCourse = await getActiveCourse()
 
-  // Otimização: Só busca o progresso se houver um curso ativo
   const userProgress = activeCourse
     ? await getUserCourseProgress(activeCourse.slug)
     : null
 
-  // VISUAL DE "FALTA DE TRILHA ATUAL"
   if (!activeCourse) {
     return (
       <div className="w-full max-w-full overflow-hidden">
-        <div
-          className="flex h-[240px] flex-col lg:flex-row justify-between items-center rounded-[20px] border border-[#25252A] p-5 sm:p-6 gap-6 bg-cover bg-center bg-no-repeat relative"
-          style={{
-            backgroundImage: `linear-gradient(to bottom, rgba(26, 26, 30, 0.60), rgba(14, 14, 14, 0.95)), url(${emptyCourseBackground.src})`
-          }}
-        >
-          <div className="flex flex-col items-center lg:items-start w-full lg:w-auto text-center lg:text-left z-10">
+        <div className="flex h-fit bg-gray-gradient border-[#25252A] flex-col lg:flex-row justify-between items-center rounded-[20px] border border-[#25252A] p-4 sm:p-6 gap-6 relative overflow-hidden">
+          <div className="flex flex-col items-center lg:items-start w-full lg:w-auto text-center lg:text-left z-10 relative">
             <div className="mb-4">
               <span className="bg-transparent text-[#737373] border border-[#737373] text-[10px] sm:text-xs font-medium px-3 py-1 rounded-full uppercase tracking-wider bg-[#1a1a1e]/50 backdrop-blur-sm">
                 Sem Formação Ativa
@@ -34,9 +26,9 @@ export async function CurrentCourseCard() {
             </div>
 
             <div className="flex flex-row items-center justify-center lg:justify-start gap-3 mb-2">
-              <h2 className="font-bold text-xl sm:text-2xl leading-tight text-[#E1E1E6]">
+              <span className="bg-blue-gradient-500 bg-clip-text text-transparent font-bold text-xl">
                 Nenhuma trilha em andamento
-              </h2>
+              </span>
             </div>
 
             <p className="text-[#737373] text-[13px] sm:text-sm max-w-[400px]">
@@ -44,15 +36,18 @@ export async function CurrentCourseCard() {
             </p>
           </div>
 
-          <div className="w-full lg:w-auto flex flex-col items-center gap-4 z-10">
-            <Link href="/learn/catalog" className="w-full sm:w-[280px] lg:w-[220px]">
-              <button
-                type="button"
-                className="flex items-center justify-center w-full h-[42px] gap-2 px-5 py-2 bg-[#FF6200] hover:bg-[#e65800] text-white font-medium text-sm rounded-xl transition-all active:scale-95 shadow-lg"
-              >
-                Explorar Catálogo
-              </button>
-            </Link>
+          <div className="w-full lg:w-auto flex flex-col items-center gap-4 z-10 relative">
+            <div className="flex justify-center items-center">
+              <Link href="/learn/catalog" className="relative block w-full">
+                <ShineBorder
+                  borderWidth={2}
+                  className="text-center min-h-[52px] flex items-center justify-center gap-2 hover:bg-[#25252A] rounded-[16px] bg-[#131315] text-white text-base font-medium capitalize"
+                  color={["#22D3EE", "#06B6D4", "#0891B2"]}
+                >
+                  Começar nova trilha <Plus size={20} className="text-[#22D3EE]" />
+                </ShineBorder>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

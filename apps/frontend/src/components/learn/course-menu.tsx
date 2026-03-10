@@ -76,14 +76,15 @@ export function CourseDropdownMenu({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <div
-          className={`bg-[#2A2A35] border-b-[1px] border-[#55555c] lg:bg-gray-gradient-first items-center justify-center border cursor-pointer flex transition-all duration-300 shrink-0
-    h-[52px] w-[120px] lg:rounded-lg rounded-full lg:h-auto lg:w-auto lg:max-h-[42px] lg:py-3 lg:px-4 lg:gap-2 lg:rounded-[12px]
-    hover:bg-[#25252A] 
-    shadow-[0_0_15px_rgba(255,255,255,0.15)] hover:shadow-[0_0_20px_rgba(255,255,255,0.40)]
+          className={`bg-[#2A2A35]/40 backdrop-blur-md border-b-[1px] border-[#55555c]/50 items-center justify-center border cursor-pointer flex transition-all duration-300 shrink-0
+    h-[52px] w-[120px] rounded-full lg:h-auto lg:w-auto lg:max-h-[42px] lg:py-3 lg:px-4 lg:gap-2 lg:rounded-[12px]
+    hover:bg-[#25252A]/60 
+    shadow-[0_0_15px_rgba(255,255,255,0.10)] hover:shadow-[0_0_20px_rgba(255,255,255,0.30)]
+    lg:bg-transparent lg:backdrop-blur-none lg:shadow-none lg:hover:shadow-none
     
     ${open
-              ? "border-[#00C8FF] shadow-[0_0_25px_rgba(255,255,255,0.2)]" /* Quando aberto, o glow fica mais evidente */
-              : "border-[#25252A]"
+              ? "border-[#00C8FF]/70 lg:border-[#25252A] shadow-[0_0_25px_rgba(255,255,255,0.2)] lg:shadow-none"
+              : "border-[#55555c]/50 lg:border-[#25252A]"
             }`}
         >
           {currentActiveCourse?.icon ? (
@@ -95,10 +96,10 @@ export function CourseDropdownMenu({
               className="object-contain h-[50px] w-[50px] lg:h-[32px] lg:w-[32px]"
             />
           ) : (
-            <div className="h-[26px] w-[26px] bg-[#25252A] rounded lg:h-5 lg:w-5" />
+            null
           )}
           <p className="lg:block hidden">
-            {currentActiveCourse?.title || "Meus Cursos"}
+            {currentActiveCourse?.title || "Começar um curso"}
           </p>
         </div>
       </DropdownMenuTrigger>
@@ -112,7 +113,7 @@ export function CourseDropdownMenu({
       >
         <DropdownMenuLabel className="p-4 flex items-center justify-center">
           <span className="bg-blue-gradient-500 bg-clip-text text-transparent font-bold text-base">
-            Meus cursos
+            {currentActiveCourse ? "Meus cursos" : "Começar um curso"}
           </span>
         </DropdownMenuLabel>
 
