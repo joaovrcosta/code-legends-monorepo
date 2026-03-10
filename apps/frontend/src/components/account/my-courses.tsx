@@ -33,7 +33,7 @@ export async function MyCourses() {
             {completedCoursesList.map((course) => (
               <div
                 key={course.id}
-                className="flex items-center justify-between p-3 bg-transparent border border-[#333333] rounded-lg"
+                className="flex items-center justify-between p-3 bg-transparent border border-[#333333] rounded-[20px]"
               >
                 <div className="flex items-center space-x-3">
                   <Image

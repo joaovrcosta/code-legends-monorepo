@@ -9,9 +9,8 @@ import {
 export async function CurrentCourses() {
     const { userCourses } = await getUserEnrolledList();
 
-    // Filtra apenas cursos com progresso > 0
     const coursesWithProgress = userCourses.filter(
-        (course) => course.progress > 0
+        (course) => course.progress > 0 && !course.isCompleted
     );
 
     if (coursesWithProgress.length === 0) return null;

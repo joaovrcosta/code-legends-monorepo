@@ -69,8 +69,15 @@ export function CourseDropdownMenu({
     };
   }, [open]);
 
-  // Usa o activeCourse do store se disponível, senão usa o inicial
-  const currentActiveCourse = activeCourse || initialActiveCourse;
+  // Usa o activeCourse do store se disponível, senão usa o inicial,
+  // mas ignora cursos que já foram concluídos
+  const storeActiveCourse =
+    activeCourse && !activeCourse.isCompleted ? activeCourse : null;
+  const initialActive =
+    initialActiveCourse && !initialActiveCourse.isCompleted
+      ? initialActiveCourse
+      : null;
+  const currentActiveCourse = storeActiveCourse || initialActive;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>

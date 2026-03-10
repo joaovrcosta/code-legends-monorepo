@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import {
   Carousel,
@@ -6,9 +6,10 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from '@/components/ui/carousel'
-import type { CourseWithCount } from '@/types/user-course.ts'
-import { CatalogCard } from './catalog-card'
+} from "@/components/ui/carousel"
+import type { CourseWithCount } from "@/types/user-course.ts"
+import { CatalogCard } from "./catalog-card"
+import { useSession } from "next-auth/react"
 
 // Função para mapear level para color
 const getColorByLevel = (level: string): string => {
@@ -39,6 +40,9 @@ export function RecommendationsCarousel({
 }: {
   courses: CourseWithCount[]
 }) {
+  const { data } = useSession()
+  const plan = (data?.user as any)?.plan ?? "FREE"
+  const isFreeUser = plan === "FREE"
   return (
     <div className="relative overflow-y-visible overflow-x-hidden pt-6 pb-0">
       <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-[#121214] to-transparent" />
@@ -74,8 +78,8 @@ export function RecommendationsCarousel({
               >
                 <CatalogCard
                   name={course.title}
-                  icon={course.icon || ''}
-                  thumbnail={course.thumbnail || ''}
+                  icon={course.icon || ""}
+                  thumbnail={course.thumbnail || ""}
                   url={`/learn/paths/${course.slug}`}
                   color={getColorByLevel(course.level)}
                   status="not-started"
@@ -85,6 +89,7 @@ export function RecommendationsCarousel({
                   level={course.level}
                   isFree={course.isFree}
                   position={position}
+                  isFreeUser={isFreeUser}
                 />
               </CarouselItem>
             )

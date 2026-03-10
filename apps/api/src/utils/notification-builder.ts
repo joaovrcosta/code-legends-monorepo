@@ -128,7 +128,7 @@ export class NotificationBuilder {
       userId,
       type: NotificationType.COURSE_COMPLETED,
       title: "Curso Completado! 🎊",
-      message: `Parabéns! Você completou o curso "${course.courseTitle}". Continue aprendendo!`,
+      message: `Certificado gerado para o curso "${course.courseTitle}". Continue aprendendo!`,
       data: {
         courseId: course.courseId,
         courseTitle: course.courseTitle,

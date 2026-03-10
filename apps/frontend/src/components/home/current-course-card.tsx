@@ -10,11 +10,9 @@ import { ShineBorder } from '../ui/border-beam'
 export async function CurrentCourseCard() {
   const activeCourse = await getActiveCourse()
 
-  const userProgress = activeCourse
-    ? await getUserCourseProgress(activeCourse.slug)
-    : null
-
-  if (!activeCourse) {
+  // Se não houver curso ativo ou se o curso ativo já estiver concluído,
+  // mostra o estado vazio (sem formação ativa)
+  if (!activeCourse || activeCourse.isCompleted) {
     return (
       <div className="w-full max-w-full overflow-hidden">
         <div className="flex h-fit bg-gray-gradient border-[#25252A] flex-col lg:flex-row justify-between items-center rounded-[20px] border border-[#25252A] p-4 sm:p-6 gap-6 relative overflow-hidden">
@@ -53,6 +51,10 @@ export async function CurrentCourseCard() {
       </div>
     )
   }
+
+  const userProgress = activeCourse
+    ? await getUserCourseProgress(activeCourse.slug)
+    : null
 
   // VISUAL PADRÃO (COM CURSO ATIVO)
   return (

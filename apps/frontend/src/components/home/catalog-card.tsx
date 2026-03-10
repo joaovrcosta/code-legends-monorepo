@@ -175,7 +175,10 @@ interface RecomendationCardProps {
   level?: string
   isFree?: boolean
   position?: 'first' | 'middle' | 'last'
+  isFreeUser?: boolean
 }
+
+
 
 export function CatalogCard({
   name,
@@ -189,9 +192,9 @@ export function CatalogCard({
   level,
   isFree,
   position = 'middle',
+  isFreeUser = true,
 }: RecomendationCardProps) {
   const { label, className: statusClass } = getStatusInfo(status)
-
   const transformOriginClass =
     position === 'first'
       ? 'origin-left'
@@ -206,11 +209,10 @@ export function CatalogCard({
     transition-transform transition-shadow transition-border duration-300 ease-out
     hover:z-20 hover:-translate-y-3 hover:scale-[1.08] hover:border-[#3f3f48]
     hover:shadow-[0_30px_60px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06),inset_0_-24px_24px_rgba(255,255,255,0.03)]
-    ${
-      isCurrent
-        ? 'bg-blue-gradient-second border-[#35BED5]'
-        : 'bg-gray-gradient border-[#25252A]'
-    }
+    ${isCurrent
+            ? 'bg-blue-gradient-second border-[#35BED5]'
+            : 'bg-gray-gradient border-[#25252A]'
+          }
     ${transformOriginClass}
     ${className}`}
       >
@@ -229,21 +231,21 @@ export function CatalogCard({
         {label && (
           <div className="relative z-10 flex items-center justify-between rounded-t-[20px] pr-4 pl-4 pt-4 pb-0">
             <div
-              className={`text-white ${statusClass} rounded-full px-2 border ${
-                isCurrent ? 'border-white' : 'border-[#25252A]'
-              }`}
+              className={`text-white ${statusClass} rounded-full px-2 border ${isCurrent ? 'border-white' : 'border-[#25252A]'
+                }`}
             >
               <p className="text-xs text-muted-foreground">{label}</p>
             </div>
-            {isFree ? (
-              <div className="bg-lime-500/10 border border-lime-500/20 rounded-full px-2 py-1">
-                <p className="text-xs text-lime-400 font-semibold">Gratuito</p>
-              </div>
-            ) : (
-              <div className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-1 rounded-full bg-gradient-to-r from-purple-500/10 to-orange-400/20 text-purple-400 border border-purple-500/20">
-                Para assinantes
-              </div>
-            )}
+            {isFreeUser &&
+              (isFree ? (
+                <div className="bg-lime-500/10 border border-lime-500/20 rounded-full px-2 py-1">
+                  <p className="text-xs text-lime-400 font-semibold">Gratuito</p>
+                </div>
+              ) : (
+                <div className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-1 rounded-full bg-gradient-to-r from-purple-500/10 to-orange-400/20 text-purple-400 border border-purple-500/20">
+                  Para assinantes
+                </div>
+              ))}
           </div>
         )}
 
