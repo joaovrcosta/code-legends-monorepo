@@ -114,13 +114,30 @@ export default function CareersPage() {
             <ArrowLeft className="text-white" size={20} />
           </button>
 
-          <PrimaryButton
-            onClick={handleContinue}
-            disabled={!selectedCareer || isLoading}
-            className="min-w-[200px] max-w-[200px] z-50"
-          >
-            {isLoading ? "Carregando..." : "Continuar"}
-          </PrimaryButton>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={isLoading || categories.length === 0}
+              onClick={() => {
+                const fallbackSlug = selectedCareer || categories[0]?.slug;
+                if (!fallbackSlug) return;
+                router.push(
+                  `/onboarding/pick-a-goal/careers/choose-course?categorySlug=${fallbackSlug}`
+                );
+              }}
+              className="text-sm text-white/60 hover:text-white underline-offset-4 hover:underline disabled:opacity-50"
+            >
+              Pular etapa
+            </button>
+
+            <PrimaryButton
+              onClick={handleContinue}
+              disabled={!selectedCareer || isLoading}
+              className="min-w-[200px] max-w-[200px] z-50"
+            >
+              {isLoading ? "Carregando..." : "Continuar"}
+            </PrimaryButton>
+          </div>
         </div>
       </div>
     </div>

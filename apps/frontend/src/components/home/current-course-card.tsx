@@ -2,17 +2,64 @@ import { getActiveCourse } from '@/actions/user/get-active-course'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Progress } from '../ui/progress'
-import { BarbellIcon, Trophy } from '@phosphor-icons/react/dist/ssr'
+// Importei o MapTrifold para usar como ícone de "falta de trilha"
+import { BarbellIcon, Trophy, MapTrifold } from '@phosphor-icons/react/dist/ssr'
 import { ContinueCourseButton } from './continue-course-button'
 import { getUserCourseProgress } from '@/actions/progress'
+import emptyCourseBackground from '../../../public/isometric-mockups-3.png'
 
 export async function CurrentCourseCard() {
   const activeCourse = await getActiveCourse()
 
-  const userProgress = await getUserCourseProgress(activeCourse?.slug || '')
+  // Otimização: Só busca o progresso se houver um curso ativo
+  const userProgress = activeCourse
+    ? await getUserCourseProgress(activeCourse.slug)
+    : null
 
-  if (!activeCourse) return null
+  // VISUAL DE "FALTA DE TRILHA ATUAL"
+  if (!activeCourse) {
+    return (
+      <div className="w-full max-w-full overflow-hidden">
+        <div
+          className="flex h-[240px] flex-col lg:flex-row justify-between items-center rounded-[20px] border border-[#25252A] p-5 sm:p-6 gap-6 bg-cover bg-center bg-no-repeat relative"
+          style={{
+            backgroundImage: `linear-gradient(to bottom, rgba(26, 26, 30, 0.60), rgba(14, 14, 14, 0.95)), url(${emptyCourseBackground.src})`
+          }}
+        >
+          <div className="flex flex-col items-center lg:items-start w-full lg:w-auto text-center lg:text-left z-10">
+            <div className="mb-4">
+              <span className="bg-transparent text-[#737373] border border-[#737373] text-[10px] sm:text-xs font-medium px-3 py-1 rounded-full uppercase tracking-wider bg-[#1a1a1e]/50 backdrop-blur-sm">
+                Sem Formação Ativa
+              </span>
+            </div>
 
+            <div className="flex flex-row items-center justify-center lg:justify-start gap-3 mb-2">
+              <h2 className="font-bold text-xl sm:text-2xl leading-tight text-[#E1E1E6]">
+                Nenhuma trilha em andamento
+              </h2>
+            </div>
+
+            <p className="text-[#737373] text-[13px] sm:text-sm max-w-[400px]">
+              Você ainda não começou nenhum curso. Explore nosso catálogo e dê o próximo passo na sua jornada.
+            </p>
+          </div>
+
+          <div className="w-full lg:w-auto flex flex-col items-center gap-4 z-10">
+            <Link href="/learn/catalog" className="w-full sm:w-[280px] lg:w-[220px]">
+              <button
+                type="button"
+                className="flex items-center justify-center w-full h-[42px] gap-2 px-5 py-2 bg-[#FF6200] hover:bg-[#e65800] text-white font-medium text-sm rounded-xl transition-all active:scale-95 shadow-lg"
+              >
+                Explorar Catálogo
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // VISUAL PADRÃO (COM CURSO ATIVO)
   return (
     <div className="w-full max-w-full overflow-hidden">
       <div className="flex flex-col lg:flex-row justify-between items-center rounded-[20px] bg-gradient-to-b border border-[#25252A] from-[#1a1a1e] to-[#0e0e0e] p-5 sm:p-6 gap-6">

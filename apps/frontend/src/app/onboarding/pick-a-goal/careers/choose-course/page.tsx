@@ -40,23 +40,10 @@ function ChooseCourseContent() {
     fetchCourses();
   }, [categorySlug]);
 
-  const handleContinue = async () => {
-    if (!selectedCourse) return;
-
+  const finishOnboardingAndGoToLearn = async () => {
     try {
       setIsLoading(true);
       setError("");
-      // Encontrar o curso selecionado para obter o ID
-      const course = courses.find((c) => c.slug === selectedCourse);
-      if (course) {
-        // Inscrever o usuário no curso
-        const { enrollInCourse } = await import("@/actions/course/enroll");
-        await enrollInCourse(course.id);
-
-        // Iniciar o curso selecionado
-        const { startCourse } = await import("@/actions/course/start");
-        await startCourse(course.id);
-      }
       await completeOnboarding();
 
       // Verificar diretamente na API se o onboarding foi completado
@@ -99,6 +86,36 @@ function ChooseCourseContent() {
       // Usar window.location.href para fazer hard redirect e forçar o middleware
       // a buscar a sessão atualizada do servidor
       window.location.href = "/learn";
+    } catch (error) {
+      console.error("Erro ao completar onboarding:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Erro ao completar onboarding. Tente novamente."
+      );
+      setIsLoading(false);
+    }
+  };
+
+  const handleContinue = async () => {
+    if (!selectedCourse) return;
+
+    try {
+      setIsLoading(true);
+      setError("");
+      // Encontrar o curso selecionado para obter o ID
+      const course = courses.find((c) => c.slug === selectedCourse);
+      if (course) {
+        // Inscrever o usuário no curso
+        const { enrollInCourse } = await import("@/actions/course/enroll");
+        await enrollInCourse(course.id);
+
+        // Iniciar o curso selecionado
+        const { startCourse } = await import("@/actions/course/start");
+        await startCourse(course.id);
+      }
+
+      await finishOnboardingAndGoToLearn();
     } catch (error) {
       console.error("Erro ao completar onboarding:", error);
       setError(
@@ -199,13 +216,24 @@ function ChooseCourseContent() {
             <ArrowLeft className="text-white" size={20} />
           </button>
 
-          <PrimaryButton
-            onClick={handleContinue}
-            disabled={!selectedCourse || isLoading}
-            className="min-w-[200px] max-w-[200px] z-50"
-          >
-            {isLoading ? "Criando sua trilha..." : "Finalizar"}
-          </PrimaryButton>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={finishOnboardingAndGoToLearn}
+              className="text-sm text-white/60 hover:text-white underline-offset-4 hover:underline disabled:opacity-50"
+            >
+              Pular etapa
+            </button>
+
+            <PrimaryButton
+              onClick={handleContinue}
+              disabled={!selectedCourse || isLoading}
+              className="min-w-[200px] max-w-[200px] z-50"
+            >
+              {isLoading ? "Criando sua trilha..." : "Finalizar"}
+            </PrimaryButton>
+          </div>
         </div>
       </div>
     </div>

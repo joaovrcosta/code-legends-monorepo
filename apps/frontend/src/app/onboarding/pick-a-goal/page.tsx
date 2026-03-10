@@ -150,13 +150,24 @@ export default function PickAGoalPage() {
             <ArrowLeft className="text-white" size={20} />
           </button>
 
-          <PrimaryButton
-            onClick={handleContinue}
-            disabled={!selectedGoal || isLoading}
-            className="min-w-[200px] max-w-[200px] z-50"
-          >
-            {isLoading ? "Salvando..." : "Continuar"}
-          </PrimaryButton>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => router.push("/onboarding/pick-a-goal/careers")}
+              disabled={isLoading}
+              className="text-sm text-white/60 hover:text-white underline-offset-4 hover:underline disabled:opacity-50"
+            >
+              Pular etapa
+            </button>
+
+            <PrimaryButton
+              onClick={handleContinue}
+              disabled={!selectedGoal || isLoading}
+              className="min-w-[200px] max-w-[200px] z-50"
+            >
+              {isLoading ? "Salvando..." : "Continuar"}
+            </PrimaryButton>
+          </div>
         </div>
       </div>
     </div>
