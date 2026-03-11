@@ -35,8 +35,14 @@ export function GenerateCertificateButton({
       // Gera o certificado na API primeiro
       const result = await generateCertificate(courseId);
 
-      const newCertificateId =
-        (result as any)?.data?.certificate?.id ?? course.certificateId ?? null;
+      const newCertificateId: string | null =
+        (result && typeof result === "object" && "data" in result
+          && result.data
+          && typeof result.data === "object"
+          && "certificate" in result.data
+          && (result.data as { certificate?: { id?: string } }).certificate?.id) ??
+        course.certificateId ??
+        null;
 
       if (newCertificateId) {
         setCertificateId(newCertificateId);

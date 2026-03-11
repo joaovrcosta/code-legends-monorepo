@@ -6,7 +6,7 @@ import { findLessonContext, generateLessonUrl } from '@/utils/lesson-url'
 import { useRouter } from 'next/navigation'
 import { useMemo, memo, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { ChevronDown, Video, FileText, HelpCircle, Code2, CheckIcon } from 'lucide-react'
+import { ChevronDown, Video, FileText, HelpCircle, Code2 } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
