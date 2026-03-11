@@ -33,6 +33,7 @@ import {
   ThumbsDown,
   Trophy,
   VideoCameraIcon,
+  CaretLeftIcon,
 } from '@phosphor-icons/react/dist/ssr'
 import { ArrowLeft, ChartNoAxesColumnIncreasingIcon, Loader2 } from 'lucide-react'
 
@@ -229,7 +230,6 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
 
   return (
     <>
-      {/* STICKY HEADER */}
       <div
         className={cn(
           'sticky lg:top-[0px] top-[-1px] z-50 transition-all shadow-2xl duration-300 border-b border-[#25252A] bg-[#151518] p-3 px-4',
@@ -258,7 +258,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
       </div>
 
       {/* HERO SECTION */}
-      <section className="relative bg-gray-gradient border-b border-[#25252A] lg:py-12 lg:px-12 px-6 pb-8 pt-4 flex flex-col lg:flex-row items-center">
+      <section className="relative bg-blue-aurora border-b border-[#25252A] lg:py-12 lg:px-12 px-6 pb-8 pt-4 flex flex-col lg:flex-row items-center">
         <div className='flex w-full items-center justify-center max-w-[1356px] gap-8 mx-auto flex-col lg:flex-row'>
           <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
 
@@ -266,10 +266,10 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             {/* Back Button */}
             <button
               onClick={() => router.back()}
-              className="hover:bg-[#25252A] group p-2 rounded-lg flex items-center gap-2 mb-4 text-[#7e7e89] transition-colors"
+              className="hover:bg-[#25252A] group p-2 lg:bg-transparent bg-white/5 rounded-lg flex items-center gap-2 mb-4 text-[#7e7e89] transition-colors"
             >
-              <ArrowLeft size={16} />
-              <span className="text-xs uppercase tracking-wider">Voltar</span>
+              <CaretLeftIcon size={24} weight="bold" />
+              <span className="text-xs lg:block hidden uppercase tracking-wider">Voltar</span>
             </button>
 
             {/* Course Icon */}
@@ -296,21 +296,17 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
               {/* Progress & Reset */}
               <div className="flex-col pb-12 mt-6 w-full max-w-[500px]">
                 <div className="flex items-center gap-4">
-                  <Progress value={userProgress?.course.progress ?? 0} className="w-full bg-[#25252A] h-[2px]" />
-                  <p className="text-sm font-medium">{Math.round(userProgress?.course.progress ?? 0)}%</p>
-                  <Trophy size={28} weight="fill" className={userProgress?.course.progress === 100 ? "text-yellow-500" : "text-[#25252A]"} />
+                  <div className="flex-1 space-y-2">
+                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-[#7e7e89]">
+                      <span>Seu Progresso</span>
+                      <span className="text-white">{Math.round(userProgress?.course.progress ?? 0)}%</span>
+                    </div>
+                    <Progress value={userProgress?.course.progress ?? 0} className="h-[2px] bg-[#1a1a1e]">
+                      <div className="h-full bg-blue-500 shadow-[0_0_15px_rgba(0,200,255,0.4)]" />
+                    </Progress>
+                  </div>
+                  <Trophy size={32} weight="fill" className={userProgress?.course.progress === 100 ? "text-yellow-500" : "text-[#25252A]"} />
                 </div>
-
-                {isEnrolled && (
-                  <button
-                    onClick={() => setShowResetModal(true)}
-                    disabled={isResetting}
-                    className="hover:text-red-400 text-[#a5a5a6] text-xs mt-3 flex gap-2 items-center group transition-colors"
-                  >
-                    <ArrowClockwise className={cn(isResetting && 'animate-spin')} />
-                    Resetar progresso
-                  </button>
-                )}
               </div>
 
               {/* Main Action Buttons */}
@@ -339,6 +335,16 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+
+                  {isEnrolled && (
+                    <button
+                      onClick={() => setShowResetModal(true)}
+                      className="h-[54px] w-[54px] flex items-center justify-center border-2 rounded-full border-[#25252A] text-[#7e7e89] hover:text-red-400 hover:border-red-400/30 transition-all"
+                      title="Resetar progresso"
+                    >
+                      <ArrowClockwise size={26} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -376,41 +382,30 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
       </section>
 
       <Dialog open={showResetModal} onOpenChange={setShowResetModal}>
-        <DialogContent className="bg-[#1a1a1e] border-[#25252A] max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle className='mb-3 text-2xl font-bold'>Resetar Progresso</DialogTitle>
-            <DialogDescription>
-              Esta ação é irreversível. Todo o seu histórico de aulas assistidas e desafios deste curso será apagado.
+        <DialogContent className="bg-[#0c0c0f] border-[#25252A] max-w-[420px] rounded-[32px]">
+          <DialogHeader className="flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+              <ArrowClockwise size={32} className="text-red-500" />
+            </div>
+            <DialogTitle className='text-2xl font-black uppercase italic tracking-tighter'>Resetar curso?</DialogTitle>
+            <DialogDescription className="text-[#a5a5a6] pt-2">
+              Esta ação é **irreversível**. Seu histórico de progresso e certificados ganhos neste curso serão apagados permanentemente.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-3 sm:gap-2 mt-6">
+          <DialogFooter className="flex flex-col sm:flex-row gap-3 mt-8">
             <Button
               variant="ghost"
               onClick={() => setShowResetModal(false)}
-              disabled={isResetting}
-              className="text-[#a5a5a6] w-full hover:text-white hover:bg-[#25252A] transition-all rounded-xl h-11 px-6"
+              className="flex-1 h-12 rounded-xl font-bold text-[#7e7e89] hover:text-white"
             >
-              Cancelar
+              Manter progresso
             </Button>
-
             <Button
               onClick={handleResetProgress}
               disabled={isResetting}
-              className={cn(
-                "relative h-11 px-8 rounded-xl font-bold transition-all duration-300",
-                "bg-red-500/10 text-red-500 border border-red-500/20", // Estado inicial sutil
-                "hover:bg-red-600 hover:text-white hover:border-red-600 hover:shadow-[0_0_20px_rgba(220,38,38,0.4)]", // Hover vibrante
-                "active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-              )}
+              className="flex-1 h-12 rounded-xl font-bold bg-red-600 hover:bg-red-700 shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all active:scale-95"
             >
-              {isResetting ? (
-                <div className="flex items-center gap-2">
-                  <ArrowClockwise className="animate-spin" size={18} />
-                  Resetando...
-                </div>
-              ) : (
-                "Confirmar Reset"
-              )}
+              {isResetting ? 'Limpando...' : 'Confirmar Reset'}
             </Button>
           </DialogFooter>
         </DialogContent>

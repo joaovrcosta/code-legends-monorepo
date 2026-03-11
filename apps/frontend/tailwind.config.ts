@@ -59,6 +59,9 @@ export default {
       },
       backgroundImage: {
         "silver-gradient": "linear-gradient(0deg, #828282 0%, #fff 100%);",
+        "blue-gradient-glow":
+          "linear-gradient(0deg, rgba(12, 12, 15, 0.05) 0%, rgba(20, 30, 50, 0.39) 100%)",
+        "blue-aurora": "linear-gradient(135deg, rgba(0,200,255,0.15) 0%, rgba(10,10,12,0) 50%)",
         "gray-gradient":
           "linear-gradient(0deg, rgba(32,32,32, 0.05) 0%, rgba(26,26,30, 0.39) 100%)",
         "gray-gradient-first":

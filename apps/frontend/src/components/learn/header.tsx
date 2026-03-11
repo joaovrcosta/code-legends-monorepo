@@ -81,7 +81,7 @@ export default function LearnHeader({
 
   return (
     <div
-      className="learn-header fixed left-0 w-full z-50 bg-[#121214] shadow-lg border-b-[1px] border-[#25252a] lg:py-0 py-2"
+      className="learn-header lg:h-[78px] h-[64px] fixed left-0 w-full z-50 bg-[#121214] shadow-lg border-b-[1px] border-[#25252a] lg:py-0 py-2"
       style={{
         top: 'calc(var(--top-banner-height) + var(--header-top-offset))',
       }}
