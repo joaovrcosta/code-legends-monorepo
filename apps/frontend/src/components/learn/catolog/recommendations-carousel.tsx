@@ -37,9 +37,10 @@ export function RecommendationsCarousel({
 }: {
   courses: CourseWithCount[]
 }) {
-  const { data } = useSession()
-  const plan = (data?.user as any)?.plan ?? 'FREE'
-  const isFreeUser = plan === 'FREE'
+  const { data, status } = useSession()
+  const plan = (data?.user as { plan?: "FREE" | "PRO" | "PREMIUM" } | undefined)?.plan
+  const isFreeUser =
+    status === "loading" ? undefined : plan === "FREE" ? true : plan ? false : undefined
   return (
     <div className="relative">
       <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-[#121214] to-transparent z-10" />

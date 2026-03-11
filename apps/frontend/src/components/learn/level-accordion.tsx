@@ -32,7 +32,7 @@ export function LevelAccordion() {
             <div className="flex justify-between w-full items-center">
               <div className="flex items-center justify-center flex-col w-full">
                 <span className="text-[#787878] lg:text-[20px] text-[16px] font-medium">
-                  ReactJS Level
+                  Nível do curso
                 </span>
                 <LevelProgressBar />
               </div>

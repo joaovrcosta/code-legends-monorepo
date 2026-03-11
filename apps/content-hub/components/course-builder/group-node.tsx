@@ -282,6 +282,14 @@ export function GroupNode({
               onChange={(e) => setTitle(e.target.value)}
               className="flex-1"
               autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (!loading) {
+                    void handleSave();
+                  }
+                }
+              }}
             />
             <Button size="sm" onClick={handleSave} disabled={loading}>
               <Save className="h-4 w-4" />

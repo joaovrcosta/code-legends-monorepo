@@ -175,6 +175,12 @@ interface RecomendationCardProps {
   level?: string
   isFree?: boolean
   position?: 'first' | 'middle' | 'last'
+  /**
+   * Indica se o usuário atual está no plano FREE.
+   * - true  => mostra badge "Gratuito/Para assinantes"
+   * - false => oculta badge (usuário PRO/PREMIUM)
+   * - undefined => plano ainda não resolvido (SSR/hidratação), não mostra nada
+   */
   isFreeUser?: boolean
 }
 
@@ -192,7 +198,7 @@ export function CatalogCard({
   level,
   isFree,
   position = 'middle',
-  isFreeUser = true,
+  isFreeUser,
 }: RecomendationCardProps) {
   const { label, className: statusClass } = getStatusInfo(status)
   const transformOriginClass =
@@ -236,7 +242,7 @@ export function CatalogCard({
             >
               <p className="text-xs text-muted-foreground">{label}</p>
             </div>
-            {isFreeUser &&
+            {isFreeUser === true &&
               (isFree ? (
                 <div className="bg-lime-500/10 border border-lime-500/20 rounded-full px-2 py-1">
                   <p className="text-xs text-lime-400 font-semibold">Gratuito</p>

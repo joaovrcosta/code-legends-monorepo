@@ -17,6 +17,7 @@ import { start } from "./start.controller";
 import { getActive } from "./get-active.controller";
 import { myLearning } from "./my-learning.controller";
 import { resetProgress } from "./reset-progress.controller";
+import { unenroll } from "./unenroll.controller";
 import { getCourseProgress } from "./get-progress.controller";
 import { getLessonBySlug } from "./get-lesson-by-slug.controller";
 import { publish } from "./publish.controller";
@@ -75,6 +76,7 @@ export async function courseRoutes(app: FastifyInstance) {
   app.post("/courses/:id/enroll", { onRequest: [verifyJWT] }, enroll);
   app.post("/courses/:id/start", { onRequest: [verifyJWT] }, start);
   app.post("/courses/:id/reset-progress", { onRequest: [verifyJWT] }, resetProgress);
+  app.post("/courses/:id/unenroll", { onRequest: [verifyAdmin] }, unenroll);
   app.get("/courses/:id/continue", { onRequest: [verifyJWT] }, continueCourse);
   app.get("/courses/continue", { onRequest: [verifyJWT] }, continueCourse); // Sem ID: usa curso ativo
   app.get(

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getUserEnrolledList } from "@/actions/progress/get-user-enrolled-list";
+import { useActiveCourseStore } from "@/stores/active-course-store";
 
 interface UseCourseEnrollmentReturn {
   isEnrolled: boolean;
@@ -68,6 +69,18 @@ export function useCourseEnrollment(courseId: string): UseCourseEnrollmentReturn
       // Inicia o curso (define como ativo)
       const { startCourse } = await import("@/actions/course/start");
       await startCourse(courseId);
+
+      // Sincroniza imediatamente o curso ativo no store para evitar telas vazias
+      // ao navegar direto para a aula após a inscrição.
+      try {
+        const { getActiveCourse } = await import("@/actions/user/get-active-course");
+        const active = await getActiveCourse();
+        if (active) {
+          useActiveCourseStore.getState().setActiveCourse(active);
+        }
+      } catch (syncError) {
+        console.error("Erro ao sincronizar curso ativo no store:", syncError);
+      }
 
       // Retorna o caminho para redirecionamento
       return redirectPath;

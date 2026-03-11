@@ -92,7 +92,7 @@ export function ContinueCourseButton({
         <PrimaryButton
             onClick={handleClick}
             disabled={isLoading || isCheckingEnrollment}
-            className={`w-full bg-blue-gradient-500 transition-all rounded-[12px] lg:text-[18px] text-[14px] duration-300 hover:shadow-[0_0_12px_#00C8FF] font-semibold px-6 py-2 lg:h-[50px] h-[42px] disabled:opacity-50 border-none ${className}`}
+            className={`w-full bg-blue-gradient-500 transition-all rounded-[12px] lg:text-[18px] text-[16px] duration-300 hover:shadow-[0_0_12px_#00C8FF] font-semibold px-6 h-[54px] disabled:opacity-50 border-none ${className}`}
             suppressHydrationWarning
         >
             <span className="flex items-center gap-2">

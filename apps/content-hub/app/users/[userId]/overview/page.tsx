@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getUserOverview, type UserOverview } from "@/actions/user/get-user-overview";
 import { getUserSkills, type UserSkillsResponse } from "@/actions/user/get-user-skills";
 import { updateUserOverview, type UpdateUserOverviewData } from "@/actions/user/update-user-overview";
+import { unenrollUserFromCourse } from "@/actions/user/unenroll-course";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft, User, BookOpen, CheckCircle2, TrendingUp, Award, Clock, Target, Edit, X, CreditCard, Calendar } from "lucide-react";
 import Image from "next/image";
@@ -180,6 +181,34 @@ function UserOverviewPageContent() {
   };
 
   const getPlanLabel = (plan: string | undefined) => plan === "PREMIUM" ? "Premium" : plan === "PRO" ? "Pro" : "Free";
+
+  const handleUnenrollFromCourse = async (courseId: string) => {
+    if (!overview) return;
+    const confirmed = window.confirm(
+      "Tem certeza que deseja desmatricular este aluno deste curso?\n\nEle perderá TODO o progresso e XP relacionado às aulas deste curso."
+    );
+    if (!confirmed) return;
+
+    try {
+      const token = getAuthTokenFromClient();
+      if (!token) {
+        toast.error("Token de autenticação não encontrado");
+        return;
+      }
+
+      await unenrollUserFromCourse({ userId, courseId, token });
+
+      toast.success("Aluno desmatriculado e progresso/XP removidos para este curso.");
+      await loadOverview();
+    } catch (error) {
+      console.error("Erro ao desmatricular aluno do curso:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Erro ao desmatricular aluno do curso"
+      );
+    }
+  };
 
   if (loading) {
     return (
@@ -816,7 +845,7 @@ function UserOverviewPageContent() {
                     key={course.id}
                     className="border border-gray-200 dark:border-[#25252a] rounded-lg p-4"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                           {course.courseTitle}
@@ -825,15 +854,25 @@ function UserOverviewPageContent() {
                           {course.courseSlug}
                         </p>
                       </div>
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                          course.isCompleted
-                            ? "bg-emerald-900/20 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
-                            : "bg-blue-900/20 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300"
-                        }`}
-                      >
-                        {course.isCompleted ? "Completo" : "Em Progresso"}
-                      </span>
+                      <div className="flex flex-col items-end gap-2">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                            course.isCompleted
+                              ? "bg-emerald-900/20 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                              : "bg-blue-900/20 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300"
+                          }`}
+                        >
+                          {course.isCompleted ? "Completo" : "Em Progresso"}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs border-red-500 text-red-600 hover:bg-red-500 hover:text-white"
+                          onClick={() => handleUnenrollFromCourse(course.courseId)}
+                        >
+                          Desmatricular e zerar XP
+                        </Button>
+                      </div>
                     </div>
                     <div className="mt-3 space-y-2">
                       <div className="flex items-center justify-between text-sm">
