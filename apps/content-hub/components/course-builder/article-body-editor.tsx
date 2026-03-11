@@ -27,6 +27,12 @@ import {
   X,
 } from 'lucide-react'
 import type { Challenge, ChallengeType } from '@/actions/lesson/list-lessons'
+import type { RichTextEditorRef } from './rich-text-editor'
+
+const RichTextEditor = dynamic(
+  () => import('./rich-text-editor').then((m) => m.RichTextEditor),
+  { ssr: false },
+)
 
 const ArticleCodeHighlighter = dynamic(
   () =>
@@ -559,8 +565,9 @@ export function ArticleBodyEditor({
     placeholder ??
     (isArticle ? ARTICLE_PLACEHOLDER : 'Escreva o conteúdo em Markdown...')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const richTextRef = useRef<RichTextEditorRef>(null)
   const [showHelp, setShowHelp] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false) // Note: isExpanded might not be used anymore if we remove fullscreen mode, but we can keep the state to avoid errors
   const [insertChallengeOpen, setInsertChallengeOpen] = useState(false)
   const [previewValue, setPreviewValue] = useState(value)
 
@@ -571,6 +578,11 @@ export function ArticleBodyEditor({
 
   const insertAtCursor = useCallback(
     (snippet: string) => {
+      if (isArticle && richTextRef.current) {
+        richTextRef.current.insertMarkdown(snippet)
+        return
+      }
+
       const textarea = textareaRef.current
       if (!textarea) {
         onChange(value + snippet)
@@ -618,9 +630,15 @@ export function ArticleBodyEditor({
     (block: string) => {
       insertAtCursor(block)
       setInsertChallengeOpen(false)
-      requestAnimationFrame(() => textareaRef.current?.focus())
+      requestAnimationFrame(() => {
+        if (isArticle && richTextRef.current) {
+          // BlockNote maintains focus generally
+        } else {
+          textareaRef.current?.focus()
+        }
+      })
     },
-    [insertAtCursor],
+    [insertAtCursor, isArticle],
   )
 
   const handleKeyDown = useCallback(
@@ -684,50 +702,26 @@ export function ArticleBodyEditor({
           <div className="flex items-center justify-between gap-2 border-b border-zinc-800/80 pb-2">
             <div className="flex flex-col">
               <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                Editor de artigo
+                Editor Visual (Block Editor)
               </span>
               <span className="text-[11px] text-zinc-500">
-                Markdown à esquerda, pré-visualização à direita
+                Digite '/' para acessar menus avançados ou arraste os blocos.
               </span>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsExpanded((v) => !v)}
-              className="inline-flex items-center gap-1 rounded-md border border-zinc-700 px-2 py-1 text-[11px] font-medium text-zinc-300 hover:bg-zinc-800 transition-colors"
-            >
-              {isExpanded ? (
-                <>
-                  <Minimize2 className="h-3 w-3" />
-                  Compactar
-                </>
-              ) : (
-                <>
-                  <Maximize2 className="h-3 w-3" />
-                  Expandir
-                </>
-              )}
-            </button>
+            {/* The maximize/minimize logic for the WYSIWYG editor could go here, but omitted for simplicity. */}
           </div>
 
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
             {snippetsToolbar}
-            <span className="text-[11px] text-zinc-500">Suporta GFM</span>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 pt-2">
-            <div>
-              <Textarea
-                ref={textareaRef}
-                id={id}
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                onKeyDown={handleKeyDown}
-                rows={rows}
-                className="font-mono text-sm leading-relaxed h-full min-h-[200px]"
-                placeholder={effectivePlaceholder}
-              />
-            </div>
-            <div>{previewNode}</div>
+          <div className="pt-2">
+            <RichTextEditor 
+              ref={richTextRef} 
+              initialMarkdown={value} 
+              onChange={onChange} 
+              className="min-h-[400px]" 
+            />
           </div>
         </div>
       ) : (
@@ -746,54 +740,6 @@ export function ArticleBodyEditor({
           />
           {previewNode}
         </>
-      )}
-
-      {isArticle && isExpanded && (
-        <div className="fixed inset-0 z-60 bg-zinc-950">
-          <div className="flex h-full w-full flex-col gap-3 p-3 md:p-6">
-            <div className="flex items-center justify-between gap-2 border-b border-zinc-800 pb-3">
-              <div className="flex flex-col">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-400">
-                  Editor de artigo em tela cheia
-                </span>
-                <span className="text-[11px] text-zinc-500">
-                  Markdown à esquerda, pré-visualização à direita
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsExpanded(false)}
-                className="inline-flex items-center gap-1 rounded-md border border-zinc-700 px-2 py-1 text-[11px] font-medium text-zinc-300 hover:bg-zinc-800 transition-colors"
-              >
-                <Minimize2 className="h-3 w-3" />
-                Fechar
-              </button>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-              {snippetsToolbar}
-              <span className="text-[11px] text-zinc-500">Suporta GFM</span>
-            </div>
-
-            <div className="flex-1 grid gap-4 md:grid-cols-2 min-h-0 pt-3">
-              <div className="flex flex-col min-h-0 rounded-md border border-zinc-800 bg-zinc-900/60">
-                <Textarea
-                  ref={textareaRef}
-                  id={`${id}-fullscreen`}
-                  value={value}
-                  onChange={(e) => onChange(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  rows={rows}
-                  className="font-mono text-sm leading-relaxed flex-1 min-h-0 resize-none bg-transparent"
-                  placeholder={effectivePlaceholder}
-                />
-              </div>
-              <div className="min-h-0 overflow-y-auto rounded-md border border-zinc-800 bg-zinc-900/60 p-3">
-                {previewNode}
-              </div>
-            </div>
-          </div>
-        </div>
       )}
 
       <div className="rounded-md border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50 overflow-hidden">
