@@ -1,0 +1,34 @@
+import { CertificateTemplate, Prisma } from "@prisma/client";
+import { CertificateTemplateRepository } from "../certificate-template-repository";
+import { prisma } from "../../lib/prisma";
+
+export class PrismaCertificateTemplateRepository implements CertificateTemplateRepository {
+  async create(data: Prisma.CertificateTemplateCreateInput): Promise<CertificateTemplate> {
+    return prisma.certificateTemplate.create({ data });
+  }
+
+  async update(id: string, data: Prisma.CertificateTemplateUpdateInput): Promise<CertificateTemplate> {
+    return prisma.certificateTemplate.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async findById(id: string): Promise<CertificateTemplate | null> {
+    return prisma.certificateTemplate.findUnique({
+      where: { id },
+    });
+  }
+
+  async listAll(): Promise<CertificateTemplate[]> {
+    return prisma.certificateTemplate.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  async delete(id: string): Promise<void> {
+    await prisma.certificateTemplate.delete({
+      where: { id },
+    });
+  }
+}

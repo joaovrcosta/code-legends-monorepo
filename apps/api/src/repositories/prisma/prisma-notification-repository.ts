@@ -18,11 +18,27 @@ export class PrismaNotificationRepository implements INotificationRepository {
         type: data.type,
         title: data.title,
         message: data.message,
-        data: data.data ?? null,
+        data: data.data !== undefined && data.data !== null
+          ? data.data as Prisma.InputJsonValue
+          : Prisma.DbNull,
       },
     });
 
     return notification;
+  }
+
+  async createMany(data: CreateNotificationData[]): Promise<{ count: number }> {
+    return prisma.notification.createMany({
+      data: data.map((n) => ({
+        userId: n.userId,
+        type: n.type,
+        title: n.title,
+        message: n.message,
+        data: n.data !== undefined && n.data !== null
+          ? (n.data as Prisma.InputJsonValue)
+          : Prisma.DbNull,
+      })),
+    });
   }
 
   async findById(id: string): Promise<Notification | null> {

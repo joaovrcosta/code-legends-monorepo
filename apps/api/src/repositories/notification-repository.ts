@@ -17,6 +17,7 @@ interface FindByUserIdFilters {
 
 export interface INotificationRepository {
     create(data: CreateNotificationData): Promise<Notification>;
+    createMany(data: CreateNotificationData[]): Promise<{ count: number }>;
     findById(id: string): Promise<Notification | null>;
     findByUserId(userId: string, filters?: FindByUserIdFilters): Promise<Notification[]>;
     findUnreadByUserId(userId: string): Promise<Notification[]>;

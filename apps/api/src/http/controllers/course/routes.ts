@@ -24,6 +24,7 @@ import { unpublish } from "./unpublish.controller";
 import { getSkillsConfig } from "./get-skills-config.controller";
 import { updateSkillsConfig } from "./update-skills-config.controller";
 import { getSkillsProgress } from "./get-skills-progress.controller";
+import { updateCourseStatus } from "./update-status.controller";
 import { verifyJWT } from "../../middlewares/verify-jwt";
 import { verifyJWTOptional } from "../../middlewares/verify-jwt-optional";
 import { verifyAdmin } from "../../middlewares/verify-admin";
@@ -44,6 +45,7 @@ export async function courseRoutes(app: FastifyInstance) {
   app.delete("/courses/:id", { onRequest: [verifyAdmin] }, remove);
   app.post("/courses/:id/publish", { onRequest: [verifyAdmin] }, publish);
   app.post("/courses/:id/unpublish", { onRequest: [verifyAdmin] }, unpublish);
+  app.patch("/courses/:id/status", { onRequest: [verifyInstructorOrAdmin] }, updateCourseStatus);
   app.get(
     "/courses/:id/skills-config",
     { onRequest: [verifyAdmin] },

@@ -490,6 +490,7 @@ enum RequestStatus {
 
 enum CourseStatus {
   DRAFT
+  REVIEW
   PUBLISHED
 }
 
@@ -554,4 +555,11 @@ model Subscription {
   @@index([userId])
   @@index([status])
   @@index([endsAt])
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
 }

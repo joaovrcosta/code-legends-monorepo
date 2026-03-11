@@ -1,12 +1,14 @@
 import { FastifyInstance } from "fastify";
 import { createCertificate } from "./create.controller";
 import { listCertificates } from "./list.controller";
+import { listAllCertificates } from "./list-all.controller";
 import { getCertificateById } from "./get-by-id.controller";
 import { verifyCertificate } from "./verify.controller";
 import { deleteCertificate } from "./delete.controller";
 import { verifyJWT } from "../../middlewares/verify-jwt";
 import { verifyInstructorOrAdmin } from "../../middlewares/verify-instructor-or-admin";
 import { verifyOwnership } from "../../middlewares/verify-ownership";
+import { verifyAdmin } from "../../middlewares/verify-admin";
 
 export async function certificateRoutes(app: FastifyInstance) {
   // Todas as rotas de certificados precisam de autenticação
@@ -14,6 +16,9 @@ export async function certificateRoutes(app: FastifyInstance) {
 
   // Listar certificados do usuário autenticado
   app.get("/certificates", listCertificates);
+
+  // Listar todos os certificados (apenas admin)
+  app.get("/certificates/all", { onRequest: [verifyAdmin] }, listAllCertificates);
 
   // Buscar certificado por ID - com verificação de propriedade para prevenir IDOR
   app.get(

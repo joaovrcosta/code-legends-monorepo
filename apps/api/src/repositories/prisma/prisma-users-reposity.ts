@@ -109,6 +109,21 @@ export class PrismaUsersRepository implements IUsersRepository {
     return users;
   }
 
+  async findByPlan(plan: string): Promise<User[]> {
+    if (plan === "ALL") {
+      return this.findAll();
+    }
+    
+    return prisma.user.findMany({
+      where: {
+        plan: plan as any,
+      },
+      include: {
+        Address: true
+      }
+    });
+  }
+
   async update(id: string, data: Partial<User>): Promise<User> {
     // Filtrar apenas campos válidos do User e remover undefined
     // Excluir campos de relação e campos que não devem ser atualizados diretamente

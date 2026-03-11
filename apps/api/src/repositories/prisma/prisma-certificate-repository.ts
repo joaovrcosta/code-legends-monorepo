@@ -134,6 +134,24 @@ export class PrismaCertificateRepository implements CertificateRepository {
     return certificate;
   }
 
+  async listAll(page: number, limit: number): Promise<{ certificates: Certificate[]; total: number }> {
+    const skip = (page - 1) * limit;
+    const [total, certificates] = await Promise.all([
+      prisma.certificate.count(),
+      prisma.certificate.findMany({
+        skip,
+        take: limit,
+        include: {
+          user: { select: { id: true, name: true, email: true, avatar: true } },
+          course: { select: { id: true, title: true, slug: true } },
+          template: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
+    return { certificates, total };
+  }
+
   async delete(id: string): Promise<void> {
     await prisma.certificate.delete({
       where: { id },

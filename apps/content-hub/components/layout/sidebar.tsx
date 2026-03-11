@@ -16,6 +16,9 @@ import {
   MessageSquare,
   CreditCard,
   Crown,
+  Award,
+  Settings,
+  Megaphone,
 } from "lucide-react";
 
 const navigation = [
@@ -26,7 +29,11 @@ const navigation = [
   { name: "Planos", href: "/plans", icon: Crown },
   { name: "Categorias", href: "/categories", icon: Tag },
   { name: "Skills", href: "/skills", icon: Brain },
+  { name: "Certificados", href: "/certificates", icon: Award },
+  { name: "Skills / XP", href: "/skills", icon: Brain },
   { name: "Solicitações", href: "/requests", icon: MessageSquare },
+  { name: "Broadcaster", href: "/broadcast", icon: Megaphone },
+  { name: "Configurações Globais", href: "/settings/gamification", icon: Settings },
 ];
 
 export function Sidebar() {

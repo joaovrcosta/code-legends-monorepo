@@ -18,6 +18,9 @@ import { skillRoutes } from './http/controllers/skill/routes'
 import { requestRoutes } from './http/controllers/request/routes'
 import { notificationRoutes } from './http/controllers/notification/routes'
 import { planRoutes } from './http/controllers/plan/routes'
+import { dashboardRoutes } from './http/controllers/dashboard/routes'
+import { certificateTemplateRoutes } from './http/controllers/certificate-template/routes'
+import { systemSettingsRoutes } from './http/controllers/system-settings/routes'
 import { verifyCertificate } from './http/controllers/certificate/verify.controller'
 import { abacatePayWebhook } from './http/controllers/webhooks/abacatepay-webhook.controller'
 import { env } from './env/index'
@@ -155,6 +158,9 @@ app.register(skillRoutes)
 app.register(requestRoutes)
 app.register(notificationRoutes)
 app.register(planRoutes)
+app.register(dashboardRoutes)
+app.register(certificateTemplateRoutes)
+app.register(systemSettingsRoutes)
 
 app.setErrorHandler((error, _, reply) => {
   if (error instanceof ZodError) {

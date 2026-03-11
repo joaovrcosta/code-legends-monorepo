@@ -16,6 +16,7 @@ export interface IUsersRepository {
   findAll(): Promise<User[]>;
   findByRole(role: Role): Promise<(User & { Address?: any })[]>;
   findByRoles(roles: Role[]): Promise<(User & { Address?: any })[]>;
+  findByPlan(plan: string): Promise<User[]>;
   update(id: string, data: Partial<User>): Promise<User>;
   delete(id: string): Promise<void>;
 }
