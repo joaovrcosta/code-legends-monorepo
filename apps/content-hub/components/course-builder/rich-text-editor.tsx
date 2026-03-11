@@ -272,7 +272,23 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
           editor={editor}
           onChange={handleChange}
           theme={"dark"}
-        />
+          slashMenu={false}
+          className="[&_.bn-block-outer]:mb-4"
+        >
+          <SuggestionMenuController
+            triggerCharacter={"/"}
+            getItems={async (query) =>
+              getCustomSlashMenuItems(editor).filter(
+                (item) =>
+                  item.title.toLowerCase().includes(query.toLowerCase()) ||
+                  (item.aliases &&
+                    item.aliases.some((a: string) =>
+                      a.toLowerCase().includes(query.toLowerCase())
+                    ))
+              )
+            }
+          />
+        </BlockNoteView>
       </div>
     );
   }
