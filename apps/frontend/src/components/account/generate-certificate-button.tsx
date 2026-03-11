@@ -16,8 +16,16 @@ export function GenerateCertificateButton({
   courseId,
   course,
 }: GenerateCertificateButtonProps) {
+  const initialCertificateId =
+    !course.certificateId || course.certificateId === "null"
+      ? null
+      : course.certificateId;
+
   const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [certificateId, setCertificateId] = useState<string | null>(
+    initialCertificateId
+  );
 
   const handleOpenModal = async () => {
     if (isGenerating) return;
@@ -25,7 +33,15 @@ export function GenerateCertificateButton({
     try {
       setIsGenerating(true);
       // Gera o certificado na API primeiro
-      await generateCertificate(courseId);
+      const result = await generateCertificate(courseId);
+
+      const newCertificateId =
+        (result as any)?.data?.certificate?.id ?? course.certificateId ?? null;
+
+      if (newCertificateId) {
+        setCertificateId(newCertificateId);
+      }
+
       setIsOpen(true);
     } catch (error) {
       console.error("Erro ao gerar certificado:", error);
@@ -52,7 +68,10 @@ export function GenerateCertificateButton({
       <CertificateModal
         open={isOpen}
         onOpenChange={setIsOpen}
-        course={course}
+        course={{
+          ...course,
+          certificateId: certificateId ?? course.certificateId,
+        }}
       />
     </>
   );

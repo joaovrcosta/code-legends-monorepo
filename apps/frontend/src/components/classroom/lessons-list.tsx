@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/accordion'
 import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { Skeleton } from '@/components/skeleton'
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/ssr'
 
 function getLessonMeta(lesson: Lesson) {
   const typeLabel =
@@ -281,16 +282,15 @@ export const LessonsList = memo(function LessonsList({
                                     className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${isActive
                                       ? 'bg-zinc-800/50 shadow-xl'
                                       : 'hover:bg-zinc-800/30'
-                                      } ${
-                                        isFreePlan && isPaidLesson
-                                          ? 'opacity-50'
-                                          : ''
+                                      } ${isFreePlan && isPaidLesson
+                                        ? 'opacity-50'
+                                        : ''
                                       }`}
                                   >
                                     {lesson.status === 'completed' ? (
-                                      <CheckIcon
+                                      <CheckCircleIcon
                                         size={16}
-                                        className="shrink-0 text-[#00c8ff]"
+                                        className="shrink-0 text-green-500"
                                       />
                                     ) : (
                                       (() => {

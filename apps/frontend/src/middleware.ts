@@ -16,7 +16,7 @@ export default auth(
     const session = await auth();
 
     // Rotas públicas
-    const publicRoutes = ["/login", "/signup"];
+    const publicRoutes = ["/login", "/signup", "/certificates"];
     const isPublicRoute = publicRoutes.some(
       (route) => pathname === route || pathname.startsWith(route + "/")
     );

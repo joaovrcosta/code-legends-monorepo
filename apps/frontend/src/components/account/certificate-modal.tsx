@@ -36,9 +36,18 @@ export function CertificateModal({
   useEffect(() => {
     if (open) {
       getCurrentUser().then(setUser);
-      // Gera o link de compartilhamento
-      const link = `${window.location.origin}/certificates/${course.certificateId}`;
-      setShareLink(link);
+      // Gera o link de compartilhamento apenas se houver certificateId válido
+      const normalizedId =
+        !course.certificateId || course.certificateId === "null"
+          ? null
+          : course.certificateId;
+
+      if (normalizedId) {
+        const link = `${window.location.origin}/certificates/${normalizedId}`;
+        setShareLink(link);
+      } else {
+        setShareLink("");
+      }
     }
   }, [open, course.id, course.certificateId]);
 
