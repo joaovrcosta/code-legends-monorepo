@@ -258,118 +258,120 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
       </div>
 
       {/* HERO SECTION */}
-      <section className="relative bg-gray-gradient lg:gap-20 gap-8 border-b border-[#25252A] lg:py-12 lg:px-12 px-6 pb-8 pt-4 flex flex-col lg:flex-row items-center">
-        <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
+      <section className="relative bg-gray-gradient border-b border-[#25252A] lg:py-12 lg:px-12 px-6 pb-8 pt-4 flex flex-col lg:flex-row items-center">
+        <div className='flex w-full items-center justify-center max-w-[1356px] gap-8 mx-auto flex-col lg:flex-row'>
+          <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
 
-        <div className="flex-col flex-1 relative z-10 w-full">
-          {/* Back Button */}
-          <button
-            onClick={() => router.back()}
-            className="hover:bg-[#25252A] group p-2 rounded-lg flex items-center gap-2 mb-4 text-[#7e7e89] transition-colors"
-          >
-            <ArrowLeft size={16} />
-            <span className="text-xs uppercase tracking-wider">Voltar</span>
-          </button>
-
-          {/* Course Icon */}
-          <div className="lg:block flex items-center justify-center mb-4">
-            {course.icon && (
-              <Image src={course.icon} alt={course.title} width={120} height={120} />
-            )}
-          </div>
-
-          <div className="flex flex-col items-center lg:items-start">
-            <span
-              className={cn(
-                'font-bold lg:text-3xl text-xl lg:text-left text-center',
-                !course.colorHex && 'text-[#e0e0ee]',
-              )}
-              style={course.colorHex ? { color: course.colorHex } : undefined}
+          <div className="flex-col flex-1 relative z-10">
+            {/* Back Button */}
+            <button
+              onClick={() => router.back()}
+              className="hover:bg-[#25252A] group p-2 rounded-lg flex items-center gap-2 mb-4 text-[#7e7e89] transition-colors"
             >
-              {course.title}
-            </span>
-            <p className="lg:text-base text-sm mt-2 text-center lg:text-left max-w-[620px] text-[#a5a5a6]">
-              {course.description}
-            </p>
+              <ArrowLeft size={16} />
+              <span className="text-xs uppercase tracking-wider">Voltar</span>
+            </button>
 
-            {/* Progress & Reset */}
-            <div className="flex-col pb-6 mt-6 w-full max-w-[500px]">
-              <div className="flex items-center gap-4">
-                <Progress value={userProgress?.course.progress ?? 0} className="w-full bg-[#25252A] h-[2px]" />
-                <p className="text-sm font-medium">{Math.round(userProgress?.course.progress ?? 0)}%</p>
-                <Trophy size={28} weight="fill" className={userProgress?.course.progress === 100 ? "text-yellow-500" : "text-[#25252A]"} />
-              </div>
-
-              {isEnrolled && (
-                <button
-                  onClick={() => setShowResetModal(true)}
-                  disabled={isResetting}
-                  className="hover:text-red-400 text-[#a5a5a6] text-xs mt-3 flex gap-2 items-center group transition-colors"
-                >
-                  <ArrowClockwise className={cn(isResetting && 'animate-spin')} />
-                  Resetar progresso
-                </button>
+            {/* Course Icon */}
+            <div className="lg:block flex items-center justify-center mb-4">
+              {course.icon && (
+                <Image src={course.icon} alt={course.title} width={120} height={120} />
               )}
             </div>
 
-            {/* Main Action Buttons */}
-            <div className="flex items-center lg:justify-start justify-center gap-4 w-full">
-              <Button
-                onClick={handleCourseAction}
-                disabled={isLoadingAction || isCheckingEnrollment}
-                className="lg:w-fit w-full h-[54px] px-10 text-lg bg-blue-gradient-500 rounded-[12px] hover:shadow-[0_0_15px_#00C8FF] transition-all disabled:opacity-50"
+            <div className="flex flex-col items-center lg:items-start">
+              <span
+                className={cn(
+                  'font-bold lg:text-3xl text-xl lg:text-left text-center',
+                  !course.colorHex && 'text-[#e0e0ee]',
+                )}
+                style={course.colorHex ? { color: course.colorHex } : undefined}
               >
-                {renderButtonContent()}
-              </Button>
+                {course.title}
+              </span>
+              <p className="lg:text-base text-sm mt-2 text-center lg:text-left max-w-[620px] text-[#a5a5a6]">
+                {course.description}
+              </p>
 
-              <div className="flex gap-3">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="h-[54px] w-[54px] flex items-center justify-center border-[2px] rounded-full border-[#515155] hover:bg-[#424141] transition-colors">
-                      <ThumbsUpIcon size={24} />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent side="top" className="rounded-full bg-[#1e1e22] border-[#2a2a2f] flex gap-2 p-2">
-                    <DropdownMenuItem className="rounded-full h-10 w-10 p-0 flex items-center justify-center hover:bg-red-500/20">
-                      <ThumbsDown size={20} />
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="rounded-full h-10 w-10 p-0 flex items-center justify-center hover:bg-green-500/20">
-                      <ThumbsUpIcon size={20} />
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              {/* Progress & Reset */}
+              <div className="flex-col pb-12 mt-6 w-full max-w-[500px]">
+                <div className="flex items-center gap-4">
+                  <Progress value={userProgress?.course.progress ?? 0} className="w-full bg-[#25252A] h-[2px]" />
+                  <p className="text-sm font-medium">{Math.round(userProgress?.course.progress ?? 0)}%</p>
+                  <Trophy size={28} weight="fill" className={userProgress?.course.progress === 100 ? "text-yellow-500" : "text-[#25252A]"} />
+                </div>
+
+                {isEnrolled && (
+                  <button
+                    onClick={() => setShowResetModal(true)}
+                    disabled={isResetting}
+                    className="hover:text-red-400 text-[#a5a5a6] text-xs mt-3 flex gap-2 items-center group transition-colors"
+                  >
+                    <ArrowClockwise className={cn(isResetting && 'animate-spin')} />
+                    Resetar progresso
+                  </button>
+                )}
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* SIDEBAR INFO */}
-        <div className="flex-1 w-full relative z-10">
-          <ul className="space-y-1">
-            <InfoItem icon={<Certificate size={22} className="text-[#00C8FF]" />} text="Certificado de conclusão" />
-            <InfoItem icon={<PuzzlePiece size={22} className="text-[#00C8FF]" />} text={<span><strong>7</strong> Projetos práticos</span>} />
-            <InfoItem icon={<VideoCameraIcon size={22} className="text-[#00C8FF]" />} text={<span><strong>{course.totalDuration || '0h'}</strong> de conteúdo</span>} />
-            <InfoItem
-              icon={<ChartNoAxesColumnIncreasingIcon size={22} className={getLevelColor(course.level)} />}
-              text={getLevelLabel(course.level)}
-            />
-          </ul>
+              {/* Main Action Buttons */}
+              <div className="flex items-center lg:justify-start lg:mb-0 mb-8 justify-center gap-4 w-full">
+                <Button
+                  onClick={handleCourseAction}
+                  disabled={isLoadingAction || isCheckingEnrollment}
+                  className="lg:w-fit w-full h-[54px] px-10 text-lg bg-blue-gradient-500 rounded-[12px] hover:shadow-[0_0_15px_#00C8FF] transition-all disabled:opacity-50"
+                >
+                  {renderButtonContent()}
+                </Button>
 
-          {course.instructor && (
-            <div className="mt-8 p-4 rounded-xl bg-white/5 border border-white/5 lg:w-fit w-full">
-              <p className="text-[10px] text-muted-foreground tracking-widest mb-3 uppercase">Instrutor</p>
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10 border border-[#25252A]">
-                  <AvatarImage src={course.instructor.avatar || ''} />
-                  <AvatarFallback className="bg-[#25252A]">{course.instructor.name.slice(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-white text-sm font-medium">{course.instructor.name}</p>
-                  <p className="text-xs text-[#7e7e89]">Educator</p>
+                <div className="flex gap-3">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="h-[54px] w-[54px] flex items-center justify-center border-[2px] rounded-full border-[#515155] hover:bg-[#424141] transition-colors">
+                        <ThumbsUpIcon size={24} />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="top" className="rounded-full bg-[#1e1e22] border-[#2a2a2f] flex gap-2 p-2">
+                      <DropdownMenuItem className="rounded-full h-10 w-10 p-0 flex items-center justify-center hover:bg-red-500/20">
+                        <ThumbsDown size={20} />
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="rounded-full h-10 w-10 p-0 flex items-center justify-center hover:bg-green-500/20">
+                        <ThumbsUpIcon size={20} />
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+
+          {/* SIDEBAR INFO */}
+          <div className="flex-1 w-full relative z-10">
+            <ul className="space-y-1">
+              <InfoItem icon={<Certificate size={22} className="text-[#00C8FF]" />} text="Certificado de conclusão" />
+              <InfoItem icon={<PuzzlePiece size={22} className="text-[#00C8FF]" />} text={<span><strong>7</strong> Projetos práticos</span>} />
+              <InfoItem icon={<VideoCameraIcon size={22} className="text-[#00C8FF]" />} text={<span><strong>{course.totalDuration || '0h'}</strong> de conteúdo</span>} />
+              <InfoItem
+                icon={<ChartNoAxesColumnIncreasingIcon size={22} className={getLevelColor(course.level)} />}
+                text={getLevelLabel(course.level)}
+              />
+            </ul>
+
+            {course.instructor && (
+              <div className="mt-8 rounded-xllg:w-fit w-full">
+                <p className="text-[10px] text-muted-foreground tracking-widest mb-3 uppercase">Instrutor</p>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10 border border-[#25252A]">
+                    <AvatarImage src={course.instructor.avatar || ''} />
+                    <AvatarFallback className="bg-[#25252A]">{course.instructor.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-white text-sm font-medium">{course.instructor.name}</p>
+                    <p className="text-xs text-[#7e7e89]">Educator</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

@@ -168,7 +168,7 @@ export default function ClassroomHeader({
               {/* Lado esquerdo */}
               <div className="flex items-center gap-3 flex-1 min-w-0 mr-3">
                 <Link
-                  href="/learn"
+                  href={`/learn/paths/${currentActiveCourse?.slug}`}
                   className="flex items-center justify-center"
                 >
                   <button className="flex-shrink-0 text-white hover:text-[#00C8FF] transition-colors">

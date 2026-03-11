@@ -281,9 +281,8 @@ export default function DynamicLessonPage() {
     return (
       <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
         <aside
-          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
-            isSidebarOpen ? 'w-[378px]' : 'w-0'
-          }`}
+          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
+            }`}
         >
           {isSidebarOpen && (
             <div className="h-full flex flex-col w-[378px]">
@@ -342,9 +341,8 @@ export default function DynamicLessonPage() {
           )}
         </aside>
         <div
-          className={`flex-1 w-full min-h-[calc(100dvh-63px)] lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)] bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)] text-white flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${
-            isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
-          }`}
+          className={`flex-1 w-full min-h-[calc(100dvh-63px)] lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)] bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)] text-white flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+            }`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
             <div className="flex items-center justify-between w-full px-4">
@@ -373,9 +371,8 @@ export default function DynamicLessonPage() {
       <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
         {/* Sidebar com lista de aulas */}
         <aside
-          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
-            isSidebarOpen ? 'w-[378px]' : 'w-0'
-          }`}
+          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
+            }`}
         >
           {isSidebarOpen && (
             <div className="h-full flex flex-col w-[378px]">
@@ -445,9 +442,8 @@ export default function DynamicLessonPage() {
         <div
           className={`flex-1 w-full min-h-0 flex flex-col lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)]
-             text-white shadow-2xl shadow-[#00C8FF]/10 transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${
-               isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
-             }`}
+             text-white shadow-2xl shadow-[#00C8FF]/10 transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+            }`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
             <div className="flex items-center justify-between w-full px-4">
@@ -519,9 +515,8 @@ export default function DynamicLessonPage() {
     <div className="flex h-[100dvh] w-full">
       {/* Sidebar com lista de aulas - apenas no desktop */}
       <aside
-        className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? 'w-[378px]' : 'w-0'
-        }`}
+        className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
+          }`}
       >
         {isSidebarOpen && (
           <div className="h-full flex flex-col w-[378px]">
@@ -545,9 +540,8 @@ export default function DynamicLessonPage() {
       <div
         className={`flex-1 w-full min-h-0 lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)]
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${
-               isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
-             }`}
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+          }`}
       >
         {/* Header */}
         <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none mb-0 flex-shrink-0 lg:block hidden">
@@ -576,9 +570,8 @@ export default function DynamicLessonPage() {
 
         {/* Footer - mesma largura que o lesson-content (lg:mx-4) */}
         <footer
-          className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 transition-all duration-300 ease-in-out lg:mx-4 ${
-            isSidebarOpen ? 'lg:left-[378px]' : 'lg:left-0'
-          }`}
+          className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 transition-all duration-300 ease-in-out lg:mx-4 ${isSidebarOpen ? 'lg:left-[378px]' : 'lg:left-0'
+            }`}
         >
           <div className="flex justify-between w-full m-0 p-0">
             <Button
@@ -599,8 +592,10 @@ export default function DynamicLessonPage() {
               <SkipBack weight="fill" size={24} />
               Anterior
             </Button>
-            <div className="w-full lg:flex items-center justify-center px-8 hidden">
-              <LevelProgressBar />
+            <div className="flex-[2] lg:flex items-center justify-center px-8 hidden bg-[#0C0C0F]">
+              <div className="w-full max-w-xl">
+                <LevelProgressBar />
+              </div>
             </div>
             <Button
               variant="outline"
@@ -616,7 +611,7 @@ export default function DynamicLessonPage() {
               className="h-[54px] lg:min-h-[84px] w-1/2 max-w-[320px] text-base bg-black border-none
       disabled:opacity-50"
             >
-              Próxima <SkipForward weight="fill" size={16} />
+              Próxima <SkipForward weight="fill" size={20} className="text-[#00C8FF]" />
             </Button>
           </div>
         </footer>

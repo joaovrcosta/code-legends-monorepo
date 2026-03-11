@@ -436,8 +436,8 @@ export default function VideoComponent({
       </div>
 
       <div className="">
-        <TitleAccordion title={title} description={description} />
         <LevelAccordion />
+        <TitleAccordion title={title} description={description} />
         <LessonsAccordion />
       </div>
     </div>
