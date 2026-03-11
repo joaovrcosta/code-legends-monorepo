@@ -213,7 +213,6 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
     }
   }
 
-  // Helper para renderizar o conteúdo do botão principal baseado no estado
   const renderButtonContent = () => {
     if (!mounted || isCheckingEnrollment) return 'Verificando...'
     if (isLoadingAction) return <Loader2 className="animate-spin" />
@@ -282,7 +281,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             <div className="flex flex-col items-center lg:items-start">
               <span
                 className={cn(
-                  'font-bold lg:text-3xl text-xl lg:text-left text-center',
+                  'font-bold lg:text-3xl text-2xl lg:text-left text-center',
                   !course.colorHex && 'text-[#e0e0ee]',
                 )}
                 style={course.colorHex ? { color: course.colorHex } : undefined}
