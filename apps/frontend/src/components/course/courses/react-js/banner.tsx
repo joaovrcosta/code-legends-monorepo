@@ -265,7 +265,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             {/* Back Button */}
             <button
               onClick={() => router.back()}
-              className="hover:bg-[#25252A] group p-2 lg:bg-transparent bg-white/5 rounded-lg flex items-center gap-2 mb-4 text-[#7e7e89] transition-colors"
+              className="hover:bg-[#25252A] group p-2 lg:bg-transparent relative lg:top-0 top-[12px] bg-white/5 rounded-lg flex items-center gap-2 mb-4 text-[#7e7e89] transition-colors"
             >
               <CaretLeftIcon size={24} weight="bold" />
               <span className="text-xs lg:block hidden uppercase tracking-wider">Voltar</span>
