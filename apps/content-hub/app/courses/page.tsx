@@ -76,7 +76,9 @@ export default function CoursesPage() {
     slug: c.slug,
     status: (c.status as "DRAFT" | "REVIEW" | "PUBLISHED") ?? "DRAFT",
     thumbnail: c.thumbnail ?? null,
-    instructor: { name: c.instructor?.name ?? "Desconhecido" },
+    // Como a listagem de cursos não traz o objeto de instrutor completo,
+    // usamos apenas um placeholder a partir do instructorId.
+    instructor: { name: c.instructorId ? "Instrutor" : "Desconhecido" },
   }));
 
   return (

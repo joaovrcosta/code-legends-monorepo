@@ -1,8 +1,6 @@
-"use client";
-
 import React, { useEffect, useRef, useState } from "react";
 
-export default function ClickableGrayPlatform() {
+export function ClickableGrayPlatform() {
     const canvasRef = useRef(null);
     const rafRef = useRef(null);
     const [active, setActive] = useState(false);
@@ -158,9 +156,10 @@ export default function ClickableGrayPlatform() {
         };
     }, []);
 
-    return (
-        <div
-            style={{
+    return React.createElement(
+        "div",
+        {
+            style: {
                 width: 320,
                 height: 220,
                 borderRadius: 16,
@@ -168,17 +167,21 @@ export default function ClickableGrayPlatform() {
                 overflow: "hidden",
                 display: "grid",
                 placeItems: "center",
-            }}
-        >
-            <canvas
-                ref={canvasRef}
-                style={{ width: "100%", height: "100%", display: "block", cursor: "pointer" }}
-                onClick={() => setActive((v) => !v)}
-                onPointerDown={(e) => {
-                    // impede seleção/arrasto em mobile
-                    e.currentTarget.setPointerCapture?.(e.pointerId);
-                }}
-            />
-        </div>
+            },
+        },
+        React.createElement("canvas", {
+            ref: canvasRef,
+            style: {
+                width: "100%",
+                height: "100%",
+                display: "block",
+                cursor: "pointer",
+            },
+            onClick: () => setActive((v) => !v),
+            onPointerDown: (e) => {
+                // impede seleção/arrasto em mobile
+                e.currentTarget.setPointerCapture?.(e.pointerId);
+            },
+        })
     );
 }
