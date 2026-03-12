@@ -44,6 +44,7 @@ import { useActiveCourseStore } from '@/stores/active-course-store'
 
 import { CourseDetail } from '@/types/course-types'
 import type { UserCourseProgressResponse } from '@/types/user-course.ts'
+import { getAuroraBackground } from '@/utils/hexToRgb'
 
 interface CourseBannerProps {
   course: CourseDetail
@@ -79,6 +80,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
   const [isLoadingAction, setIsLoadingAction] = useState(false)
   const [isResetting, setIsResetting] = useState(false)
   const [showResetModal, setShowResetModal] = useState(false)
+
 
   useEffect(() => {
     setMounted(true)
@@ -240,7 +242,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
         <div className="flex items-center justify-between lg:px-4 px-0">
           <span
             className={cn('font-bold text-xl', !course.colorHex && 'text-white')}
-            style={course.colorHex ? { color: course.colorHex } : { color: '#FFFFFF' }}
+            style={{ color: '#FFFFFF' }}
           >
             {course.title}
           </span>
@@ -256,8 +258,11 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
         </div>
       </div>
 
-      {/* HERO SECTION */}
-      <section className="relative bg-blue-aurora border-b border-[#25252A] lg:py-12 lg:px-12 px-6 pb-8 pt-4 flex flex-col lg:flex-row items-center">
+
+      <section
+        className="relative border-b border-[#25252A] lg:py-12 lg:pb-24 lg:px-12 px-6 pb-8 pt-4 flex flex-col lg:flex-row items-center"
+        style={getAuroraBackground(course.colorHex)}
+      >
         <div className='flex w-full items-center justify-center max-w-[1356px] gap-8 mx-auto flex-col lg:flex-row'>
           <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
 
@@ -284,7 +289,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                   'font-bold lg:text-3xl text-2xl lg:text-left text-center',
                   !course.colorHex && 'text-[#e0e0ee]',
                 )}
-                style={course.colorHex ? { color: course.colorHex } : undefined}
+                style={{ color: '#FFFFFF' }}
               >
                 {course.title}
               </span>
