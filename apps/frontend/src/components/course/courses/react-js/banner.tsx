@@ -362,7 +362,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             </ul>
 
             {course.instructor && (
-              <div className="mt-8 rounded-xllg:w-fit w-full">
+              <div className="mt-8 rounded-xllg:w-fit w-full z-0">
                 <p className="text-[10px] text-muted-foreground tracking-widest mb-3 uppercase">Instrutor</p>
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10 border border-[#25252A]">
@@ -370,7 +370,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                     <AvatarFallback className="bg-[#25252A]">{course.instructor.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-white text-sm font-medium">{course.instructor.name}</p>
+                    <p className="text-white text-sm font-medium z-0">{course.instructor.name}</p>
                     <p className="text-xs text-[#7e7e89]">Educator</p>
                   </div>
                 </div>
