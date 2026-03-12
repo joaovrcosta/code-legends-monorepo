@@ -45,6 +45,7 @@ import { useActiveCourseStore } from '@/stores/active-course-store'
 import { CourseDetail } from '@/types/course-types'
 import type { UserCourseProgressResponse } from '@/types/user-course.ts'
 import { getAuroraBackground } from '@/utils/hexToRgb'
+import { LevelBars } from './level-bars'
 
 interface CourseBannerProps {
   course: CourseDetail
@@ -217,7 +218,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
 
   const renderButtonContent = () => {
     if (!mounted || isCheckingEnrollment) return 'Verificando...'
-    if (isLoadingAction) return <Loader2 className="animate-spin" />
+    if (isLoadingAction) return <Loader2 className="animate-spin" size={24} />
     return isEnrolled ? (
       <>
         <PlayIcon weight="fill" className="mr-2" /> Acessar
@@ -263,7 +264,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
         className="relative border-b border-[#25252A] lg:py-12 lg:pb-24 lg:px-12 px-6 pb-8 pt-4 flex flex-col lg:flex-row items-center"
         style={getAuroraBackground(course.colorHex)}
       >
-        <div className='flex w-full items-center justify-center max-w-[1356px] gap-8 mx-auto flex-col lg:flex-row'>
+        <div className='flex w-full items-center justify-center max-w-[1356px] gap-2 mx-auto flex-col lg:flex-row'>
           <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
 
           <div className="flex-col flex-1 relative z-10">
@@ -279,20 +280,20 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             {/* Course Icon */}
             <div className="lg:block flex items-center justify-center mb-4">
               {course.icon && (
-                <Image src={course.icon} alt={course.title} width={120} height={120} />
+                <Image src={course.icon} alt={course.title} width={120} height={120} className='relative lg:right-[20px] right-0' />
               )}
             </div>
 
             <div className="flex flex-col items-center lg:items-start">
-              <span
+              <h1
                 className={cn(
-                  'font-bold lg:text-3xl text-2xl lg:text-left text-center',
+                  'font-bold lg:text-[44px] text-2xl lg:text-left text-center mb-4',
                   !course.colorHex && 'text-[#e0e0ee]',
                 )}
                 style={{ color: '#FFFFFF' }}
               >
                 {course.title}
-              </span>
+              </h1>
               <p className="lg:text-base text-sm mt-2 text-center lg:text-left max-w-[620px] text-[#a5a5a6]">
                 {course.description}
               </p>
@@ -360,10 +361,9 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
               <InfoItem icon={<Certificate size={22} className="text-[#00C8FF]" />} text="Certificado de conclusão" />
               <InfoItem icon={<PuzzlePiece size={22} className="text-[#00C8FF]" />} text={<span><strong>7</strong> Projetos práticos</span>} />
               <InfoItem icon={<VideoCameraIcon size={22} className="text-[#00C8FF]" />} text={<span><strong>{course.totalDuration || '0h'}</strong> de conteúdo</span>} />
-              <InfoItem
-                icon={<ChartNoAxesColumnIncreasingIcon size={22} className={getLevelColor(course.level)} />}
-                text={getLevelLabel(course.level)}
-              />
+              <li className="flex w-full items-center gap-4 py-4 border-b border-[#25252A]/50 last:border-0 group">
+                <LevelBars level={course.level} />
+              </li>
             </ul>
 
             {course.instructor && (

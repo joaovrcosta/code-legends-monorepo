@@ -2,12 +2,13 @@
 
 import Image, { StaticImageData } from 'next/image'
 import Link from 'next/link'
-import { ArrowUpRight, ChartNoAxesColumnIncreasing } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { Check, Plus, Star } from '@phosphor-icons/react/dist/ssr'
 import { enrollInCourse } from '@/actions/course'
 import { useState } from 'react'
 import { useEnrolledCoursesStore } from '@/stores/enrolled-courses-store'
 import coverBackground from '../../../public/cover-background.png'
+import { LevelBars } from '../course/level-bars'
 
 function EnrollButton({
   courseId,
@@ -22,7 +23,6 @@ function EnrollButton({
     (state) => state.refreshEnrolledCourses,
   )
 
-  // Verifica se o curso está inscrito usando o store
   const isEnrolled = courseId
     ? userCourses.some((course) => course.courseId === courseId)
     : false
@@ -35,19 +35,14 @@ function EnrollButton({
       await enrollInCourse(courseId)
       onEnrollSuccess?.()
 
-      // Atualiza apenas a lista de cursos inscritos sem recarregar toda a página
       await refreshEnrolledCourses()
     } catch (error) {
       console.error('Erro ao inscrever:', error)
-      alert(
-        error instanceof Error ? error.message : 'Erro ao inscrever no curso',
-      )
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Se já está inscrito, mostra o check
   if (isEnrolled) {
     return (
       <div className="flex items-center justify-center w-8 h-8 rounded-full cursor-pointer hover:text-[#35BED5]">
@@ -124,41 +119,6 @@ function getStatusInfo(status?: RecomendationCardProps['status']) {
   }
 }
 
-function getAudienceLabelFromLevel(level?: string): string {
-  const normalized = (level ?? '')
-    .toString()
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-
-  if (normalized === 'beginner' || normalized === 'iniciante')
-    return 'Iniciantes'
-  if (normalized === 'intermediate' || normalized === 'intermediario')
-    return 'Intermediários'
-  if (normalized === 'advanced' || normalized === 'avancado') return 'Avançados'
-
-  return 'Avançados'
-}
-
-function getAccentClassFromLevel(level?: string): string {
-  const normalized = (level ?? '')
-    .toString()
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-
-  if (normalized === 'beginner' || normalized === 'iniciante')
-    return 'text-green-500'
-  if (normalized === 'intermediate' || normalized === 'intermediario')
-    return 'text-orange-500'
-  if (normalized === 'advanced' || normalized === 'avancado')
-    return 'text-violet-700'
-
-  return 'text-green-500'
-}
-
 interface RecomendationCardProps {
   name: string
   icon: string | StaticImageData
@@ -175,16 +135,9 @@ interface RecomendationCardProps {
   level?: string
   isFree?: boolean
   position?: 'first' | 'middle' | 'last'
-  /**
-   * Indica se o usuário atual está no plano FREE.
-   * - true  => mostra badge "Gratuito/Para assinantes"
-   * - false => oculta badge (usuário PRO/PREMIUM)
-   * - undefined => plano ainda não resolvido (SSR/hidratação), não mostra nada
-   */
   isFreeUser?: boolean
+  progress?: number // Adicionado para controlar a barra
 }
-
-
 
 export function CatalogCard({
   name,
@@ -199,6 +152,7 @@ export function CatalogCard({
   isFree,
   position = 'middle',
   isFreeUser,
+  progress = 0, // Default 0
 }: RecomendationCardProps) {
   const { label, className: statusClass } = getStatusInfo(status)
   const transformOriginClass =
@@ -208,11 +162,14 @@ export function CatalogCard({
         ? 'origin-right'
         : 'origin-center'
 
+
+  console.log(progress);
+
   return (
     <Link href={url} className="block h-full group">
       <div
         className={`relative z-0 overflow-hidden w-full h-full min-w-[300px] flex flex-col rounded-[16px] border shadow-2xl cursor-pointer
-    transition-transform transition-shadow transition-border duration-300 ease-out
+    transition-transform duration-300 ease-out
     hover:z-20 hover:-translate-y-3 hover:scale-[1.08] hover:border-[#3f3f48]
     hover:shadow-[0_30px_60px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06),inset_0_-24px_24px_rgba(255,255,255,0.03)]
     ${isCurrent
@@ -222,18 +179,14 @@ export function CatalogCard({
     ${transformOriginClass}
     ${className}`}
       >
-        {/* IMAGEM DE FUNDO CORRIGIDA */}
         <Image
           src={coverBackground}
           alt="Background do Card"
           fill
           priority
-          // Removido o -z-10 e adicionado pointer-events-none.
-          // Ajuste a opacity-30 para mais ou para menos conforme o seu gosto visual.
           className="object-cover absolute inset-0 opacity-30 pointer-events-none"
         />
 
-        {/* Adicionado relative z-10 para o conteúdo ficar acima da imagem */}
         {label && (
           <div className="relative z-10 flex items-center justify-between rounded-t-[20px] pr-4 pl-4 pt-4 pb-0">
             <div
@@ -255,7 +208,6 @@ export function CatalogCard({
           </div>
         )}
 
-        {/* Adicionado relative z-10 */}
         <div className="relative z-10 flex flex-col flex-1 p-4">
           <Image src={icon} alt={name} width={80} height={80} />
           <div className="px-3 pt-2">
@@ -270,16 +222,9 @@ export function CatalogCard({
           </div>
         </div>
 
-        {/* Adicionado relative z-10 */}
         <div className="relative z-10 mt-2 flex items-center justify-between px-4 pb-4">
           <div className="flex items-center gap-2 text-xs text-white">
-            <ChartNoAxesColumnIncreasing
-              size={16}
-              className={getAccentClassFromLevel(level)}
-            />
-            <p className="text-muted-foreground">
-              Para {getAudienceLabelFromLevel(level)}
-            </p>
+            <LevelBars level={level} isSmall={true} />
           </div>
 
           <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
@@ -289,18 +234,16 @@ export function CatalogCard({
                 onEnrollSuccess={onEnrollSuccess}
               />
             </div>
-
-            {/* <button
-              onClick={(e) => {
-                e.stopPropagation()
-                router.push(url)
-              }}
-              className="flex items-center justify-center w-8 h-8 hover:bg-[#25252A] rounded-full cursor-pointer hover:text-[#35BED5]"
-            >
-              <ScrollText size={20} className="text-gray-600" />
-            </button> */}
           </div>
         </div>
+
+        <div className="absolute bottom-0 left-0 w-full h-[4px] bg-white/10 z-20">
+          <div
+            className="h-full bg-[#00ffa3] shadow-[0_0_10px_#00ffa3] transition-all duration-700 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
       </div>
     </Link>
   )

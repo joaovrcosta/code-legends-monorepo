@@ -1,7 +1,7 @@
 import { getCourseBySlug } from "@/actions/course/get-course-by-slug";
 import { getUserCourseProgress } from "@/actions/progress/get-course-progress";
 import { getCourseRoadmap } from "@/actions/course/roadmap";
-import { CourseBanner } from "@/components/course/courses/react-js/banner";
+import { CourseBanner } from "@/components/course/banner";
 import { CourseContent } from "@/components/course/courses/react-js/content";
 import { CourseOverview } from "@/components/course/courses/react-js/overview";
 import { CourseProjects } from "@/components/course/courses/react-js/projects";
