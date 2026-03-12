@@ -298,7 +298,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                   <div className="flex-1 space-y-2">
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-[#7e7e89]">
                       <span>Seu Progresso</span>
-                      <span className="text-white">{Math.round(userProgress?.course.progress ?? 0)}%</span>
+                      <span className="text-white text-sm">{Math.round(userProgress?.course.progress ?? 0)}%</span>
                     </div>
                     <Progress value={userProgress?.course.progress ?? 0} className="h-[2px] bg-[#1a1a1e]">
                       <div className="h-full bg-blue-500 shadow-[0_0_15px_rgba(0,200,255,0.4)]" />
