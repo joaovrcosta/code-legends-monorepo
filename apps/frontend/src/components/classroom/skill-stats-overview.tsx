@@ -11,7 +11,7 @@ import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { CompactNumber } from '@/components/ui/compact-number'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { Code, Monitor } from '@phosphor-icons/react/dist/ssr'
+import { Code, Monitor, TrendUp } from '@phosphor-icons/react/dist/ssr'
 
 const CONFETTI_COLORS = [
   '#00C8FF',
@@ -262,43 +262,17 @@ export function SkillStatsOverview() {
             className={`rounded-2xl py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between transition-all duration-500 ease-out ${showStats ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
               }`}
           >
-            {topSkillForHighlight && (
-              <div className="flex items-center gap-4 self-start md:self-auto">
-                <ProgressRing
-                  progress={(() => {
-                    const p = activeCourse?.progress ?? 0
-                    return p <= 1
-                      ? Math.min(1, Math.max(0, p))
-                      : Math.min(1, p / 100)
-                  })()}
-                  moduleNumber={(() => {
-                    const p = activeCourse?.progress ?? 0
-                    const percent = p <= 1 ? p * 100 : p
-                    return Math.min(100, Math.max(0, Math.round(percent)))
-                  })()}
-                  size={64}
-                  strokeWidth={3}
-                  progressColor="stroke-[#00c8ff]"
-                  trackColor="stroke-[#1f2933]"
-                  isCurrent
-                />
-                <div className="space-y-1">
-                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[#9ca3af]">
-                    Skill em destaque
-                  </span>
-                  <p className="text-sm font-medium text-white">
-                    {topSkillForHighlight.name}
-                  </p>
-                  <p className="text-xs text-[#9ca3af]">
-                    <CompactNumber
-                      value={topSkillForHighlight.totalXp}
-                      suffix=" XP totais"
-                      enableCountUp
-                    />
-                  </p>
-                </div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4 backdrop-blur-sm">
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] uppercase tracking-[0.2em] text-[#7e7e89]">Total Ganhos</span>
+                <span className="font-semibold w-full italic mt-1 bg-[linear-gradient(90deg,#ef4444_0%,#f97316_50%,#eab308_100%)] bg-clip-text text-transparent gap-2 text-2xl">
+                  +<CompactNumber value={xpTotalDisplay} enableCountUp />
+                  <span className="text-sm text-orange-500 font-bold">XP</span>
+                </span>
               </div>
-            )}
+              <div className="w-[1px] h-10 bg-white/10" />
+              <TrendUp size={32} className="text-orange-500" weight="bold" />
+            </div>
           </div>
 
           <div
@@ -306,17 +280,7 @@ export function SkillStatsOverview() {
               }`}
           >
             <p className="text-sm text-[#e5e7eb]">
-              {xpTotalDisplay > 0 ? (
-                <>
-                  Trabalho incrível, você ganhou{' '}
-                  <span className="font-semibold bg-[linear-gradient(90deg,#ef4444_0%,#f97316_50%,#eab308_100%)] bg-clip-text text-transparent">
-                    +<CompactNumber value={xpTotalDisplay} suffix=" XP" enableCountUp />
-                  </span>{' '}
-                  nesse módulo, distribuídos entre as skills abaixo.
-                </>
-              ) : (
-                'Você não ganhou XP em skills neste módulo.'
-              )}
+              Seus skills evoluíram nesse módulo!
             </p>
           </div>
         </div>
