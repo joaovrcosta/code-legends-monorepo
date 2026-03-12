@@ -44,6 +44,7 @@ export function RecommendationsCarousel({
   const plan = (data?.user as { plan?: "FREE" | "PRO" | "PREMIUM" } | undefined)?.plan
   const isFreeUser =
     status === "loading" ? undefined : plan === "FREE" ? true : plan ? false : undefined
+
   return (
     <div className="relative overflow-y-visible overflow-x-hidden pt-6 pb-0">
       <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-[#121214] to-transparent" />
@@ -91,6 +92,7 @@ export function RecommendationsCarousel({
                   isFree={course.isFree}
                   position={position}
                   isFreeUser={isFreeUser}
+                  progress={course.progress}
                 />
               </CarouselItem>
             )

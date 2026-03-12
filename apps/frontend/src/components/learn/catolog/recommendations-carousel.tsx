@@ -73,6 +73,7 @@ export function RecommendationsCarousel({
                   isFree={course.isFree}
                   position={position}
                   isFreeUser={isFreeUser}
+                  progress={course.progress}
                 />
               </CarouselItem>
             )

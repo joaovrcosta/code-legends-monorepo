@@ -152,7 +152,7 @@ export function CatalogCard({
   isFree,
   position = 'middle',
   isFreeUser,
-  progress = 0, // Default 0
+  progress = 0,
 }: RecomendationCardProps) {
   const { label, className: statusClass } = getStatusInfo(status)
   const transformOriginClass =
@@ -239,8 +239,10 @@ export function CatalogCard({
 
         <div className="absolute bottom-0 left-0 w-full h-[4px] bg-white/10 z-20">
           <div
-            className="h-full bg-[#00ffa3] shadow-[0_0_10px_#00ffa3] transition-all duration-700 ease-out"
-            style={{ width: `${progress}%` }}
+            className="h-full bg-blue-gradient-500 transition-all duration-700 ease-out"
+            style={{
+              width: `${(progress <= 1 ? progress * 100 : progress)}%`
+            }}
           />
         </div>
 

@@ -50,6 +50,7 @@ export type InstructorWithSlug = UserPublicDTO;
 
 export type CourseWithCount = CourseDTO & {
   isEnrolled: boolean;
+  progress: number;
 };
 
 export type CoursesListResponse = {
