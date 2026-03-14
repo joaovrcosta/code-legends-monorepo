@@ -12,6 +12,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@codesandbox/sandpack-react": "^2.20.0",
     "@code-legends/shared-types": "workspace:*",
     "@hookform/resolvers": "^3.9.1",
     "@phosphor-icons/react": "^2.1.7",

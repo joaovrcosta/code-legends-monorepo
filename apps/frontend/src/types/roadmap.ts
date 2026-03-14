@@ -21,6 +21,16 @@ export interface Challenge {
   placeholder?: string;
 }
 
+/** Bloco de Code Playground no Markdown (```playground + JSON). */
+export interface PlaygroundBlock {
+  files?: Record<string, string>;
+  template?: 'vanilla' | 'react';
+  testFile?: string;
+  tests?: Record<string, string>;
+  /** Id único para rastrear conclusão (obrigatório se houver testFile). */
+  playgroundId?: string;
+}
+
 export type Lesson = {
   id: number;
   title: string;
