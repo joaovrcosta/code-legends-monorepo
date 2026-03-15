@@ -35,7 +35,11 @@ import {
   VideoCameraIcon,
   CaretLeftIcon,
 } from '@phosphor-icons/react/dist/ssr'
-import { ArrowLeft, ChartNoAxesColumnIncreasingIcon, Loader2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  ChartNoAxesColumnIncreasingIcon,
+  Loader2,
+} from 'lucide-react'
 
 import { getUserEnrolledList } from '@/actions/progress/get-user-enrolled-list'
 import { useEnrolledCoursesStore } from '@/stores/enrolled-courses-store'
@@ -72,7 +76,9 @@ const getLevelColor = (level: string): string => {
 
 export function CourseBanner({ course, userProgress }: CourseBannerProps) {
   const router = useRouter()
-  const refreshEnrolledCourses = useEnrolledCoursesStore((state) => state.refreshEnrolledCourses)
+  const refreshEnrolledCourses = useEnrolledCoursesStore(
+    (state) => state.refreshEnrolledCourses,
+  )
 
   const [mounted, setMounted] = useState(false)
   const [showSticky, setShowSticky] = useState(false)
@@ -81,7 +87,6 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
   const [isLoadingAction, setIsLoadingAction] = useState(false)
   const [isResetting, setIsResetting] = useState(false)
   const [showResetModal, setShowResetModal] = useState(false)
-
 
   useEffect(() => {
     setMounted(true)
@@ -104,7 +109,9 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
   }, [course.id, mounted])
 
   useEffect(() => {
-    const scrollContainer = document.querySelector('[class*="overflow-y-auto"]') as HTMLElement
+    const scrollContainer = document.querySelector(
+      '[class*="overflow-y-auto"]',
+    ) as HTMLElement
     if (!scrollContainer) return
 
     const handleScroll = () => {
@@ -125,11 +132,19 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
       await refreshEnrolledCourses()
     } catch (error) {
       console.error('Erro ao inscrever no curso:', error)
-      alert(error instanceof Error ? error.message : 'Erro ao inscrever no curso')
+      alert(
+        error instanceof Error ? error.message : 'Erro ao inscrever no curso',
+      )
     } finally {
       setIsLoadingAction(false)
     }
-  }, [course.id, isEnrolled, isCheckingEnrollment, isLoadingAction, refreshEnrolledCourses])
+  }, [
+    course.id,
+    isEnrolled,
+    isCheckingEnrollment,
+    isLoadingAction,
+    refreshEnrolledCourses,
+  ])
 
   // Inicia o curso e redireciona para a aula correta
   const handleAccessCourse = useCallback(async () => {
@@ -141,7 +156,8 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
 
       // Sincroniza o curso ativo no store para o classroom usar o ID correto
       try {
-        const { getActiveCourse } = await import('@/actions/user/get-active-course')
+        const { getActiveCourse } =
+          await import('@/actions/user/get-active-course')
         const active = await getActiveCourse()
         if (active) {
           useActiveCourseStore.getState().setActiveCourse(active)
@@ -151,7 +167,8 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
       }
 
       const { getCourseRoadmap } = await import('@/actions/course/roadmap')
-      const { findLessonContext, generateLessonUrl } = await import('@/utils/lesson-url')
+      const { findLessonContext, generateLessonUrl } =
+        await import('@/utils/lesson-url')
 
       const roadmap = await getCourseRoadmap(course.id)
 
@@ -168,7 +185,11 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
         if (targetLesson) {
           const context = findLessonContext(targetLesson.id, roadmap.modules)
           if (context) {
-            const url = generateLessonUrl(targetLesson, context.module, context.group)
+            const url = generateLessonUrl(
+              targetLesson,
+              context.module,
+              context.group,
+            )
             router.push(url)
             return
           }
@@ -193,12 +214,19 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
     }
 
     await handleAccessCourse()
-  }, [handleAccessCourse, handleEnrollOnly, isCheckingEnrollment, isEnrolled, isLoadingAction])
+  }, [
+    handleAccessCourse,
+    handleEnrollOnly,
+    isCheckingEnrollment,
+    isEnrolled,
+    isLoadingAction,
+  ])
 
   const handleResetProgress = async () => {
     try {
       setIsResetting(true)
-      const { resetCourseProgress } = await import('@/actions/course/reset-progress')
+      const { resetCourseProgress } =
+        await import('@/actions/course/reset-progress')
       const result = await resetCourseProgress(course.id)
 
       if (result.success) {
@@ -242,7 +270,10 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
       >
         <div className="flex items-center justify-between lg:px-4 px-0">
           <span
-            className={cn('font-bold text-xl', !course.colorHex && 'text-white')}
+            className={cn(
+              'font-bold text-xl',
+              !course.colorHex && 'text-white',
+            )}
             style={{ color: '#FFFFFF' }}
           >
             {course.title}
@@ -251,7 +282,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             <Button
               onClick={handleCourseAction}
               disabled={isLoadingAction || isCheckingEnrollment}
-              className="bg-blue-gradient-500 transition-all rounded-[12px] duration-300 hover:shadow-[0_0_12px_#00C8FF] font-semibold px-6 h-[42px] disabled:opacity-50"
+              className="bg-blue-gradient-500 transition-all rounded-full duration-300 hover:shadow-[0_0_12px_#00C8FF] font-semibold px-6 h-[42px] disabled:opacity-50"
             >
               {renderButtonContent()}
             </Button>
@@ -259,12 +290,11 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
         </div>
       </div>
 
-
       <section
         className="relative border-b border-[#25252A] lg:py-12 lg:pb-24 lg:px-12 px-6 pb-8 pt-4 flex flex-col lg:flex-row items-center"
         style={getAuroraBackground(course.colorHex)}
       >
-        <div className='flex w-full items-center justify-center max-w-[1356px] gap-2 mx-auto flex-col lg:flex-row'>
+        <div className="flex w-full items-center justify-center max-w-[1356px] gap-2 mx-auto flex-col lg:flex-row">
           <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
 
           <div className="flex-col flex-1 relative z-10">
@@ -274,13 +304,21 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
               className="hover:bg-[#25252A] group p-2 lg:bg-transparent relative lg:top-0 top-[12px] bg-white/5 rounded-lg flex items-center gap-2 mb-4 text-[#7e7e89] transition-colors"
             >
               <CaretLeftIcon size={24} weight="bold" />
-              <span className="text-xs lg:block hidden uppercase tracking-wider">Voltar</span>
+              <span className="text-xs lg:block hidden uppercase tracking-wider">
+                Voltar
+              </span>
             </button>
 
             {/* Course Icon */}
             <div className="lg:block flex items-center justify-center mb-4">
               {course.icon && (
-                <Image src={course.icon} alt={course.title} width={120} height={120} className='relative lg:right-[20px] right-0' />
+                <Image
+                  src={course.icon}
+                  alt={course.title}
+                  width={120}
+                  height={120}
+                  className="relative lg:right-[20px] right-0"
+                />
               )}
             </div>
 
@@ -304,13 +342,26 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                   <div className="flex-1 space-y-2">
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-[#7e7e89]">
                       <span>Seu Progresso</span>
-                      <span className="text-white text-sm">{Math.round(userProgress?.course.progress ?? 0)}%</span>
+                      <span className="text-white text-sm">
+                        {Math.round(userProgress?.course.progress ?? 0)}%
+                      </span>
                     </div>
-                    <Progress value={userProgress?.course.progress ?? 0} className="h-[2px] bg-[#1a1a1e]">
+                    <Progress
+                      value={userProgress?.course.progress ?? 0}
+                      className="h-[2px] bg-[#1a1a1e]"
+                    >
                       <div className="h-full bg-blue-500 shadow-[0_0_15px_rgba(0,200,255,0.4)]" />
                     </Progress>
                   </div>
-                  <Trophy size={32} weight="fill" className={userProgress?.course.progress === 100 ? "text-yellow-500" : "text-[#25252A]"} />
+                  <Trophy
+                    size={32}
+                    weight="fill"
+                    className={
+                      userProgress?.course.progress === 100
+                        ? 'text-yellow-500'
+                        : 'text-[#25252A]'
+                    }
+                  />
                 </div>
               </div>
 
@@ -319,7 +370,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                 <Button
                   onClick={handleCourseAction}
                   disabled={isLoadingAction || isCheckingEnrollment}
-                  className="lg:w-fit w-full h-[54px] px-10 text-lg bg-blue-gradient-500 rounded-[12px] hover:shadow-[0_0_15px_#00C8FF] transition-all disabled:opacity-50"
+                  className="lg:w-fit w-full h-[54px] px-10 text-lg bg-blue-gradient-500 rounded-full hover:shadow-[0_0_15px_#00C8FF] transition-all disabled:opacity-50"
                 >
                   {renderButtonContent()}
                 </Button>
@@ -331,7 +382,10 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                         <ThumbsUpIcon size={24} />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent side="top" className="rounded-full bg-[#1e1e22] border-[#2a2a2f] flex gap-2 p-2">
+                    <DropdownMenuContent
+                      side="top"
+                      className="rounded-full bg-[#1e1e22] border-[#2a2a2f] flex gap-2 p-2"
+                    >
                       <DropdownMenuItem className="rounded-full h-10 w-10 p-0 flex items-center justify-center hover:bg-red-500/20">
                         <ThumbsDown size={20} />
                       </DropdownMenuItem>
@@ -358,9 +412,26 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
           {/* SIDEBAR INFO */}
           <div className="flex-1 w-full relative z-10">
             <ul className="space-y-1">
-              <InfoItem icon={<Certificate size={22} className="text-[#00C8FF]" />} text="Certificado de conclusão" />
-              <InfoItem icon={<PuzzlePiece size={22} className="text-[#00C8FF]" />} text={<span><strong>7</strong> Projetos práticos</span>} />
-              <InfoItem icon={<VideoCameraIcon size={22} className="text-[#00C8FF]" />} text={<span><strong>{course.totalDuration || '0h'}</strong> de conteúdo</span>} />
+              <InfoItem
+                icon={<Certificate size={22} className="text-[#00C8FF]" />}
+                text="Certificado de conclusão"
+              />
+              <InfoItem
+                icon={<PuzzlePiece size={22} className="text-[#00C8FF]" />}
+                text={
+                  <span>
+                    <strong>7</strong> Projetos práticos
+                  </span>
+                }
+              />
+              <InfoItem
+                icon={<VideoCameraIcon size={22} className="text-[#00C8FF]" />}
+                text={
+                  <span>
+                    <strong>{course.totalDuration || '0h'}</strong> de conteúdo
+                  </span>
+                }
+              />
               <li className="flex w-full items-center gap-4 py-4 border-b border-[#25252A]/50 last:border-0 group">
                 <LevelBars level={course.level} />
               </li>
@@ -368,14 +439,20 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
 
             {course.instructor && (
               <div className="mt-8 rounded-xllg:w-fit w-full z-0">
-                <p className="text-[10px] text-muted-foreground tracking-widest mb-3 uppercase">Instrutor</p>
+                <p className="text-[10px] text-muted-foreground tracking-widest mb-3 uppercase">
+                  Instrutor
+                </p>
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10 border border-[#25252A]">
                     <AvatarImage src={course.instructor.avatar || ''} />
-                    <AvatarFallback className="bg-[#25252A]">{course.instructor.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback className="bg-[#25252A]">
+                      {course.instructor.name.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-white text-sm font-medium z-0">{course.instructor.name}</p>
+                    <p className="text-white text-sm font-medium z-0">
+                      {course.instructor.name}
+                    </p>
                     <p className="text-xs text-[#7e7e89]">Educator</p>
                   </div>
                 </div>
@@ -391,9 +468,12 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
               <ArrowClockwise size={32} className="text-red-500" />
             </div>
-            <DialogTitle className='text-2xl font-black uppercase italic tracking-tighter'>Resetar curso?</DialogTitle>
+            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">
+              Resetar curso?
+            </DialogTitle>
             <DialogDescription className="text-[#a5a5a6] pt-2">
-              Esta ação é **irreversível**. Seu histórico de progresso e certificados ganhos neste curso serão apagados permanentemente.
+              Esta ação é **irreversível**. Seu histórico de progresso e
+              certificados ganhos neste curso serão apagados permanentemente.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col sm:flex-row gap-3 mt-8">
@@ -418,7 +498,13 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
   )
 }
 
-function InfoItem({ icon, text }: { icon: React.ReactNode; text: React.ReactNode }) {
+function InfoItem({
+  icon,
+  text,
+}: {
+  icon: React.ReactNode
+  text: React.ReactNode
+}) {
   return (
     <li className="flex w-full items-center gap-3 py-4 border-b border-[#25252A]/50 last:border-0">
       {icon}

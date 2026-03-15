@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import Link from 'next/link'
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,60 +9,58 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Headset, LogOut, User } from "lucide-react";
-import { logout } from "@/actions/auth";
-import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import freeIconPlan from "../../public/free-plan-icon.svg";
-import premiumIconPlan from "../../public/premium-plan-icon.svg";
-import proIconPlan from "../../public/pro-plan-icon.svg";
+} from './ui/dropdown-menu'
+import { Headset, LogOut, User } from 'lucide-react'
+import { logout } from '@/actions/auth'
+import { useSession } from 'next-auth/react'
+import { useState, useEffect } from 'react'
+import Image from 'next/image'
+import freeIconPlan from '../../public/free-plan-icon.svg'
+import premiumIconPlan from '../../public/premium-plan-icon.svg'
+import proIconPlan from '../../public/pro-plan-icon.svg'
 
 export function UserDropdown() {
-  const { data: session } = useSession();
-  const user = session?.user;
-  const userPlan = (user as { plan?: string } | undefined)?.plan;
-  const [open, setOpen] = useState(false);
+  const { data: session } = useSession()
+  const user = session?.user
+  const userPlan = (user as { plan?: string } | undefined)?.plan
+  const [open, setOpen] = useState(false)
 
   // Obtém as iniciais do nome para o fallback
   const getInitials = (name?: string | null) => {
-    if (!name) return "U";
-    const names = name.split(" ");
+    if (!name) return 'U'
+    const names = name.split(' ')
     if (names.length >= 2) {
-      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase()
     }
-    return name[0].toUpperCase();
-  };
+    return name[0].toUpperCase()
+  }
 
-  // Fecha o dropdown durante o resize para evitar reposicionamento constante do Popper
   useEffect(() => {
-    let timeoutRef: NodeJS.Timeout | null = null;
+    let timeoutRef: NodeJS.Timeout | null = null
 
     const handleResize = () => {
       // Fecha o dropdown imediatamente ao detectar resize
       if (open) {
-        setOpen(false);
+        setOpen(false)
       }
-    };
+    }
 
-    // Debounce para evitar fechar múltiplas vezes durante resize contínuo
     const debouncedHandleResize = () => {
       if (timeoutRef) {
-        clearTimeout(timeoutRef);
+        clearTimeout(timeoutRef)
       }
-      timeoutRef = setTimeout(handleResize, 100);
-    };
+      timeoutRef = setTimeout(handleResize, 100)
+    }
 
-    window.addEventListener("resize", debouncedHandleResize);
+    window.addEventListener('resize', debouncedHandleResize)
 
     return () => {
-      window.removeEventListener("resize", debouncedHandleResize);
+      window.removeEventListener('resize', debouncedHandleResize)
       if (timeoutRef) {
-        clearTimeout(timeoutRef);
+        clearTimeout(timeoutRef)
       }
-    };
-  }, [open]);
+    }
+  }, [open])
 
   return (
     <>
@@ -101,15 +99,27 @@ export function UserDropdown() {
         >
           <DropdownMenuLabel className="p-4">
             <div className="flex items-center justify-between">
-              <span className="bg-blue-gradient-500 bg-clip-text text-transparent font-bold text-sm">
-                Minha Conta
-              </span>
-              {userPlan === "PREMIUM" ? (
+              <div className="flex items-center gap-2">
+                <Avatar className="h-[38px] w-[38px]">
+                  <AvatarImage src={user?.image || undefined} />
+                  <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-white text-sm">{user?.name}</p>
+                  <p className="text-[#708089] text-xs">{user?.email}</p>
+                </div>
+              </div>
+              {userPlan === 'PREMIUM' ? (
                 <div className="flex items-center gap-2">
-                  <Image src={premiumIconPlan} alt="PREMIUM" width={16} height={16} />
+                  <Image
+                    src={premiumIconPlan}
+                    alt="PREMIUM"
+                    width={16}
+                    height={16}
+                  />
                   <span className="text-[#FF6200] font-medium">PREMIUM</span>
                 </div>
-              ) : userPlan === "PRO" ? (
+              ) : userPlan === 'PRO' ? (
                 <div className="flex items-center gap-2">
                   <Image src={proIconPlan} alt="PRO" width={16} height={16} />
                   <span className="text-[#8234E9] font-medium">PRO</span>
@@ -155,5 +165,5 @@ export function UserDropdown() {
         </DropdownMenuContent>
       </DropdownMenu>
     </>
-  );
+  )
 }

@@ -1,46 +1,42 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react'
 
-
-import { Flame } from "@phosphor-icons/react/dist/ssr";
+import { Flame } from '@phosphor-icons/react/dist/ssr'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from './ui/dropdown-menu'
 
 export function StrikeSection() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
 
-  // Fecha o dropdown durante o resize para evitar reposicionamento constante do Popper
   useEffect(() => {
-    let timeoutRef: NodeJS.Timeout | null = null;
-    
-    const handleResize = () => {
-      // Fecha o dropdown imediatamente ao detectar resize
-      if (isOpen) {
-        setIsOpen(false);
-      }
-    };
+    let timeoutRef: NodeJS.Timeout | null = null
 
-    // Debounce para evitar fechar múltiplas vezes durante resize contínuo
+    const handleResize = () => {
+      if (isOpen) {
+        setIsOpen(false)
+      }
+    }
+
     const debouncedHandleResize = () => {
       if (timeoutRef) {
-        clearTimeout(timeoutRef);
+        clearTimeout(timeoutRef)
       }
-      timeoutRef = setTimeout(handleResize, 100);
-    };
+      timeoutRef = setTimeout(handleResize, 100)
+    }
 
-    window.addEventListener("resize", debouncedHandleResize);
-    
+    window.addEventListener('resize', debouncedHandleResize)
+
     return () => {
-      window.removeEventListener("resize", debouncedHandleResize);
+      window.removeEventListener('resize', debouncedHandleResize)
       if (timeoutRef) {
-        clearTimeout(timeoutRef);
+        clearTimeout(timeoutRef)
       }
-    };
-  }, [isOpen]);
+    }
+  }, [isOpen])
 
   return (
     <>
@@ -49,8 +45,8 @@ export function StrikeSection() {
           <div
             className={`flex items-center space-x-3 border py-2 px-3 rounded-[20px] transition-colors ${
               isOpen
-                ? "bg-[#25252A] border-[#FFB733]"
-                : "border-[#25252A] hover:bg-[#25252A] hover:border-[#FFB733]"
+                ? 'bg-[#25252A] border-[#FFB733]'
+                : 'border-[#25252A] hover:bg-[#25252A] hover:border-[#FFB733]'
             }`}
           >
             <Flame size={24} weight="fill" className="text-[#515155]" />
@@ -118,12 +114,12 @@ export function StrikeSection() {
             {/* Progresso Semanal */}
             <div className="mt-6 bg-[#25252A]/30 rounded-[20px] p-4">
               <div className="flex items-center justify-between mb-6">
-                {["D", "S", "T", "Q", "Q", "S", "S"].map((day, index) => (
+                {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, index) => (
                   <div key={index} className="flex flex-col items-center">
                     <span className="text-xs text-[#C4C4CC] mb-2">{day}</span>
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        index === 1 ? "bg-yellow-lightning-500" : "bg-[#25252A]"
+                        index === 1 ? 'bg-yellow-lightning-500' : 'bg-[#25252A]'
                       }`}
                     >
                       {index === 1 && (
@@ -139,7 +135,7 @@ export function StrikeSection() {
               <div className="relative h-4 bg-[#25252A] rounded-full overflow-hidden">
                 <div
                   className="absolute h-full bg-yellow-lightning-500 rounded-full"
-                  style={{ width: "14%" }}
+                  style={{ width: '14%' }}
                 />
               </div>
             </div>
@@ -147,5 +143,5 @@ export function StrikeSection() {
         </DropdownMenuContent>
       </DropdownMenu>
     </>
-  );
+  )
 }

@@ -116,7 +116,7 @@ export default function ClassroomHeader({
             </div>
             {currentActiveCourse && (
               <Link href={coursePath}>
-                <div className="border rounded-[12px] border-[#25252a] py-2 lg:flex hidden items-center gap-2 px-3 hover:bg-[#25252a] cursor-pointer transition-colors duration-150 ease-in-out">
+                <div className="border rounded-full border-[#25252a] py-2 lg:flex hidden items-center gap-2 px-3 hover:bg-[#25252a] cursor-pointer transition-colors duration-150 ease-in-out">
                   {currentActiveCourse?.icon ? (
                     <div className="w-6 h-6 rounded-full overflow-hidden">
                       <Image
@@ -210,12 +210,14 @@ export default function ClassroomHeader({
                 {/* Reprodução automática */}
                 <button
                   onClick={() => setIsAutoplay(!isAutoplay)}
-                  className={`relative w-11 h-6 rounded-full transition-colors ${isAutoplay ? 'bg-[#00C8FF]' : 'bg-[#25252A]'
-                    }`}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${
+                    isAutoplay ? 'bg-[#00C8FF]' : 'bg-[#25252A]'
+                  }`}
                 >
                   <span
-                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${isAutoplay ? 'translate-x-5' : 'translate-x-0'
-                      }`}
+                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                      isAutoplay ? 'translate-x-5' : 'translate-x-0'
+                    }`}
                   />
                 </button>
               </div>

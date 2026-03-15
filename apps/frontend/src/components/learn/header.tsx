@@ -115,8 +115,6 @@ export default function LearnHeader({
           </button>
 
           <div className="flex items-center space-x-4">
-            {/* <LoggedSheet /> */}
-
             <div>
               <Link href="/">
                 <Image

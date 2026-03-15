@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import Image from "next/image";
+import Image from 'next/image'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,105 +8,101 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { Plus, Check } from "lucide-react";
-import Link from "next/link";
-import { useState, useEffect } from "react";
-import { startCourse } from "@/actions/course/start";
-import type { EnrolledCourse, ActiveCourse } from "@/types/user-course.ts";
-import { useActiveCourseStore } from "@/stores/active-course-store";
-import { useRouter } from "next/navigation";
+} from '../ui/dropdown-menu'
+import { Plus, Check } from 'lucide-react'
+import Link from 'next/link'
+import { useState, useEffect } from 'react'
+import { startCourse } from '@/actions/course/start'
+import type { EnrolledCourse, ActiveCourse } from '@/types/user-course.ts'
+import { useActiveCourseStore } from '@/stores/active-course-store'
+import { useRouter } from 'next/navigation'
 
 interface CourseDropdownMenuProps {
-  initialUserCourses: EnrolledCourse[];
-  initialActiveCourse: ActiveCourse | null;
+  initialUserCourses: EnrolledCourse[]
+  initialActiveCourse: ActiveCourse | null
 }
 
 export function CourseDropdownMenu({
   initialUserCourses,
   initialActiveCourse,
 }: CourseDropdownMenuProps) {
-  const [open, setOpen] = useState(false);
-  const [userCourses] = useState<EnrolledCourse[]>(initialUserCourses);
-  const [changingCourse, setChangingCourse] = useState<string | null>(null);
+  const [open, setOpen] = useState(false)
+  const [userCourses] = useState<EnrolledCourse[]>(initialUserCourses)
+  const [changingCourse, setChangingCourse] = useState<string | null>(null)
   const { activeCourse, fetchActiveCourse, setActiveCourse } =
-    useActiveCourseStore();
-  const router = useRouter();
+    useActiveCourseStore()
+  const router = useRouter()
 
   // Sincroniza o activeCourse inicial com o store
   useEffect(() => {
     if (initialActiveCourse && !activeCourse) {
-      setActiveCourse(initialActiveCourse);
+      setActiveCourse(initialActiveCourse)
     }
-  }, [initialActiveCourse, activeCourse, setActiveCourse]);
+  }, [initialActiveCourse, activeCourse, setActiveCourse])
 
   // Fecha o dropdown durante o resize para evitar reposicionamento constante do Popper
   useEffect(() => {
-    let timeoutRef: NodeJS.Timeout | null = null;
+    let timeoutRef: NodeJS.Timeout | null = null
 
     const handleResize = () => {
       // Fecha o dropdown imediatamente ao detectar resize
       if (open) {
-        setOpen(false);
+        setOpen(false)
       }
-    };
+    }
 
-    // Debounce para evitar fechar múltiplas vezes durante resize contínuo
     const debouncedHandleResize = () => {
       if (timeoutRef) {
-        clearTimeout(timeoutRef);
+        clearTimeout(timeoutRef)
       }
-      timeoutRef = setTimeout(handleResize, 100);
-    };
+      timeoutRef = setTimeout(handleResize, 100)
+    }
 
-    window.addEventListener("resize", debouncedHandleResize);
+    window.addEventListener('resize', debouncedHandleResize)
 
     return () => {
-      window.removeEventListener("resize", debouncedHandleResize);
+      window.removeEventListener('resize', debouncedHandleResize)
       if (timeoutRef) {
-        clearTimeout(timeoutRef);
+        clearTimeout(timeoutRef)
       }
-    };
-  }, [open]);
+    }
+  }, [open])
 
-  // Usa o activeCourse do store se disponível, senão usa o inicial,
-  // mas ignora cursos que já foram concluídos
   const storeActiveCourse =
-    activeCourse && !activeCourse.isCompleted ? activeCourse : null;
+    activeCourse && !activeCourse.isCompleted ? activeCourse : null
   const initialActive =
     initialActiveCourse && !initialActiveCourse.isCompleted
       ? initialActiveCourse
-      : null;
-  const currentActiveCourse = storeActiveCourse || initialActive;
+      : null
+  const currentActiveCourse = storeActiveCourse || initialActive
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <div
           className={`bg-[#2A2A35]/40 backdrop-blur-md border-b-[1px] border-[#55555c]/50 items-center justify-center border cursor-pointer flex transition-all duration-300 shrink-0
-    h-[52px] w-[120px] rounded-full lg:h-auto lg:w-auto lg:max-h-[42px] lg:py-3 lg:px-4 lg:gap-2 lg:rounded-[12px]
+    h-[52px] w-[120px] rounded-full lg:h-auto lg:w-auto lg:max-h-[42px] lg:py-3 lg:px-4 lg:gap-2
     hover:bg-[#25252A]/60 
     shadow-[0_0_15px_rgba(255,255,255,0.10)] hover:shadow-[0_0_20px_rgba(255,255,255,0.30)]
     lg:bg-transparent lg:backdrop-blur-none lg:shadow-none lg:hover:shadow-none
     
-    ${open
-              ? "border-[#00C8FF]/70 lg:border-[#25252A] shadow-[0_0_25px_rgba(255,255,255,0.2)] lg:shadow-none"
-              : "border-[#55555c]/50 lg:border-[#25252A]"
-            }`}
+    ${
+      open
+        ? 'border-[#00C8FF]/70 lg:border-[#25252A] shadow-[0_0_25px_rgba(255,255,255,0.2)] lg:shadow-none'
+        : 'border-[#55555c]/50 lg:border-[#25252A]'
+    }`}
         >
           {currentActiveCourse?.icon ? (
             <Image
               src={currentActiveCourse.icon}
-              alt={currentActiveCourse.title || "Curso"}
+              alt={currentActiveCourse.title || 'Curso'}
               height={40}
               width={40}
               className="object-contain h-[50px] w-[50px] lg:h-[32px] lg:w-[32px]"
             />
-          ) : (
-            null
-          )}
+          ) : null}
           <p className="lg:block hidden">
-            {currentActiveCourse?.title || "Começar um curso"}
+            {currentActiveCourse?.title || 'Começar um curso'}
           </p>
         </div>
       </DropdownMenuTrigger>
@@ -120,7 +116,7 @@ export function CourseDropdownMenu({
       >
         <DropdownMenuLabel className="p-4 flex items-center justify-center">
           <span className="bg-blue-gradient-500 bg-clip-text text-transparent font-bold text-base">
-            {currentActiveCourse ? "Meus cursos" : "Começar um curso"}
+            {currentActiveCourse ? 'Meus cursos' : 'Começar um curso'}
           </span>
         </DropdownMenuLabel>
 
@@ -134,63 +130,64 @@ export function CourseDropdownMenu({
           <>
             {[...userCourses]
               .sort((a, b) => {
-                const aIsActive = currentActiveCourse?.id === a.courseId;
-                const bIsActive = currentActiveCourse?.id === b.courseId;
+                const aIsActive = currentActiveCourse?.id === a.courseId
+                const bIsActive = currentActiveCourse?.id === b.courseId
                 // Curso ativo vem primeiro
-                if (aIsActive && !bIsActive) return -1;
-                if (!aIsActive && bIsActive) return 1;
-                return 0;
+                if (aIsActive && !bIsActive) return -1
+                if (!aIsActive && bIsActive) return 1
+                return 0
               })
               .map((enrolledCourse) => {
                 const isActive =
-                  currentActiveCourse?.id === enrolledCourse.courseId;
-                const isChanging = changingCourse === enrolledCourse.courseId;
+                  currentActiveCourse?.id === enrolledCourse.courseId
+                const isChanging = changingCourse === enrolledCourse.courseId
 
                 const handleCourseClick = async () => {
                   // Se já está ativo, apenas fecha o menu
                   if (isActive) {
-                    setOpen(false);
-                    return;
+                    setOpen(false)
+                    return
                   }
 
                   // Se não está ativo, inicia o curso
-                  setChangingCourse(enrolledCourse.courseId);
+                  setChangingCourse(enrolledCourse.courseId)
                   try {
-                    await startCourse(enrolledCourse.courseId);
-                    await fetchActiveCourse();
-                    setOpen(false);
+                    await startCourse(enrolledCourse.courseId)
+                    await fetchActiveCourse()
+                    setOpen(false)
                     // Força a atualização da página para carregar o novo roadmap
-                    router.refresh();
+                    router.refresh()
                   } catch (error) {
-                    console.error("Erro ao mudar de curso:", error);
-                    setChangingCourse(null);
+                    console.error('Erro ao mudar de curso:', error)
+                    setChangingCourse(null)
                   }
-                };
+                }
 
                 return (
                   <DropdownMenuItem
                     key={enrolledCourse.id}
-                    className={`pl-2 pr-4 w-full min-w-[352px] text-white border-none rounded-[20px] ${isChanging
-                      ? "opacity-50 cursor-not-allowed"
-                      : "cursor-pointer"
-                      }`}
+                    className={`pl-2 pr-4 w-full min-w-[352px] text-white border-none rounded-[20px] ${
+                      isChanging
+                        ? 'opacity-50 cursor-not-allowed'
+                        : 'cursor-pointer'
+                    }`}
                     onClick={handleCourseClick}
                   >
                     <div className="flex items-center gap-3">
                       {(enrolledCourse.course.icon ||
                         enrolledCourse.course.thumbnail) && (
-                          <Image
-                            src={
-                              enrolledCourse.course.icon ||
-                              enrolledCourse.course.thumbnail ||
-                              ""
-                            }
-                            alt={enrolledCourse.course.title}
-                            width={70}
-                            height={70}
-                            className="object-contain h-[70px] w-[70px]"
-                          />
-                        )}
+                        <Image
+                          src={
+                            enrolledCourse.course.icon ||
+                            enrolledCourse.course.thumbnail ||
+                            ''
+                          }
+                          alt={enrolledCourse.course.title}
+                          width={70}
+                          height={70}
+                          className="object-contain h-[70px] w-[70px]"
+                        />
+                      )}
                       <div className="flex flex-col flex-1">
                         <span className="text-sm">
                           {enrolledCourse.course.title}
@@ -209,7 +206,7 @@ export function CourseDropdownMenu({
                       )}
                     </div>
                   </DropdownMenuItem>
-                );
+                )
               })}
           </>
         )}
@@ -222,5 +219,5 @@ export function CourseDropdownMenu({
         </Link>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }
