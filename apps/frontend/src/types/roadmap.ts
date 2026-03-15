@@ -42,6 +42,7 @@ export type Lesson = {
   video?: { url?: string | null; duration?: string | null } | null;
   article?: { body: string } | null;
   quiz?: { content: Challenge[] } | null;
+  project?: { description: string; specs?: PlaygroundBlock | null } | null;
   order: number;
   status: LessonStatus;
   isCurrent: boolean;

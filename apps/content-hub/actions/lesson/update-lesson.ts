@@ -14,6 +14,8 @@ export interface UpdateLessonData {
   video_duration?: string;
   body?: string;
   quiz_content?: Challenge[];
+  project_description?: string;
+  project_specs?: unknown;
   locked?: boolean;
   order?: number;
   authorId?: string;

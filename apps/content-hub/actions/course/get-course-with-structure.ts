@@ -35,6 +35,7 @@ export interface LessonWithStructure {
   video?: { url: string | null; duration: string | null } | null;
   article?: { body: string } | null;
   quiz?: { content: import('../lesson/list-lessons').Challenge[] } | null;
+  project?: { description: string; specs?: Record<string, unknown> | null } | null;
   locked: boolean;
   completed: boolean;
   submoduleId: number;

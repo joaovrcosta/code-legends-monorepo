@@ -293,6 +293,8 @@ export class GetRoadmapUseCase {
           const lessonWithContent = lesson as typeof lesson & {
             video?: { url: string | null; duration: string | null } | null
             article?: { body: string } | null
+            quiz?: { content: unknown } | null
+            project?: { description: string; specs: unknown } | null
           }
           return {
             id: lesson.id,
@@ -304,6 +306,8 @@ export class GetRoadmapUseCase {
             video_duration: lessonWithContent.video?.duration ?? null,
             video: lessonWithContent.video ?? null,
             article: lessonWithContent.article ?? null,
+            quiz: lessonWithContent.quiz ?? null,
+            project: lessonWithContent.project ?? null,
             order: lesson.order,
             status,
             isCurrent,

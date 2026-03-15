@@ -3,6 +3,7 @@
 import VideoComponent from '@/components/classroom/video'
 import { ComponentsArticle } from '@/components/classroom/article/components'
 import { QuizView } from '@/components/classroom/challenge/QuizView'
+import { ProjectView } from '@/components/classroom/project-view'
 import type { Lesson } from '@/types/roadmap'
 import { memo } from 'react'
 import { useCourseModalStore } from '@/stores/course-modal-store'
@@ -14,10 +15,6 @@ interface LessonContentProps {
   moduleTitle?: string
   groupTitle?: string
   courseIcon?: string
-  /**
-   * Quando true e o módulo tiver sido concluído,
-   * mostra apenas os stats de skills em vez do conteúdo da aula.
-   */
   showModuleCompletionStats?: boolean
 }
 
@@ -65,7 +62,9 @@ export const LessonContent = memo(function LessonContent({
               isMultiQuiz={lesson.type === 'multi_quiz'}
             />
           )}
-          {lesson?.type === 'project' && <p>Projeto</p>}
+          {lesson?.type === 'project' && (
+            <ProjectView lesson={lesson} moduleTitle={moduleTitle} />
+          )}
         </div>
       </div>
     </div>

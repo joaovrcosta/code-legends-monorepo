@@ -67,6 +67,8 @@ export function LessonEditModal({
     video_url: lesson.video_url || lesson.video?.url || '',
     video_duration: lesson.video_duration || lesson.video?.duration || '',
     body: lesson.article?.body ?? '',
+    project_description: lesson.project?.description ?? '',
+    project_specs: JSON.stringify(lesson.project?.specs ?? {}, null, 2),
     isFree: false,
     locked: lesson.locked,
     order: lesson.order,
@@ -86,6 +88,8 @@ export function LessonEditModal({
         video_url: lesson.video_url || lesson.video?.url || '',
         video_duration: lesson.video_duration || lesson.video?.duration || '',
         body: lesson.article?.body ?? '',
+        project_description: lesson.project?.description ?? '',
+        project_specs: JSON.stringify(lesson.project?.specs ?? {}, null, 2),
         isFree: lesson.isFree,
         locked: lesson.locked,
         order: lesson.order,
@@ -116,7 +120,19 @@ export function LessonEditModal({
       const payload =
         formData.type === 'quiz' || formData.type === 'multi_quiz'
           ? { ...formData, quiz_content: quizContent }
-          : formData
+          : formData.type === 'project'
+            ? {
+                ...formData,
+                project_description: formData.project_description,
+                project_specs: (() => {
+                  try {
+                    return JSON.parse(formData.project_specs || '{}')
+                  } catch {
+                    return {}
+                  }
+                })(),
+              }
+            : formData
 
       await updateLesson(lesson.id.toString(), payload, token)
       onSave({
@@ -140,6 +156,19 @@ export function LessonEditModal({
         quiz:
           formData.type === 'quiz' || formData.type === 'multi_quiz'
             ? { content: quizContent }
+            : null,
+        project:
+          formData.type === 'project'
+            ? {
+                description: formData.project_description,
+                specs: (() => {
+                  try {
+                    return JSON.parse(formData.project_specs || '{}')
+                  } catch {
+                    return {}
+                  }
+                })(),
+              }
             : null,
       })
       onClose()
@@ -332,6 +361,45 @@ export function LessonEditModal({
                   challenges={quizContent}
                   onChange={setQuizContent}
                 />
+              </div>
+            )}
+
+            {formData.type === 'project' && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="project_description">Descrição do projeto (Boss)</Label>
+                  <Textarea
+                    id="project_description"
+                    value={formData.project_description}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        project_description: e.target.value,
+                      })
+                    }
+                    rows={4}
+                    placeholder="Descreva o desafio do módulo..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="project_specs">Configuração do playground (JSON)</Label>
+                  <Textarea
+                    id="project_specs"
+                    value={formData.project_specs}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        project_specs: e.target.value,
+                      })
+                    }
+                    rows={12}
+                    className="font-mono text-sm"
+                    placeholder='{"files": {"/App.js": "..."}, "template": "react", "testFile": "..."}'
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Objeto com files, template (vanilla|react), testFile (código do teste) ou tests (Record path - conteúdo).
+                  </p>
+                </div>
               </div>
             )}
 

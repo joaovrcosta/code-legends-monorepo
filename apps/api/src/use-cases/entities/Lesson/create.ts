@@ -5,6 +5,7 @@ import { IUsersRepository } from "../../../repositories/users-repository";
 import { IVideoRepository } from "../../../repositories/video-repository";
 import { IArticleRepository } from "../../../repositories/article-repository";
 import { IQuizRepository } from "../../../repositories/quiz-repository";
+import { IProjectRepository } from "../../../repositories/project-repository";
 import { LessonAlreadyExistsError } from "../../errors/lesson-already-exists";
 import { GroupNotFoundError } from "../../errors/group-not-found";
 import { UserNotFoundError } from "../../errors/user-not-found";
@@ -20,6 +21,8 @@ interface CreateLessonRequest {
   video_duration?: string;
   body?: string;
   quiz_content?: unknown[];
+  project_description?: string;
+  project_specs?: unknown;
   locked?: boolean;
   submoduleId: number;
   order?: number;
@@ -37,7 +40,8 @@ export class CreateLessonUseCase {
     private usersRepository: IUsersRepository,
     private videoRepository: IVideoRepository,
     private articleRepository: IArticleRepository,
-    private quizRepository: IQuizRepository
+    private quizRepository: IQuizRepository,
+    private projectRepository: IProjectRepository
   ) {}
 
   async execute(data: CreateLessonRequest): Promise<CreateLessonResponse> {
@@ -59,7 +63,15 @@ export class CreateLessonUseCase {
       throw new LessonAlreadyExistsError();
     }
 
-    const { video_url, video_duration, body, quiz_content, ...lessonData } = data;
+    const {
+      video_url,
+      video_duration,
+      body,
+      quiz_content,
+      project_description,
+      project_specs,
+      ...lessonData
+    } = data;
     const lesson = await this.lessonRepository.create(lessonData);
 
     if (data.type === "video" && (video_url != null || video_duration != null)) {
@@ -80,6 +92,12 @@ export class CreateLessonUseCase {
       Array.isArray(data.quiz_content)
     ) {
       await this.quizRepository.upsert(lesson.id, data.quiz_content);
+    }
+    if (data.type === "project") {
+      await this.projectRepository.upsert(lesson.id, {
+        description: project_description ?? "",
+        specs: project_specs,
+      });
     }
 
     const lessonWithContent = await this.lessonRepository.findById(lesson.id);

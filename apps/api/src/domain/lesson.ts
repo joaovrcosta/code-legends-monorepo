@@ -17,6 +17,13 @@ export interface Challenge {
   placeholder?: string;
 }
 
+export interface ProjectSpecs {
+  files?: Record<string, string>;
+  template?: string;
+  testFile?: string;
+  tests?: Record<string, string>;
+}
+
 export interface LessonWithContentDTO {
   id: number;
   title: string;
@@ -34,6 +41,10 @@ export interface LessonWithContentDTO {
   } | null;
   quiz?: {
     content: Challenge[];
+  } | null;
+  project?: {
+    description: string;
+    specs?: ProjectSpecs | null;
   } | null;
 }
 

@@ -32,6 +32,7 @@ export interface Lesson {
   video?: { url: string | null; duration: string | null } | null;
   article?: { body: string } | null;
   quiz?: { content: Challenge[] } | null;
+  project?: { description: string; specs?: Record<string, unknown> | null } | null;
   locked: boolean;
   order?: number | null;
   submoduleId: number;

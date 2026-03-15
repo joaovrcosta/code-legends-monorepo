@@ -20,7 +20,7 @@ CREATE TYPE "SubscriptionStatus" AS ENUM ('ACTIVE', 'CANCELLED', 'EXPIRED');
 CREATE TYPE "RequestStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'IN_PROGRESS');
 
 -- CreateEnum
-CREATE TYPE "CourseStatus" AS ENUM ('DRAFT', 'PUBLISHED');
+CREATE TYPE "CourseStatus" AS ENUM ('DRAFT', 'REVIEW', 'PUBLISHED');
 
 -- CreateEnum
 CREATE TYPE "NotificationType" AS ENUM ('NEW_COURSE_AVAILABLE', 'CERTIFICATE_GENERATED', 'LEVEL_UP', 'REQUEST_STATUS_CHANGED', 'COURSE_COMPLETED', 'NEW_EVENT');
@@ -218,6 +218,7 @@ CREATE TABLE "Project" (
     "description" TEXT NOT NULL,
     "lessonId" INTEGER NOT NULL,
     "badgeId" TEXT,
+    "specs" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -466,6 +467,16 @@ CREATE TABLE "Subscription" (
 );
 
 -- CreateTable
+CREATE TABLE "SystemSetting" (
+    "id" TEXT NOT NULL,
+    "key" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SystemSetting_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_CourseToTag" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -603,6 +614,9 @@ CREATE INDEX "Subscription_status_idx" ON "Subscription"("status");
 
 -- CreateIndex
 CREATE INDEX "Subscription_endsAt_idx" ON "Subscription"("endsAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SystemSetting_key_key" ON "SystemSetting"("key");
 
 -- CreateIndex
 CREATE INDEX "_CourseToTag_B_index" ON "_CourseToTag"("B");

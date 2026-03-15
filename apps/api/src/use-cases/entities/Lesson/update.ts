@@ -3,6 +3,7 @@ import { ILessonRepository } from "../../../repositories/lesson-repository";
 import { IVideoRepository } from "../../../repositories/video-repository";
 import { IArticleRepository } from "../../../repositories/article-repository";
 import { IQuizRepository } from "../../../repositories/quiz-repository";
+import { IProjectRepository } from "../../../repositories/project-repository";
 import { LessonNotFoundError } from "../../errors/lesson-not-found";
 import { LessonAlreadyExistsError } from "../../errors/lesson-already-exists";
 
@@ -18,6 +19,8 @@ interface UpdateLessonRequest {
   video_duration?: string;
   body?: string;
   quiz_content?: unknown[];
+  project_description?: string;
+  project_specs?: unknown;
   locked?: boolean;
   order?: number;
 }
@@ -31,7 +34,8 @@ export class UpdateLessonUseCase {
     private lessonRepository: ILessonRepository,
     private videoRepository: IVideoRepository,
     private articleRepository: IArticleRepository,
-    private quizRepository: IQuizRepository
+    private quizRepository: IQuizRepository,
+    private projectRepository: IProjectRepository
   ) {}
 
   async execute(data: UpdateLessonRequest): Promise<UpdateLessonResponse> {
@@ -50,7 +54,15 @@ export class UpdateLessonUseCase {
       }
     }
 
-    const { video_url, video_duration, body, quiz_content, ...updateData } = data;
+    const {
+      video_url,
+      video_duration,
+      body,
+      quiz_content,
+      project_description,
+      project_specs,
+      ...updateData
+    } = data;
     const updatedLesson = await this.lessonRepository.update(data.id, updateData);
 
     if (data.type === "video") {
@@ -69,6 +81,12 @@ export class UpdateLessonUseCase {
       Array.isArray(quiz_content)
     ) {
       await this.quizRepository.upsert(lesson.id, quiz_content);
+    }
+    if (data.type === "project") {
+      await this.projectRepository.upsert(lesson.id, {
+        description: project_description,
+        specs: project_specs,
+      });
     }
 
     const lessonWithContent = await this.lessonRepository.findById(data.id);
