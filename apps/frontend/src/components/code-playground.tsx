@@ -93,7 +93,6 @@ function PlaygroundContent({
   onTestsPass,
   playgroundId,
 }: {
-  height: number | string
   hasTests: boolean
   onTestsPass?: () => void
   playgroundId?: string
@@ -217,12 +216,11 @@ export function CodePlayground({
   const testFiles = testFile ? { '/App.test.js': testFile } : tests ?? {}
   const resolvedFiles = { ...baseFiles, ...(files ?? {}), ...testFiles }
   const heightValue = typeof height === 'number' ? `${height}px` : height
-  const editorHeight = typeof height === 'number' ? height - 48 : 272
 
   return (
     <div
       className={`w-full overflow-hidden rounded-lg border border-[#25252A] bg-[#1A1A1A] ${className}`}
-      style={{ minHeight: heightValue }}
+      style={{ height: heightValue, minHeight: heightValue }}
     >
       <div className="flex items-center justify-between border-b border-[#25252A] bg-[#373A3E] px-4 py-2.5">
         <span className="text-sm font-medium text-white">Code Playground</span>
@@ -249,13 +247,10 @@ export function CodePlayground({
         theme="dark"
         files={resolvedFiles}
         options={{
-          showTabs: true,
-          editorHeight,
-          editorWidthPercentage: 50,
           classes: {
-            'sp-wrapper': '!rounded-none !border-0 !bg-transparent',
-            'sp-layout': '!flex !flex-row !border-0 !bg-[#1A1A1A]',
-            'sp-stack': '!bg-[#1A1A1A]',
+            'sp-wrapper': '!h-full !min-h-0 !rounded-none !border-0 !bg-transparent',
+            'sp-layout': '!h-full !min-h-0 !flex !flex-row !border-0 !bg-[#1A1A1A]',
+            'sp-stack': '!h-full !bg-[#1A1A1A] !min-h-0',
             'sp-tabs': '!border-b !border-[#25252A] !bg-[#1A1A1A]',
             'sp-tab-button':
               '!text-white/70 !data-[active=true]:text-white !data-[active=true]:border-b-2 !data-[active=true]:border-white/80',
@@ -265,7 +260,6 @@ export function CodePlayground({
         }}
       >
         <PlaygroundContent
-          height={editorHeight}
           hasTests={hasTests}
           onTestsPass={onTestsPass}
           playgroundId={playgroundId}
