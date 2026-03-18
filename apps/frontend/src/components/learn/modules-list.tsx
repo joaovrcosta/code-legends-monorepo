@@ -75,7 +75,7 @@ export function ModulesList({ modules, courseId, courseSlug }: ModulesListProps)
           >
             <section
               className={`border border-[#25252A] px-6 py-6 pr-8 flex items-center shadow-lg rounded-[16px] w-full max-w-[713px] justify-between sticky top-0 z-10  ${
-                module.isCurrent ? "bg-[#121214]" : "bg-[#121214]"
+                module.isCurrent ? "bg-surface" : "bg-surface"
               }`}
             >
               <div className="flex flex-col w-full">

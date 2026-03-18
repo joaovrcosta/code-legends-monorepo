@@ -24,7 +24,7 @@ export default async function CartPage({
   const plan = planFromApiToPlanInfo(planFromApi);
 
   return (
-    <div className="min-h-screen bg-[#121214]">
+    <div className="min-h-screen bg-surface">
       <CartContent planSlug={normalized} plan={plan} />
     </div>
   );

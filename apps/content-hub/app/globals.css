@@ -18,14 +18,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #121214;
+    --background: #0c0c0d;
     --foreground: #ededed;
   }
 }
 
 .dark {
   color-scheme: dark;
-  --background: #121214;
+  --background: #0c0c0d;
   --foreground: #ededed;
   --chart-1: 217.2 91.2% 59.8%;
   --chart-2: 263.4 89.5% 66.3%;

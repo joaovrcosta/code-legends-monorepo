@@ -104,14 +104,14 @@ export const LessonPopover = ({
               </button>
             </PopoverAnchor>
             <PopoverContent
-              className="!bg-[#121214] rounded-full"
+              className="!bg-surface rounded-full"
               side="top"
               asChild
             >
               <motion.div
-                className="w-[130px] cursor-pointer text-center bg-[#121214] rounded-full border-2 border-[#25252A] shadow-lg px-4 py-3 hover:bg-[#25252A] touch-manipulation"
+                className="w-[130px] cursor-pointer text-center bg-surface rounded-full border-2 border-[#25252A] shadow-lg px-4 py-3 hover:bg-[#25252A] touch-manipulation"
                 style={{
-                  backgroundColor: '#121214',
+                  backgroundColor: 'var(--color-surface)',
                   transformOrigin: 'center center'
                 }}
                 initial={{ opacity: 0, scale: 0.8 }}

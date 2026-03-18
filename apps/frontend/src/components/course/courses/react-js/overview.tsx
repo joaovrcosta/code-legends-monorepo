@@ -1,14 +1,14 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { Card, CardHeader } from "@/components/ui/card";
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { Card, CardHeader } from '@/components/ui/card'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
+} from '@/components/ui/accordion'
 import {
   CaretDown,
   Check,
@@ -21,89 +21,91 @@ import {
   Question,
   Lock,
   Play,
-} from "@phosphor-icons/react/dist/ssr";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { getCompletedCourses } from "@/actions/course/completed";
-import { useActiveCourseStore } from "@/stores/active-course-store";
-import Image from "next/image";
-import { ChevronRight } from "lucide-react";
-import { LearnUpgradeCard } from "@/components/learn/learn-upgrade-card";
+} from '@phosphor-icons/react/dist/ssr'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { getCompletedCourses } from '@/actions/course/completed'
+import { useActiveCourseStore } from '@/stores/active-course-store'
+import Image from 'next/image'
+import { ChevronRight } from 'lucide-react'
+import { LearnUpgradeCard } from '@/components/learn/learn-upgrade-card'
 
 interface CourseOverviewProps {
-  tags?: string[];
+  tags?: string[]
   currentLesson?: {
-    id: number;
-    title: string;
-    duration: string | null;
-    progress: number;
-  } | null;
+    id: number
+    title: string
+    duration: string | null
+    progress: number
+  } | null
 }
 
-export function CourseOverview({ tags = [], currentLesson = null }: CourseOverviewProps) {
-  const { data: session, status } = useSession();
-  const userPlan = (session?.user as { plan?: string } | undefined)?.plan;
-  const isPaidUser = userPlan === "PRO" || userPlan === "PREMIUM";
-  const sessionReady = status !== "loading";
+export function CourseOverview({
+  tags = [],
+  currentLesson = null,
+}: CourseOverviewProps) {
+  const { data: session, status } = useSession()
+  const userPlan = (session?.user as { plan?: string } | undefined)?.plan
+  const isPaidUser = userPlan === 'PRO' || userPlan === 'PREMIUM'
+  const sessionReady = status !== 'loading'
 
-  const [showMore, setShowMore] = useState(false);
-  const [isCourseCompleted, setIsCourseCompleted] = useState(false);
-  const { activeCourse } = useActiveCourseStore();
+  const [showMore, setShowMore] = useState(false)
+  const [isCourseCompleted, setIsCourseCompleted] = useState(false)
+  const { activeCourse } = useActiveCourseStore()
 
   useEffect(() => {
     async function checkCourseCompletion() {
-      if (!activeCourse?.id) return;
+      if (!activeCourse?.id) return
       try {
-        const completedCourses = await getCompletedCourses();
+        const completedCourses = await getCompletedCourses()
         const isCompleted = completedCourses.courses.some(
-          (course) => course.id === activeCourse.id
-        );
-        setIsCourseCompleted(isCompleted);
+          (course) => course.id === activeCourse.id,
+        )
+        setIsCourseCompleted(isCompleted)
       } catch (error) {
-        console.error("Erro ao verificar conclusão do curso:", error);
+        console.error('Erro ao verificar conclusão do curso:', error)
       }
     }
-    checkCourseCompletion();
-  }, [activeCourse?.id]);
+    checkCourseCompletion()
+  }, [activeCourse?.id])
 
   const learningTopics = [
-    "JavaScript e ES6+ fundamentals",
-    "Componentes funcionais e hooks",
-    "Gerenciamento de estado com Context API",
-    "Roteamento com React Router",
-    "Consumo de APIs REST",
-    "Testes com Jest e React Testing Library",
-    "Otimização de performance",
-    "Deploy de aplicações React",
-  ];
+    'JavaScript e ES6+ fundamentals',
+    'Componentes funcionais e hooks',
+    'Gerenciamento de estado com Context API',
+    'Roteamento com React Router',
+    'Consumo de APIs REST',
+    'Testes com Jest e React Testing Library',
+    'Otimização de performance',
+    'Deploy de aplicações React',
+  ]
   const curriculum = [
     {
-      id: "1",
-      title: "Primeiros passos com React",
+      id: '1',
+      title: 'Primeiros passos com React',
       description:
-        "Entenda o que é React e configure o ambiente para iniciar seu projeto.",
+        'Entenda o que é React e configure o ambiente para iniciar seu projeto.',
     },
     {
-      id: "2",
-      title: "Componentes, props e estado",
+      id: '2',
+      title: 'Componentes, props e estado',
       description:
-        "Aprenda a criar componentes reutilizáveis, controlar estado e passar props.",
+        'Aprenda a criar componentes reutilizáveis, controlar estado e passar props.',
     },
     {
-      id: "3",
-      title: "Roteamento e requisições",
+      id: '3',
+      title: 'Roteamento e requisições',
       description:
-        "Implemente rotas e faça requisições HTTP para buscar e enviar dados.",
+        'Implemente rotas e faça requisições HTTP para buscar e enviar dados.',
     },
-  ];
+  ]
 
-  const [showMoreBio, setShowMoreBio] = useState(false);
+  const [showMoreBio, setShowMoreBio] = useState(false)
 
   return (
     <div className="flex lg:flex-row flex-col gap-8 mt-8">
       <div className="w-full max-w-[1240px] space-y-4">
-
         <Card className="p-0 text-whit bg-gray-gradient rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">
             <div className="flex items-center justify-between">
@@ -117,7 +119,6 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
           <div className="px-4 py-6">
             {currentLesson ? (
               <div className="group relative flex flex-col md:flex-row gap-6 bg-[#25252b] rounded-[20px] p-4 border border-transparent hover:border-[#00C8FF]/30 transition-all duration-300 hover:shadow-lg hover:shadow-[#00C8FF]/10 cursor-pointer">
-
                 {/* 1. Thumbnail com Overlay de Play e Efeito de Zoom */}
                 <div className="relative h-[200px] md:w-[320px] w-full shrink-0 rounded-xl overflow-hidden">
                   {/* Imagem de fundo */}
@@ -147,7 +148,8 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
                         Módulo 01
                       </span>
                       <span className="text-xs text-[#C4C4CC] flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {currentLesson?.duration || "0m 0s"} restantes
+                        <Clock className="w-3 h-3" />{' '}
+                        {currentLesson?.duration || '0m 0s'} restantes
                       </span>
                     </div>
 
@@ -157,7 +159,8 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
                     </h4>
 
                     <p className="text-sm text-[#8D8D99] line-clamp-2">
-                      Nesta aula vamos aprender os conceitos fundamentais sobre...
+                      Nesta aula vamos aprender os conceitos fundamentais
+                      sobre...
                     </p>
                   </div>
 
@@ -176,9 +179,9 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
                       />
                     </div>
 
-                    {/* Call to Action (CTA) Móvel ou Botão "Continuar" */}
                     <div className="mt-4 flex md:hidden items-center text-[#00C8FF] text-sm font-semibold">
-                      Continuar assistindo <ChevronRight className="w-4 h-4 ml-1" />
+                      Continuar assistindo{' '}
+                      <ChevronRight className="w-4 h-4 ml-1" />
                     </div>
                   </div>
                 </div>
@@ -212,7 +215,7 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
                     />
                     <p className="text-sm text-[#C4C4CC]">{topic}</p>
                   </div>
-                )
+                ),
               )}
             </div>
             {learningTopics.length > 4 && (
@@ -220,11 +223,12 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
                 onClick={() => setShowMore(!showMore)}
                 className="mt-4 text-sm text-[#00C8FF] hover:text-[#00a8d4] flex items-center gap-1"
               >
-                {showMore ? "Mostrar menos" : "Mostrar mais"}
+                {showMore ? 'Mostrar menos' : 'Mostrar mais'}
                 <CaretDown
                   size={16}
-                  className={`transition-transform ${showMore ? "rotate-180" : ""
-                    }`}
+                  className={`transition-transform ${
+                    showMore ? 'rotate-180' : ''
+                  }`}
                 />
               </button>
             )}
@@ -248,9 +252,9 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
                 className="text-[12px] text-[#7e7e89] hover:text-white"
                 onClick={() => {
                   const details = document.querySelectorAll<HTMLDivElement>(
-                    "[data-accordion][data-state]"
-                  );
-                  details.forEach((d) => d.click());
+                    '[data-accordion][data-state]',
+                  )
+                  details.forEach((d) => d.click())
                 }}
               >
                 Expandir todas as seções
@@ -334,18 +338,19 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
                 </div>
                 <p className="text-sm text-[#C4C4CC] leading-relaxed">
                   {showMoreBio
-                    ? "Sou desenvolvedor web com experiência em JavaScript, TypeScript, Node.js e React.js. Ao longo da minha carreira, colaborei com diversos setores, incluindo agências de publicidade, consultorias, startups e escolas de programação."
-                    : "Sou desenvolvedor web com experiência em JavaScript, TypeScript..."}
+                    ? 'Sou desenvolvedor web com experiência em JavaScript, TypeScript, Node.js e React.js. Ao longo da minha carreira, colaborei com diversos setores, incluindo agências de publicidade, consultorias, startups e escolas de programação.'
+                    : 'Sou desenvolvedor web com experiência em JavaScript, TypeScript...'}
                 </p>
                 <button
                   onClick={() => setShowMoreBio(!showMoreBio)}
                   className="mt-2 text-sm text-[#00C8FF] hover:text-[#00a8d4] flex items-center gap-1"
                 >
-                  {showMoreBio ? "Ler menos" : "Ler mais"}
+                  {showMoreBio ? 'Ler menos' : 'Ler mais'}
                   <CaretDown
                     size={16}
-                    className={`transition-transform ${showMoreBio ? "rotate-180" : ""
-                      }`}
+                    className={`transition-transform ${
+                      showMoreBio ? 'rotate-180' : ''
+                    }`}
                   />
                 </button>
               </div>
@@ -477,14 +482,21 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-[#7e7e89]">Nenhuma tag disponível</span>
+                  <span className="text-xs text-[#7e7e89]">
+                    Nenhuma tag disponível
+                  </span>
                 )}
               </div>
             </div>
 
             <div className="mt-4 relative">
               <div className="relative">
-                <Image src="/certificate-image.png" alt="Certificado" width={500} height={100} />
+                <Image
+                  src="/certificate-image.png"
+                  alt="Certificado"
+                  width={500}
+                  height={100}
+                />
                 {isCourseCompleted ? (
                   <div className="absolute inset-0 flex items-center justify-center rounded-[20px]">
                     <Button
@@ -499,7 +511,9 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
                 ) : (
                   <div className="absolute inset-0 bg-black/25 backdrop-blur-sm flex items-center justify-center rounded-[20px]">
                     <Lock size={24} className="text-white mr-2" />
-                    <span className="text-white text-lg font-semibold">Bloqueado</span>
+                    <span className="text-white text-lg font-semibold">
+                      Bloqueado
+                    </span>
                   </div>
                 )}
               </div>
@@ -508,5 +522,5 @@ export function CourseOverview({ tags = [], currentLesson = null }: CourseOvervi
         </Card>
       </div>
     </div>
-  );
+  )
 }

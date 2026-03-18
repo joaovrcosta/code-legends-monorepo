@@ -94,7 +94,7 @@ export function CertificateModal({
       const logoBase64 = await new Promise<string>((resolve, reject) => {
         img.onload = () => {
           if (ctx) {
-            ctx.fillStyle = "#121214"; // Fundo escuro
+            ctx.fillStyle = "#0c0c0d"; // Fundo escuro (igual --color-surface)
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             resolve(canvas.toDataURL("image/png"));
@@ -115,7 +115,7 @@ export function CertificateModal({
       const width = doc.internal.pageSize.getWidth();
       const height = doc.internal.pageSize.getHeight();
 
-      // Background escuro (#121214)
+      // Background escuro (--color-surface)
       doc.setFillColor(18, 18, 20);
       doc.rect(0, 0, width, height, "F");
 
@@ -228,7 +228,7 @@ export function CertificateModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-[#121214] border-[#25252a]">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-surface border-[#25252a]">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-white text-xl">
@@ -248,7 +248,7 @@ export function CertificateModal({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
           {/* Preview do Certificado */}
-          <div className="bg-[#121214] rounded-[24px] shadow-xl p-8 border border-[#25252a] relative overflow-hidden">
+          <div className="bg-surface rounded-[24px] shadow-xl p-8 border border-[#25252a] relative overflow-hidden">
             <div className="text-center space-y-6 relative z-10">
               {/* Logo Code Legends */}
               <div className="flex justify-center mb-4">

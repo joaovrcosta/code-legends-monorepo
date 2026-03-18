@@ -50,7 +50,7 @@ export function RecommendationsCarousel({
           : undefined
   return (
     <div className="relative">
-      <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-[#121214] to-transparent z-10" />
+      <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-surface to-transparent z-10" />
 
       <Carousel>
         <CarouselContent className="w-full">

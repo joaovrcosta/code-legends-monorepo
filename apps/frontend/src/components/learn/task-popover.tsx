@@ -52,7 +52,7 @@ export const TaskPopover = ({
             />
           </PopoverTrigger>
           <PopoverContent
-            className="w-[120px] cursor-pointer text-center bg-[#121214] rounded-full border-[2px] border-[#25252A] shadow-lg p-2 hover:bg-[#25252A]"
+            className="w-[120px] cursor-pointer text-center bg-surface rounded-full border-[2px] border-[#25252A] shadow-lg p-2 hover:bg-[#25252A]"
             side="top"
           >
             <div className="flex flex-col items-center justify-center gap-2">

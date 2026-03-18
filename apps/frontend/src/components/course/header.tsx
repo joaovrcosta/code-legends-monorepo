@@ -15,7 +15,7 @@ import { LogoutMenuItem } from "./logout-menu-item";
 export default async function CourseHeader() {
   const user = await getCurrentUser();
   return (
-    <div className="relative fixed top-0 left-0 w-full z-50 bg-[#121214] border-b border-[#25252A]">
+    <div className="relative fixed top-0 left-0 w-full z-50 bg-surface border-b border-[#25252A]">
       <ul className="flex justify-between items-center lg:pt-4 pt-2 lg:pb-4 pb-2 max-w-[1560px] mx-auto px-4">
         <li className="flex space-x-3 py-4">
           <Link href="/">

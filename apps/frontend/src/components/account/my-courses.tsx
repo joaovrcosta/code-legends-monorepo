@@ -11,7 +11,7 @@ export async function MyCourses() {
   const completedCoursesList = completedCourses.courses || []
 
   return (
-    <Card className="bg-[#121214] rounded-[20px] border-[#25252a] p-4">
+    <Card className="bg-surface rounded-[20px] border-[#25252a] p-4">
       <CardHeader className="px-4">
         <div className="flex items-center space-x-2">
           <Album className="w-6 h-6 text-[#00c8ff]" />

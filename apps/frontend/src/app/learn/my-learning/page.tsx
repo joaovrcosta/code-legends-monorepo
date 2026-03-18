@@ -1,218 +1,219 @@
-"use client";
+'use client'
 
-import { BookBookmarkIcon } from "@phosphor-icons/react/dist/ssr";
-import { Tabs } from "@/components/ui/tabs";
-import { LearningCard } from "@/components/learn/learning-card";
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { getMyLearning } from "@/actions/progress";
-import { getCourseRoadmap } from "@/actions/course";
-import { findLessonContext, generateLessonUrl } from "@/utils/lesson-url";
-import type { MyLearningCourse } from "@/actions/progress/my-learning";
-import type { Lesson } from "@/types/roadmap";
+import { BookBookmarkIcon } from '@phosphor-icons/react/dist/ssr'
+import { Tabs } from '@/components/ui/tabs'
+import { LearningCard } from '@/components/learn/learning-card'
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { getMyLearning } from '@/actions/progress'
+import { getCourseRoadmap } from '@/actions/course'
+import { findLessonContext, generateLessonUrl } from '@/utils/lesson-url'
+import type { MyLearningCourse } from '@/actions/progress/my-learning'
+import type { Lesson } from '@/types/roadmap'
 
 interface CourseWithModules extends MyLearningCourse {
-  continueClassroomUrl?: string | null;
+  continueClassroomUrl?: string | null
   modules?: Array<{
-    id: string;
-    title: string;
-    isActive: boolean;
+    id: string
+    title: string
+    isActive: boolean
     lessons?: Array<{
-      id: string;
-      title: string;
-      type: "video" | "quiz" | "read" | "informational";
-      duration?: string;
-      locked?: boolean;
-    }>;
-  }>;
+      id: string
+      title: string
+      type: 'video' | 'quiz' | 'read' | 'informational'
+      duration?: string
+      locked?: boolean
+    }>
+  }>
 }
 
 export default function MyLearningPage() {
-  const router = useRouter();
+  const router = useRouter()
   const [inProgressCourses, setInProgressCourses] = useState<
     CourseWithModules[]
-  >([]);
+  >([])
   const [completedCourses, setCompletedCourses] = useState<CourseWithModules[]>(
-    []
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadingCourseId, setLoadingCourseId] = useState<string | null>(null);
+    [],
+  )
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadingCourseId, setLoadingCourseId] = useState<string | null>(null)
 
   // Busca os cursos iniciais
   useEffect(() => {
     async function fetchCourses() {
       try {
-        setIsLoading(true);
-        const { inProgress, completed } = await getMyLearning();
+        setIsLoading(true)
+        const { inProgress, completed } = await getMyLearning()
 
         // Mapeia os cursos para o formato esperado
         setInProgressCourses(
           inProgress.map((course) => ({
             ...course,
             progress: Math.round(course.progress * 100),
-          }))
-        );
+          })),
+        )
         setCompletedCourses(
           completed.map((course) => ({
             ...course,
             progress: Math.round(course.progress * 100),
-          }))
-        );
+          })),
+        )
       } catch (error) {
-        console.error("Erro ao buscar cursos:", error);
-        setInProgressCourses([]);
-        setCompletedCourses([]);
+        console.error('Erro ao buscar cursos:', error)
+        setInProgressCourses([])
+        setCompletedCourses([])
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     }
 
-    fetchCourses();
-  }, []);
+    fetchCourses()
+  }, [])
 
   // Função para carregar roadmap quando expandir
   const handleExpandCourse = useCallback(async (courseId: string) => {
     try {
-      setLoadingCourseId(courseId);
+      setLoadingCourseId(courseId)
 
-      const roadmap = await getCourseRoadmap(courseId);
+      const roadmap = await getCourseRoadmap(courseId)
       if (!roadmap) {
-        setLoadingCourseId(null);
-        return;
+        setLoadingCourseId(null)
+        return
       }
 
       // Identifica o módulo ativo (primeiro módulo não completado ou último se todos completos)
       const activeModule =
         roadmap.modules.find((m) => !m.isCompleted) ||
-        roadmap.modules[roadmap.modules.length - 1];
-      const activeModuleId = activeModule?.id;
+        roadmap.modules[roadmap.modules.length - 1]
+      const activeModuleId = activeModule?.id
 
       // Mapeia os módulos
       const modules = roadmap.modules.map((module) => {
-        const isActive = module.id === activeModuleId;
+        const isActive = module.id === activeModuleId
 
         // Se for o módulo ativo, inclui as lições
         const lessons = isActive
           ? module.groups
               .flatMap((group) => group.lessons)
               .map((lesson: Lesson) => {
-                const lessonType: "video" | "quiz" | "read" | "informational" =
-                  lesson.type === "video"
-                    ? "video"
-                    : lesson.type === "quiz"
-                    ? "quiz"
-                    : lesson.type === "article"
-                    ? "read"
-                    : "informational";
+                const lessonType: 'video' | 'quiz' | 'read' | 'informational' =
+                  lesson.type === 'video'
+                    ? 'video'
+                    : lesson.type === 'quiz'
+                      ? 'quiz'
+                      : lesson.type === 'article'
+                        ? 'read'
+                        : 'informational'
 
                 return {
                   id: lesson.id.toString(),
                   title: lesson.title,
                   type: lessonType,
-                  duration: lesson.video?.duration ?? lesson.video_duration ?? undefined,
-                  locked: lesson.status === "locked",
-                };
+                  duration:
+                    lesson.video?.duration ??
+                    lesson.video_duration ??
+                    undefined,
+                  locked: lesson.status === 'locked',
+                }
               })
-          : undefined;
+          : undefined
 
         return {
           id: module.id,
           title: module.title,
           isActive,
           lessons,
-        };
-      });
+        }
+      })
 
-      // URL para "Continuar": aula atual (isCurrent) ou primeira desbloqueada
       const allLessons = roadmap.modules.flatMap((m) =>
-        (m.groups || []).flatMap((g) => g.lessons || [])
-      );
+        (m.groups || []).flatMap((g) => g.lessons || []),
+      )
       const targetLesson =
-        allLessons.find((l) => l.isCurrent && l.status !== "locked") ||
-        allLessons.find((l) => l.status !== "locked") ||
-        null;
-      let continueClassroomUrl: string | null = null;
+        allLessons.find((l) => l.isCurrent && l.status !== 'locked') ||
+        allLessons.find((l) => l.status !== 'locked') ||
+        null
+      let continueClassroomUrl: string | null = null
       if (targetLesson) {
-        const context = findLessonContext(targetLesson.id, roadmap.modules);
+        const context = findLessonContext(targetLesson.id, roadmap.modules)
         if (context) {
           continueClassroomUrl = generateLessonUrl(
             targetLesson,
             context.module,
-            context.group
-          );
+            context.group,
+          )
         }
       }
 
-      const courseUpdate = { modules, continueClassroomUrl };
+      const courseUpdate = { modules, continueClassroomUrl }
 
       setInProgressCourses((prev) =>
         prev.map((course) =>
-          course.id === courseId ? { ...course, ...courseUpdate } : course
-        )
-      );
+          course.id === courseId ? { ...course, ...courseUpdate } : course,
+        ),
+      )
 
       setCompletedCourses((prev) =>
         prev.map((course) =>
-          course.id === courseId ? { ...course, ...courseUpdate } : course
-        )
-      );
+          course.id === courseId ? { ...course, ...courseUpdate } : course,
+        ),
+      )
     } catch (error) {
-      console.error(`Erro ao buscar roadmap do curso ${courseId}:`, error);
+      console.error(`Erro ao buscar roadmap do curso ${courseId}:`, error)
     } finally {
-      setLoadingCourseId(null);
+      setLoadingCourseId(null)
     }
-  }, []);
+  }, [])
 
-  // Continuar sem ter expandido: busca roadmap e vai para a aula atual no classroom
   const handleContinue = useCallback(
     async (courseId: string) => {
       try {
-        const roadmap = await getCourseRoadmap(courseId);
+        const roadmap = await getCourseRoadmap(courseId)
         if (!roadmap?.modules) {
-          router.push("/classroom");
-          return;
+          router.push('/classroom')
+          return
         }
         const allLessons = roadmap.modules.flatMap((m) =>
-          (m.groups || []).flatMap((g) => g.lessons || [])
-        );
+          (m.groups || []).flatMap((g) => g.lessons || []),
+        )
         const targetLesson =
-          allLessons.find((l) => l.isCurrent && l.status !== "locked") ||
-          allLessons.find((l) => l.status !== "locked") ||
-          null;
+          allLessons.find((l) => l.isCurrent && l.status !== 'locked') ||
+          allLessons.find((l) => l.status !== 'locked') ||
+          null
         if (targetLesson) {
-          const context = findLessonContext(targetLesson.id, roadmap.modules);
+          const context = findLessonContext(targetLesson.id, roadmap.modules)
           if (context) {
             const url = generateLessonUrl(
               targetLesson,
               context.module,
-              context.group
-            );
-            router.push(url);
-            return;
+              context.group,
+            )
+            router.push(url)
+            return
           }
         }
-        router.push("/classroom");
+        router.push('/classroom')
       } catch {
-        router.push("/classroom");
+        router.push('/classroom')
       }
     },
-    [router]
-  );
+    [router],
+  )
 
   // Skill paths (mantido como estava)
   const skillPaths = [
     {
-      title: "Build Web Apps with ASP.NET",
-      type: "skill-path" as const,
+      title: 'Build Web Apps with ASP.NET',
+      type: 'skill-path' as const,
       progress: 17,
-      icon: "/aspnet-icon.png",
+      icon: '/aspnet-icon.png',
     },
-  ];
+  ]
 
   const myLearningTabs = [
     {
-      id: "in-progress",
-      label: "Em andamento",
+      id: 'in-progress',
+      label: 'Em andamento',
       content: (
         <div className="space-y-4 mt-6">
           {inProgressCourses.length === 0 && !isLoading ? (
@@ -240,8 +241,8 @@ export default function MyLearningPage() {
       ),
     },
     {
-      id: "completed",
-      label: "Completos",
+      id: 'completed',
+      label: 'Completos',
       content: (
         <div className="space-y-4 mt-6">
           {completedCourses.length === 0 && !isLoading ? (
@@ -269,8 +270,8 @@ export default function MyLearningPage() {
       ),
     },
     {
-      id: "skill-paths",
-      label: "Skill Paths",
+      id: 'skill-paths',
+      label: 'Skill Paths',
       content: (
         <div className="space-y-4 mt-6">
           {skillPaths.map((path, index) => (
@@ -279,7 +280,7 @@ export default function MyLearningPage() {
         </div>
       ),
     },
-  ];
+  ]
 
   if (isLoading) {
     return (
@@ -298,7 +299,7 @@ export default function MyLearningPage() {
           <p className="text-muted-foreground">Carregando cursos...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -315,5 +316,5 @@ export default function MyLearningPage() {
         <Tabs tabs={myLearningTabs} defaultTab="in-progress" />
       </div>
     </div>
-  );
+  )
 }

@@ -20,7 +20,7 @@ export function CertificateCard({
 
   return (
     <Card
-      className={`rounded-lg p-3 border-[#25252a] flex items-center justify-between lg:max-w-[362px] w-full  bg-[#121214]`}
+      className={`rounded-lg p-3 border-[#25252a] flex items-center justify-between lg:max-w-[362px] w-full  bg-surface`}
     >
       <div className="flex flex-col">
         <h3

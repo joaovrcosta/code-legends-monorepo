@@ -103,7 +103,7 @@ export function ChallengeBlock({
   return (
     <div className="my-6 rounded-[16px] border border-[#25252A] bg-[#0d0d0f] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-3 border-b border-[#25252A] bg-[#121214]">
+      <div className="flex items-center gap-3 px-5 py-3 border-b border-[#25252A] bg-surface">
         <span
           className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${typeBadgeColors[challenge.type]}`}
         >
@@ -157,7 +157,7 @@ export function ChallengeBlock({
                         ? 'border-[#f87171] bg-[#3b1515] text-[#f87171]'
                         : isSelected
                           ? 'border-[#00b3e4] bg-[#0d2a38] text-white'
-                          : 'border-[#25252A] bg-[#121214] text-[#c4c4cc] hover:border-[#3f3f47] hover:text-white'
+                          : 'border-[#25252A] bg-surface text-[#c4c4cc] hover:border-[#3f3f47] hover:text-white'
                   }
                   disabled:cursor-not-allowed`}
               >
@@ -182,7 +182,7 @@ export function ChallengeBlock({
             disabled={submitted}
             rows={challenge.type === 'conceptual' ? 3 : 5}
             placeholder={challenge.placeholder ?? 'Escreva sua resposta...'}
-            className="w-full rounded-[10px] border border-[#25252A] bg-[#121214] px-4 py-3 text-sm text-white font-mono placeholder:text-[#52525b] focus:border-[#00b3e4] focus:outline-none resize-none disabled:opacity-60"
+            className="w-full rounded-[10px] border border-[#25252A] bg-surface px-4 py-3 text-sm text-white font-mono placeholder:text-[#52525b] focus:border-[#00b3e4] focus:outline-none resize-none disabled:opacity-60"
           />
         </div>
       )}
@@ -217,7 +217,7 @@ export function ChallengeBlock({
               <Eye size={14} /> Ver explicação
             </button>
           ) : (
-            <div className="rounded-[10px] border border-[#25252A] bg-[#121214] px-4 py-3 text-sm text-[#a1a1aa] leading-relaxed">
+            <div className="rounded-[10px] border border-[#25252A] bg-surface px-4 py-3 text-sm text-[#a1a1aa] leading-relaxed">
               <p className="text-xs font-semibold text-[#71717a] mb-1 uppercase tracking-wide">
                 Explicação
               </p>

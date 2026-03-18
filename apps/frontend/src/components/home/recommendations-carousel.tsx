@@ -47,7 +47,7 @@ export function RecommendationsCarousel({
 
   return (
     <div className="relative overflow-y-visible overflow-x-hidden pt-6 pb-0">
-      <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-[#121214] to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
 
       <Carousel
         opts={{
@@ -58,11 +58,11 @@ export function RecommendationsCarousel({
       >
         <CarouselPrevious
           hideWhenDisabled
-          className="h-[42px] w-[42px] left-0 top-1/2 z-20 -translate-y-1/2 border-[#25252A] bg-[#121214]/80 hover:bg-[#25252A] text-white"
+          className="h-[42px] w-[42px] left-0 top-1/2 z-20 -translate-y-1/2 border-[#25252A] bg-surface/80 hover:bg-[#25252A] text-white"
         />
         <CarouselNext
           hideWhenDisabled
-          className="h-[42px] w-[42px] right-0 top-1/2 z-20 -translate-y-1/2 border-[#25252A] bg-[#121214]/80 hover:bg-[#25252A] text-white"
+          className="h-[42px] w-[42px] right-0 top-1/2 z-20 -translate-y-1/2 border-[#25252A] bg-surface/80 hover:bg-[#25252A] text-white"
         />
         <CarouselContent className="-ml-4">
           {courses.map((course, index) => {

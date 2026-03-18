@@ -35,7 +35,7 @@ export const LessonHeader = memo(function LessonHeader({
   return (
     <div className="w-full lg:px-4 px-0 pt-0">
       {/* Header principal */}
-      <div className="bg-[#121214]/90 border border-white/10 lg:rounded-[16px] rounded-none shadow-2xl shadow-black/20">
+      <div className="bg-surface/90 border border-white/10 lg:rounded-[16px] rounded-none shadow-2xl shadow-black/20">
         <div className="flex items-center justify-between px-4 lg:py-3 py-2">
           {/* Lado esquerdo */}
           <div className="flex items-center gap-3 flex-1 min-w-0">

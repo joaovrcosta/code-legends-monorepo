@@ -27,8 +27,8 @@ export default function Header() {
     <div
       className={`fixed top-0 left-0 w-full z-50 lg:py-4 py-3 transition-colors duration-300 lg:px-0 px-4 ${
         scrolled
-          ? "bg-[#121214]/80 border-b border-white/10 shadow-md"
-          : "lg:bg-transparent bg-[#121214]"
+          ? "bg-surface/80 border-b border-white/10 shadow-md"
+          : "lg:bg-transparent bg-surface"
       }`}
     >
       <div className="flex justify-between items-center md:px-16">
@@ -47,7 +47,7 @@ export default function Header() {
                 <Menu size={28} color="#c4c4cc" />
               </div>
             </SheetTrigger>
-            <SheetContent side="left" className="bg-[#121214] p-4">
+            <SheetContent side="left" className="bg-surface p-4">
               <DialogTitle className="text-[#c4c4cc]"> </DialogTitle>{" "}
               {/* Adicionando um título acessível */}
               <div className="flex flex-col space-y-4">

@@ -196,7 +196,7 @@ export default function SignupPage() {
                   )}
                   <div>
                     <Input
-                      className={`h-[52px] rounded-full bg-[#121214] text-white border px-4 ${
+                      className={`h-[52px] rounded-full bg-surface text-white border px-4 ${
                         errors.email
                           ? "border-red-500"
                           : "border-[#25252A]"
@@ -213,7 +213,7 @@ export default function SignupPage() {
                   </div>
                   <div>
                     <Input
-                      className={`h-[52px] rounded-full bg-[#121214] text-white border px-4 ${
+                      className={`h-[52px] rounded-full bg-surface text-white border px-4 ${
                         errors.password
                           ? "border-red-500"
                           : "border-[#25252A]"

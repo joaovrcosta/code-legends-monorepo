@@ -101,7 +101,7 @@ export function CodeBlockPre({ children }: CodeBlockPreProps) {
       role="region"
       aria-label="Bloco de código"
     >
-      <div className="flex items-center justify-end border-b border-[#25252A] bg-[#121214] px-3 py-2">
+      <div className="flex items-center justify-end border-b border-[#25252A] bg-surface px-3 py-2">
         <button
           type="button"
           onClick={handleCopy}

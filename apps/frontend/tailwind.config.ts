@@ -10,6 +10,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        surface: "var(--color-surface)",
         blueGradient500:
           "linear-gradient(267deg, rgba(0,78,99,1) 0%, #00c8ff 100%)",
         gray500: "#1a1a1e",

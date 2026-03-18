@@ -394,7 +394,7 @@ export default function ClassroomPage() {
     return (
       <div className="flex h-[100dvh] w-full">
         <aside
-          className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
+          className={`hidden lg:block fixed left-0 top-[63px] bg-surface border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
             }`}
         >
           {isSidebarOpen && (
@@ -449,7 +449,7 @@ export default function ClassroomPage() {
     <div className="flex h-[100dvh] w-full">
       {/* Sidebar com lista de aulas - apenas no desktop */}
       <aside
-        className={`hidden lg:block fixed left-0 top-[63px] bg-[#121214] border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
+        className={`hidden lg:block fixed left-0 top-[63px] bg-surface border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
           }`}
       >
         {isSidebarOpen && (

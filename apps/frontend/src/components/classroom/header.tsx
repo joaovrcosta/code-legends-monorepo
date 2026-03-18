@@ -84,7 +84,7 @@ export default function ClassroomHeader({
 
   return (
     <div className="fixed top-0 left-0 w-full z-40 bg-white shadow-md">
-      <header className="fixed top-0 left-0 w-full z-40 bg-[#121214] shadow-lg lg:py-0 pt-2 pb-0">
+      <header className="fixed top-0 left-0 w-full z-40 bg-surface shadow-lg lg:py-0 pt-2 pb-0">
         <ul className="relative z-10 flex justify-between items-center lg:pt-2 pt-0 lg:pb-2 pb-2 lpb-0 w-full mx-auto px-4">
           <li className="flex items-center lg:space-x-6">
             <button
@@ -163,7 +163,7 @@ export default function ClassroomHeader({
 
         {/* Lesson Header - abaixo do header principal, apenas no mobile */}
         <div className="relative z-0 lg:hidden block border-t border-[#25252A]">
-          <div className="bg-[#121214]/90">
+          <div className="bg-surface/90">
             <div className="flex items-center justify-between px-4 py-2">
               {/* Lado esquerdo */}
               <div className="flex items-center gap-3 flex-1 min-w-0 mr-3">

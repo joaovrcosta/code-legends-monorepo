@@ -18,7 +18,7 @@ function LoginPageContent() {
       : '')
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#121214]">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0c0c0d]">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">Code Legends</CardTitle>
@@ -67,7 +67,7 @@ function LoginPageContent() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#121214]">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0c0c0d]">
         <Card className="w-full max-w-md">
           <CardHeader>
             <div className="h-8 w-32 animate-pulse rounded bg-muted mx-auto" />

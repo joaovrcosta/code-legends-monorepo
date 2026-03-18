@@ -77,8 +77,8 @@ export const AulaModal = () => {
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal()}>
       <DialogContent
         className="w-full
-             lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_#121214_70%)]
-             bg-[radial-gradient(circle_at_center,_#344c68_0%,_#121214_70%)]
+             lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)]
+             bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)]
              text-white p-0 h-full shadow-2xl shadow-[#00C8FF]/10"
       >
         {currentLesson && (

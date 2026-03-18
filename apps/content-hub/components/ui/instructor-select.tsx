@@ -81,7 +81,7 @@ export function InstructorSelect({
         id={id}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-10 w-full items-center gap-3 rounded-md border border-gray-300 dark:border-[#25252a] bg-white dark:bg-[#121214] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 ring-offset-white dark:ring-offset-[#121214] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          "flex h-10 w-full items-center gap-3 rounded-md border border-gray-300 dark:border-[#25252a] bg-white dark:bg-[#0c0c0d] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 ring-offset-white dark:ring-offset-[#0c0c0d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
           !selectedInstructor && "text-gray-500 dark:text-gray-400"
         )}
       >
@@ -102,7 +102,7 @@ export function InstructorSelect({
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 dark:border-[#25252a] bg-white dark:bg-[#121214] shadow-lg">
+        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 dark:border-[#25252a] bg-white dark:bg-[#0c0c0d] shadow-lg">
           {instructors.length === 0 ? (
             <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
               Nenhum instrutor disponível

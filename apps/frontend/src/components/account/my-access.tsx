@@ -8,7 +8,7 @@ export async function MyAccess() {
   const email = user?.email ?? ''
 
   return (
-    <Card className="bg-[#121214] rounded-[20px] border-[#25252a] p-4">
+    <Card className="bg-surface rounded-[20px] border-[#25252a] p-4">
       <CardHeader className="px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">

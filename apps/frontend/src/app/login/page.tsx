@@ -121,7 +121,7 @@ export default function LoginPage() {
                   )}
                   <div>
                     <Input
-                      className={`h-[52px] rounded-full bg-[#121214] text-white border px-4 ${errors.email
+                      className={`h-[52px] rounded-full bg-surface text-white border px-4 ${errors.email
                         ? "border-red-500"
                         : "border-[#25252A]"
                         }`}
@@ -138,7 +138,7 @@ export default function LoginPage() {
                   {showPassword && (
                     <div>
                       <Input
-                        className={`h-[52px] rounded-full bg-[#121214] text-white border px-4 ${errors.password
+                        className={`h-[52px] rounded-full bg-surface text-white border px-4 ${errors.password
                           ? "border-red-500"
                           : "border-[#25252A]"
                           }`}

@@ -13,7 +13,7 @@ export function NewContentCard() {
         {/* Lado esquerdo */}
         <div className="relative lg:px-8 px-4 lg:pb-8 pb-4 lg:pt-4 pt-2 flex flex-col justify-between">
           {/* Fade direito */}
-          <div className="pointer-events-none absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-[#121214] to-transparent z-10" />
+          <div className="pointer-events-none absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-surface to-transparent z-10" />
 
           <div>
             <Image src={genesisIcon} alt="" className="-ml-5" />
@@ -55,7 +55,7 @@ export function NewContentCard() {
 
         <div className="flex-shrink-0 lg:w-[50%] w-[0%] h-full relative">
           {/* Fade esquerda */}
-          <div className="pointer-events-none absolute left-0 top-0 h-full w-12 bg-gradient-to-r from-[#121214] to-transparent z-10" />
+          <div className="pointer-events-none absolute left-0 top-0 h-full w-12 bg-gradient-to-r from-surface to-transparent z-10" />
 
           <Image
             src={genesisBackground}

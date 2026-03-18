@@ -107,8 +107,8 @@ export default function AccountAccessPage() {
   }
   return (
     <div className="w-full mt-8">
-      {/* Estilo do Card original: bg-[#121214] e borda escura */}
-      <Card className="bg-[#121214] border-[#25252a] lg:p-8 p-4 text-zinc-100">
+      {/* Estilo do Card original: bg-surface e borda escura */}
+      <Card className="bg-surface border-[#25252a] lg:p-8 p-4 text-zinc-100">
 
         {/* Cabeçalho com o estilo "Gradient" e Coroa */}
         <CardHeader className="px-0 pt-0 pb-8">
@@ -203,7 +203,7 @@ export default function AccountAccessPage() {
 
       {/* Modal de Alterar Email */}
       <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
-        <DialogContent className="bg-[#121214] border-[#25252A] text-white max-w-[500px]">
+        <DialogContent className="bg-surface border-[#25252A] text-white max-w-[500px]">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <DialogTitle className="text-xl font-bold text-white">

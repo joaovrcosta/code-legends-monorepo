@@ -1,11 +1,11 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { updateOnboarding } from "@/actions/user";
-import { PrimaryButton } from "@/components/ui/primary-button";
-import { Progress } from "@/components/ui/progress";
-import codeLogo from "../../../../public/code-legends-logo.svg";
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { updateOnboarding } from '@/actions/user'
+import { PrimaryButton } from '@/components/ui/primary-button'
+import { Progress } from '@/components/ui/progress'
+import codeLogo from '../../../../public/code-legends-logo.svg'
 
 import {
   ArrowLeft,
@@ -14,59 +14,59 @@ import {
   Link as LinkIcon,
   Rocket,
   Settings,
-} from "lucide-react";
-import Image from "next/image";
+} from 'lucide-react'
+import Image from 'next/image'
 
 const GOALS = [
   {
-    id: "no-experience",
-    label: "Não tenho experiência e quero começar meus estudos em programação",
+    id: 'no-experience',
+    label: 'Não tenho experiência e quero começar meus estudos em programação',
     icon: Play,
   },
   {
-    id: "master-fundamentals",
-    label: "Dominar os fundamentos da programação",
+    id: 'master-fundamentals',
+    label: 'Dominar os fundamentos da programação',
     icon: GraduationCap,
   },
   {
-    id: "change-career",
-    label: "Migrar de carreira para a área da programação",
+    id: 'change-career',
+    label: 'Migrar de carreira para a área da programação',
     icon: LinkIcon,
   },
   {
-    id: "get-promotion",
-    label: "Conseguir uma promoção no meu emprego atual",
+    id: 'get-promotion',
+    label: 'Conseguir uma promoção no meu emprego atual',
     icon: Rocket,
   },
   {
-    id: "specialize",
-    label: "Me especializar em uma tecnologia",
+    id: 'specialize',
+    label: 'Me especializar em uma tecnologia',
     icon: Settings,
   },
-];
+]
 
 export default function PickAGoalPage() {
-  const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
+  const [selectedGoal, setSelectedGoal] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const router = useRouter()
 
   const handleContinue = async () => {
-    if (!selectedGoal) return;
+    if (!selectedGoal) return
 
     try {
-      setIsLoading(true);
-      setError("");
-      await updateOnboarding({ goal: selectedGoal });
-      router.push("/onboarding/pick-a-goal/careers");
+      setIsLoading(true)
+      setError('')
+      await updateOnboarding({ goal: selectedGoal })
+      router.push('/onboarding/pick-a-goal/careers')
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Erro ao salvar progresso"
-      );
+        error instanceof Error ? error.message : 'Erro ao salvar progresso',
+      )
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="flex-1 flex flex-col p-8 lg:p-20">
@@ -106,8 +106,8 @@ export default function PickAGoalPage() {
         {/* Opções de Metas */}
         <div className="flex-1 space-y-3 mb-8 z-50">
           {GOALS.map((goal) => {
-            const Icon = goal.icon;
-            const isSelected = selectedGoal === goal.id;
+            const Icon = goal.icon
+            const isSelected = selectedGoal === goal.id
             return (
               <button
                 key={goal.id}
@@ -118,25 +118,25 @@ export default function PickAGoalPage() {
                       flex items-center gap-4 
                       ${
                         isSelected
-                          ? "border-[#00C8FF] bg-[#00C8FF]-500/10 shadow-[0_0_12px_#00C8FF]"
-                          : "border-[#25252A] bg-[#1A1A1E] hover:border-[#3A3A3F]"
+                          ? 'border-[#00C8FF] bg-[#00C8FF]-500/10 shadow-[0_0_12px_#00C8FF]'
+                          : 'border-[#25252A] bg-[#1A1A1E] hover:border-[#3A3A3F]'
                       }
                       ${
                         isLoading
-                          ? "opacity-50 cursor-not-allowed"
-                          : "cursor-pointer"
+                          ? 'opacity-50 cursor-not-allowed'
+                          : 'cursor-pointer'
                       }
                     `}
               >
                 <div className="p-2">
                   <Icon
-                    className={isSelected ? "text-[#00C8FF]" : "text-white"}
+                    className={isSelected ? 'text-[#00C8FF]' : 'text-white'}
                     size={20}
                   />
                 </div>
                 <span className="text-white text-sm flex-1">{goal.label}</span>
               </button>
-            );
+            )
           })}
         </div>
 
@@ -153,7 +153,7 @@ export default function PickAGoalPage() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => router.push("/onboarding/pick-a-goal/careers")}
+              onClick={() => router.push('/onboarding/pick-a-goal/careers')}
               disabled={isLoading}
               className="text-sm text-white/60 hover:text-white underline-offset-4 hover:underline disabled:opacity-50"
             >
@@ -163,13 +163,13 @@ export default function PickAGoalPage() {
             <PrimaryButton
               onClick={handleContinue}
               disabled={!selectedGoal || isLoading}
-              className="min-w-[200px] max-w-[200px] z-50"
+              className="min-w-[200px] max-w-[200px] z-50 rounded-full"
             >
-              {isLoading ? "Salvando..." : "Continuar"}
+              {isLoading ? 'Salvando...' : 'Continuar'}
             </PrimaryButton>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

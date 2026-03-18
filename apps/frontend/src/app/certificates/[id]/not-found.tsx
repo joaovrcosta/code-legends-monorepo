@@ -6,7 +6,7 @@ import codeLegendsLogo from "../../../../public/code-legends-logo.svg";
 
 export default function CertificateNotFound() {
   return (
-    <div className="min-h-screen bg-[#121214] py-12 px-4">
+    <div className="min-h-screen bg-surface py-12 px-4">
       <div className="max-w-2xl mx-auto text-center">
         <div className="flex justify-center mb-8">
           <NextImage

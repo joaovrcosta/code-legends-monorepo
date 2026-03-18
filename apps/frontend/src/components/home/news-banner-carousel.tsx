@@ -16,7 +16,7 @@ export function NewsBannerCarousel() {
                  para uma transição mais elegante.
                - pointer-events-none: Essencial para não bloquear cliques nos botões do banner.
             */}
-            <div className="pointer-events-none absolute right-0 top-0 h-full w-20 sm:w-32 lg:w-40 bg-gradient-to-l from-[#121214] via-[#121214]/60 to-transparent z-10" />
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-20 sm:w-32 lg:w-40 bg-gradient-to-l from-surface via-surface/60 to-transparent z-10" />
 
             <Carousel
                 opts={{

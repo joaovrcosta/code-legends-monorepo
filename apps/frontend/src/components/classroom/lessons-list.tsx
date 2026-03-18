@@ -170,7 +170,7 @@ export const LessonsList = memo(function LessonsList({
 
   return (
     <div
-      className="h-full overflow-y-scroll bg-[#121214] scrollbar-thin [&::-webkit-scrollbar]:w-2
+      className="h-full overflow-y-scroll bg-surface scrollbar-thin [&::-webkit-scrollbar]:w-2
         [&::-webkit-scrollbar-track]:bg-transparent
         [&::-webkit-scrollbar-thumb]:bg-transparent
         [&::-webkit-scrollbar-thumb]:rounded-full
@@ -201,7 +201,7 @@ export const LessonsList = memo(function LessonsList({
               value={moduleValue}
               className="border-b border-zinc-900 last:border-b-0"
             >
-              <AccordionTrigger className="sticky top-0 z-10 bg-[#121214] py-4 hover:no-underline border-b border-transparent [&[data-state=open]]:border-zinc-800 [&[data-state=open]>svg]:rotate-180">
+              <AccordionTrigger className="sticky top-0 z-10 bg-surface py-4 hover:no-underline border-b border-transparent [&[data-state=open]]:border-zinc-800 [&[data-state=open]>svg]:rotate-180">
                 <div className="flex items-center gap-3 text-left">
                   <ProgressRing
                     progress={progress}
@@ -270,7 +270,7 @@ export const LessonsList = memo(function LessonsList({
                                   className="relative pl-8 pt-1"
                                 >
                                   {isLastLesson && (
-                                    <div className="absolute left-0 top-4 bottom-0 w-[4px] bg-[#121214] z-10" />
+                                    <div className="absolute left-0 top-4 bottom-0 w-[4px] bg-surface z-10" />
                                   )}
                                   <div className="absolute left-0 top-0 h-[24px] w-[24px] border-b-2 border-l-2 border-zinc-800/50 rounded-bl-xl translate-y-[-50%]" />
 
@@ -295,7 +295,7 @@ export const LessonsList = memo(function LessonsList({
                                       <CheckCircleIcon
                                         size={20}
                                         weight="fill"
-                                        className="shrink-0 text-green-700"
+                                        className="shrink-0 text-[#a8f3d1]"
                                       />
                                     ) : (
                                       (() => {
@@ -319,7 +319,7 @@ export const LessonsList = memo(function LessonsList({
                                         className={`text-sm truncate transition-colors duration-200 ${
                                           isActive
                                             ? 'text-cyan-50 font-semibold'
-                                            : 'text-zinc-400 font-medium group-hover:text-zinc-200'
+                                            : 'text-zinc-400 font-base group-hover:text-zinc-200'
                                         }`}
                                       >
                                         {lesson.title}

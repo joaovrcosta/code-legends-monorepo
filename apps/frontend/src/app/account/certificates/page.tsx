@@ -16,7 +16,7 @@ export default async function AccountCertificatesPage() {
 
   return (
     <div className="space-y-4 w-full mt-8">
-      <Card className="bg-[#121214] border-[#25252a] lg:p-10 p-4">
+      <Card className="bg-surface border-[#25252a] lg:p-10 p-4">
         <CardHeader>
           <div className="flex items-center space-x-2">
             <Medal className="w-6 h-6 text-[#00c8ff]" />

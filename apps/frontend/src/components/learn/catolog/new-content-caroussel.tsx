@@ -9,10 +9,10 @@ export function NewContentCaroussel() {
   return (
     <div className="relative">
       {/* Fade esquerda */}
-      <div className="pointer-events-none absolute left-0 top-0 h-full xl:w-12 w-0 bg-gradient-to-r from-[#121214] to-transparent z-10" />
+      <div className="pointer-events-none absolute left-0 top-0 h-full xl:w-12 w-0 bg-gradient-to-r from-surface to-transparent z-10" />
 
       {/* Fade right */}
-      <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-[#121214] to-transparent z-10" />
+      <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-surface to-transparent z-10" />
 
       <Carousel>
         <CarouselContent className="-ml-4">

@@ -23,7 +23,7 @@ export async function CurrentCourses() {
                 Continuar aprendendo
             </h2>
 
-            <div className="pointer-events-none absolute right-0 top-10 h-[calc(100%-40px)] w-20 bg-gradient-to-l from-[#121214] via-[#121214]/80 to-transparent z-10" />
+            <div className="pointer-events-none absolute right-0 top-10 h-[calc(100%-40px)] w-20 bg-gradient-to-l from-surface via-surface/80 to-transparent z-10" />
 
             <Carousel
                 opts={{

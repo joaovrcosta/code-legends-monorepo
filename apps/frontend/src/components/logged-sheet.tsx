@@ -13,7 +13,7 @@ export default function LoggedSheet() {
             <Menu size={28} color="#c4c4cc" />
           </div>
         </SheetTrigger>
-        <SheetContent side="left" className="bg-[#121214] p-4">
+        <SheetContent side="left" className="bg-surface p-4">
           <DialogTitle className="text-[#c4c4cc]"> </DialogTitle>{" "}
           <div className="flex flex-col space-y-4">
             <a

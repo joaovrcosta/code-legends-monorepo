@@ -25,7 +25,7 @@ export default async function CertificatePage({
   const createdAt = new Date(certificate.createdAt);
 
   return (
-    <div className="min-h-screen bg-[#121214] py-12 px-4">
+    <div className="min-h-screen bg-surface py-12 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -64,7 +64,7 @@ export default async function CertificatePage({
         </Card>
 
         {/* Preview do Certificado */}
-        <Card className="bg-[#121214] rounded-[24px] shadow-xl p-8 border border-[#25252a] mb-6">
+        <Card className="bg-surface rounded-[24px] shadow-xl p-8 border border-[#25252a] mb-6">
           <CardContent className="p-0">
             <div className="text-center space-y-6">
               {/* Logo Code Legends */}
