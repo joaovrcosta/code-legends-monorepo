@@ -79,7 +79,6 @@ async function main() {
   }
   console.log('✅ Plans seeded!')
 
-  // 1. Categorias
   const categories = [
     {
       name: 'Front-end',

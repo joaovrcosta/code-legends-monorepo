@@ -8,6 +8,7 @@ import { UserProfiler } from '@/components/home/user-profiler'
 import { CurrentCourses } from '@/components/home/current-courses'
 import { RecommendationsCarousel } from '@/components/home/recommendations-carousel'
 import { HomePageWrapper } from '@/components/home/home-page-wrapper'
+import { Flame } from '@phosphor-icons/react/ssr'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,42 +51,34 @@ export default async function Home() {
               </div>
 
               <div className="mb-8">
-                <div className="flex items-center space-x-2 pt-8 pb-0">
-                  <span className="text-muted-foreground text-[14px] font-semibold">
-                    Em alta
-                  </span>
-                </div>
-                <RecommendationsCarousel courses={courses.courses} />
+                <RecommendationsCarousel
+                  courses={courses.courses}
+                  sectionTitle="Em alta"
+                  titleRowClassName="pt-8"
+                  sectionIcon={
+                    <Flame
+                      weight="fill"
+                      size={16}
+                      className="text-[#eceeef]"
+                      aria-hidden
+                    />
+                  }
+                />
               </div>
 
-              {/* Catálogo */}
               <div className="mb-8">
-                <div className="flex items-center space-x-2 pb-0 pt-0">
-                  <span className="text-muted-foreground text-[14px] font-semibold">
-                    Recomendações
-                  </span>
-                </div>
-                <RecommendationsCarousel courses={courses.courses} />
+                <RecommendationsCarousel
+                  courses={courses.courses}
+                  sectionTitle="Recomendações"
+                />
               </div>
 
-              {/* Novidades */}
-              <div className="flex items-start space-x-2 mb-4 w-full">
-                <span className="text-muted-foreground text-[14px] font-semibold">
-                  Novidades
-                </span>
+              <div className="relative w-full min-w-0 overflow-hidden px-0 mb-6">
+                <NewsBannerCarousel variant="novidades" />
               </div>
 
-              <div className="w-full relative px-0 overflow-hidden min-w-0">
-                <NewsBannerCarousel />
-              </div>
-
-              <div className="flex items-center space-x-2 py-4 mt-4">
-                <span className="text-muted-foreground text-[14px] font-semibold">
-                  Categorias
-                </span>
-              </div>
-              <div className="pb-4">
-                <CategoriesCarousel />
+              <div className="relative w-full min-w-0 overflow-hidden px-0 pb-4">
+                <CategoriesCarousel variant="carreiras" />
               </div>
             </div>
           </div>

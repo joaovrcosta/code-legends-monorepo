@@ -62,7 +62,7 @@ export default async function CoursesPage() {
               Categorias
             </span>
           </div>
-          <div className="pb-4">
+          <div className="relative w-full min-w-0 overflow-hidden px-0 pb-4">
             <CategoriesCarousel />
           </div>
         </div>

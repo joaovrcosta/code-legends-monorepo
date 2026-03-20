@@ -1,4 +1,6 @@
-"use client"
+'use client'
+
+import type { ReactNode } from 'react'
 
 import {
   Carousel,
@@ -6,12 +8,19 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel"
-import type { CourseWithCount } from "@/types/user-course.ts"
-import { CatalogCard } from "./catalog-card"
-import { useSession } from "next-auth/react"
+  carouselHeaderNavButtonClassName,
+} from '@/components/ui/carousel'
+import { CarouselSectionHeader } from '@/components/ui/carousel-section-header'
+import type { CourseWithCount } from '@/types/user-course.ts'
+import { cn } from '@/lib/utils'
+import { CatalogCard } from './catalog-card'
+import { CodeBlock } from '@phosphor-icons/react'
+import { useSession } from 'next-auth/react'
 
-// Função para mapear level para color
+const defaultHeaderIcon = (
+  <CodeBlock weight="fill" size={16} className="text-[#eceeef]" aria-hidden />
+)
+
 const getColorByLevel = (level: string): string => {
   const normalized = (level ?? '')
     .toString()
@@ -35,20 +44,40 @@ const getColorByLevel = (level: string): string => {
   }
 }
 
+export type RecommendationsCarouselProps = {
+  courses: CourseWithCount[]
+  sectionTitle?: string
+  titleRowClassName?: string
+  sectionIcon?: ReactNode
+}
+
 export function RecommendationsCarousel({
   courses,
-}: {
-  courses: CourseWithCount[]
-}) {
+  sectionTitle,
+  titleRowClassName,
+  sectionIcon,
+}: RecommendationsCarouselProps) {
   const { data, status } = useSession()
-  const plan = (data?.user as { plan?: "FREE" | "PRO" | "PREMIUM" } | undefined)?.plan
+  const plan = (data?.user as { plan?: 'FREE' | 'PRO' | 'PREMIUM' } | undefined)
+    ?.plan
   const isFreeUser =
-    status === "loading" ? undefined : plan === "FREE" ? true : plan ? false : undefined
+    status === 'loading'
+      ? undefined
+      : plan === 'FREE'
+        ? true
+        : plan
+          ? false
+          : undefined
+
+  const inlineHeader = Boolean(sectionTitle)
 
   return (
-    <div className="relative overflow-y-visible overflow-x-hidden pt-6 pb-0">
-      <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
-
+    <div
+      className={cn(
+        'relative min-w-0 overflow-x-hidden overflow-y-visible pb-0',
+        inlineHeader ? 'pt-0' : 'pt-6',
+      )}
+    >
       <Carousel
         opts={{
           align: 'start',
@@ -56,48 +85,81 @@ export function RecommendationsCarousel({
         }}
         className="w-full"
       >
-        <CarouselPrevious
-          hideWhenDisabled
-          className="h-[42px] w-[42px] left-0 top-1/2 z-20 -translate-y-1/2 border-[#25252A] bg-surface/80 hover:bg-[#25252A] text-white"
-        />
-        <CarouselNext
-          hideWhenDisabled
-          className="h-[42px] w-[42px] right-0 top-1/2 z-20 -translate-y-1/2 border-[#25252A] bg-surface/80 hover:bg-[#25252A] text-white"
-        />
-        <CarouselContent className="-ml-4">
-          {courses.map((course, index) => {
-            const position =
-              index === 0
-                ? 'first'
-                : index === courses.length - 1
-                  ? 'last'
-                  : 'middle'
-
-            return (
-              <CarouselItem
-                key={course.id}
-                className="pl-4 basis-[85%] sm:basis-[316px] flex-shrink-0"
-              >
-                <CatalogCard
-                  name={course.title}
-                  icon={course.icon || ""}
-                  thumbnail={course.thumbnail || ""}
-                  url={`/learn/paths/${course.slug}`}
-                  color={getColorByLevel(course.level)}
-                  status="not-started"
-                  isCurrent={false}
-                  tags={course.tags}
-                  courseId={course.id}
-                  level={course.level}
-                  isFree={course.isFree}
-                  position={position}
-                  isFreeUser={isFreeUser}
-                  progress={course.progress}
+        {inlineHeader && (
+          <CarouselSectionHeader
+            className={cn('mb-4 pb-0', titleRowClassName)}
+            icon={sectionIcon ?? defaultHeaderIcon}
+            title={sectionTitle}
+            actions={
+              <>
+                <CarouselPrevious
+                  variant="ghost"
+                  hideWhenDisabled
+                  aria-label="Anterior"
+                  className={carouselHeaderNavButtonClassName}
                 />
-              </CarouselItem>
-            )
-          })}
-        </CarouselContent>
+                <CarouselNext
+                  variant="ghost"
+                  hideWhenDisabled
+                  aria-label="Próximo"
+                  className={carouselHeaderNavButtonClassName}
+                />
+              </>
+            }
+          />
+        )}
+
+        <div className="relative min-w-0">
+          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
+
+          {!inlineHeader && (
+            <>
+              <CarouselPrevious
+                hideWhenDisabled
+                className="left-0 top-1/2 z-20 h-[42px] w-[42px] -translate-y-1/2 border-[#25252A] bg-surface/80 text-white hover:bg-[#25252A]"
+              />
+              <CarouselNext
+                hideWhenDisabled
+                className="right-0 top-1/2 z-20 h-[42px] w-[42px] -translate-y-1/2 border-[#25252A] bg-surface/80 text-white hover:bg-[#25252A]"
+              />
+            </>
+          )}
+
+          <CarouselContent className="-ml-4">
+            {courses.map((course, index) => {
+              const position =
+                index === 0
+                  ? 'first'
+                  : index === courses.length - 1
+                    ? 'last'
+                    : 'middle'
+
+              return (
+                <CarouselItem
+                  key={course.id}
+                  className="basis-[85%] flex-shrink-0 pl-4 sm:basis-[316px]"
+                >
+                  <CatalogCard
+                    name={course.title}
+                    icon={course.icon || ''}
+                    thumbnail={course.thumbnail || ''}
+                    url={`/learn/paths/${course.slug}`}
+                    color={getColorByLevel(course.level)}
+                    status="not-started"
+                    isCurrent={false}
+                    tags={course.tags}
+                    courseId={course.id}
+                    level={course.level}
+                    isFree={course.isFree}
+                    position={position}
+                    isFreeUser={isFreeUser}
+                    progress={course.progress}
+                  />
+                </CarouselItem>
+              )
+            })}
+          </CarouselContent>
+        </div>
       </Carousel>
     </div>
   )
