@@ -75,9 +75,8 @@ export function LearningCard({
 
   return (
     <div
-      className={`border border-[#25252A] rounded-[20px] overflow-hidden transition-colors ${
-        isExpanded ? 'bg-gray-gradient-second' : 'bg-gray-gradient'
-      }`}
+      className={`border border-[#25252A] rounded-[20px] overflow-hidden transition-colors ${isExpanded ? 'bg-gray-gradient-second' : 'bg-gray-gradient'
+        }`}
     >
       {/* Header */}
       <div className="p-4">
@@ -155,9 +154,8 @@ export function LearningCard({
               {modules.map((module) => (
                 <div key={module.id} className="space-y-2">
                   <h5
-                    className={`text-sm font-semibold ${
-                      module.isActive ? 'text-[#00C8FF]' : 'text-[#C4C4CC]'
-                    }`}
+                    className={`text-sm font-semibold ${module.isActive ? 'text-[#00C8FF]' : 'text-[#C4C4CC]'
+                      }`}
                   >
                     {module.title}
                     {module.isActive && (
@@ -177,11 +175,10 @@ export function LearningCard({
                             key={lesson.id}
                             className={`
                             flex items-center gap-3 p-3 rounded-lg
-                            ${
-                              lesson.locked
+                            ${lesson.locked
                                 ? 'bg-[#1A1A1E] opacity-50'
                                 : 'bg-[#25252A] hover:bg-[#2E2E32] cursor-pointer transition-colors'
-                            }
+                              }
                           `}
                           >
                             {lesson.locked ? (
@@ -246,10 +243,9 @@ export function LearningCard({
                   key={lesson.id}
                   className={`
                     flex items-center gap-3 p-3 rounded-lg
-                    ${
-                      lesson.locked
-                        ? 'bg-[#1A1A1E] opacity-50'
-                        : 'bg-[#25252A] hover:bg-[#2E2E32] cursor-pointer transition-colors'
+                    ${lesson.locked
+                      ? 'bg-[#1A1A1E] opacity-50'
+                      : 'bg-[#25252A] hover:bg-[#2E2E32] cursor-pointer transition-colors'
                     }
                   `}
                 >
@@ -301,7 +297,6 @@ export function LearningCard({
             </div>
           )}
 
-          {/* Actions */}
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#25252A]">
             <button className="flex items-center gap-2 text-sm text-[#C4C4CC] hover:text-white transition-colors hover:bg-[#25252A] rounded-lg p-2">
               <PushPinIcon size={16} weight="regular" />
@@ -314,7 +309,7 @@ export function LearningCard({
                 </button>
               </Link>
               {cardType === 'course' &&
-              (continueClassroomUrl || (onContinue && courseId)) ? (
+                (continueClassroomUrl || (onContinue && courseId)) ? (
                 continueClassroomUrl ? (
                   <Link href={continueClassroomUrl}>
                     <Button className="bg-blue-gradient-500 hover:opacity-90 text-white font-semibold px-6 py-2 rounded-lg">

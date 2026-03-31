@@ -68,7 +68,7 @@ export function ContinueCourseButton({
       }
 
       router.push('/classroom')
-    } catch {}
+    } catch { }
   }
 
   const getButtonText = () => {
@@ -87,7 +87,7 @@ export function ContinueCourseButton({
       suppressHydrationWarning
     >
       <span className="flex items-center gap-2">
-        <Play size={20} weight="fill" className="text-white" />
+        <Play size={24} weight="fill" className="text-white" />
         {getButtonText()}
       </span>
     </PrimaryButton>

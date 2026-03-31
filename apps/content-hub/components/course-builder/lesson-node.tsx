@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LessonWithStructure } from "@/actions/course/get-course-with-structure";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, GripVertical } from "lucide-react";
 import { deleteLesson } from "@/actions/lesson/delete-lesson";
 import { getAuthTokenFromClient } from "@/lib/auth";
@@ -77,6 +78,11 @@ export function LessonNode({ lesson, onUpdate, onDelete }: LessonNodeProps) {
         <span className="flex-1 text-sm text-gray-600 dark:text-gray-400">
           {lesson.title}
         </span>
+        {lesson.isFree && (
+          <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+            Grátis
+          </Badge>
+        )}
         <Button
           size="sm"
           variant="ghost"
