@@ -7,6 +7,7 @@ import { continueCourse } from '@/actions/course'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { Button } from '@/components/ui/button'
+import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
 import {
   Check,
   ListChecks,
@@ -167,22 +168,12 @@ export function QuizView({
               </p>
               {isMultiQuiz && (
                 <div className="mt-10 pt-8 border-t border-[#25252A]">
-                  <Button
+                  <CompleteLessonButton
                     onClick={handleMarkAsComplete}
                     disabled={isMarking || isMarked || !currentLesson}
-                    className={`gap-2 rounded-full px-6 ${
-                      isMarked
-                        ? 'bg-[#00b3e4]/20 text-[#00b3e4] border border-[#00b3e4] hover:bg-[#00b3e4]/20'
-                        : 'bg-[#25252A] text-white border border-[#25252A] hover:border-[#00b3e4] hover:bg-[#25252A]'
-                    }`}
-                  >
-                    <Check weight="bold" size={20} />
-                    {isMarking
-                      ? 'Marcando...'
-                      : isMarked
-                        ? 'Concluído'
-                        : 'Marcar como concluído'}
-                  </Button>
+                    isMarking={isMarking}
+                    isMarked={isMarked}
+                  />
                 </div>
               )}
             </>
@@ -197,11 +188,10 @@ export function QuizView({
             /* Tela de resultado */
             <div className="rounded-[16px] border border-[#25252A] bg-[#0d0d0f] p-8 text-center">
               <div
-                className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${
-                  passed
-                    ? 'bg-[#1a2e1a] text-[#4ade80]'
-                    : 'bg-[#3b1515] text-[#f87171]'
-                }`}
+                className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${passed
+                  ? 'bg-[#1a2e1a] text-[#4ade80]'
+                  : 'bg-[#3b1515] text-[#f87171]'
+                  }`}
               >
                 {passed ? (
                   <Trophy weight="bold" size={28} />

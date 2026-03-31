@@ -8,12 +8,12 @@ import {
   AccordionTrigger,
 } from '../ui/accordion'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { Check } from '@phosphor-icons/react/dist/ssr'
 import { continueCourse } from '@/actions/course'
 import { useState } from 'react'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { cn } from '@/lib/utils'
+import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
 
 interface TitleAccordionProps {
   title: string | undefined
@@ -32,8 +32,7 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
 
   const isMarked = currentLesson?.status === 'completed'
 
-  const handleMarkAsWatched = async (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleMarkAsWatched = async () => {
     if (!currentLesson?.id || isMarking || isMarked) return
 
     try {
@@ -76,17 +75,22 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
 
               <div className="flex items-center gap-3">
                 <div
-                  onClick={handleMarkAsWatched}
-                  className={cn(
-                    "flex items-center justify-center w-full lg:w-fit gap-2 border px-5 py-2.5 rounded-full text-sm font-semibold transition-all",
-                    isMarked
-                      ? "bg-green-500/10 border-green-500/50 text-green-400"
-                      : "border-[#25252A] text-white hover:border-[#00b3e4] bg-white/5",
-                    (isMarking || !currentLesson) && "opacity-50 cursor-not-allowed"
-                  )}
+                  onClick={(e) => e.stopPropagation()}
+                  className={cn((isMarking || !currentLesson) && "opacity-50")}
                 >
-                  <Check weight="bold" size={18} />
-                  {isMarking ? 'Marcando...' : isMarked ? 'Concluída' : 'Completar lição'}
+                  <CompleteLessonButton
+                    variant="learn"
+                    as="div"
+                    onClick={handleMarkAsWatched}
+                    isMarking={isMarking}
+                    isMarked={isMarked}
+                    disabled={isMarking || !currentLesson || isMarked}
+                    iconSize={18}
+                    className="cursor-pointer"
+                    markLabel="Completar lição"
+                    markedLabel="Concluída"
+                    markingLabel="Marcando..."
+                  />
                 </div>
               </div>
             </div>

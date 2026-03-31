@@ -13,8 +13,7 @@ import { ArticlePlaygroundProvider, useArticlePlayground } from '@/contexts/arti
 import { continueCourse } from '@/actions/course'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
-import { Button } from '@/components/ui/button'
-import { Check } from '@phosphor-icons/react/dist/ssr'
+import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
 
 function isReactElement(
   node: React.ReactNode,
@@ -204,28 +203,18 @@ function ArticleContentWithButton({
               Conteúdo em produção. Em breve você poderá ler este artigo aqui.
             </p>
           )}
-          <div className="mt-10 pt-8 border-t border-[#25252A]">
+          <div className="mt-10 pt-8 pb-4 border-t border-[#25252A]">
             {mustCompletePlaygrounds && !canMarkComplete && (
               <p className="mb-2 text-sm text-white/70">
                 Complete o(s) desafio(s) no Code Playground acima para desbloquear.
               </p>
             )}
-            <Button
+            <CompleteLessonButton
               onClick={handleMarkAsComplete}
               disabled={disabled}
-              className={`gap-2 rounded-full px-6 ${
-                isMarked
-                  ? 'bg-[#00b3e4]/20 text-[#00b3e4] border border-[#00b3e4] hover:bg-[#00b3e4]/20'
-                  : 'bg-[#25252A] text-white border border-[#25252A] hover:border-[#00b3e4] hover:bg-[#25252A]'
-              }`}
-            >
-              <Check weight="bold" size={20} />
-              {isMarking
-                ? 'Marcando...'
-                : isMarked
-                  ? 'Concluído'
-                  : 'Marcar como concluído'}
-            </Button>
+              isMarking={isMarking}
+              isMarked={isMarked}
+            />
           </div>
         </div>
       </div>
