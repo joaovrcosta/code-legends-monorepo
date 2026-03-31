@@ -1,10 +1,11 @@
 'use client'
 
+import React, { useEffect, useState, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { useEffect, useState } from 'react'
 import type { ComponentProps } from 'react'
-import type { Lesson, Challenge, PlaygroundBlock } from '@/types/roadmap'
+import type { Root } from 'mdast'
+
 import { CodeBlockPre, InlineCode } from './CodeBlock'
 import { CalloutBlockquote } from './CalloutBlockquote'
 import { ChallengeBlock } from '@/components/classroom/challenge/ChallengeBlock'
@@ -14,238 +15,43 @@ import { continueCourse } from '@/actions/course'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
+import type { Lesson, Challenge, PlaygroundBlock } from '@/types/roadmap'
 
-function isReactElement(
-  node: React.ReactNode,
-): node is React.ReactElement<{
-  className?: string
-  children?: React.ReactNode
-}> {
+type ImageAlign = 'left' | 'center' | 'right' | 'justify'
+
+const ALIGN_CLASSES: Record<ImageAlign, string> = {
+  left: 'mr-auto',
+  center: 'mx-auto',
+  right: 'ml-auto',
+  justify: 'mx-auto w-full'
+}
+
+function isReactElement(node: React.ReactNode): node is React.ReactElement<{ className?: string; children?: React.ReactNode }> {
   return !!node && typeof node === 'object' && 'props' in node
 }
 
 function getCodeString(children: React.ReactNode): string {
   if (typeof children === 'string') return children
-  return Array.isArray(children)
-    ? children.map((c) => (typeof c === 'string' ? c : '')).join('')
-    : String(children ?? '')
+  if (Array.isArray(children)) return children.map(c => typeof c === 'string' ? c : '').join('')
+  return String(children ?? '')
 }
 
-function PlaygroundBlockWrapper({ block }: { block: PlaygroundBlock }) {
-  const ctx = useArticlePlayground()
-  const hasTests = Boolean(
-    block.testFile || (block.tests && Object.keys(block.tests).length > 0),
-  )
-  const [resolvedId, setResolvedId] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (ctx && hasTests) {
-      const id = ctx.registerPlayground(block.playgroundId, true)
-      setResolvedId(id)
-    } else {
-      setResolvedId(block.playgroundId ?? null)
-    }
-  }, [ctx, hasTests, block.playgroundId])
-
-  const playgroundId = resolvedId ?? block.playgroundId ?? undefined
-  const onTestsPass =
-    playgroundId && ctx
-      ? () => ctx.reportTestsPassed(playgroundId)
-      : undefined
-
-  return (
-    <CodePlayground
-      files={block.files}
-      template={block.template}
-      testFile={block.testFile}
-      tests={block.tests}
-      playgroundId={playgroundId}
-      onTestsPass={onTestsPass}
-    />
-  )
-}
-
-function ArticleCodeBlockPre({ children }: ComponentProps<'pre'>) {
-  const codeEl = Array.isArray(children) ? children[0] : children
-  const className = isReactElement(codeEl) ? codeEl.props.className : undefined
-  const match =
-    typeof className === 'string' ? className.match(/language-(\w+)/) : null
-  const lang = match ? match[1] : 'text'
-
-  if (lang === 'challenge') {
-    const raw = isReactElement(codeEl)
-      ? getCodeString(codeEl.props.children)
-      : getCodeString(codeEl)
-    try {
-      const challenge = JSON.parse(raw) as Challenge
-      return <ChallengeBlock challenge={challenge} />
-    } catch {
-      return (
-        <div className="my-4 rounded-[12px] border border-[#f87171]/40 bg-[#3b1515] px-4 py-3 text-sm text-[#f87171]">
-          Desafio inválido (JSON malformado).
-        </div>
-      )
-    }
-  }
-
-  if (lang === 'playground') {
-    const raw = isReactElement(codeEl)
-      ? getCodeString(codeEl.props.children)
-      : getCodeString(codeEl)
-    try {
-      const block = JSON.parse(raw) as PlaygroundBlock
-      return <PlaygroundBlockWrapper block={block} />
-    } catch {
-      return (
-        <div className="my-4 rounded-[12px] border border-[#f87171]/40 bg-[#3b1515] px-4 py-3 text-sm text-[#f87171]">
-          Playground inválido (JSON malformado).
-        </div>
-      )
-    }
-  }
-
-  return <CodeBlockPre>{children}</CodeBlockPre>
-}
-
-interface ComponentsArticleProps {
-  lesson: Lesson
-  moduleTitle?: string
-}
-
-function ArticleContentWithButton({
-  lesson,
-  moduleTitle,
-  body,
-  isMarking,
-  isMarked,
-  currentLesson,
-  activeCourse,
-  handleMarkAsComplete,
-  fetchActiveCourse,
-}: {
-  lesson: Lesson
-  moduleTitle?: string
-  body: string | undefined
-  isMarking: boolean
-  isMarked: boolean
-  currentLesson: { id: number } | null
-  activeCourse: { id: string } | null
-  handleMarkAsComplete: () => Promise<void>
-  fetchActiveCourse?: () => Promise<void>
-}) {
-  const playground = useArticlePlayground()
-  const mustCompletePlaygrounds = playground?.hasRequiredPlaygrounds === true
-  const canMarkComplete = playground?.allPlaygroundsPassed !== false
-  const disabled =
-    isMarking ||
-    isMarked ||
-    !currentLesson ||
-    (mustCompletePlaygrounds && !canMarkComplete)
-
-  return (
-    <div>
-      <div className="bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.25)] px-6 py-5 lg:h-64 h-56 flex flex-col justify-center items-center lg:rounded-[20px] rounded-none">
-        <div className="text-start space-y-1 max-w-5xl w-full p-4">
-          {moduleTitle && (
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9ca3af]">
-              {moduleTitle.split(':')[0] ?? moduleTitle}
-            </p>
-          )}
-          <h1 className="text-3xl font-semibold text-white">{lesson.title}</h1>
-          {lesson.description && (
-            <p className="text-muted-foreground mt-1 text-sm max-w-xl mx-auto">
-              {lesson.description}
-            </p>
-          )}
-        </div>
-      </div>
-      <div className="flex justify-center items-center mt-6">
-        <div className="max-w-5xl w-full p-4">
-          {body ? (
-            <article className="article-body text-base tracking-[0.6px] leading-relaxed text-white/90 prose prose-invert max-w-none prose-p:pb-4 prose-headings:text-[#7dd3fc] prose-strong:text-white prose-pre:bg-transparent prose-pre:p-0 prose-pre:border-0 prose-code:text-white/90">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  pre: ArticleCodeBlockPre,
-                  code: InlineCode,
-                  blockquote: CalloutBlockquote,
-                  h1: ({ children, ...props }) => (
-                    <h1
-                      {...props}
-                      className="text-[32px] text-[#7dd3fc] font-semibold tracking-tight"
-                    >
-                      {children}
-                    </h1>
-                  ),
-                  h2: ({ children, ...props }) => (
-                    <h2
-                      {...props}
-                      className="text-2xl text-[#7dd3fc] font-semibold tracking-tight mt-8 mb-2"
-                    >
-                      {children}
-                    </h2>
-                  ),
-                  h3: ({ children, ...props }) => (
-                    <h3
-                      {...props}
-                      className="text-xl text-[#7dd3fc] font-semibold tracking-tight mt-6 mb-2"
-                    >
-                      {children}
-                    </h3>
-                  ),
-                }}
-              >
-                {body}
-              </ReactMarkdown>
-            </article>
-          ) : (
-            <p className="text-muted-foreground italic">
-              Conteúdo em produção. Em breve você poderá ler este artigo aqui.
-            </p>
-          )}
-          <div className="mt-10 pt-8 pb-4 border-t border-[#25252A]">
-            {mustCompletePlaygrounds && !canMarkComplete && (
-              <p className="mb-2 text-sm text-white/70">
-                Complete o(s) desafio(s) no Code Playground acima para desbloquear.
-              </p>
-            )}
-            <CompleteLessonButton
-              onClick={handleMarkAsComplete}
-              disabled={disabled}
-              isMarking={isMarking}
-              isMarked={isMarked}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export function ComponentsArticle({
-  lesson,
-  moduleTitle,
-}: ComponentsArticleProps) {
-  const body = lesson.article?.body?.trim()
+function useCompleteLesson(lesson: Lesson, moduleTitle?: string) {
   const [isMarking, setIsMarking] = useState(false)
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
-  const {
-    currentLesson,
-    updateCurrentLessonStatus,
-    setLastModuleCompletion,
-    setShowModuleStatsOnce,
-  } = useCourseModalStore()
-  const isMarked =
-    currentLesson?.id === lesson?.id && currentLesson?.status === 'completed'
+  const { currentLesson, updateCurrentLessonStatus, setLastModuleCompletion, setShowModuleStatsOnce } = useCourseModalStore()
+
+  const isMarked = currentLesson?.id === lesson?.id && currentLesson?.status === 'completed'
 
   const handleMarkAsComplete = async () => {
-    if (!currentLesson?.id || currentLesson.id !== lesson.id) return
-    if (isMarking || isMarked) return
+    if (!currentLesson?.id || currentLesson.id !== lesson.id || isMarking || isMarked) return
+
     try {
       setIsMarking(true)
       const result = await continueCourse(currentLesson.id, activeCourse?.id)
-      if (!result?.success)
-        throw new Error('A API não retornou sucesso ao completar a lição')
+
+      if (!result?.success) throw new Error('API_ERROR')
+
       if (result.moduleCompleted) {
         setLastModuleCompletion({
           moduleCompleted: true,
@@ -258,36 +64,192 @@ export function ComponentsArticle({
         })
         setShowModuleStatsOnce(true)
       }
+
       updateCurrentLessonStatus('completed')
       await fetchActiveCourse()
     } catch (error) {
-      console.error('Erro ao marcar como concluído:', error)
-      const msg = error instanceof Error ? error.message : 'Erro desconhecido'
-      if (msg.includes('locked') || msg.includes('bloqueada')) {
-        alert(
-          'Esta aula está bloqueada. Complete as aulas anteriores para desbloqueá-la.',
-        )
-      } else {
-        alert(`Erro ao marcar como concluído: ${msg}. Tente novamente.`)
-      }
+      console.error(error)
+      alert('Erro ao concluir lição. Verifique se há dependências pendentes.')
     } finally {
       setIsMarking(false)
     }
   }
 
+  return { isMarking, isMarked, handleMarkAsComplete, currentLesson, activeCourse }
+}
+
+function PlaygroundBlockWrapper({ block }: { block: PlaygroundBlock }) {
+  const ctx = useArticlePlayground()
+  const [resolvedId, setResolvedId] = useState<string | null>(null)
+  const hasTests = Boolean(block.testFile || (block.tests && Object.keys(block.tests).length > 0))
+
+  useEffect(() => {
+    if (ctx && hasTests) {
+      setResolvedId(ctx.registerPlayground(block.playgroundId, true))
+    } else {
+      setResolvedId(block.playgroundId ?? null)
+    }
+  }, [ctx, hasTests, block.playgroundId])
+
+  const playgroundId = resolvedId ?? block.playgroundId ?? undefined
+
+  return (
+    <CodePlayground
+      files={block.files}
+      template={block.template}
+      testFile={block.testFile}
+      tests={block.tests}
+      playgroundId={playgroundId}
+      onTestsPass={playgroundId && ctx ? () => ctx.reportTestsPassed(playgroundId) : undefined}
+    />
+  )
+}
+
+function ArticleCodeBlockPre({ children }: ComponentProps<'pre'>) {
+  const codeEl = Array.isArray(children) ? children[0] : children
+  const className = isReactElement(codeEl) ? codeEl.props.className : undefined
+  const lang = typeof className === 'string' ? className.match(/language-(\w+)/)?.[1] : 'text'
+
+  if (lang === 'challenge' || lang === 'playground') {
+    const raw = isReactElement(codeEl) ? getCodeString(codeEl.props.children) : getCodeString(codeEl)
+    try {
+      const data = JSON.parse(raw)
+      return lang === 'challenge'
+        ? <ChallengeBlock challenge={data as Challenge} />
+        : <PlaygroundBlockWrapper block={data as PlaygroundBlock} />
+    } catch {
+      return (
+        <div className="my-4 rounded-xl border border-red-500/40 bg-red-950/20 px-4 py-3 text-sm text-red-400">
+          Bloco de {lang} inválido (JSON malformado).
+        </div>
+      )
+    }
+  }
+
+  return <CodeBlockPre>{children}</CodeBlockPre>
+}
+
+function remarkImageAlign() {
+  return (tree: Root) => {
+    const blocks = tree.children as any[]
+    for (const node of blocks) {
+      if (node.children) processNodes(node.children)
+    }
+    processNodes(blocks)
+  }
+
+  function processNodes(nodes: any[]) {
+    for (let i = nodes.length - 1; i >= 0; i--) {
+      const node = nodes[i]
+      if (node?.type !== 'paragraph') continue
+
+      const text = node.children?.length === 1 && node.children[0]?.type === 'text'
+        ? String(node.children[0].value).trim()
+        : ''
+
+      const match = text.match(/^\[\[cl-image-align:(left|center|right|justify)\]\]$/)
+      if (match) {
+        const align = match[1] as ImageAlign
+        const prev = nodes[i - 1]
+        const img = prev?.type === 'paragraph' ? prev.children?.find((c: any) => c.type === 'image') : null
+
+        if (img) {
+          img.data = { ...img.data, hProperties: { ...img.data?.hProperties, 'data-cl-align': align } }
+          nodes.splice(i, 1)
+        }
+      }
+    }
+  }
+}
+
+export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; moduleTitle?: string }) {
+  const body = lesson.article?.body?.trim()
+  const { isMarking, isMarked, handleMarkAsComplete, currentLesson } = useCompleteLesson(lesson, moduleTitle)
+
   return (
     <ArticlePlaygroundProvider>
-      <ArticleContentWithButton
-        lesson={lesson}
-        moduleTitle={moduleTitle}
-        body={body}
+      <div className="min-h-screen">
+        <header className="bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.15)] px-6 py-16 flex flex-col justify-center items-center lg:rounded-[20px]">
+          <div className="max-w-5xl w-full space-y-2">
+            {moduleTitle && (
+              <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                {moduleTitle.split(':')[0]}
+              </span>
+            )}
+            <h1 className="text-4xl font-bold text-white tracking-tight">{lesson.title}</h1>
+            {lesson.description && (
+              <p className="text-gray-400 text-base max-w-2xl">{lesson.description}</p>
+            )}
+          </div>
+        </header>
+
+        <main className="flex justify-center mt-8 px-4">
+          <div className="max-w-5xl w-full">
+            {body ? (
+              <article className="article-body prose prose-invert max-w-none prose-headings:text-sky-300 prose-p:leading-relaxed text-white/90">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, remarkImageAlign]}
+                  components={{
+                    pre: ArticleCodeBlockPre,
+                    code: InlineCode,
+                    blockquote: CalloutBlockquote,
+                    h1: (p) => <h1 className="text-3xl font-bold text-sky-300 mb-6" {...p} />,
+                    h2: (p) => <h2 className="text-2xl font-semibold text-sky-300 mt-10 mb-4" {...p} />,
+                    h3: (p) => <h3 className="text-xl font-semibold text-sky-300 mt-8 mb-3" {...p} />,
+                    img: ({ node, ...props }) => {
+                      const align = (node as any)?.properties?.['data-cl-align'] as ImageAlign || 'left'
+                      return (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          {...props}
+                          alt={props.alt || ''}
+                          className={`block my-8 rounded-2xl max-w-full h-auto ${ALIGN_CLASSES[align]} ${props.className || ''}`}
+                        />
+                      )
+                    }
+                  }}
+                >
+                  {body}
+                </ReactMarkdown>
+              </article>
+            ) : (
+              <div className="py-20 text-center border border-dashed border-white/10 rounded-2xl">
+                <p className="text-gray-500 italic">Conteúdo em produção. Disponível em breve.</p>
+              </div>
+            )}
+
+            <footer className="mt-12 pt-8 pb-12 border-t border-white/5">
+              <CompletionFooter
+                isMarking={isMarking}
+                isMarked={isMarked}
+                disabled={!currentLesson}
+                onComplete={handleMarkAsComplete}
+              />
+            </footer>
+          </div>
+        </main>
+      </div>
+    </ArticlePlaygroundProvider>
+  )
+}
+
+function CompletionFooter({ isMarking, isMarked, disabled, onComplete }: any) {
+  const playground = useArticlePlayground()
+  const needsPlayground = playground?.hasRequiredPlaygrounds && !playground?.allPlaygroundsPassed
+
+  return (
+    <div className="space-y-4">
+      {needsPlayground && (
+        <p className="text-sm text-amber-400/80 bg-amber-400/5 p-3 rounded-lg border border-amber-400/10 inline-block">
+          ⚠️ Complete os desafios práticos para liberar a conclusão.
+        </p>
+      )}
+      <CompleteLessonButton
+        onClick={onComplete}
         isMarking={isMarking}
         isMarked={isMarked}
-        currentLesson={currentLesson}
-        activeCourse={activeCourse}
-        handleMarkAsComplete={handleMarkAsComplete}
-        fetchActiveCourse={fetchActiveCourse}
+        disabled={disabled || isMarking || isMarked || needsPlayground}
       />
-    </ArticlePlaygroundProvider>
+    </div>
   )
 }

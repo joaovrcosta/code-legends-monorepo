@@ -70,6 +70,29 @@ function prepareBlocksForExport(blocks: any[]): void {
         ],
         children: []
       };
+    } else if (block.type === "image") {
+      const alignment = block.props?.textAlignment;
+      if (alignment && alignment !== "left") {
+        blocks.splice(i + 1, 0, {
+          id: `align-${block.id}`,
+          type: "paragraph",
+          props: {
+            textAlignment: "left",
+            textColor: "default",
+            backgroundColor: "default",
+          },
+          content: [
+            {
+              type: "text",
+              // Marcador em texto puro para sobreviver ao export "lossy" do Markdown.
+              text: `[[cl-image-align:${alignment}]]`,
+              styles: {},
+            },
+          ],
+          children: [],
+        });
+        i++;
+      }
     } else if (block.children && block.children.length > 0) {
       prepareBlocksForExport(block.children);
     }
@@ -103,6 +126,23 @@ function processImportedBlocks(blocks: any[]): void {
         };
       } catch (e) {
         console.error("Failed to parse challenge block JSON:", e);
+      }
+    } else if (block.type === "paragraph") {
+      // Detecta marcador de alinhamento gerado no export (logo após um bloco de imagem)
+      const text = Array.isArray(block.content)
+        ? block.content.map((c: any) => c?.text ?? "").join("")
+        : "";
+      const match = text.trim().match(/^\[\[cl-image-align:(left|center|right|justify)\]\]$/);
+      if (match) {
+        const alignment = match[1];
+        const prev = blocks[i - 1];
+        if (prev && prev.type === "image") {
+          prev.props = { ...(prev.props ?? {}), textAlignment: alignment };
+        }
+        // Remove o marcador do documento
+        blocks.splice(i, 1);
+        i--;
+        continue;
       }
     } else if (block.children && block.children.length > 0) {
       processImportedBlocks(block.children);
