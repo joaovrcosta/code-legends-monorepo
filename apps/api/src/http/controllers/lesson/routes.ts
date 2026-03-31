@@ -5,6 +5,8 @@ import { getBySlug } from "./get-by-slug.controller";
 import { update } from "./update.controller";
 import { remove } from "./delete.controller";
 import { complete } from "./complete.controller";
+import { getLessonSkillsConfig } from "./get-skills-config.controller";
+import { updateLessonSkillsConfig } from "./update-skills-config.controller";
 import { verifyJWT } from "../../middlewares/verify-jwt";
 import { verifyAdmin } from "../../middlewares/verify-admin";
 import { verifyInstructorOrAdmin } from "../../middlewares/verify-instructor-or-admin";
@@ -31,6 +33,16 @@ export async function lessonRoutes(app: FastifyInstance) {
   // Rotas protegidas - apenas ADMIN
   app.put("/lessons/:id", { onRequest: [verifyAdmin] }, update);
   app.delete("/lessons/:id", { onRequest: [verifyAdmin] }, remove);
+  app.get(
+    "/lessons/:id/skills-config",
+    { onRequest: [verifyAdmin] },
+    getLessonSkillsConfig
+  );
+  app.put(
+    "/lessons/:id/skills-config",
+    { onRequest: [verifyAdmin] },
+    updateLessonSkillsConfig
+  );
 
   // Rotas protegidas - requer autenticação JWT e verificação de acesso
   app.post(

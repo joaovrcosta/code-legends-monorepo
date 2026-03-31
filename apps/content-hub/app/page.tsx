@@ -137,7 +137,7 @@ export default function Home() {
   const [dashboard, setDashboard] = useState<DashboardOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [revenueRange, setRevenueRange] = useState<RevenueRange>({ preset: "6m" });
+  const [revenueRange, setRevenueRange] = useState<RevenueRange>({ preset: "30d" });
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
 
@@ -166,7 +166,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    loadDashboard({ preset: "6m" });
+    loadDashboard({ preset: "30d" });
   }, [loadDashboard]);
 
   const handleRevenuePresetChange = async (preset: RevenueRangePreset) => {

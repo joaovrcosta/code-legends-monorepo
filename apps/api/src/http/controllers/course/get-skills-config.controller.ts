@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '../../../lib/prisma'
+import { makeGetCourseSkillsConfigUseCase } from '../../../utils/factories/make-get-course-skills-config-use-case'
+import { CourseNotFoundError } from '../../../use-cases/errors/course-not-found'
 
 export async function getSkillsConfig(
   request: FastifyRequest,
@@ -13,43 +14,13 @@ export async function getSkillsConfig(
   const { id: courseId } = paramsSchema.parse(request.params)
 
   try {
-    const course = await prisma.course.findUnique({
-      where: { id: courseId },
-      select: { id: true },
-    })
-
-    if (!course) {
-      return reply.status(404).send({ message: 'Course not found' })
-    }
-
-    const courseSkills = await prisma.courseSkill.findMany({
-      where: { courseId },
-      include: {
-        skill: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            description: true,
-          },
-        },
-      },
-      orderBy: {
-        weight: 'desc',
-      },
-    })
-
-    return reply.status(200).send({
-      courseId,
-      skills: courseSkills.map((cs) => ({
-        skillId: cs.skillId,
-        name: cs.skill.name,
-        slug: cs.skill.slug,
-        description: cs.skill.description,
-        weight: cs.weight,
-      })),
-    })
+    const useCase = makeGetCourseSkillsConfigUseCase()
+    const { skills } = await useCase.execute(courseId)
+    return reply.status(200).send({ courseId, skills })
   } catch (error) {
+    if (error instanceof CourseNotFoundError) {
+      return reply.status(404).send({ message: error.message })
+    }
     console.error('Erro ao buscar configuração de skills do curso:', error)
     return reply.status(500).send({ message: 'Internal server error' })
   }

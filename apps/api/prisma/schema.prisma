@@ -186,6 +186,7 @@ model Lesson {
   article Article?
   quiz    Quiz?
   project Project?
+  skills  LessonSkill[]
 
   @@unique([slug, submoduleId])
 }
@@ -247,6 +248,7 @@ model Skill {
   updatedAt   DateTime         @updatedAt
 
   courses CourseSkill[]
+  lessons LessonSkill[]
   users   UserSkillXp[]
   xpLog   UserSkillXpHistory[]
 }
@@ -261,6 +263,19 @@ model CourseSkill {
   skill  Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@unique([courseId, skillId])
+}
+
+model LessonSkill {
+  id       String @id @default(cuid())
+  lessonId Int
+  skillId  String
+  weight   Int
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  skill  Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([lessonId, skillId])
+  @@index([lessonId])
 }
 
 model UserSkillXp {

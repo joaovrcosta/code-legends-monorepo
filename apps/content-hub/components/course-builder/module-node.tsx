@@ -19,6 +19,7 @@ interface ModuleNodeProps {
     onUpdate: (module: ModuleWithStructure) => void;
     onDelete: () => void;
     onReloadStructure?: () => void;
+    courseSkillIds?: string[];
 }
 
 export function ModuleNode({
@@ -28,6 +29,7 @@ export function ModuleNode({
     onUpdate,
     onDelete,
     onReloadStructure,
+    courseSkillIds,
 }: ModuleNodeProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [title, setTitle] = useState(module.title);
@@ -228,6 +230,7 @@ export function ModuleNode({
                                 onUpdate={(updated) => handleGroupUpdate(group.id, updated)}
                                 onDelete={() => handleGroupDelete(group.id)}
                                 onReloadStructure={onReloadStructure}
+                                courseSkillIds={courseSkillIds}
                             />
                         ))
                     )}

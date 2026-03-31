@@ -61,18 +61,20 @@ export async function updateCourseSkillsConfig(
     );
 
     if (!response.ok) {
-      console.error(
-        "Erro ao atualizar configuração de skills do curso:",
-        response.statusText
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message ||
+          `Erro ao atualizar skills do curso (${response.status})`
       );
-      return null;
     }
 
     const data: CourseSkillsConfigResponse = await response.json();
     return data;
   } catch (error) {
     console.error("Erro ao atualizar configuração de skills do curso:", error);
-    return null;
+    throw error instanceof Error
+      ? error
+      : new Error("Erro ao atualizar skills do curso");
   }
 }
 

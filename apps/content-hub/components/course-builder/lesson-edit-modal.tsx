@@ -12,6 +12,12 @@ import { Select } from '@/components/ui/select'
 import type { Challenge } from '@/actions/lesson/list-lessons'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { updateLesson } from '@/actions/lesson/update-lesson'
+import {
+  getLessonSkillsConfig,
+  updateLessonSkillsConfig,
+  type LessonSkillConfigItem,
+} from '@/actions/skill/get-lesson-skills'
+import { listSkills } from '@/actions/skill/list-skills'
 import { getAuthTokenFromClient } from '@/lib/auth'
 import { generateSlug } from '@/lib/utils'
 import { X, ChevronDown, ChevronUp } from 'lucide-react'
@@ -19,6 +25,7 @@ import { toast } from 'sonner'
 
 interface LessonEditModalProps {
   lesson: LessonWithStructure
+  courseSkillIds?: string[]
   isOpen: boolean
   onClose: () => void
   onSave: (updatedLesson: LessonWithStructure) => void
@@ -26,6 +33,7 @@ interface LessonEditModalProps {
 
 export function LessonEditModal({
   lesson,
+  courseSkillIds,
   isOpen,
   onClose,
   onSave,
@@ -33,6 +41,11 @@ export function LessonEditModal({
   const [loading, setLoading] = useState(false)
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
   const [metadadosOpen, setMetadadosOpen] = useState(false)
+  const [availableSkills, setAvailableSkills] = useState<
+    Array<{ id: string; name: string; slug: string }>
+  >([])
+  const [lessonSkills, setLessonSkills] = useState<LessonSkillConfigItem[]>([])
+  const [selectedSkillId, setSelectedSkillId] = useState('')
 
   const normalizeType = (type: string | null | undefined) => {
     const allowed = [
@@ -100,6 +113,35 @@ export function LessonEditModal({
   }, [lesson, isOpen])
 
   useEffect(() => {
+    const loadLessonSkills = async () => {
+      if (!isOpen) return
+      const token = getAuthTokenFromClient()
+      if (!token) return
+
+      try {
+        const [{ skills }, config] = await Promise.all([
+          listSkills(),
+          getLessonSkillsConfig(lesson.id, token),
+        ])
+
+        setAvailableSkills(
+          skills.map((skill) => ({
+            id: skill.id,
+            name: skill.name,
+            slug: skill.slug,
+          })),
+        )
+        setLessonSkills(config?.skills ?? [])
+        setSelectedSkillId('')
+      } catch (error) {
+        console.error('Erro ao carregar skills da aula:', error)
+      }
+    }
+
+    void loadLessonSkills()
+  }, [isOpen, lesson.id])
+
+  useEffect(() => {
     if (formData.title && !slugManuallyEdited) {
       setFormData((prev) => ({
         ...prev,
@@ -116,6 +158,29 @@ export function LessonEditModal({
         toast.error('Token de autenticação não encontrado')
         return
       }
+
+      // UX: se selecionou uma skill no select e esqueceu de clicar em "Adicionar",
+      // tentamos incluir automaticamente antes de persistir.
+      const pendingSkill =
+        selectedSkillId &&
+        !lessonSkills.some((ls) => ls.skillId === selectedSkillId) &&
+        !(courseSkillIds ?? []).includes(selectedSkillId)
+          ? availableSkills.find((s) => s.id === selectedSkillId)
+          : null
+
+      const lessonSkillsToPersist = [
+        ...lessonSkills,
+        ...(pendingSkill
+          ? [
+              {
+                skillId: pendingSkill.id,
+                name: pendingSkill.name,
+                slug: pendingSkill.slug,
+                weight: 100,
+              },
+            ]
+          : []),
+      ]
 
       const payload =
         formData.type === 'quiz' || formData.type === 'multi_quiz'
@@ -135,6 +200,19 @@ export function LessonEditModal({
             : formData
 
       await updateLesson(lesson.id.toString(), payload, token)
+      await updateLessonSkillsConfig(
+        lesson.id,
+        lessonSkillsToPersist.map((item) => ({
+          skillId: item.skillId,
+          weight: item.weight,
+        })),
+        token,
+      )
+
+      if (pendingSkill) {
+        setLessonSkills(lessonSkillsToPersist)
+        setSelectedSkillId('')
+      }
       onSave({
         ...lesson,
         ...formData,
@@ -174,7 +252,7 @@ export function LessonEditModal({
       onClose()
     } catch (error) {
       console.error('Erro ao atualizar aula:', error)
-      toast.error('Erro ao atualizar aula')
+      toast.error(error instanceof Error ? error.message : 'Erro ao atualizar aula')
     } finally {
       setLoading(false)
     }
@@ -549,6 +627,107 @@ export function LessonEditModal({
                     />
                     <span>Bloqueada</span>
                   </label>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Skills desta aula (opcional)</Label>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Essas skills recebem XP adicional quando o aluno conclui esta aula.
+                  </p>
+                  <div className="flex gap-2">
+                    <Select
+                      value={selectedSkillId}
+                      onChange={(e) => setSelectedSkillId(e.target.value)}
+                    >
+                      <option value="">Selecione uma skill</option>
+                      {availableSkills
+                        .filter((skill) => {
+                          const alreadyInLesson = lessonSkills.some(
+                            (ls) => ls.skillId === skill.id,
+                          )
+                          const alreadyInCourse = (courseSkillIds ?? []).includes(skill.id)
+                          return !alreadyInLesson && !alreadyInCourse
+                        })
+                        .map((skill) => (
+                          <option key={skill.id} value={skill.id}>
+                            {skill.name} ({skill.slug})
+                          </option>
+                        ))}
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        if (!selectedSkillId) return
+                        const skill = availableSkills.find((s) => s.id === selectedSkillId)
+                        if (!skill) return
+                        setLessonSkills((prev) => [
+                          ...prev,
+                          {
+                            skillId: skill.id,
+                            name: skill.name,
+                            slug: skill.slug,
+                            weight: 100,
+                          },
+                        ])
+                        setSelectedSkillId('')
+                      }}
+                    >
+                      Adicionar
+                    </Button>
+                  </div>
+
+                  {lessonSkills.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {lessonSkills.map((item) => (
+                        <div
+                          key={item.skillId}
+                          className="flex items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm"
+                        >
+                          <div>
+                            <div className="font-medium">{item.name}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              slug: {item.slug}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              min={0}
+                              max={100}
+                              value={item.weight}
+                              onChange={(e) => {
+                                const value = Number(e.target.value) || 0
+                                setLessonSkills((prev) =>
+                                  prev.map((ls) =>
+                                    ls.skillId === item.skillId
+                                      ? { ...ls, weight: value }
+                                      : ls,
+                                  ),
+                                )
+                              }}
+                              className="w-20"
+                            />
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              %
+                            </span>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              onClick={() =>
+                                setLessonSkills((prev) =>
+                                  prev.filter((ls) => ls.skillId !== item.skillId),
+                                )
+                              }
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </>
             )}

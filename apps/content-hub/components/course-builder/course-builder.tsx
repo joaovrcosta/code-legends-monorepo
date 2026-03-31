@@ -24,6 +24,7 @@ interface CourseBuilderProps {
   modules: ModuleWithStructure[];
   onModulesChange: (modules: ModuleWithStructure[]) => void;
   onReloadStructure?: () => void;
+  courseSkillIds?: string[];
 }
 
 export function CourseBuilder({
@@ -32,6 +33,7 @@ export function CourseBuilder({
   modules,
   onModulesChange,
   onReloadStructure,
+  courseSkillIds,
 }: CourseBuilderProps) {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(
     new Set(modules.map((m) => m.id)),
@@ -357,6 +359,7 @@ export function CourseBuilder({
                 onUpdate={(updated) => handleModuleUpdate(module.id, updated)}
                 onDelete={() => handleModuleDelete(module.id)}
                 onReloadStructure={onReloadStructure}
+                courseSkillIds={courseSkillIds}
               />
             ))
         )}

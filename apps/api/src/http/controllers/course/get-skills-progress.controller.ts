@@ -57,37 +57,6 @@ export async function getSkillsProgress(
       },
     })
 
-    if (courseSkills.length === 0) {
-      return reply.status(200).send({
-        courseId,
-        skills: [],
-      })
-    }
-
-    const skillIds = courseSkills.map((cs) => cs.skillId)
-
-    const userSkills = await prisma.userSkillXp.findMany({
-      where: {
-        userId: targetUserId,
-        skillId: {
-          in: skillIds,
-        },
-      },
-    })
-
-    const xpBySkill = new Map<string, number>()
-    for (const us of userSkills) {
-      xpBySkill.set(us.skillId, us.xp)
-    }
-
-    let skills = courseSkills.map((cs) => ({
-      skillId: cs.skillId,
-      name: cs.skill.name,
-      slug: cs.skill.slug,
-      weight: cs.weight,
-      totalXp: xpBySkill.get(cs.skillId) ?? 0,
-    }))
-
     if (moduleId) {
       const module = await prisma.module.findUnique({
         where: { id: moduleId, courseId },
@@ -125,7 +94,62 @@ export async function getSkillsProgress(
           )
         }
 
-        const enrichedSkills = skills
+        const weightByCourseSkill = new Map<string, number>(
+          courseSkills.map((cs) => [cs.skillId, cs.weight]),
+        )
+
+        // Inclui skills do curso + skills que tiveram XP no módulo (ex.: skills associadas à lesson).
+        const unionSkillIds = Array.from(
+          new Set<string>([
+            ...courseSkills.map((cs) => cs.skillId),
+            ...gainedBySkill.keys(),
+          ]),
+        )
+
+        if (unionSkillIds.length === 0) {
+          return reply.status(200).send({
+            courseId,
+            skills: [],
+            xpGainedInModule: 0,
+            axisMax: 3000,
+            topSkills: [],
+          })
+        }
+
+        const [skillMeta, userSkills] = await Promise.all([
+          prisma.skill.findMany({
+            where: { id: { in: unionSkillIds } },
+            select: { id: true, name: true, slug: true },
+          }),
+          prisma.userSkillXp.findMany({
+            where: { userId: targetUserId, skillId: { in: unionSkillIds } },
+            select: { skillId: true, xp: true },
+          }),
+        ])
+
+        const metaById = new Map<string, { name: string; slug: string }>(
+          skillMeta.map((s) => [s.id, { name: s.name, slug: s.slug }]),
+        )
+
+        const xpBySkill = new Map<string, number>()
+        for (const us of userSkills) {
+          xpBySkill.set(us.skillId, us.xp)
+        }
+
+        const baseSkills = unionSkillIds
+          .map((skillId) => {
+            const meta = metaById.get(skillId)
+            return {
+              skillId,
+              name: meta?.name ?? skillId,
+              slug: meta?.slug ?? skillId,
+              weight: weightByCourseSkill.get(skillId) ?? 0,
+              totalXp: xpBySkill.get(skillId) ?? 0,
+            }
+          })
+          .filter((s) => Boolean(s.name))
+
+        const enrichedSkills = baseSkills
           .map((s) => {
             const gainedXpInModule = gainedBySkill.get(s.skillId) ?? 0
             return {
@@ -167,6 +191,38 @@ export async function getSkillsProgress(
         })
       }
     }
+
+    // Sem moduleId: mantém comportamento atual (skills do curso).
+    if (courseSkills.length === 0) {
+      return reply.status(200).send({
+        courseId,
+        skills: [],
+      })
+    }
+
+    const skillIds = courseSkills.map((cs) => cs.skillId)
+
+    const userSkills = await prisma.userSkillXp.findMany({
+      where: {
+        userId: targetUserId,
+        skillId: {
+          in: skillIds,
+        },
+      },
+    })
+
+    const xpBySkill = new Map<string, number>()
+    for (const us of userSkills) {
+      xpBySkill.set(us.skillId, us.xp)
+    }
+
+    const skills = courseSkills.map((cs) => ({
+      skillId: cs.skillId,
+      name: cs.skill.name,
+      slug: cs.skill.slug,
+      weight: cs.weight,
+      totalXp: xpBySkill.get(cs.skillId) ?? 0,
+    }))
 
     return reply.status(200).send({
       courseId,

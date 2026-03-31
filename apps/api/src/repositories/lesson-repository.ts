@@ -28,6 +28,7 @@ export interface ILessonRepository {
   create(data: CreateLessonData): Promise<Lesson>
   findAll(groupId?: number): Promise<Lesson[]>
   findById(id: number): Promise<Lesson | null>
+  findCourseIdByLessonId(id: number): Promise<string | null>
   findBySlug(slug: string): Promise<Lesson | null>
   findByCourseIdAndSlug(courseId: string, slug: string): Promise<Lesson | null>
   findByCourseIdAndSlugAndModuleSlug(

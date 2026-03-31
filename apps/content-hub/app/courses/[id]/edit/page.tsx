@@ -237,17 +237,48 @@ export default function EditCoursePage() {
         toast.error("Token de autenticação não encontrado");
         return;
       }
+
+      // UX: se o admin selecionou uma skill mas esqueceu de clicar em "Adicionar",
+      // incluímos automaticamente no payload de save.
+      const skillFromSelect =
+        selectedSkillId &&
+        !courseSkills.some((cs) => cs.skillId === selectedSkillId)
+          ? availableSkills.find((s) => s.id === selectedSkillId)
+          : null;
+
+      const skillsToPersist = [
+        ...courseSkills,
+        ...(skillFromSelect
+          ? [
+              {
+                skillId: skillFromSelect.id,
+                name: skillFromSelect.name,
+                slug: skillFromSelect.slug,
+                weight: 100,
+              },
+            ]
+          : []),
+      ];
+
       await updateCourse(courseId, formData, token);
 
       // Atualizar configuração de skills do curso
-      await updateCourseSkillsConfig(
+      const updatedConfig = await updateCourseSkillsConfig(
         courseId,
-        courseSkills.map((item) => ({
+        skillsToPersist.map((item) => ({
           skillId: item.skillId,
           weight: item.weight,
         })),
         token
       );
+      if (!updatedConfig) {
+        throw new Error("Erro ao atualizar skills do curso");
+      }
+
+      if (skillFromSelect) {
+        setCourseSkills(skillsToPersist);
+        setSelectedSkillId("");
+      }
 
       // Não redireciona, apenas mostra sucesso
       toast.success("Curso atualizado com sucesso!");
@@ -842,6 +873,7 @@ export default function EditCoursePage() {
                   courseId={courseId}
                   courseTitle={formData.title || ""}
                   modules={modules}
+                  courseSkillIds={courseSkills.map((s) => s.skillId)}
                   onModulesChange={(updatedModules) => {
                     setModules(updatedModules);
                   }}

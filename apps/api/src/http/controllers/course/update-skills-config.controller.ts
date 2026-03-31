@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '../../../lib/prisma'
+import { makeUpdateCourseSkillsConfigUseCase } from '../../../utils/factories/make-update-course-skills-config-use-case'
+import { CourseNotFoundError } from '../../../use-cases/errors/course-not-found'
 
 export async function updateSkillsConfig(
   request: FastifyRequest,
@@ -25,59 +26,13 @@ export async function updateSkillsConfig(
   const { skills } = bodySchema.parse(request.body)
 
   try {
-    const course = await prisma.course.findUnique({
-      where: { id: courseId },
-      select: { id: true },
-    })
-
-    if (!course) {
-      return reply.status(404).send({ message: 'Course not found' })
-    }
-
-    await prisma.$transaction(async (tx) => {
-      await tx.courseSkill.deleteMany({
-        where: { courseId },
-      })
-
-      if (skills.length > 0) {
-        await tx.courseSkill.createMany({
-          data: skills.map((item) => ({
-            courseId,
-            skillId: item.skillId,
-            weight: item.weight,
-          })),
-        })
-      }
-    })
-
-    const updated = await prisma.courseSkill.findMany({
-      where: { courseId },
-      include: {
-        skill: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            description: true,
-          },
-        },
-      },
-      orderBy: {
-        weight: 'desc',
-      },
-    })
-
-    return reply.status(200).send({
-      courseId,
-      skills: updated.map((cs) => ({
-        skillId: cs.skillId,
-        name: cs.skill.name,
-        slug: cs.skill.slug,
-        description: cs.skill.description,
-        weight: cs.weight,
-      })),
-    })
+    const useCase = makeUpdateCourseSkillsConfigUseCase()
+    const { skills: updated } = await useCase.execute({ courseId, skills })
+    return reply.status(200).send({ courseId, skills: updated })
   } catch (error) {
+    if (error instanceof CourseNotFoundError) {
+      return reply.status(404).send({ message: error.message })
+    }
     console.error('Erro ao atualizar configuração de skills do curso:', error)
     return reply.status(500).send({ message: 'Internal server error' })
   }

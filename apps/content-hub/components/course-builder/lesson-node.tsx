@@ -16,9 +16,15 @@ interface LessonNodeProps {
   lesson: LessonWithStructure;
   onUpdate: (lesson: LessonWithStructure) => void;
   onDelete: () => void;
+  courseSkillIds?: string[];
 }
 
-export function LessonNode({ lesson, onUpdate, onDelete }: LessonNodeProps) {
+export function LessonNode({
+  lesson,
+  onUpdate,
+  onDelete,
+  courseSkillIds,
+}: LessonNodeProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -103,6 +109,7 @@ export function LessonNode({ lesson, onUpdate, onDelete }: LessonNodeProps) {
 
       <LessonEditModal
         lesson={lesson}
+        courseSkillIds={courseSkillIds}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={(updatedLesson) => {

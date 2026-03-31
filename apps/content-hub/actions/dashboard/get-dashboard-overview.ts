@@ -177,7 +177,7 @@ function getPresetLabel(preset: RevenueRangePreset) {
 
 function resolveRevenueRange(range?: RevenueRange) {
   const now = new Date();
-  const preset = range?.preset ?? "6m";
+  const preset = range?.preset ?? "30d";
 
   if (preset === "custom") {
     const fallbackFrom = startOfMonth(addMonths(now, -5));
@@ -330,7 +330,7 @@ function buildRevenueMeta(range: RevenueRange): DashboardRevenueMeta {
 
 export async function getDashboardOverview(
   token?: string,
-  revenueRange: RevenueRange = { preset: "6m" }
+  revenueRange: RevenueRange = { preset: "30d" }
 ): Promise<DashboardOverview> {
   const [usersResponse, coursesResponse, paymentsResponse, requestsResponse, skillsResponse] =
     await Promise.all([

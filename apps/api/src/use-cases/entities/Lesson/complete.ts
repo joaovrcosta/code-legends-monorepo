@@ -74,6 +74,10 @@ export class CompleteLessonUseCase {
       where: { courseId },
     })
 
+    const lessonSkills = await prisma.lessonSkill.findMany({
+      where: { lessonId },
+    })
+
     const course = await this.courseRepository.findById(courseId)
     if (!course) {
       throw new CourseNotFoundError()
@@ -121,7 +125,8 @@ export class CompleteLessonUseCase {
         ? Math.round(this.XP_PER_LESSON * 1.4)
         : this.XP_PER_LESSON
 
-    if (!wasAlreadyCompleted && isCompleted && lessonType !== 'QUIZ') {
+    // Também concede XP para QUIZ quando concluído (senão o final do módulo fica +0xp).
+    if (!wasAlreadyCompleted && isCompleted) {
       const newTotalXp = user.totalXp + xpAmount
       const newLevel = this.calculateLevel(newTotalXp)
       const newXpToNextLevel = this.calculateXpToNextLevel(newLevel, newTotalXp)
@@ -149,17 +154,20 @@ export class CompleteLessonUseCase {
           },
         })
 
-        if (courseSkills.length > 0 && xpAmount > 0) {
-          for (const courseSkill of courseSkills) {
-            const skillXp = Math.round(xpAmount * (courseSkill.weight / 100))
+        const applySkillsXp = async (
+          skillRows: Array<{ skillId: string; weight: number }>,
+        ) => {
+          if (skillRows.length === 0 || xpAmount <= 0) return
 
+          for (const row of skillRows) {
+            const skillXp = Math.round(xpAmount * (row.weight / 100))
             if (skillXp <= 0) continue
 
             await tx.userSkillXp.upsert({
               where: {
                 userId_skillId: {
                   userId,
-                  skillId: courseSkill.skillId,
+                  skillId: row.skillId,
                 },
               },
               update: {
@@ -169,7 +177,7 @@ export class CompleteLessonUseCase {
               },
               create: {
                 userId,
-                skillId: courseSkill.skillId,
+                skillId: row.skillId,
                 xp: skillXp,
               },
             })
@@ -177,7 +185,7 @@ export class CompleteLessonUseCase {
             await tx.userSkillXpHistory.create({
               data: {
                 userId,
-                skillId: courseSkill.skillId,
+                skillId: row.skillId,
                 xpAmount: skillXp,
                 source: 'lesson_completed',
                 sourceId: lessonId,
@@ -186,6 +194,10 @@ export class CompleteLessonUseCase {
             })
           }
         }
+
+        // Regra aditiva: aplica skills do curso + skills específicas da aula (se existirem).
+        await applySkillsXp(courseSkills)
+        await applySkillsXp(lessonSkills)
 
         if (levelUp) {
           try {

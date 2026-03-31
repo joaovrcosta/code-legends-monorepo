@@ -48,6 +48,7 @@ export interface GroupNodeProps {
   onUpdate: (group: GroupWithStructure) => void
   onDelete: () => void
   onReloadStructure?: () => void
+  courseSkillIds?: string[]
 }
 
 export function GroupNode({
@@ -57,6 +58,7 @@ export function GroupNode({
   onUpdate,
   onDelete,
   onReloadStructure,
+  courseSkillIds,
 }: GroupNodeProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState(group.title)
@@ -372,6 +374,7 @@ export function GroupNode({
                       handleLessonUpdate(lesson.id, updated)
                     }
                     onDelete={() => handleLessonDelete(lesson.id)}
+                    courseSkillIds={courseSkillIds}
                   />
                 ))}
               </SortableContext>
