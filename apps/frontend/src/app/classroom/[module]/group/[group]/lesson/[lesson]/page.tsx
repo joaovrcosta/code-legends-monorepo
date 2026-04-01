@@ -540,7 +540,7 @@ export default function DynamicLessonPage() {
 
       {/* Conteúdo principal */}
       <div
-        className={`flex-1 w-full min-h-0 lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)]
+        className={`flex-1 w-full min-h-0 max-w-full overflow-x-hidden lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)]
              text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
           }`}
@@ -571,60 +571,62 @@ export default function DynamicLessonPage() {
         </div>
 
         <footer
-          className={`fixed left-0 right-0 bottom-0 lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 transition-all duration-300 ease-in-out lg:mx-4 bg-[#0C0C0F] overflow-hidden ${isSidebarOpen ? 'lg:left-[378px]' : 'lg:left-0'
+          className={`fixed bottom-0 left-0 right-0 z-50 max-w-full overflow-hidden border-t border-[#25252A] bg-[#0C0C0F] transition-all duration-300 ease-in-out lg:mx-4 lg:rounded-b-[20px] ${isSidebarOpen ? 'lg:left-[378px]' : 'lg:left-0'
             }`}
         >
-          <div className="flex justify-between w-full m-0 p-0 h-[60px] lg:h-[84px]">
+          <div className="flex h-[60px] w-full min-w-0 max-w-full items-stretch lg:h-[84px]">
             {/* Botão Anterior */}
-            <Button
-              variant="ghost"
-              className="h-full w-1/2 max-w-[320px] bg-transparent rounded-none text-base border-l border-r border-[#25252A] text-zinc-400 hover:text-white hover:bg-white/5 disabled:opacity-30 transition-all"
-              onClick={() => {
-                if (navigation?.previous) {
-                  navigateToLesson(
-                    navigation.previous.slug,
-                    navigation.previous.moduleSlug,
-                    navigation.previous.groupSlug,
-                  )
-                }
-              }}
-              disabled={!navigation?.previous}
-            >
-              <SkipBack weight="fill" size={20} className="mr-2" />
-              Anterior
-            </Button>
+            <div className="flex min-w-0 flex-1 justify-start">
+              <Button
+                className="h-full w-full max-w-[320px] min-w-0 rounded-none lg:rounded-bl-[20px] border-l border-r border-[#25252A] border-y-0 bg-transparent text-base text-zinc-400 shadow-none hover:bg-white/5 hover:text-white disabled:pointer-events-none disabled:text-zinc-600 transition-all"
+                onClick={() => {
+                  if (navigation?.previous) {
+                    navigateToLesson(
+                      navigation.previous.slug,
+                      navigation.previous.moduleSlug,
+                      navigation.previous.groupSlug,
+                    )
+                  }
+                }}
+                disabled={!navigation?.previous}
+              >
+                <SkipBack weight="fill" size={20} className="mr-2 shrink-0" />
+                Anterior
+              </Button>
+            </div>
 
             {/* Área Central com Progresso (Desktop) */}
-            <div className="flex-[2] lg:flex items-center justify-center px-8 hidden bg-[#0C0C0F]">
-              <div className="w-full max-w-xl">
+            <div className="hidden min-w-0 flex-[2] items-center justify-center overflow-hidden bg-[#0C0C0F] px-8 lg:flex">
+              <div className="w-full max-w-xl min-w-0">
                 <LevelProgressBar />
               </div>
             </div>
 
             {/* Botão Próximo */}
-            <Button
-              variant="ghost"
-              onClick={() => {
-                if (!navigation?.next) return
-                navigateToLesson(
-                  navigation.next.slug,
-                  navigation.next.moduleSlug,
-                  navigation.next.groupSlug,
-                )
-              }}
-              disabled={!navigation?.next}
-              className="h-full w-1/2 max-w-[320px] text-base bg-transparent rounded-none border-l border-r border-[#25252A] text-white hover:bg-[#00C8FF]/10 group disabled:opacity-30 transition-all"
-            >
-              Próxima
-              <SkipForward
-                weight="fill"
-                size={20}
-                className="ml-2 text-[#00C8FF] group-hover:translate-x-1 transition-transform"
-              />
-            </Button>
+            <div className="flex min-w-0 flex-1 justify-end">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  if (!navigation?.next) return
+                  navigateToLesson(
+                    navigation.next.slug,
+                    navigation.next.moduleSlug,
+                    navigation.next.groupSlug,
+                  )
+                }}
+                disabled={!navigation?.next}
+                className="group h-full w-full max-w-[320px] min-w-0 rounded-none lg:rounded-br-[20px] border-l border-r border-[#25252A] border-y-0 bg-transparent text-base text-white shadow-none hover:bg-[#00C8FF]/10 disabled:pointer-events-none disabled:text-zinc-600 transition-all"
+              >
+                Próxima
+                <SkipForward
+                  weight="fill"
+                  size={20}
+                  className="ml-2 shrink-0 text-[#00C8FF] transition-transform group-hover:translate-x-1"
+                />
+              </Button>
+            </div>
           </div>
         </footer>
-
       </div>
     </div>
   )
