@@ -210,14 +210,12 @@ export default function ClassroomHeader({
                 {/* Reprodução automática */}
                 <button
                   onClick={() => setIsAutoplay(!isAutoplay)}
-                  className={`relative w-11 h-6 rounded-full transition-colors ${
-                    isAutoplay ? 'bg-[#00C8FF]' : 'bg-[#25252A]'
-                  }`}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${isAutoplay ? 'bg-[#00C8FF]' : 'bg-[#25252A]'
+                    }`}
                 >
                   <span
-                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                      isAutoplay ? 'translate-x-5' : 'translate-x-0'
-                    }`}
+                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${isAutoplay ? 'translate-x-5' : 'translate-x-0'
+                      }`}
                   />
                 </button>
               </div>

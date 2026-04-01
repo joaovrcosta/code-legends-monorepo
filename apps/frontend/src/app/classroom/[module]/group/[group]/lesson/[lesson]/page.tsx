@@ -457,7 +457,7 @@ export default function DynamicLessonPage() {
           </header>
 
           {/* Mobile: coluna rolável — paywall em cima, accordion embaixo */}
-          <div className="lg:hidden flex-1 min-h-0 overflow-y-auto flex flex-col">
+          <div className="lg:hidden flex-1 min-h-0 overflow-y-auto flex flex-col scrollbar-classroom">
             <div className="flex-shrink-0">
               <LessonPaywall />
             </div>
@@ -560,7 +560,7 @@ export default function DynamicLessonPage() {
         </header>
 
         {/* Área rolável: vídeo + accordions (título, completar aula, etc.) */}
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-0 max-lg:scrollbar-classroom-none lg:scrollbar-classroom lg:pr-6">
           <LessonContent
             lesson={lesson}
             courseTitle={activeCourse?.title}
@@ -570,16 +570,15 @@ export default function DynamicLessonPage() {
           />
         </div>
 
-        {/* Footer - mesma largura que o lesson-content (lg:mx-4) */}
         <footer
-          className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 transition-all duration-300 ease-in-out lg:mx-4 ${isSidebarOpen ? 'lg:left-[378px]' : 'lg:left-0'
+          className={`fixed left-0 right-0 bottom-0 lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 transition-all duration-300 ease-in-out lg:mx-4 bg-[#0C0C0F] overflow-hidden ${isSidebarOpen ? 'lg:left-[378px]' : 'lg:left-0'
             }`}
         >
-          <div className="flex justify-between w-full m-0 p-0">
+          <div className="flex justify-between w-full m-0 p-0 h-[60px] lg:h-[84px]">
+            {/* Botão Anterior */}
             <Button
-              variant="outline"
-              className="h-[54px] lg:min-h-[84px] w-1/2 max-w-[320px] bg-black rounded-none text-base border-none 
-      rounded-bl-none disabled:opacity-50"
+              variant="ghost"
+              className="h-full w-1/2 max-w-[320px] bg-transparent rounded-none text-base border-l border-r border-[#25252A] text-zinc-400 hover:text-white hover:bg-white/5 disabled:opacity-30 transition-all"
               onClick={() => {
                 if (navigation?.previous) {
                   navigateToLesson(
@@ -591,16 +590,20 @@ export default function DynamicLessonPage() {
               }}
               disabled={!navigation?.previous}
             >
-              <SkipBack weight="fill" size={24} />
+              <SkipBack weight="fill" size={20} className="mr-2" />
               Anterior
             </Button>
+
+            {/* Área Central com Progresso (Desktop) */}
             <div className="flex-[2] lg:flex items-center justify-center px-8 hidden bg-[#0C0C0F]">
               <div className="w-full max-w-xl">
                 <LevelProgressBar />
               </div>
             </div>
+
+            {/* Botão Próximo */}
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={() => {
                 if (!navigation?.next) return
                 navigateToLesson(
@@ -610,14 +613,18 @@ export default function DynamicLessonPage() {
                 )
               }}
               disabled={!navigation?.next}
-              className="h-[54px] lg:min-h-[84px] w-1/2 max-w-[320px] text-base bg-black border-none
-      disabled:opacity-50"
+              className="h-full w-1/2 max-w-[320px] text-base bg-transparent rounded-none border-l border-r border-[#25252A] text-white hover:bg-[#00C8FF]/10 group disabled:opacity-30 transition-all"
             >
-              Próxima{' '}
-              <SkipForward weight="fill" size={20} className="text-[#00C8FF]" />
+              Próxima
+              <SkipForward
+                weight="fill"
+                size={20}
+                className="ml-2 text-[#00C8FF] group-hover:translate-x-1 transition-transform"
+              />
             </Button>
           </div>
         </footer>
+
       </div>
     </div>
   )
