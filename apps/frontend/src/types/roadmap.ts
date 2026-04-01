@@ -93,6 +93,7 @@ export type CourseRoadmap = {
 export type CurrentLesson = {
   id: number;
   title: string;
+  description?: string;
   duration: string | null;
   progress: number;
 };

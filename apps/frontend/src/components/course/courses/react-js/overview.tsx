@@ -36,6 +36,7 @@ interface CourseOverviewProps {
   currentLesson?: {
     id: number
     title: string
+    description?: string | null
     duration: string | null
     progress: number
   } | null
@@ -118,7 +119,7 @@ export function CourseOverview({
           </CardHeader>
           <div className="px-4 py-6">
             {currentLesson ? (
-              <div className="group relative flex flex-col md:flex-row gap-6 bg-[#25252b] rounded-[20px] p-4 border border-transparent hover:border-[#00C8FF]/30 transition-all duration-300 hover:shadow-lg hover:shadow-[#00C8FF]/10 cursor-pointer">
+              <div className="group relative flex flex-col md:flex-row gap-6 bg-transparent rounded-[20px] p-4 border border-transparent transition-all duration-300 hover:shadow-lg cursor-pointer">
                 {/* 1. Thumbnail com Overlay de Play e Efeito de Zoom */}
                 <div className="relative h-[200px] md:w-[320px] w-full shrink-0 rounded-xl overflow-hidden">
                   {/* Imagem de fundo */}
@@ -154,14 +155,15 @@ export function CourseOverview({
                     </div>
 
                     {/* Título Principal */}
-                    <h4 className="text-2xl font-semibold text-white mb-2 leading-tight group-hover:text-[#00C8FF] transition-colors">
+                    <h4 className="text-xl font-semibold text-white mb-2 leading-tight group-hover:text-[#00C8FF] transition-colors">
                       {currentLesson?.title}
                     </h4>
 
-                    <p className="text-sm text-[#8D8D99] line-clamp-2">
-                      Nesta aula vamos aprender os conceitos fundamentais
-                      sobre...
-                    </p>
+                    {currentLesson?.description?.trim() ? (
+                      <p className="text-sm text-[#8D8D99] line-clamp-2">
+                        {currentLesson.description.trim()}
+                      </p>
+                    ) : null}
                   </div>
 
                   {/* Área Inferior: Progresso e Botão de Ação */}
@@ -226,9 +228,8 @@ export function CourseOverview({
                 {showMore ? 'Mostrar menos' : 'Mostrar mais'}
                 <CaretDown
                   size={16}
-                  className={`transition-transform ${
-                    showMore ? 'rotate-180' : ''
-                  }`}
+                  className={`transition-transform ${showMore ? 'rotate-180' : ''
+                    }`}
                 />
               </button>
             )}
@@ -348,9 +349,8 @@ export function CourseOverview({
                   {showMoreBio ? 'Ler menos' : 'Ler mais'}
                   <CaretDown
                     size={16}
-                    className={`transition-transform ${
-                      showMoreBio ? 'rotate-180' : ''
-                    }`}
+                    className={`transition-transform ${showMoreBio ? 'rotate-180' : ''
+                      }`}
                   />
                 </button>
               </div>

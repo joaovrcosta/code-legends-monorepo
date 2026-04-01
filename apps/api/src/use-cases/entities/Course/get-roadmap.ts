@@ -90,6 +90,7 @@ interface GetRoadmapResponse {
   currentLesson?: {
     id: number
     title: string
+    description: string
     duration: string | null
     progress: number
   } | null
@@ -439,6 +440,7 @@ export class GetRoadmapUseCase {
     let currentLessonInfo: {
       id: number
       title: string
+      description: string
       duration: string | null
       progress: number
     } | null = null
@@ -483,6 +485,7 @@ export class GetRoadmapUseCase {
             currentLessonInfo = {
               id: lesson.id,
               title: lesson.title,
+              description: lesson.description,
               duration: lessonWithContent.video?.duration ?? null,
               progress,
             }
