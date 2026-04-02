@@ -22,7 +22,10 @@ import { getCourseProgress } from "./get-progress.controller";
 import { getLessonBySlug } from "./get-lesson-by-slug.controller";
 import { publish } from "./publish.controller";
 import { unpublish } from "./unpublish.controller";
-import { getSkillsConfig } from "./get-skills-config.controller";
+import {
+  getSkillsConfig,
+  getSkillsConfigEditor,
+} from "./get-skills-config.controller";
 import { updateSkillsConfig } from "./update-skills-config.controller";
 import { getSkillsProgress } from "./get-skills-progress.controller";
 import { updateCourseStatus } from "./update-status.controller";
@@ -47,11 +50,14 @@ export async function courseRoutes(app: FastifyInstance) {
   app.post("/courses/:id/publish", { onRequest: [verifyAdmin] }, publish);
   app.post("/courses/:id/unpublish", { onRequest: [verifyAdmin] }, unpublish);
   app.patch("/courses/:id/status", { onRequest: [verifyInstructorOrAdmin] }, updateCourseStatus);
+  /** Autenticado: mesma lista, permite curso em rascunho (editor no content hub) */
   app.get(
-    "/courses/:id/skills-config",
-    { onRequest: [verifyAdmin] },
-    getSkillsConfig
+    "/courses/:id/skills-config/editor",
+    { onRequest: [verifyInstructorOrAdmin] },
+    getSkillsConfigEditor,
   );
+  /** Público: só curso PUBLISHED */
+  app.get("/courses/:id/skills-config", getSkillsConfig);
   app.put(
     "/courses/:id/skills-config",
     { onRequest: [verifyAdmin] },

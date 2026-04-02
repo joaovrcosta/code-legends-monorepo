@@ -30,16 +30,15 @@ import Image from 'next/image'
 import { ChevronRight, LockKeyhole } from 'lucide-react'
 import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { LearnUpgradeCard } from '@/components/learn/learn-upgrade-card'
+import type { CourseSkillConfigItem } from '@/actions/course/get-course-skills-config'
 import type { ModuleLessonGridItem } from '@/lib/module-lesson-overview'
 import type { StudyProgramModuleSection } from '@/lib/study-program-overview'
 
 interface CourseOverviewProps {
   tags?: string[]
-  /** Módulos e áulas reais do roadmap (Programa de estudos) */
+  courseSkills?: CourseSkillConfigItem[]
   studyProgramModules?: StudyProgramModuleSection[]
-  /** Lições do módulo da aula atual (roadmap), na ordem do curso */
   moduleLessons?: ModuleLessonGridItem[]
-  /** URL da aula atual no classroom; calculada no servidor a partir do roadmap */
   resumeLessonHref?: string | null
   currentLesson?: {
     id: number
@@ -52,6 +51,7 @@ interface CourseOverviewProps {
 
 export function CourseOverview({
   tags = [],
+  courseSkills = [],
   studyProgramModules = [],
   moduleLessons = [],
   resumeLessonHref = null,
@@ -62,9 +62,11 @@ export function CourseOverview({
   const isPaidUser = userPlan === 'PRO' || userPlan === 'PREMIUM'
   const sessionReady = status !== 'loading'
 
-  const [showMore, setShowMore] = useState(false)
+  const [showMoreSkills, setShowMoreSkills] = useState(false)
   const [isCourseCompleted, setIsCourseCompleted] = useState(false)
   const { activeCourse } = useActiveCourseStore()
+
+  console.log(courseSkills)
 
   useEffect(() => {
     async function checkCourseCompletion() {
@@ -82,16 +84,6 @@ export function CourseOverview({
     checkCourseCompletion()
   }, [activeCourse?.id])
 
-  const learningTopics = [
-    'JavaScript e ES6+ fundamentals',
-    'Componentes funcionais e hooks',
-    'Gerenciamento de estado com Context API',
-    'Roteamento com React Router',
-    'Consumo de APIs REST',
-    'Testes com Jest e React Testing Library',
-    'Otimização de performance',
-    'Deploy de aplicações React',
-  ]
   const [showMoreBio, setShowMoreBio] = useState(false)
 
   return (
@@ -151,7 +143,7 @@ export function CourseOverview({
                       const badge = (
                         <div className="flex items-center justify-center w-6 shrink-0">
                           {item.isCompleted ? (
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[#00C8FF]">
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[#a8f3d1]">
                               <Check
                                 weight="bold"
                                 className="h-3 w-3 text-[#0F0F10]"
@@ -352,31 +344,44 @@ export function CourseOverview({
             </div>
           </CardHeader>
           <div className="px-4 py-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-              {(showMore ? learningTopics : learningTopics.slice(0, 4)).map(
-                (topic, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <Check
-                      size={20}
-                      className="text-[#00C8FF] flex-shrink-0 mt-0.5"
+            {courseSkills.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                  {(showMoreSkills ? courseSkills : courseSkills.slice(0, 4)).map(
+                    (skill) => (
+                      <div
+                        key={skill.skillId}
+                        className="flex items-start gap-2"
+                      >
+                        <Check
+                          size={20}
+                          className="text-[#00C8FF] flex-shrink-0 mt-0.5"
+                        />
+                        <p className="text-sm text-[#C4C4CC]">{skill.name}</p>
+                      </div>
+                    ),
+                  )}
+                </div>
+                {courseSkills.length > 4 ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowMoreSkills(!showMoreSkills)}
+                    className="mt-4 text-sm text-[#00C8FF] hover:text-[#00a8d4] flex items-center gap-1"
+                  >
+                    {showMoreSkills ? 'Mostrar menos' : 'Mostrar mais'}
+                    <CaretDown
+                      size={16}
+                      className={`transition-transform ${showMoreSkills ? 'rotate-180' : ''
+                        }`}
                     />
-                    <p className="text-sm text-[#C4C4CC]">{topic}</p>
-                  </div>
-                ),
-              )}
-            </div>
-            {learningTopics.length > 4 && (
-              <button
-                onClick={() => setShowMore(!showMore)}
-                className="mt-4 text-sm text-[#00C8FF] hover:text-[#00a8d4] flex items-center gap-1"
-              >
-                {showMore ? 'Mostrar menos' : 'Mostrar mais'}
-                <CaretDown
-                  size={16}
-                  className={`transition-transform ${showMore ? 'rotate-180' : ''
-                    }`}
-                />
-              </button>
+                  </button>
+                ) : null}
+              </>
+            ) : (
+              <p className="text-sm text-[#7e7e89] text-center md:text-left">
+                As skills deste curso serão exibidas aqui quando estiverem
+                cadastradas na plataforma.
+              </p>
             )}
           </div>
         </Card>

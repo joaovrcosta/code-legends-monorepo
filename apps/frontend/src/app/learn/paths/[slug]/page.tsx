@@ -1,6 +1,7 @@
 import { getCourseBySlug } from "@/actions/course/get-course-by-slug";
 import { getUserCourseProgress } from "@/actions/progress/get-course-progress";
 import { getCourseRoadmap } from "@/actions/course/roadmap";
+import { getCourseSkillsConfig } from "@/actions/course/get-course-skills-config";
 import { CourseBanner } from "@/components/course/banner";
 import { CourseContent } from "@/components/course/courses/react-js/content";
 import { CourseOverview } from "@/components/course/overview";
@@ -8,14 +9,15 @@ import { CourseProjects } from "@/components/course/courses/react-js/projects";
 import { Tabs } from "@/components/ui/tabs";
 import { notFound } from "next/navigation";
 import { getAuthToken } from "@/actions/auth/session";
-import type { RoadmapResponse } from "@/types/roadmap";
+import type { LessonType, RoadmapResponse } from "@/types/roadmap";
 import {
   mapLessonTypeToCategoryLabel,
   type ModuleLessonGridItem,
 } from "@/lib/module-lesson-overview";
-import type {
-  StudyProgramLessonLine,
-  StudyProgramModuleSection,
+import {
+  formatModuleContentBreakdown,
+  type StudyProgramLessonLine,
+  type StudyProgramModuleSection,
 } from "@/lib/study-program-overview";
 import { findLessonContext, generateLessonUrl } from "@/utils/lesson-url";
 
@@ -64,8 +66,10 @@ function buildStudyProgramModules(
   if (!roadmap?.modules?.length) return [];
   return roadmap.modules.map((module) => {
     const lessons: StudyProgramLessonLine[] = [];
+    const typesInOrder: LessonType[] = [];
     for (const group of module.groups) {
       for (const lesson of group.lessons) {
+        typesInOrder.push(lesson.type);
         lessons.push({
           id: lesson.id,
           title: lesson.title,
@@ -75,14 +79,10 @@ function buildStudyProgramModules(
         });
       }
     }
-    const n = lessons.length;
-    const pct = Math.round((module.progress ?? 0) * 100);
-    const progressLabel = `${pct}% concluído`;
-    const lessonsLabel = `${n} ${n === 1 ? "aula" : "aulas"}`;
     return {
       id: module.id,
       title: module.title,
-      subtitle: n > 0 ? `${progressLabel} · ${lessonsLabel}` : progressLabel,
+      subtitle: formatModuleContentBreakdown(typesInOrder),
       progress: module.progress ?? 0,
       lessons,
     };
@@ -125,6 +125,7 @@ export default async function CoursePage({
     currentLesson?.id
   );
   const studyProgramModules = buildStudyProgramModules(roadmap ?? undefined);
+  const courseSkills = await getCourseSkillsConfig(course.id);
 
   const myLearningTabs = [
     {
@@ -134,6 +135,7 @@ export default async function CoursePage({
         <div>
           <CourseOverview
             tags={course.tags || []}
+            courseSkills={courseSkills}
             moduleLessons={moduleLessons}
             studyProgramModules={studyProgramModules}
             currentLesson={currentLesson}

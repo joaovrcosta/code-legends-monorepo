@@ -21,7 +21,7 @@ export async function getCourseSkillsConfig(
 ): Promise<CourseSkillsConfigResponse | null> {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/skills-config`,
+      `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/skills-config/editor`,
       {
         method: "GET",
         headers: await buildApiHeaders(undefined, token),

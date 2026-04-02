@@ -3,9 +3,10 @@ import { z } from 'zod'
 import { makeGetCourseSkillsConfigUseCase } from '../../../utils/factories/make-get-course-skills-config-use-case'
 import { CourseNotFoundError } from '../../../use-cases/errors/course-not-found'
 
-export async function getSkillsConfig(
+async function handleGetSkillsConfig(
   request: FastifyRequest,
   reply: FastifyReply,
+  allowUnpublished: boolean,
 ) {
   const paramsSchema = z.object({
     id: z.string(),
@@ -15,7 +16,7 @@ export async function getSkillsConfig(
 
   try {
     const useCase = makeGetCourseSkillsConfigUseCase()
-    const { skills } = await useCase.execute(courseId)
+    const { skills } = await useCase.execute(courseId, { allowUnpublished })
     return reply.status(200).send({ courseId, skills })
   } catch (error) {
     if (error instanceof CourseNotFoundError) {
@@ -24,5 +25,21 @@ export async function getSkillsConfig(
     console.error('Erro ao buscar configuração de skills do curso:', error)
     return reply.status(500).send({ message: 'Internal server error' })
   }
+}
+
+/** Público: apenas curso PUBLISHED. */
+export async function getSkillsConfig(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  return handleGetSkillsConfig(request, reply, false)
+}
+
+/** Instructor/admin: inclui rascunhos (content hub). */
+export async function getSkillsConfigEditor(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  return handleGetSkillsConfig(request, reply, true)
 }
 

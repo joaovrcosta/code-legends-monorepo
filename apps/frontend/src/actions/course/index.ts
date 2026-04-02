@@ -12,3 +12,7 @@ export { revalidateRoadmapCache } from "./revalidate-roadmap";
 export { getLessonBySlug } from "./get-lesson-by-slug";
 export type { LessonResponse, LessonUpgradeRequired } from "./get-lesson-by-slug";
 export { getCourseSkillsProgress } from "./skills-progress";
+export {
+  getCourseSkillsConfig,
+  type CourseSkillConfigItem,
+} from "./get-course-skills-config";
