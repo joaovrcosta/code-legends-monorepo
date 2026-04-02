@@ -20,7 +20,6 @@ import {
   Calendar,
   Question,
   Lock,
-  Play,
 } from '@phosphor-icons/react/dist/ssr'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -28,11 +27,16 @@ import Link from 'next/link'
 import { getCompletedCourses } from '@/actions/course/completed'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import Image from 'next/image'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, LockKeyhole } from 'lucide-react'
 import { LearnUpgradeCard } from '@/components/learn/learn-upgrade-card'
+import type { ModuleLessonGridItem } from '@/lib/module-lesson-overview'
 
 interface CourseOverviewProps {
   tags?: string[]
+  /** Lições do módulo da aula atual (roadmap), na ordem do curso */
+  moduleLessons?: ModuleLessonGridItem[]
+  /** URL da aula atual no classroom; calculada no servidor a partir do roadmap */
+  resumeLessonHref?: string | null
   currentLesson?: {
     id: number
     title: string
@@ -44,6 +48,8 @@ interface CourseOverviewProps {
 
 export function CourseOverview({
   tags = [],
+  moduleLessons = [],
+  resumeLessonHref = null,
   currentLesson = null,
 }: CourseOverviewProps) {
   const { data: session, status } = useSession()
@@ -119,73 +125,125 @@ export function CourseOverview({
           </CardHeader>
           <div className="px-4 py-6">
             {currentLesson ? (
-              <div className="group relative flex flex-col md:flex-row gap-6 bg-transparent rounded-[20px] p-4 border border-transparent transition-all duration-300 hover:shadow-lg cursor-pointer">
-                {/* 1. Thumbnail com Overlay de Play e Efeito de Zoom */}
-                <div className="relative h-[200px] md:w-[320px] w-full shrink-0 rounded-xl overflow-hidden">
-                  {/* Imagem de fundo */}
-                  <Image
-                    src="/thumbnail-react.webp"
-                    alt="React Logo"
-                    fill // Usa fill para ocupar o container pai
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-
-                  {/* Overlay Escuro no Hover */}
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
-
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div className="bg-white/10 backdrop-blur-md p-4 rounded-full border border-white/20">
-                      <Play className="w-8 h-8 text-white fill-current" />
-                    </div>
+              <div className="rounded-[16px] bg-[#0F0F10]/40 backdrop-blur-sm overflow-hidden">
+                {/* Header (estilo clean do print) */}
+                <div className="flex items-start gap-4 p-5">
+                  <div className="shrink-0 h-12 w-12 rounded-full border border-[#25252A] bg-[#0F0F10] flex items-center justify-center">
+                    <span className="text-xs font-semibold text-[#C4C4CC]">
+                      {currentLesson?.progress || 0}%
+                    </span>
                   </div>
-                </div>
 
-                {/* 2. Informações e Ações */}
-                <div className="flex flex-col justify-between flex-1 py-1">
-                  <div>
-                    {/* Cabeçalho Pequeno: Módulo ou Categoria */}
-                    <div className="flex items-center gap-2 mb-2 mt-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
                       <span className="px-2 py-0.5 rounded text-xs font-medium bg-[#00C8FF]/10 text-[#00C8FF]">
-                        Módulo 01
+                        Módulo atual
                       </span>
                       <span className="text-xs text-[#C4C4CC] flex items-center gap-1">
-                        <Clock className="w-3 h-3" />{' '}
+                        <Clock className="w-3 h-3" />
                         {currentLesson?.duration || '0m 0s'} restantes
                       </span>
                     </div>
 
-                    {/* Título Principal */}
-                    <h4 className="text-xl font-semibold text-white mb-2 leading-tight group-hover:text-[#00C8FF] transition-colors">
+                    <h4 className="text-base md:text-lg font-semibold text-white leading-tight">
                       {currentLesson?.title}
                     </h4>
 
                     {currentLesson?.description?.trim() ? (
-                      <p className="text-sm text-[#8D8D99] line-clamp-2">
+                      <p className="mt-2 text-sm text-[#A1A1AA] line-clamp-2">
                         {currentLesson.description.trim()}
                       </p>
                     ) : null}
                   </div>
 
-                  {/* Área Inferior: Progresso e Botão de Ação */}
-                  <div className="mt-6">
-                    <div className="flex justify-between text-xs text-[#C4C4CC] mb-2 font-medium">
-                      <span>Progresso da aula</span>
-                      <span>{currentLesson?.progress || 0}%</span>
-                    </div>
-
-                    {/* Barra de Progresso */}
-                    <div className="w-full h-1.5 bg-[#25252A] rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-[#00C8FF] to-[#00FF88] shadow-[0_0_10px_rgba(0,200,255,0.5)] transition-all duration-500 ease-out"
-                        style={{ width: `${currentLesson?.progress || 0}%` }}
-                      />
-                    </div>
-
-                    <div className="mt-4 flex md:hidden items-center text-[#00C8FF] text-sm font-semibold">
-                      Continuar assistindo{' '}
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </div>
+                  <div className="shrink-0 text-[#7e7e89] pt-1">
+                    <CaretDown size={18} />
                   </div>
+                </div>
+
+                {moduleLessons.length > 0 ? (
+                  <div className="px-6 py-4 space-y-1"> {/* Removido grid, adicionado espaço vertical entre linhas */}
+                    {moduleLessons.map((item, idx) => {
+                      // Badge adaptado para o estilo da imagem: Check para concluído ou Círculo para pendente
+                      const badge = (
+                        <div className="flex items-center justify-center w-6 shrink-0">
+                          {item.isCurrent ? (
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[#EAB308]">
+                              <Check weight="bold" className="h-3 w-3 text-[#0F0F10]" />
+                            </div>
+                          ) : (
+                            <div className="w-5 h-5 rounded-full border-2 border-[#25252A]" />
+                          )}
+                        </div>
+                      );
+
+                      const body = (
+                        <>
+                          {badge}
+
+                          {/* Label da Categoria (Informativo, Lição, etc) */}
+                          <span className="w-28 text-sm font-medium text-[#8D8D99] shrink-0">
+                            {item.categoryLabel}
+                          </span>
+
+                          {/* Título da Aula */}
+                          <p className={`flex-1 text-sm truncate ${item.isCurrent ? 'text-white font-medium' : 'text-[#C4C4CC]'}`}>
+                            {item.title}
+                          </p>
+
+                          {/* Opcional: Ícone de cadeado se estiver bloqueado */}
+                          {item.isLocked && <LockKeyhole className="w-4 h-4 text-[#323238]" />}
+                        </>
+                      );
+
+                      // Estilo de "Linha" em vez de "Card"
+                      const rowClass = 'group flex items-center gap-4 p-3 rounded-xl transition-all duration-200';
+
+                      if (item.isLocked) {
+                        return (
+                          <div
+                            key={item.id}
+                            className={`${rowClass} cursor-not-allowed opacity-40`}
+                          >
+                            {body}
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <Link
+                          key={item.id}
+                          href={item.href}
+                          prefetch
+                          className={`${rowClass} hover:bg-white/[0.03]`}
+                        >
+                          {body}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : null}
+
+                {/* Rodapé (CTA) */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-t border-[#25252A] px-5 py-4">
+                  <div className="flex items-center gap-3 text-xs text-[#7e7e89]">
+                    <span>Progresso da aula</span>
+                    <span className="text-white font-semibold">
+                      {currentLesson?.progress || 0}%
+                    </span>
+                  </div>
+
+                  <Button
+                    asChild
+                    className="h-10 rounded-full bg-blue-gradient-500 hover:shadow-[0_0_12px_#00C8FF] transition-all"
+                  >
+                    <Link
+                      href={resumeLessonHref ?? '/classroom'}
+                      prefetch
+                    >
+                      Retomar <ChevronRight className="w-4 h-4 ml-1" />
+                    </Link>
+                  </Button>
                 </div>
               </div>
             ) : (

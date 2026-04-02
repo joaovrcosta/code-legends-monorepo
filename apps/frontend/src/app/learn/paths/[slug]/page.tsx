@@ -8,8 +8,50 @@ import { CourseProjects } from "@/components/course/courses/react-js/projects";
 import { Tabs } from "@/components/ui/tabs";
 import { notFound } from "next/navigation";
 import { getAuthToken } from "@/actions/auth/session";
+import type { RoadmapResponse } from "@/types/roadmap";
+import {
+  mapLessonTypeToCategoryLabel,
+  type ModuleLessonGridItem,
+} from "@/lib/module-lesson-overview";
+import { findLessonContext, generateLessonUrl } from "@/utils/lesson-url";
 
 export const dynamic = "force-dynamic";
+
+function resolveResumeLessonHref(
+  roadmap: RoadmapResponse | null | undefined,
+  lessonId: number | undefined
+): string | null {
+  if (!roadmap?.modules?.length || lessonId == null) return null;
+  const ctx = findLessonContext(lessonId, roadmap.modules);
+  if (!ctx) return null;
+  const lesson = ctx.group.lessons.find((l) => l.id === lessonId);
+  if (!lesson) return null;
+  return generateLessonUrl(lesson, ctx.module, ctx.group);
+}
+
+function buildModuleLessonsForOverview(
+  roadmap: RoadmapResponse | null | undefined,
+  currentLessonId: number | undefined
+): ModuleLessonGridItem[] {
+  if (!roadmap?.modules?.length || currentLessonId == null) return [];
+  const ctx = findLessonContext(currentLessonId, roadmap.modules);
+  if (!ctx) return [];
+  const { module } = ctx;
+  const items: ModuleLessonGridItem[] = [];
+  for (const group of module.groups) {
+    for (const lesson of group.lessons) {
+      items.push({
+        id: lesson.id,
+        title: lesson.title,
+        href: generateLessonUrl(lesson, module, group),
+        categoryLabel: mapLessonTypeToCategoryLabel(lesson.type),
+        isCurrent: lesson.id === currentLessonId,
+        isLocked: lesson.status === "locked",
+      });
+    }
+  }
+  return items;
+}
 
 export default async function CoursePage({
   params,
@@ -25,17 +67,27 @@ export default async function CoursePage({
 
   const userProgress = await getUserCourseProgress(course.slug);
 
-  // Buscar roadmap para obter a lição atual
   let currentLesson = null;
+  let resumeLessonHref: string | null = null;
+  let roadmap: RoadmapResponse | null = null;
   try {
     const token = await getAuthToken();
     if (token) {
-      const roadmap = await getCourseRoadmap(course.id);
+      roadmap = await getCourseRoadmap(course.id);
       currentLesson = roadmap?.currentLesson || null;
+      resumeLessonHref = resolveResumeLessonHref(
+        roadmap ?? undefined,
+        currentLesson?.id
+      );
     }
   } catch (error) {
     console.error("Erro ao buscar roadmap:", error);
   }
+
+  const moduleLessons = buildModuleLessonsForOverview(
+    roadmap ?? undefined,
+    currentLesson?.id
+  );
 
   const myLearningTabs = [
     {
@@ -43,7 +95,12 @@ export default async function CoursePage({
       label: "Programa de Estudos",
       content: (
         <div>
-          <CourseOverview tags={course.tags || []} currentLesson={currentLesson} />
+          <CourseOverview
+            tags={course.tags || []}
+            moduleLessons={moduleLessons}
+            currentLesson={currentLesson}
+            resumeLessonHref={resumeLessonHref}
+          />
         </div>
       ),
     },
