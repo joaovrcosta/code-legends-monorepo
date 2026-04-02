@@ -294,7 +294,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
         className="relative border-b border-[#25252A] lg:py-12 lg:pb-24 lg:px-12 px-6 pb-8 pt-4 flex flex-col lg:flex-row items-center"
         style={getAuroraBackground(course.colorHex)}
       >
-        <div className="flex w-full items-center justify-center max-w-[1356px] gap-2 mx-auto flex-col lg:flex-row">
+        <div className="flex w-full items-center justify-center max-w-[1356px] gap-12 mx-auto flex-col lg:flex-row">
           <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
 
           <div className="flex-col flex-1 relative z-10">
@@ -325,7 +325,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             <div className="flex flex-col items-center lg:items-start">
               <h1
                 className={cn(
-                  'font-bold lg:text-[44px] text-2xl lg:text-left text-center mb-4',
+                  'font-bold lg:text-[44px] text-2xl lg:text-left leading-tight text-center mb-4',
                   !course.colorHex && 'text-[#e0e0ee]',
                 )}
                 style={{ color: '#FFFFFF' }}
