@@ -28,11 +28,15 @@ import { getCompletedCourses } from '@/actions/course/completed'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import Image from 'next/image'
 import { ChevronRight, LockKeyhole } from 'lucide-react'
+import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { LearnUpgradeCard } from '@/components/learn/learn-upgrade-card'
 import type { ModuleLessonGridItem } from '@/lib/module-lesson-overview'
+import type { StudyProgramModuleSection } from '@/lib/study-program-overview'
 
 interface CourseOverviewProps {
   tags?: string[]
+  /** Módulos e áulas reais do roadmap (Programa de estudos) */
+  studyProgramModules?: StudyProgramModuleSection[]
   /** Lições do módulo da aula atual (roadmap), na ordem do curso */
   moduleLessons?: ModuleLessonGridItem[]
   /** URL da aula atual no classroom; calculada no servidor a partir do roadmap */
@@ -48,6 +52,7 @@ interface CourseOverviewProps {
 
 export function CourseOverview({
   tags = [],
+  studyProgramModules = [],
   moduleLessons = [],
   resumeLessonHref = null,
   currentLesson = null,
@@ -87,27 +92,6 @@ export function CourseOverview({
     'Otimização de performance',
     'Deploy de aplicações React',
   ]
-  const curriculum = [
-    {
-      id: '1',
-      title: 'Primeiros passos com React',
-      description:
-        'Entenda o que é React e configure o ambiente para iniciar seu projeto.',
-    },
-    {
-      id: '2',
-      title: 'Componentes, props e estado',
-      description:
-        'Aprenda a criar componentes reutilizáveis, controlar estado e passar props.',
-    },
-    {
-      id: '3',
-      title: 'Roteamento e requisições',
-      description:
-        'Implemente rotas e faça requisições HTTP para buscar e enviar dados.',
-    },
-  ]
-
   const [showMoreBio, setShowMoreBio] = useState(false)
 
   return (
@@ -266,60 +250,95 @@ export function CourseOverview({
                   Programa de estudos
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  {curriculum.length} módulos
+                  {studyProgramModules.length > 0
+                    ? `${studyProgramModules.length} módulos`
+                    : 'Conteúdo do curso'}
                 </p>
               </div>
-              <button
-                type="button"
-                className="text-[12px] text-[#7e7e89] hover:text-white"
-                onClick={() => {
-                  const details = document.querySelectorAll<HTMLDivElement>(
-                    '[data-accordion][data-state]',
-                  )
-                  details.forEach((d) => d.click())
-                }}
-              >
-                Expandir todas as seções
-              </button>
+              {studyProgramModules.length > 0 ? (
+                <button
+                  type="button"
+                  className="text-[12px] text-[#7e7e89] hover:text-white"
+                  onClick={() => {
+                    document
+                      .querySelectorAll<HTMLButtonElement>(
+                        'button[data-study-program-trigger][data-state]',
+                      )
+                      .forEach((el) => el.click())
+                  }}
+                >
+                  Expandir todas as seções
+                </button>
+              ) : null}
             </div>
           </CardHeader>
 
-          <Accordion type="multiple" className="divide-y divide-[#25252A]">
-            {curriculum.map((section, index) => (
-              <AccordionItem
-                key={section.id}
-                value={section.id}
-                className="px-3 py-4"
-              >
-                <AccordionTrigger className="py-4 hover:no-underline">
-                  <div className="flex items-center gap-3 text-left w-full">
-                    <div className="h-8 w-8 rounded-full bg-[#0F0F10] border border-[#25252A] flex items-center justify-center text-[12px] text-[#C4C4CC]">
-                      {index + 1}
+          {studyProgramModules.length > 0 ? (
+            <Accordion type="multiple" className="divide-y divide-[#25252A]">
+              {studyProgramModules.map((section, index) => (
+                <AccordionItem
+                  key={section.id}
+                  value={section.id}
+                  className="p-4"
+                >
+                  <AccordionTrigger
+                    data-study-program-trigger=""
+                    className="py-4 hover:no-underline"
+                  >
+                    <div className="flex items-center gap-3 text-left w-full">
+                      <ProgressRing
+                        progress={section.progress}
+                        moduleNumber={index + 1}
+                        size={44}
+                        strokeWidth={2.5}
+                        progressColor="stroke-[#00C8FF]"
+                        trackColor="stroke-[#25252A]"
+                        padModuleNumber={false}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white">
+                          {section.title}
+                        </p>
+                        <p className="text-xs text-[#C4C4CC] line-clamp-1">
+                          {section.subtitle}
+                        </p>
+                      </div>
+                      <CaretDown
+                        size={18}
+                        className="text-[#7e7e89] shrink-0 data-[state=open]:rotate-180 transition-transform"
+                      />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-white">
-                        {section.title}
-                      </p>
-                      <p className="text-xs text-[#C4C4CC] line-clamp-1">
-                        {section.description}
-                      </p>
-                    </div>
-                    <CaretDown
-                      size={18}
-                      className="text-[#7e7e89] data-[state=open]:rotate-180 transition-transform"
-                    />
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pb-4 pl-14 text-sm text-[#C4C4CC]">
-                  <ul className="space-y-2">
-                    <li>- Aula 1 • Introdução e setup</li>
-                    <li>- Aula 2 • Conceitos base</li>
-                    <li>- Quiz • Revisão do módulo</li>
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-4 pl-14 text-sm text-[#C4C4CC]">
+                    <ul className="space-y-2">
+                      {section.lessons.map((lesson) => (
+                        <li key={lesson.id}>
+                          {lesson.isLocked ? (
+                            <span className="flex items-center gap-1.5 text-[#7e7e89]">
+                              <Lock className="h-3.5 w-3.5 shrink-0" />-
+                              {lesson.categoryLabel} • {lesson.title}
+                            </span>
+                          ) : (
+                            <Link
+                              href={lesson.href}
+                              prefetch
+                              className="block hover:text-[#00C8FF] transition-colors"
+                            >
+                              - {lesson.categoryLabel} • {lesson.title}
+                            </Link>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          ) : (
+            <div className="px-4 py-10 text-center text-sm text-[#7e7e89]">
+              Faça login para ver o programa de estudos completo deste curso.
+            </div>
+          )}
         </Card>
 
         <Card className="p-0 text-whit bg-gray-gradient rounded-[20px]">
@@ -327,7 +346,7 @@ export function CourseOverview({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold bg-blue-gradient-500 bg-clip-text text-transparent">
-                  O que você aprendera
+                  Skills que você vai evoluir
                 </h3>
               </div>
             </div>

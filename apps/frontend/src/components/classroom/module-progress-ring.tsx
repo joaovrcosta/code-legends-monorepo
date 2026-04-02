@@ -11,6 +11,8 @@ interface ProgressRingProps {
   progressColor?: string
   trackColor?: string
   isCurrent?: boolean
+  /** Se true, exibe "01", "02"…; se false, "1", "2"… */
+  padModuleNumber?: boolean
 }
 
 const DEFAULT_SIZE = 42
@@ -24,6 +26,7 @@ export const ProgressRing = memo(function ModuleProgressRing({
   progressColor = 'stroke-cyan-400',
   trackColor = 'stroke-zinc-700',
   isCurrent = false,
+  padModuleNumber = true,
 }: ProgressRingProps) {
   const clampedProgress = Math.max(0, Math.min(1, progress))
   const isComplete = clampedProgress >= 1
@@ -71,7 +74,9 @@ export const ProgressRing = memo(function ModuleProgressRing({
             className={`text-sm font-bold tabular-nums ${isCurrent ? 'text-cyan-400' : 'text-zinc-300'
               }`}
           >
-            {String(moduleNumber).padStart(2, '0')}
+            {padModuleNumber
+              ? String(moduleNumber).padStart(2, '0')
+              : String(moduleNumber)}
           </span>
         )}
       </div>

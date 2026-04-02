@@ -13,6 +13,10 @@ import {
   mapLessonTypeToCategoryLabel,
   type ModuleLessonGridItem,
 } from "@/lib/module-lesson-overview";
+import type {
+  StudyProgramLessonLine,
+  StudyProgramModuleSection,
+} from "@/lib/study-program-overview";
 import { findLessonContext, generateLessonUrl } from "@/utils/lesson-url";
 
 export const dynamic = "force-dynamic";
@@ -54,6 +58,37 @@ function buildModuleLessonsForOverview(
   return items;
 }
 
+function buildStudyProgramModules(
+  roadmap: RoadmapResponse | null | undefined
+): StudyProgramModuleSection[] {
+  if (!roadmap?.modules?.length) return [];
+  return roadmap.modules.map((module) => {
+    const lessons: StudyProgramLessonLine[] = [];
+    for (const group of module.groups) {
+      for (const lesson of group.lessons) {
+        lessons.push({
+          id: lesson.id,
+          title: lesson.title,
+          categoryLabel: mapLessonTypeToCategoryLabel(lesson.type),
+          href: generateLessonUrl(lesson, module, group),
+          isLocked: lesson.status === "locked",
+        });
+      }
+    }
+    const n = lessons.length;
+    const pct = Math.round((module.progress ?? 0) * 100);
+    const progressLabel = `${pct}% concluído`;
+    const lessonsLabel = `${n} ${n === 1 ? "aula" : "aulas"}`;
+    return {
+      id: module.id,
+      title: module.title,
+      subtitle: n > 0 ? `${progressLabel} · ${lessonsLabel}` : progressLabel,
+      progress: module.progress ?? 0,
+      lessons,
+    };
+  });
+}
+
 export default async function CoursePage({
   params,
 }: {
@@ -89,6 +124,7 @@ export default async function CoursePage({
     roadmap ?? undefined,
     currentLesson?.id
   );
+  const studyProgramModules = buildStudyProgramModules(roadmap ?? undefined);
 
   const myLearningTabs = [
     {
@@ -99,6 +135,7 @@ export default async function CoursePage({
           <CourseOverview
             tags={course.tags || []}
             moduleLessons={moduleLessons}
+            studyProgramModules={studyProgramModules}
             currentLesson={currentLesson}
             resumeLessonHref={resumeLessonHref}
           />
