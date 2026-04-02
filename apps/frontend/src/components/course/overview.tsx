@@ -33,12 +33,15 @@ import { LearnUpgradeCard } from '@/components/learn/learn-upgrade-card'
 import type { CourseSkillConfigItem } from '@/actions/course/get-course-skills-config'
 import type { ModuleLessonGridItem } from '@/lib/module-lesson-overview'
 import type { StudyProgramModuleSection } from '@/lib/study-program-overview'
+import { appendCourseIdToClassroomHref } from '@/utils/lesson-url'
 
 interface CourseOverviewProps {
   tags?: string[]
   courseSkills?: CourseSkillConfigItem[]
   studyProgramModules?: StudyProgramModuleSection[]
   moduleLessons?: ModuleLessonGridItem[]
+  /** ID do curso da página — evita abrir aula no curso ativo errado */
+  courseId?: string
   resumeLessonHref?: string | null
   currentLesson?: {
     id: number
@@ -54,9 +57,13 @@ export function CourseOverview({
   courseSkills = [],
   studyProgramModules = [],
   moduleLessons = [],
+  courseId,
   resumeLessonHref = null,
   currentLesson = null,
 }: CourseOverviewProps) {
+  const classroomHref = (href: string) =>
+    courseId ? appendCourseIdToClassroomHref(href, courseId) : href
+
   const { data: session, status } = useSession()
   const userPlan = (session?.user as { plan?: string } | undefined)?.plan
   const isPaidUser = userPlan === 'PRO' || userPlan === 'PREMIUM'
@@ -193,7 +200,7 @@ export function CourseOverview({
                       return (
                         <Link
                           key={item.id}
-                          href={item.href}
+                          href={classroomHref(item.href)}
                           prefetch
                           className={`${rowClass} hover:bg-white/[0.03]`}
                         >
@@ -218,7 +225,7 @@ export function CourseOverview({
                     className="h-10 rounded-full bg-blue-gradient-500 hover:shadow-[0_0_12px_#00C8FF] transition-all"
                   >
                     <Link
-                      href={resumeLessonHref ?? '/classroom'}
+                      href={classroomHref(resumeLessonHref ?? '/classroom')}
                       prefetch
                     >
                       Retomar <ChevronRight className="w-4 h-4 ml-1" />
@@ -312,7 +319,7 @@ export function CourseOverview({
                             </span>
                           ) : (
                             <Link
-                              href={lesson.href}
+                              href={classroomHref(lesson.href)}
                               prefetch
                               className="block hover:text-[#00C8FF] transition-colors"
                             >

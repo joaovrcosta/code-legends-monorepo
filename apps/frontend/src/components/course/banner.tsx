@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { appendCourseIdToClassroomHref } from '@/utils/lesson-url'
 
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
@@ -190,16 +191,16 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
               context.module,
               context.group,
             )
-            router.push(url)
+            router.push(appendCourseIdToClassroomHref(url, course.id))
             return
           }
         }
       }
 
-      router.push('/classroom')
+      router.push(appendCourseIdToClassroomHref('/classroom', course.id))
     } catch (error) {
       console.error('Erro ao acessar o curso:', error)
-      router.push('/classroom')
+      router.push(appendCourseIdToClassroomHref('/classroom', course.id))
     } finally {
       setIsLoadingAction(false)
     }

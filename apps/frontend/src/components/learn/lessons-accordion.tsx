@@ -13,8 +13,12 @@ import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useRoadmapUpdater } from '@/hooks/use-roadmap-updater'
 import { useState, useMemo, useCallback } from 'react'
 import type { Lesson, RoadmapResponse } from '@/types/roadmap'
-import { findLessonContext, generateLessonUrl } from '@/utils/lesson-url'
-import { useRouter } from 'next/navigation'
+import {
+  appendCourseIdToClassroomHref,
+  findLessonContext,
+  generateLessonUrl,
+} from '@/utils/lesson-url'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { ChevronDown } from 'lucide-react'
 
@@ -40,6 +44,9 @@ function getLessonMeta(lesson: Lesson) {
 export function LessonsAccordion() {
   const { currentLesson } = useCourseModalStore()
   const { activeCourse } = useActiveCourseStore()
+  const searchParams = useSearchParams()
+  const courseIdFromUrl = (searchParams.get('courseId') || '').trim()
+  const effectiveCourseId = courseIdFromUrl || activeCourse?.id
   const { data: session } = useSession()
   const userPlan = (session?.user as { plan?: string } | undefined)?.plan
   const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
@@ -47,7 +54,7 @@ export function LessonsAccordion() {
 
   useRoadmapUpdater({
     isOpen: true,
-    courseId: activeCourse?.id,
+    courseId: effectiveCourseId,
     currentLessonId: currentLesson?.id,
     lessonCompletedTimestamp: null,
     onRoadmapUpdate: setRoadmap,
@@ -72,10 +79,14 @@ export function LessonsAccordion() {
 
       if (context) {
         const url = generateLessonUrl(lesson, context.module, context.group)
-        router.push(url)
+        router.push(
+          effectiveCourseId
+            ? appendCourseIdToClassroomHref(url, effectiveCourseId)
+            : url,
+        )
       }
     },
-    [roadmap?.modules, router],
+    [roadmap?.modules, router, effectiveCourseId],
   )
 
   const currentModule = useMemo(() => {

@@ -30,9 +30,26 @@ export function generateLessonUrl(
   return `/classroom/${moduleSlug}/group/${groupSlug}/lesson/${lessonSlug}`;
 }
 
-/**
- * Encontra o módulo e grupo de uma aula específica no roadmap
- */
+export function appendCourseIdToClassroomHref(
+  href: string,
+  courseId: string,
+): string {
+  if (!courseId) return href;
+  try {
+    const url = new URL(href, "http://local.invalid");
+    if (!url.pathname.startsWith("/classroom")) return href;
+    url.searchParams.set("courseId", courseId);
+    const q = url.searchParams.toString();
+    return q ? `${url.pathname}?${q}` : url.pathname;
+  } catch {
+    const [path, query] = href.split("?");
+    const params = new URLSearchParams(query || "");
+    params.set("courseId", courseId);
+    const q = params.toString();
+    return q ? `${path}?${q}` : path;
+  }
+}
+
 export function findLessonContext(
   lessonId: number,
   modules: Module[]

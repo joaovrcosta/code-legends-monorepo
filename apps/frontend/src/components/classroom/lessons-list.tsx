@@ -2,7 +2,11 @@
 
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import type { Lesson, RoadmapResponse } from '@/types/roadmap'
-import { findLessonContext, generateLessonUrl } from '@/utils/lesson-url'
+import {
+  appendCourseIdToClassroomHref,
+  findLessonContext,
+  generateLessonUrl,
+} from '@/utils/lesson-url'
 import { useRouter } from 'next/navigation'
 import { useMemo, memo, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
@@ -48,12 +52,14 @@ interface LessonsListProps {
   lessons: Lesson[]
   currentLessonId?: number
   roadmap: RoadmapResponse | null
+  courseId?: string
 }
 
 export const LessonsList = memo(function LessonsList({
   lessons,
   currentLessonId,
   roadmap,
+  courseId,
 }: LessonsListProps) {
   const { setLessonsForPage } = useCourseModalStore()
   const router = useRouter()
@@ -79,13 +85,20 @@ export const LessonsList = memo(function LessonsList({
 
       if (context) {
         const url = generateLessonUrl(lesson, context.module, context.group)
-        router.push(url)
+        router.push(
+          courseId ? appendCourseIdToClassroomHref(url, courseId) : url,
+        )
       } else {
         setLessonsForPage(lessons, index)
-        router.push('/classroom')
+        const fallback = '/classroom'
+        router.push(
+          courseId
+            ? appendCourseIdToClassroomHref(fallback, courseId)
+            : fallback,
+        )
       }
     },
-    [roadmap?.modules, router, setLessonsForPage, lessons],
+    [roadmap?.modules, router, setLessonsForPage, lessons, courseId],
   )
 
   // Encontra o módulo que contém a aula atual (sempre executado antes de qualquer return)

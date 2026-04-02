@@ -138,6 +138,7 @@ export default async function CoursePage({
             courseSkills={courseSkills}
             moduleLessons={moduleLessons}
             studyProgramModules={studyProgramModules}
+            courseId={course.id}
             currentLesson={currentLesson}
             resumeLessonHref={resumeLessonHref}
           />

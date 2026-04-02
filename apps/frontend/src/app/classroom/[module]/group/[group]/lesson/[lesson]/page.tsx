@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import {
   getLessonBySlug,
   type LessonResponse,
@@ -25,7 +25,7 @@ import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
 import type { RoadmapResponse } from '@/types/roadmap'
-import { useSession } from 'next-auth/react'
+import { appendCourseIdToClassroomHref } from '@/utils/lesson-url'
 
 function isLessonUpgradeRequiredResult(
   data: LessonResponse | LessonUpgradeRequired | null,
@@ -41,9 +41,8 @@ function isLessonUpgradeRequiredResult(
 export default function DynamicLessonPage() {
   const params = useParams()
   const router = useRouter()
-  const { data: session } = useSession()
-  const userPlan = (session?.user as { plan?: string } | undefined)?.plan
-  const isPaidUser = userPlan === 'PRO' || userPlan === 'PREMIUM'
+  const searchParams = useSearchParams()
+  const courseIdFromUrl = (searchParams.get('courseId') || '').trim()
 
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
   const {
@@ -64,6 +63,8 @@ export default function DynamicLessonPage() {
   const [upgradeRequired, setUpgradeRequired] = useState(false)
   const [_isUnlocking, _setIsUnlocking] = useState(false)
   const lessonDataRef = useRef<LessonResponse | null>(null)
+  const loadSeqRef = useRef(0)
+  const lastLoadedKeyRef = useRef<string | null>(null)
 
   useEffect(() => {
     lessonDataRef.current = lessonData
@@ -74,112 +75,127 @@ export default function DynamicLessonPage() {
     setShowModuleStatsOnce(false)
   }, [lessonSlug, moduleSlug, setShowModuleStatsOnce])
 
-  // Carrega a aula específica
+  // Carrega a aula: ?courseId= tem prioridade sobre o curso ativo (evita aula errada + piscada ao sincronizar store)
   useEffect(() => {
+    let cancelled = false
+
     const loadLesson = async () => {
-      // Se não há activeCourse, tenta buscar
-      if (!activeCourse?.id) {
-        await fetchActiveCourse()
-        // Aguarda um pouco para a store ser atualizada e o componente re-renderizar
-        await new Promise((resolve) => setTimeout(resolve, 200))
-        // Verifica novamente após atualizar (usa getState para pegar o valor mais recente)
-        const updatedActiveCourse = useActiveCourseStore.getState().activeCourse
-        if (!updatedActiveCourse?.id || !lessonSlug) {
-          setIsLoading(false)
-          return
-        }
-        // Usa o activeCourse atualizado
-        const courseId = updatedActiveCourse.id
-        setIsLoading(true)
-        setError(null)
-        setUpgradeRequired(false)
-
-        try {
-          const data = await getLessonBySlug(courseId, lessonSlug, moduleSlug)
-          if (isLessonUpgradeRequiredResult(data)) {
-            setError(data.message)
-            setUpgradeRequired(true)
-            return
-          }
-          if (data) {
-            setLessonData(data)
-
-            // Atualiza o store com a lição atual, incluindo o status do nível raiz
-            const lessonWithStatus = {
-              ...data.lesson,
-              status: data.status, // Usa o status do nível raiz da resposta
-            }
-            setLessonForPage(lessonWithStatus)
-          } else {
-            setError('Aula não encontrada')
-          }
-        } catch (err) {
-          console.error('Erro ao carregar aula:', err)
-          setError(err instanceof Error ? err.message : 'Erro ao carregar aula')
-        } finally {
-          setIsLoading(false)
-        }
-        return
-      }
-
       if (!lessonSlug) {
         setIsLoading(false)
         return
       }
+
+      let courseId =
+        courseIdFromUrl || useActiveCourseStore.getState().activeCourse?.id
+
+      if (!courseId) {
+        await fetchActiveCourse()
+        if (cancelled) return
+        courseId =
+          courseIdFromUrl || useActiveCourseStore.getState().activeCourse?.id
+      }
+
+      if (!courseId) {
+        setIsLoading(false)
+        return
+      }
+
+      const fetchKey = `${courseId}|${moduleSlug}|${lessonSlug}`
+      const existing = lessonDataRef.current
+
+      if (
+        existing &&
+        existing.lesson.slug === lessonSlug &&
+        lastLoadedKeyRef.current === fetchKey
+      ) {
+        return
+      }
+
+      loadSeqRef.current += 1
+      const seq = loadSeqRef.current
 
       setIsLoading(true)
       setError(null)
       setUpgradeRequired(false)
 
       try {
-        const data = await getLessonBySlug(
-          activeCourse.id,
-          lessonSlug,
-          moduleSlug,
-        )
+        const data = await getLessonBySlug(courseId, lessonSlug, moduleSlug)
+        if (cancelled || seq !== loadSeqRef.current) return
+
         if (isLessonUpgradeRequiredResult(data)) {
+          lastLoadedKeyRef.current = null
           setError(data.message)
           setUpgradeRequired(true)
           return
         }
         if (data) {
+          lastLoadedKeyRef.current = fetchKey
           setLessonData(data)
-
-          // Atualiza o store com a lição atual, incluindo o status do nível raiz
           const lessonWithStatus = {
             ...data.lesson,
-            status: data.status, // Usa o status do nível raiz da resposta
+            status: data.status,
           }
           setLessonForPage(lessonWithStatus)
         } else {
+          lastLoadedKeyRef.current = null
           setError('Aula não encontrada')
         }
       } catch (err) {
+        if (cancelled || seq !== loadSeqRef.current) return
+        lastLoadedKeyRef.current = null
         console.error('Erro ao carregar aula:', err)
         setError(err instanceof Error ? err.message : 'Erro ao carregar aula')
       } finally {
-        setIsLoading(false)
+        if (!cancelled && seq === loadSeqRef.current) {
+          setIsLoading(false)
+        }
       }
     }
 
-    loadLesson()
+    void loadLesson()
+    return () => {
+      cancelled = true
+    }
   }, [
+    courseIdFromUrl,
     activeCourse?.id,
     lessonSlug,
     moduleSlug,
     setLessonForPage,
-    router,
     fetchActiveCourse,
-    isPaidUser,
   ])
 
-  // Carrega o roadmap para a sidebar
+  useEffect(() => {
+    if (!courseIdFromUrl || !lessonData) return
+    if (activeCourse?.id === courseIdFromUrl) return
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { startCourse } = await import('@/actions/course/start')
+        await startCourse(courseIdFromUrl)
+        if (!cancelled) await fetchActiveCourse()
+      } catch (e) {
+        console.warn('[classroom] Não foi possível alinhar curso ativo:', e)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [
+    courseIdFromUrl,
+    lessonData?.lesson?.id,
+    activeCourse?.id,
+    fetchActiveCourse,
+  ])
+
   useEffect(() => {
     const loadRoadmap = async () => {
-      if (!activeCourse?.id) return
+      const cid = courseIdFromUrl || activeCourse?.id
+      if (!cid) return
 
       try {
-        const roadmapData = await getCourseRoadmapFresh(activeCourse.id)
+        const roadmapData = await getCourseRoadmapFresh(cid)
         if (roadmapData) {
           setRoadmap(roadmapData)
         }
@@ -189,28 +205,25 @@ export default function DynamicLessonPage() {
     }
 
     loadRoadmap()
-  }, [activeCourse?.id])
+  }, [courseIdFromUrl, activeCourse?.id])
 
   // Consolida a atualização do roadmap e lição quando uma lição é completada
   useEffect(() => {
     const updateAfterCompletion = async () => {
-      if (!activeCourse?.id || !lessonCompletedTimestamp || !lessonSlug) return
+      const cid = courseIdFromUrl || activeCourse?.id
+      if (!cid || !lessonCompletedTimestamp || !lessonSlug) return
 
-      // Usa o ref para acessar lessonData sem causar loop
       const currentLessonData = lessonDataRef.current
       if (!currentLessonData) return
 
       try {
-        // Revalida o cache primeiro
-        await revalidateRoadmapCache(activeCourse.id)
+        await revalidateRoadmapCache(cid)
 
-        // Aguarda um delay reduzido para garantir que a API foi atualizada
         await new Promise((resolve) => setTimeout(resolve, 300))
 
-        // Busca roadmap e lição em paralelo para melhor performance
         const [refreshedLessonData, roadmapData] = await Promise.all([
-          getLessonBySlug(activeCourse.id, lessonSlug),
-          getCourseRoadmapFresh(activeCourse.id),
+          getLessonBySlug(cid, lessonSlug, moduleSlug),
+          getCourseRoadmapFresh(cid),
         ])
 
         if (
@@ -236,7 +249,13 @@ export default function DynamicLessonPage() {
 
     updateAfterCompletion()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lessonCompletedTimestamp, activeCourse?.id, lessonSlug])
+  }, [
+    lessonCompletedTimestamp,
+    courseIdFromUrl,
+    activeCourse?.id,
+    lessonSlug,
+    moduleSlug,
+  ])
 
   // Atualiza a lição local quando o currentLesson do store mudar (após completar)
   useEffect(() => {
@@ -264,12 +283,14 @@ export default function DynamicLessonPage() {
 
   // Função para navegar para uma aula
   const navigateToLesson = useCallback(
-    (lessonSlug: string, targetModuleSlug: string, targetGroupSlug: string) => {
+    (nextSlug: string, targetModuleSlug: string, targetGroupSlug: string) => {
+      const path = `/classroom/${targetModuleSlug}/group/${targetGroupSlug}/lesson/${nextSlug}`
+      const cid = courseIdFromUrl || activeCourse?.id
       router.push(
-        `/classroom/${targetModuleSlug}/group/${targetGroupSlug}/lesson/${lessonSlug}`,
+        cid ? appendCourseIdToClassroomHref(path, cid) : path,
       )
     },
-    [router],
+    [router, courseIdFromUrl, activeCourse?.id],
   )
 
   // Coleta todas as aulas para a sidebar (memoizado)
@@ -279,6 +300,8 @@ export default function DynamicLessonPage() {
       .flatMap((m) => m?.groups || [])
       .flatMap((g) => g?.lessons || [])
   }, [roadmap?.modules])
+
+  const classroomCourseId = courseIdFromUrl || activeCourse?.id || undefined
 
   if (isLoading) {
     return (
@@ -369,7 +392,7 @@ export default function DynamicLessonPage() {
     (error?.toLowerCase().includes('upgrade') ?? false)
 
   // Paywall: conteúdo exclusivo para assinantes — mantém sidebar e layout, mostra paywall no lugar do vídeo
-  if (isUpgradeRequired && activeCourse) {
+  if (isUpgradeRequired && (activeCourse || courseIdFromUrl)) {
     return (
       <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
         {/* Sidebar com lista de aulas */}
@@ -386,7 +409,11 @@ export default function DynamicLessonPage() {
               </div>
               <div className="flex-1 overflow-y-auto">
                 {roadmap ? (
-                  <LessonsList lessons={allLessons} roadmap={roadmap} />
+                  <LessonsList
+                    lessons={allLessons}
+                    roadmap={roadmap}
+                    courseId={classroomCourseId}
+                  />
                 ) : (
                   <div className="flex items-center justify-center p-4">
                     <div className="w-full space-y-4 px-2">
@@ -497,19 +524,6 @@ export default function DynamicLessonPage() {
     )
   }
 
-  if (!activeCourse) {
-    return (
-      <div className="flex min-h-[calc(100dvh-63px)] w-full items-center justify-center bg-surface">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <p className="text-[#a1a1aa] mb-4">Nenhum curso ativo encontrado.</p>
-          <Link href="/learn/catalog">
-            <Button>Explorar cursos</Button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
   // lessonData não pode ser null aqui devido ao check anterior
   const lesson = lessonData!.lesson
   const navigation = lessonData!.navigation
@@ -532,6 +546,7 @@ export default function DynamicLessonPage() {
                 lessons={allLessons}
                 currentLessonId={lesson.id}
                 roadmap={roadmap}
+                courseId={classroomCourseId}
               />
             </div>
           </div>
@@ -563,7 +578,7 @@ export default function DynamicLessonPage() {
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-0 max-lg:scrollbar-classroom-none lg:scrollbar-classroom lg:pr-6">
           <LessonContent
             lesson={lesson}
-            courseTitle={activeCourse?.title}
+            courseTitle={activeCourse?.title ?? 'Curso'}
             moduleTitle={lessonData.moduleTitle}
             groupTitle={lessonData.groupTitle}
             courseIcon={activeCourse?.icon}
