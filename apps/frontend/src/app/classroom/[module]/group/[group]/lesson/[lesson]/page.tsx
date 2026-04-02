@@ -170,15 +170,15 @@ export default function DynamicLessonPage() {
     if (activeCourse?.id === courseIdFromUrl) return
 
     let cancelled = false
-    ;(async () => {
-      try {
-        const { startCourse } = await import('@/actions/course/start')
-        await startCourse(courseIdFromUrl)
-        if (!cancelled) await fetchActiveCourse()
-      } catch (e) {
-        console.warn('[classroom] Não foi possível alinhar curso ativo:', e)
-      }
-    })()
+      ; (async () => {
+        try {
+          const { startCourse } = await import('@/actions/course/start')
+          await startCourse(courseIdFromUrl)
+          if (!cancelled) await fetchActiveCourse()
+        } catch (e) {
+          console.warn('[classroom] Não foi possível alinhar curso ativo:', e)
+        }
+      })()
     return () => {
       cancelled = true
     }
@@ -391,11 +391,9 @@ export default function DynamicLessonPage() {
     (error?.toLowerCase().includes('assinantes') ?? false) ||
     (error?.toLowerCase().includes('upgrade') ?? false)
 
-  // Paywall: conteúdo exclusivo para assinantes — mantém sidebar e layout, mostra paywall no lugar do vídeo
   if (isUpgradeRequired && (activeCourse || courseIdFromUrl)) {
     return (
       <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
-        {/* Sidebar com lista de aulas */}
         <aside
           className={`hidden lg:block fixed left-0 top-[63px] bg-surface flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
             }`}
@@ -553,95 +551,93 @@ export default function DynamicLessonPage() {
         )}
       </aside>
 
-      {/* Conteúdo principal */}
       <div
         className={`flex-1 w-full min-h-0 max-w-full overflow-x-hidden lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)]
              text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
           }`}
       >
-        {/* Header */}
         <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none mb-0 flex-shrink-0 lg:block hidden">
           <div className="flex items-center justify-between w-full px-4">
             <div className="lg:hidden flex">
               <Menu size={32} className="text-white" />
             </div>
 
-            {/* Botão de voltar (direita) */}
             <Link href="/learn">
               <X size={32} className="text-white cursor-pointer" />
             </Link>
           </div>
         </header>
 
-        {/* Área rolável: vídeo + accordions (título, completar aula, etc.) */}
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-0 max-lg:scrollbar-classroom-none lg:scrollbar-classroom lg:pr-6">
-          <LessonContent
-            lesson={lesson}
-            courseTitle={activeCourse?.title ?? 'Curso'}
-            moduleTitle={lessonData.moduleTitle}
-            groupTitle={lessonData.groupTitle}
-            courseIcon={activeCourse?.icon}
-          />
-        </div>
-
-        <footer
-          className={`fixed bottom-0 left-0 right-0 z-50 max-w-full overflow-hidden border-t border-[#25252A] bg-[#0C0C0F] transition-all duration-300 ease-in-out lg:mx-4 lg:rounded-b-[20px] ${isSidebarOpen ? 'lg:left-[378px]' : 'lg:left-0'
-            }`}
-        >
-          <div className="flex h-[60px] w-full min-w-0 max-w-full items-stretch lg:h-[84px]">
-            {/* Botão Anterior */}
-            <div className="flex min-w-0 flex-1 justify-start">
-              <Button
-                className="h-full w-full max-w-[320px] min-w-0 rounded-none lg:rounded-bl-[20px] border-l border-r border-[#25252A] border-y-0 bg-transparent text-base text-zinc-400 shadow-none hover:bg-white/5 hover:text-white disabled:pointer-events-none disabled:text-zinc-600 transition-all"
-                onClick={() => {
-                  if (navigation?.previous) {
-                    navigateToLesson(
-                      navigation.previous.slug,
-                      navigation.previous.moduleSlug,
-                      navigation.previous.groupSlug,
-                    )
-                  }
-                }}
-                disabled={!navigation?.previous}
-              >
-                <SkipBack weight="fill" size={20} className="mr-2 shrink-0" />
-                Anterior
-              </Button>
-            </div>
-
-            {/* Área Central com Progresso (Desktop) */}
-            <div className="hidden min-w-0 flex-[2] items-center justify-center overflow-hidden bg-[#0C0C0F] px-8 lg:flex">
-              <div className="w-full max-w-xl min-w-0">
-                <LevelProgressBar />
-              </div>
-            </div>
-
-            {/* Botão Próximo */}
-            <div className="flex min-w-0 flex-1 justify-end">
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  if (!navigation?.next) return
-                  navigateToLesson(
-                    navigation.next.slug,
-                    navigation.next.moduleSlug,
-                    navigation.next.groupSlug,
-                  )
-                }}
-                disabled={!navigation?.next}
-                className="group h-full w-full max-w-[320px] min-w-0 rounded-none lg:rounded-br-[20px] border-l border-r border-[#25252A] border-y-0 bg-transparent text-base text-white shadow-none hover:bg-[#00C8FF]/10 disabled:pointer-events-none disabled:text-zinc-600 transition-all"
-              >
-                Próxima
-                <SkipForward
-                  weight="fill"
-                  size={20}
-                  className="ml-2 shrink-0 text-[#00C8FF] transition-transform group-hover:translate-x-1"
-                />
-              </Button>
+        <div className="flex flex-1 flex-col min-h-0 w-full min-w-0">
+          <div className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden max-lg:scrollbar-classroom-none lg:scrollbar-classroom">
+            <div className="lg:pr-[6px]">
+              <LessonContent
+                lesson={lesson}
+                courseTitle={activeCourse?.title ?? 'Curso'}
+                moduleTitle={lessonData.moduleTitle}
+                groupTitle={lessonData.groupTitle}
+                courseIcon={activeCourse?.icon}
+              />
             </div>
           </div>
-        </footer>
+
+          <div className="shrink-0 min-w-0 lg:pr-4">
+            <footer
+              className="z-50 w-full max-w-full overflow-hidden border-t border-[#25252A] bg-[#0C0C0F] transition-all duration-300 ease-in-out max-lg:fixed max-lg:bottom-0 max-lg:left-0 max-lg:right-0 max-lg:max-w-none lg:rounded-b-[20px]"
+            >
+              <div className="flex h-[60px] w-full min-w-0 max-w-full items-stretch lg:h-[84px]">
+                <div className="flex min-w-0 flex-1 justify-start">
+                  <Button
+                    className="h-full w-full max-w-[320px] min-w-0 rounded-none lg:rounded-bl-[20px] border-l border-r border-[#25252A] border-y-0 bg-transparent text-base text-zinc-400 shadow-none hover:bg-white/5 hover:text-white disabled:pointer-events-none disabled:text-zinc-600 transition-all"
+                    onClick={() => {
+                      if (navigation?.previous) {
+                        navigateToLesson(
+                          navigation.previous.slug,
+                          navigation.previous.moduleSlug,
+                          navigation.previous.groupSlug,
+                        )
+                      }
+                    }}
+                    disabled={!navigation?.previous}
+                  >
+                    <SkipBack weight="fill" size={20} className="mr-2 shrink-0" />
+                    Anterior
+                  </Button>
+                </div>
+
+                <div className="hidden min-w-0 flex-[2] items-center justify-center overflow-hidden bg-[#0C0C0F] px-8 lg:flex">
+                  <div className="w-full max-w-xl min-w-0">
+                    <LevelProgressBar />
+                  </div>
+                </div>
+
+                <div className="flex min-w-0 flex-1 justify-end">
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      if (!navigation?.next) return
+                      navigateToLesson(
+                        navigation.next.slug,
+                        navigation.next.moduleSlug,
+                        navigation.next.groupSlug,
+                      )
+                    }}
+                    disabled={!navigation?.next}
+                    className="group h-full w-full max-w-[320px] min-w-0 rounded-none lg:rounded-br-[20px] border-l border-r border-[#25252A] border-y-0 bg-transparent text-base text-white shadow-none hover:bg-[#00C8FF]/10 disabled:pointer-events-none disabled:text-zinc-600 transition-all"
+                  >
+                    Próxima
+                    <SkipForward
+                      weight="fill"
+                      size={20}
+                      className="ml-2 shrink-0 text-[#00C8FF] transition-transform group-hover:translate-x-1"
+                    />
+                  </Button>
+                </div>
+              </div>
+            </footer>
+          </div>
+        </div>
       </div>
     </div>
   )
