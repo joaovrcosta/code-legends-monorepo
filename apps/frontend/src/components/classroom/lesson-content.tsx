@@ -40,7 +40,7 @@ export const LessonContent = memo(function LessonContent({
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 lg:mx-4 mx-0 w-full">
+    <div className="flex-1 flex flex-col min-h-0 mx-0 w-full">
       <div className="flex-1 flex flex-col min-h-0 px-0 border border-[#25252A] lg:rounded-[20px] rounded-[28px] bg-surface">
         <div className="flex-1 min-h-0 flex flex-col lg:px-2 px-0 lg:pt-2 pt-0 pb-[54px] lg:pb-[84px]">
           {lesson?.type === 'video' && (

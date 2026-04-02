@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { useMemo, memo, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { ChevronDown, Video, FileText, HelpCircle, Code2 } from 'lucide-react'
+import { ChevronDown, Circle } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
@@ -38,14 +38,6 @@ function getLessonMeta(lesson: Lesson) {
   const duration = lesson.video?.duration ?? lesson.video_duration
 
   return duration ? `${typeLabel} • ${duration}` : typeLabel
-}
-
-function getLessonTypeIcon(lesson: Lesson) {
-  if (lesson.type === 'video') return Video
-  if (lesson.type === 'article' || lesson.type === 'text') return FileText
-  if (lesson.type === 'quiz' || lesson.type === 'multi_quiz') return HelpCircle
-  if (lesson.type === 'project') return Code2
-  return FileText
 }
 
 interface LessonsListProps {
@@ -311,20 +303,15 @@ export const LessonsList = memo(function LessonsList({
                                         className="shrink-0 text-[#a8f3d1]"
                                       />
                                     ) : (
-                                      (() => {
-                                        const TypeIcon =
-                                          getLessonTypeIcon(lesson)
-                                        return (
-                                          <TypeIcon
-                                            size={20}
-                                            className={`shrink-0 transition-colors ${
-                                              isActive
-                                                ? 'text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]'
-                                                : 'text-zinc-500'
-                                            }`}
-                                          />
-                                        )
-                                      })()
+                                      <Circle
+                                        size={20}
+                                        strokeWidth={1.75}
+                                        className={`shrink-0 fill-transparent transition-colors ${
+                                          isActive
+                                            ? 'text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]'
+                                            : 'text-zinc-500'
+                                        }`}
+                                      />
                                     )}
 
                                     <div className="flex-1 min-w-0 flex flex-col gap-0.5">
