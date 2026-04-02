@@ -3,7 +3,7 @@ import { getUserCourseProgress } from "@/actions/progress/get-course-progress";
 import { getCourseRoadmap } from "@/actions/course/roadmap";
 import { CourseBanner } from "@/components/course/banner";
 import { CourseContent } from "@/components/course/courses/react-js/content";
-import { CourseOverview } from "@/components/course/courses/react-js/overview";
+import { CourseOverview } from "@/components/course/overview";
 import { CourseProjects } from "@/components/course/courses/react-js/projects";
 import { Tabs } from "@/components/ui/tabs";
 import { notFound } from "next/navigation";
@@ -46,6 +46,7 @@ function buildModuleLessonsForOverview(
         href: generateLessonUrl(lesson, module, group),
         categoryLabel: mapLessonTypeToCategoryLabel(lesson.type),
         isCurrent: lesson.id === currentLessonId,
+        isCompleted: lesson.status === "completed",
         isLocked: lesson.status === "locked",
       });
     }

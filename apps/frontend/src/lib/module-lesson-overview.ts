@@ -7,6 +7,7 @@ export type ModuleLessonGridItem = {
   href: string
   categoryLabel: string
   isCurrent: boolean
+  isCompleted: boolean
   isLocked: boolean
 }
 

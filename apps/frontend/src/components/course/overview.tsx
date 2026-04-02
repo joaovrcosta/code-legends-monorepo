@@ -127,7 +127,7 @@ export function CourseOverview({
             {currentLesson ? (
               <div className="rounded-[16px] bg-[#0F0F10]/40 backdrop-blur-sm overflow-hidden">
                 {/* Header (estilo clean do print) */}
-                <div className="flex items-start gap-4 p-5">
+                <div className="flex items-start gap-4 p-4">
                   <div className="shrink-0 h-12 w-12 rounded-full border border-[#25252A] bg-[#0F0F10] flex items-center justify-center">
                     <span className="text-xs font-semibold text-[#C4C4CC]">
                       {currentLesson?.progress || 0}%
@@ -137,7 +137,7 @@ export function CourseOverview({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="px-2 py-0.5 rounded text-xs font-medium bg-[#00C8FF]/10 text-[#00C8FF]">
-                        Módulo atual
+                        Aula atual
                       </span>
                       <span className="text-xs text-[#C4C4CC] flex items-center gap-1">
                         <Clock className="w-3 h-3" />
@@ -145,7 +145,7 @@ export function CourseOverview({
                       </span>
                     </div>
 
-                    <h4 className="text-base md:text-lg font-semibold text-white leading-tight">
+                    <h4 className="text-base lg:text-[1.375rem] mt-2 font-semibold text-white leading-tight">
                       {currentLesson?.title}
                     </h4>
 
@@ -162,14 +162,16 @@ export function CourseOverview({
                 </div>
 
                 {moduleLessons.length > 0 ? (
-                  <div className="px-6 py-4 space-y-1"> {/* Removido grid, adicionado espaço vertical entre linhas */}
-                    {moduleLessons.map((item, idx) => {
-                      // Badge adaptado para o estilo da imagem: Check para concluído ou Círculo para pendente
+                  <div className="space-y-1 p-4"> {/* Removido grid, adicionado espaço vertical entre linhas */}
+                    {moduleLessons.map((item) => {
                       const badge = (
                         <div className="flex items-center justify-center w-6 shrink-0">
-                          {item.isCurrent ? (
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[#EAB308]">
-                              <Check weight="bold" className="h-3 w-3 text-[#0F0F10]" />
+                          {item.isCompleted ? (
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[#00C8FF]">
+                              <Check
+                                weight="bold"
+                                className="h-3 w-3 text-[#0F0F10]"
+                              />
                             </div>
                           ) : (
                             <div className="w-5 h-5 rounded-full border-2 border-[#25252A]" />
@@ -182,12 +184,14 @@ export function CourseOverview({
                           {badge}
 
                           {/* Label da Categoria (Informativo, Lição, etc) */}
-                          <span className="w-28 text-sm font-medium text-[#8D8D99] shrink-0">
+                          <span
+                            className={`w-28 text-sm shrink-0 ${item.isCurrent ? 'font-semibold text-white' : 'font-medium text-[#8D8D99]'}`}
+                          >
                             {item.categoryLabel}
                           </span>
 
                           {/* Título da Aula */}
-                          <p className={`flex-1 text-sm truncate ${item.isCurrent ? 'text-white font-medium' : 'text-[#C4C4CC]'}`}>
+                          <p className={`flex-1 text-sm truncate ${item.isCurrent ? 'text-white font-semibold' : 'text-[#939399]'}`}>
                             {item.title}
                           </p>
 
@@ -253,48 +257,7 @@ export function CourseOverview({
             )}
           </div>
         </Card>
-        {/* Section 1: O que você aprenderá */}
-        <Card className="p-0 text-whit bg-gray-gradient rounded-[20px]">
-          <CardHeader className="px-4 py-6 border-b border-[#25252A]">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold bg-blue-gradient-500 bg-clip-text text-transparent">
-                  O que você aprendera
-                </h3>
-              </div>
-            </div>
-          </CardHeader>
-          <div className="px-4 py-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-              {(showMore ? learningTopics : learningTopics.slice(0, 4)).map(
-                (topic, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <Check
-                      size={20}
-                      className="text-[#00C8FF] flex-shrink-0 mt-0.5"
-                    />
-                    <p className="text-sm text-[#C4C4CC]">{topic}</p>
-                  </div>
-                ),
-              )}
-            </div>
-            {learningTopics.length > 4 && (
-              <button
-                onClick={() => setShowMore(!showMore)}
-                className="mt-4 text-sm text-[#00C8FF] hover:text-[#00a8d4] flex items-center gap-1"
-              >
-                {showMore ? 'Mostrar menos' : 'Mostrar mais'}
-                <CaretDown
-                  size={16}
-                  className={`transition-transform ${showMore ? 'rotate-180' : ''
-                    }`}
-                />
-              </button>
-            )}
-          </div>
-        </Card>
 
-        {/* Section 2: Programa de Estudos */}
         <Card className="p-0 text-white bg-gray-gradient rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">
             <div className="flex items-center justify-between">
@@ -359,7 +322,46 @@ export function CourseOverview({
           </Accordion>
         </Card>
 
-        {/* Section 3: Educador */}
+        <Card className="p-0 text-whit bg-gray-gradient rounded-[20px]">
+          <CardHeader className="px-4 py-6 border-b border-[#25252A]">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold bg-blue-gradient-500 bg-clip-text text-transparent">
+                  O que você aprendera
+                </h3>
+              </div>
+            </div>
+          </CardHeader>
+          <div className="px-4 py-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+              {(showMore ? learningTopics : learningTopics.slice(0, 4)).map(
+                (topic, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <Check
+                      size={20}
+                      className="text-[#00C8FF] flex-shrink-0 mt-0.5"
+                    />
+                    <p className="text-sm text-[#C4C4CC]">{topic}</p>
+                  </div>
+                ),
+              )}
+            </div>
+            {learningTopics.length > 4 && (
+              <button
+                onClick={() => setShowMore(!showMore)}
+                className="mt-4 text-sm text-[#00C8FF] hover:text-[#00a8d4] flex items-center gap-1"
+              >
+                {showMore ? 'Mostrar menos' : 'Mostrar mais'}
+                <CaretDown
+                  size={16}
+                  className={`transition-transform ${showMore ? 'rotate-180' : ''
+                    }`}
+                />
+              </button>
+            )}
+          </div>
+        </Card>
+
         <Card className="p-0 text-white bg-gray-gradient rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">
             <div className="flex items-center justify-between">
