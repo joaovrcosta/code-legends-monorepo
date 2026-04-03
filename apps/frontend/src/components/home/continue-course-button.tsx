@@ -6,8 +6,11 @@ import { Play } from '@phosphor-icons/react/dist/ssr'
 import { useCourseEnrollment } from '@/hooks/use-course-enrollment'
 import { useState, useEffect } from 'react'
 import { getCourseRoadmapFresh } from '@/actions/course'
-import { findLessonContext, generateLessonUrl } from '@/utils/lesson-url'
-import type { Lesson } from '@/types/roadmap'
+import {
+  findLessonContext,
+  generateLessonUrl,
+  pickContinueTargetLesson,
+} from '@/utils/lesson-url'
 
 interface ContinueCourseButtonProps {
   courseId: string
@@ -39,15 +42,7 @@ export function ContinueCourseButton({
           .flatMap((module) => module?.groups || [])
           .flatMap((group) => group?.lessons || [])
 
-        let targetLesson: Lesson | null = null
-        const foundCurrentLesson = allLessons.find((lesson) => lesson.isCurrent)
-
-        if (foundCurrentLesson && foundCurrentLesson.status !== 'locked') {
-          targetLesson = foundCurrentLesson
-        } else {
-          targetLesson =
-            allLessons.find((lesson) => lesson.status !== 'locked') || null
-        }
+        const targetLesson = pickContinueTargetLesson(allLessons)
 
         if (targetLesson) {
           const context = findLessonContext(

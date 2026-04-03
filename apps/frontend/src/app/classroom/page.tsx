@@ -16,7 +16,11 @@ import { useRoadmapUpdater } from '@/hooks/use-roadmap-updater'
 import Link from 'next/link'
 import { LessonsList } from '@/components/classroom/lessons-list'
 import { useRouter } from 'next/navigation'
-import { generateLessonUrl, findLessonContext } from '@/utils/lesson-url'
+import {
+  generateLessonUrl,
+  findLessonContext,
+  pickContinueTargetLesson,
+} from '@/utils/lesson-url'
 import { useSession } from 'next-auth/react'
 
 export default function ClassroomPage() {
@@ -86,24 +90,10 @@ export default function ClassroomPage() {
               .flatMap((module) => module?.groups || [])
               .flatMap((group) => group?.lessons || [])
 
-            // Encontra a aula atual (isCurrent) ou a primeira acessível para o plano do usuário
-            // FREE: só aulas com status desbloqueado E isFree === true
-            let targetLesson: Lesson | null = null
-            const foundCurrentLesson = allLessons.find(
-              (lesson) => lesson.isCurrent,
+            const targetLesson = pickContinueTargetLesson(
+              allLessons,
+              (l) => isLessonAccessibleForUser(l, isPaidUser),
             )
-
-            if (
-              foundCurrentLesson &&
-              isLessonAccessibleForUser(foundCurrentLesson, isPaidUser)
-            ) {
-              targetLesson = foundCurrentLesson
-            } else {
-              targetLesson =
-                allLessons.find((l) =>
-                  isLessonAccessibleForUser(l, isPaidUser),
-                ) || null
-            }
 
             if (targetLesson) {
               // Encontra o contexto da aula e redireciona para URL dinâmica
@@ -146,23 +136,10 @@ export default function ClassroomPage() {
             .flatMap((module) => module?.groups || [])
             .flatMap((group) => group?.lessons || [])
 
-          // Encontra a aula atual (isCurrent) ou a primeira acessível para o plano do usuário
-          let targetLesson: Lesson | null = null
-          const foundCurrentLesson = allLessons.find(
-            (lesson) => lesson.isCurrent,
+          const targetLesson = pickContinueTargetLesson(
+            allLessons,
+            (l) => isLessonAccessibleForUser(l, isPaidUser),
           )
-
-          if (
-            foundCurrentLesson &&
-            isLessonAccessibleForUser(foundCurrentLesson, isPaidUser)
-          ) {
-            targetLesson = foundCurrentLesson
-          } else {
-            targetLesson =
-              allLessons.find((l) =>
-                isLessonAccessibleForUser(l, isPaidUser),
-              ) || null
-          }
 
           if (targetLesson) {
             // Encontra o contexto da aula e redireciona para URL dinâmica

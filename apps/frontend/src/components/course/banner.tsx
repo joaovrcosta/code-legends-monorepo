@@ -168,7 +168,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
       }
 
       const { getCourseRoadmap } = await import('@/actions/course/roadmap')
-      const { findLessonContext, generateLessonUrl } =
+      const { findLessonContext, generateLessonUrl, pickContinueTargetLesson } =
         await import('@/utils/lesson-url')
 
       const roadmap = await getCourseRoadmap(course.id)
@@ -178,10 +178,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
           (m.groups || []).flatMap((g) => g.lessons || []),
         )
 
-        const targetLesson =
-          allLessons.find((l) => l.isCurrent && l.status !== 'locked') ||
-          allLessons.find((l) => l.status !== 'locked') ||
-          null
+        const targetLesson = pickContinueTargetLesson(allLessons)
 
         if (targetLesson) {
           const context = findLessonContext(targetLesson.id, roadmap.modules)

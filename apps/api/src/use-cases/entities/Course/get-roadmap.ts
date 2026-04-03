@@ -212,8 +212,12 @@ export class GetRoadmapUseCase {
       if (currentTaskId && allLessons.some((l) => l.id === currentTaskId)) {
         validCurrentTaskId = currentTaskId
       } else {
-        // Se currentTaskId não for válido, usar a primeira lesson
-        validCurrentTaskId = allLessons[0]?.id ?? null
+        // currentTaskId ausente ou órfão: não voltar para a primeira aula já concluída
+        const firstIncomplete = allLessons.find(
+          (l) => !(progressMap.get(l.id) ?? false),
+        )
+        validCurrentTaskId =
+          firstIncomplete?.id ?? allLessons[allLessons.length - 1]?.id ?? null
       }
     }
 

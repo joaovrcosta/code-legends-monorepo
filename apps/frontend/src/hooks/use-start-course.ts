@@ -4,8 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { startCourse } from "@/actions/course/start";
 import { getCourseRoadmapFresh } from "@/actions/course";
-import { findLessonContext, generateLessonUrl } from "@/utils/lesson-url";
-import type { Lesson } from "@/types/roadmap";
+import {
+  findLessonContext,
+  generateLessonUrl,
+  pickContinueTargetLesson,
+} from "@/utils/lesson-url";
 import { useActiveCourseStore } from "@/stores/active-course-store";
 
 interface UseStartCourseReturn {
@@ -44,17 +47,7 @@ export function useStartCourse(): UseStartCourseReturn {
           .flatMap((module) => module?.groups || [])
           .flatMap((group) => group?.lessons || []);
 
-        // Encontra a aula atual (isCurrent) ou a primeira desbloqueada
-        let targetLesson: Lesson | null = null;
-        const foundCurrentLesson = allLessons.find((lesson) => lesson.isCurrent);
-
-        // Só usa a aula atual se ela não estiver bloqueada
-        if (foundCurrentLesson && foundCurrentLesson.status !== "locked") {
-          targetLesson = foundCurrentLesson;
-        } else {
-          // Procura a primeira aula desbloqueada
-          targetLesson = allLessons.find((lesson) => lesson.status !== "locked") || null;
-        }
+        const targetLesson = pickContinueTargetLesson(allLessons);
 
         if (targetLesson) {
           // Encontra o contexto da aula e gera a URL completa

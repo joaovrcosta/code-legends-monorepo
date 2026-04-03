@@ -387,8 +387,8 @@ export class CompleteLessonUseCase {
 
       if (nextModuleId && nextModuleId !== currentModuleId) {
         await this.userCourseRepository.update(userCourse.id, {
-          currentTaskId: lessonId,
-          currentModuleId: userCourse.currentModuleId ?? currentModuleId,
+          currentTaskId: effectiveNextTaskId,
+          currentModuleId: userCourse.currentModuleId ?? nextModuleId,
           progress: courseProgress,
           isCompleted: courseCompleted,
           completedAt: courseCompleted ? new Date() : null,

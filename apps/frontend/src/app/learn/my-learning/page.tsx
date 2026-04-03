@@ -7,7 +7,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getMyLearning } from '@/actions/progress'
 import { getCourseRoadmap } from '@/actions/course'
-import { findLessonContext, generateLessonUrl } from '@/utils/lesson-url'
+import {
+  findLessonContext,
+  generateLessonUrl,
+  pickContinueTargetLesson,
+} from '@/utils/lesson-url'
 import type { MyLearningCourse } from '@/actions/progress/my-learning'
 import type { Lesson } from '@/types/roadmap'
 
@@ -129,10 +133,7 @@ export default function MyLearningPage() {
       const allLessons = roadmap.modules.flatMap((m) =>
         (m.groups || []).flatMap((g) => g.lessons || []),
       )
-      const targetLesson =
-        allLessons.find((l) => l.isCurrent && l.status !== 'locked') ||
-        allLessons.find((l) => l.status !== 'locked') ||
-        null
+      const targetLesson = pickContinueTargetLesson(allLessons)
       let continueClassroomUrl: string | null = null
       if (targetLesson) {
         const context = findLessonContext(targetLesson.id, roadmap.modules)
@@ -176,10 +177,7 @@ export default function MyLearningPage() {
         const allLessons = roadmap.modules.flatMap((m) =>
           (m.groups || []).flatMap((g) => g.lessons || []),
         )
-        const targetLesson =
-          allLessons.find((l) => l.isCurrent && l.status !== 'locked') ||
-          allLessons.find((l) => l.status !== 'locked') ||
-          null
+        const targetLesson = pickContinueTargetLesson(allLessons)
         if (targetLesson) {
           const context = findLessonContext(targetLesson.id, roadmap.modules)
           if (context) {
