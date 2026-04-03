@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getAuthToken } from "@/actions/auth/get-auth-token";
 
 export type CertificateTemplate = {
   id: string;
@@ -10,13 +11,23 @@ export type CertificateTemplate = {
   updatedAt: string;
 };
 
-export async function listCertificateTemplates(token: string): Promise<{ templates: CertificateTemplate[] }> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/certificate-templates`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    next: { tags: ["certificate-templates"] },
-  });
+export async function listCertificateTemplates(): Promise<{
+  templates: CertificateTemplate[];
+}> {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error("Sessão não encontrada. Faça login no Content Hub.");
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/certificate-templates`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Erro ao listar modelos de certificado");
@@ -25,18 +36,27 @@ export async function listCertificateTemplates(token: string): Promise<{ templat
   return response.json();
 }
 
-export async function createCertificateTemplate(
-  token: string,
-  data: { name: string; description: string }
-): Promise<{ template: CertificateTemplate }> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/certificate-templates`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
-  });
+export async function createCertificateTemplate(data: {
+  name: string;
+  description: string;
+}): Promise<{ template: CertificateTemplate }> {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error("Sessão não encontrada. Faça login no Content Hub.");
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/certificate-templates`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Erro ao criar modelo de certificado");
@@ -47,18 +67,26 @@ export async function createCertificateTemplate(
 }
 
 export async function updateCertificateTemplate(
-  token: string,
   id: string,
   data: { name?: string; description?: string }
 ): Promise<{ template: CertificateTemplate }> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/certificate-templates/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
-  });
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error("Sessão não encontrada. Faça login no Content Hub.");
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/certificate-templates/${id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Erro ao atualizar modelo de certificado");
@@ -68,13 +96,22 @@ export async function updateCertificateTemplate(
   return response.json();
 }
 
-export async function deleteCertificateTemplate(token: string, id: string): Promise<void> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/certificate-templates/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export async function deleteCertificateTemplate(id: string): Promise<void> {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error("Sessão não encontrada. Faça login no Content Hub.");
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/certificate-templates/${id}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Erro ao excluir modelo de certificado");

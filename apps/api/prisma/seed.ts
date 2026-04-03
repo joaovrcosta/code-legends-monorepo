@@ -1,6 +1,9 @@
 import { PrismaClient, LessonType } from '@prisma/client'
 import { hashSync } from 'bcryptjs'
 
+/** Deve coincidir com apps/api/src/constants/default-certificate-template.ts */
+const DEFAULT_CERTIFICATE_TEMPLATE_ID = 'clseed_default_certificate_template'
+
 const prisma = new PrismaClient()
 
 const COURSE_SLUG = 'fundamentos-frontend-completo'
@@ -68,6 +71,22 @@ const PLANS = [
 
 async function main() {
   console.log('🌱 Seeding database...')
+
+  await prisma.certificateTemplate.upsert({
+    where: { id: DEFAULT_CERTIFICATE_TEMPLATE_ID },
+    update: {
+      name: 'Code Legends — Conclusão (padrão)',
+      description:
+        'Template base listado no Content Hub. O layout do PDF/visual na conta do aluno usa o design da plataforma; o registro vincula emissões e o painel admin.',
+    },
+    create: {
+      id: DEFAULT_CERTIFICATE_TEMPLATE_ID,
+      name: 'Code Legends — Conclusão (padrão)',
+      description:
+        'Template base listado no Content Hub. O layout do PDF/visual na conta do aluno usa o design da plataforma; o registro vincula emissões e o painel admin.',
+    },
+  })
+  console.log('✅ Default certificate template seeded!')
 
   // 0. Planos
   for (const plan of PLANS) {

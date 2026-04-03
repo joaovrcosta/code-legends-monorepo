@@ -6,36 +6,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit, Trash2, DownloadCloud, AlertCircle } from "lucide-react";
-import { getAuthTokenFromClient } from "@/lib/auth";
+import { Plus, Edit, Trash2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import {
   listCertificateTemplates,
   CertificateTemplate,
   deleteCertificateTemplate,
+  createCertificateTemplate,
 } from "@/actions/certificates/templates";
 import { listAllCertificates, IssuedCertificate } from "@/actions/certificates/issued";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+
+const DEFAULT_TEMPLATE_ID = "clseed_default_certificate_template";
 
 export default function CertificatesPage() {
   const [activeTab, setActiveTab] = useState("issued");
   const [templates, setTemplates] = useState<CertificateTemplate[]>([]);
   const [issued, setIssued] = useState<IssuedCertificate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showNewTemplate, setShowNewTemplate] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const token = getAuthTokenFromClient();
-      if (!token) return;
-
       const [templatesData, issuedData] = await Promise.all([
-        listCertificateTemplates(token),
-        listAllCertificates(token, 1, 50),
+        listCertificateTemplates(),
+        listAllCertificates(1, 50),
       ]);
 
       setTemplates(templatesData.templates);
       setIssued(issuedData.certificates);
-    } catch (error) {
+    } catch {
       toast.error("Erro ao carregar os dados de certificados.");
     } finally {
       setLoading(false);
@@ -47,15 +53,41 @@ export default function CertificatesPage() {
   }, [loadData]);
 
   const handleDeleteTemplate = async (id: string) => {
+    if (id === DEFAULT_TEMPLATE_ID) {
+      toast.error("O template padrão da plataforma não pode ser removido.");
+      return;
+    }
     if (!confirm("Tem certeza que deseja apagar este template?")) return;
     try {
-      const token = getAuthTokenFromClient();
-      if (!token) return;
-      await deleteCertificateTemplate(token, id);
+      await deleteCertificateTemplate(id);
       toast.success("Template apagado.");
       loadData();
     } catch {
       toast.error("Erro ao apagar template.");
+    }
+  };
+
+  const handleCreateTemplate = async () => {
+    const name = newName.trim();
+    if (!name) {
+      toast.error("Informe o nome do template.");
+      return;
+    }
+    setSavingTemplate(true);
+    try {
+      await createCertificateTemplate({
+        name,
+        description: newDescription.trim() || "—",
+      });
+      toast.success("Template criado.");
+      setNewName("");
+      setNewDescription("");
+      setShowNewTemplate(false);
+      loadData();
+    } catch {
+      toast.error("Erro ao criar template.");
+    } finally {
+      setSavingTemplate(false);
     }
   };
 
@@ -74,7 +106,9 @@ export default function CertificatesPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Certificados</h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Gerencie modelos de certificados e visualize os certificados já emitidos na plataforma.
+              O template <strong>Code Legends — Conclusão (padrão)</strong> é criado pelo seed da API e usado
+              automaticamente ao gerar certificados no aluno. Crie modelos adicionais aqui se precisar
+              de variantes administrativas; o PDF continua com o layout da plataforma aluna.
             </p>
           </div>
         </div>
@@ -136,12 +170,63 @@ export default function CertificatesPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Modelos de Certificados</CardTitle>
-                <Button size="sm">
+                <Button
+                  size="sm"
+                  type="button"
+                  variant={showNewTemplate ? "secondary" : "default"}
+                  onClick={() => setShowNewTemplate((v) => !v)}
+                >
                   <Plus className="mr-2 h-4 w-4" />
-                  Novo Template
+                  {showNewTemplate ? "Fechar" : "Novo Template"}
                 </Button>
               </CardHeader>
               <CardContent>
+                {showNewTemplate && (
+                  <div className="mb-6 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+                    <div>
+                      <Label htmlFor="tpl-name">Nome</Label>
+                      <Input
+                        id="tpl-name"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder="Ex.: Parceria Empresa X"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="tpl-desc">Descrição</Label>
+                      <Textarea
+                        id="tpl-desc"
+                        value={newDescription}
+                        onChange={(e) => setNewDescription(e.target.value)}
+                        placeholder="Notas internas sobre o uso deste modelo"
+                        className="mt-1 min-h-[80px]"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleCreateTemplate}
+                        disabled={savingTemplate}
+                      >
+                        {savingTemplate ? "Salvando..." : "Salvar"}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setShowNewTemplate(false);
+                          setNewName("");
+                          setNewDescription("");
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 {loading ? (
                   <p className="text-gray-500 py-4 text-center">Carregando...</p>
                 ) : templates.length === 0 ? (
@@ -167,14 +252,20 @@ export default function CertificatesPage() {
                           <TableCell>{formatDate(tpl.createdAt)}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon">
+                              <Button variant="ghost" size="icon" disabled title="Edição em breve">
                                 <Edit className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="text-red-500"
+                                disabled={tpl.id === DEFAULT_TEMPLATE_ID}
                                 onClick={() => handleDeleteTemplate(tpl.id)}
+                                title={
+                                  tpl.id === DEFAULT_TEMPLATE_ID
+                                    ? "Template padrão não pode ser removido"
+                                    : "Remover"
+                                }
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

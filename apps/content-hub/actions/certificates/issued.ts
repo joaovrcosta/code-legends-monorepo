@@ -1,5 +1,6 @@
 "use server";
 
+import { getAuthToken } from "@/actions/auth/get-auth-token";
 import { CertificateTemplate } from "./templates";
 
 export type IssuedCertificate = {
@@ -23,10 +24,18 @@ export type IssuedCertificate = {
 };
 
 export async function listAllCertificates(
-  token: string,
   page: number = 1,
   limit: number = 20
-): Promise<{ certificates: IssuedCertificate[]; total: number; totalPages: number }> {
+): Promise<{
+  certificates: IssuedCertificate[];
+  total: number;
+  totalPages: number;
+}> {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error("Sessão não encontrada. Faça login no Content Hub.");
+  }
+
   const url = new URL(`${process.env.NEXT_PUBLIC_API_URL}/certificates/all`);
   url.searchParams.set("page", String(page));
   url.searchParams.set("limit", String(limit));
@@ -35,7 +44,7 @@ export async function listAllCertificates(
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    next: { tags: ["certificates-all"] },
+    cache: "no-store",
   });
 
   if (!response.ok) {

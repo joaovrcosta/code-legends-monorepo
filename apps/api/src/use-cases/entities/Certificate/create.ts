@@ -1,5 +1,6 @@
 import { Certificate } from "@prisma/client";
 import { CertificateRepository } from "../../../repositories/certificate-repository";
+import { CertificateTemplateRepository } from "../../../repositories/certificate-template-repository";
 import { IUsersRepository } from "../../../repositories/users-repository";
 import { ICourseRepository } from "../../../repositories/course-repository";
 import { IUserCourseRepository } from "../../../repositories/user-course-repository";
@@ -23,6 +24,7 @@ interface CreateCertificateUseCaseResponse {
 export class CreateCertificateUseCase {
   constructor(
     private certificateRepository: CertificateRepository,
+    private certificateTemplateRepository: CertificateTemplateRepository,
     private usersRepository: IUsersRepository,
     private courseRepository: ICourseRepository,
     private userCourseRepository: IUserCourseRepository
@@ -73,6 +75,12 @@ export class CreateCertificateUseCase {
       };
     }
 
+    let resolvedTemplateId = templateId;
+    if (!resolvedTemplateId) {
+      const defaultTemplate = await this.certificateTemplateRepository.findDefault();
+      resolvedTemplateId = defaultTemplate?.id;
+    }
+
     // Criar o certificado
     const certificate = await this.certificateRepository.create({
       user: {
@@ -81,9 +89,9 @@ export class CreateCertificateUseCase {
       course: {
         connect: { id: courseId },
       },
-      ...(templateId && {
+      ...(resolvedTemplateId && {
         template: {
-          connect: { id: templateId },
+          connect: { id: resolvedTemplateId },
         },
       }),
     });

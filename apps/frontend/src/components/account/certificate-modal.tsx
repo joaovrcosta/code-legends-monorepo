@@ -15,7 +15,143 @@ import type { User } from "@/types/user";
 import type { CompletedCourse } from "@/types/user-course.ts";
 import jsPDF from "jspdf";
 import NextImage from "next/image";
+import { Dancing_Script } from "next/font/google";
 import codeLegendsLogo from "../../../public/code-legends-logo.svg";
+
+const instructorSignatureFont = Dancing_Script({
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
+const SIGNATURE_VFS_NAME = "signature-cursive.ttf";
+const SIGNATURE_FAMILY = "CertificateSignature";
+const SIGNATURE_FONT_URLS = [
+  "/fonts/coursive-font.ttf",
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/dancingscript/DancingScript-Regular.ttf",
+];
+
+const POPPINS_FAMILY = "Poppins";
+const POPPINS_REGULAR_VFS = "poppins-regular.ttf";
+const POPPINS_BOLD_VFS = "poppins-bold.ttf";
+const POPPINS_REGULAR_URLS = [
+  "/fonts/Poppins-Regular.ttf",
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Regular.ttf",
+];
+const POPPINS_BOLD_URLS = [
+  "/fonts/Poppins-Bold.ttf",
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf",
+];
+
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]!);
+  }
+  return btoa(binary);
+}
+
+async function loadLogoPngDataUrlForPdf(): Promise<string | null> {
+  const logoUrl = "/code-legends-logo.svg";
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  canvas.width = 212;
+  canvas.height = 16;
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  try {
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("logo load failed"));
+      img.src = logoUrl;
+    });
+    ctx.fillStyle = "#0c0c0d";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/png");
+  } catch {
+    return null;
+  }
+}
+
+async function loadFontIntoPdf(
+  doc: InstanceType<typeof jsPDF>,
+  urls: string[],
+  vfsName: string,
+  family: string,
+  style: "normal" | "bold"
+): Promise<boolean> {
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { cache: "force-cache" });
+      if (!res.ok) continue;
+      const buf = await res.arrayBuffer();
+      doc.addFileToVFS(vfsName, arrayBufferToBase64(buf));
+      doc.addFont(vfsName, family, style);
+      return true;
+    } catch {
+      continue;
+    }
+  }
+  return false;
+}
+
+async function registerPoppinsFonts(
+  doc: InstanceType<typeof jsPDF>
+): Promise<{ regular: boolean; bold: boolean }> {
+  const regular = await loadFontIntoPdf(
+    doc,
+    POPPINS_REGULAR_URLS,
+    POPPINS_REGULAR_VFS,
+    POPPINS_FAMILY,
+    "normal"
+  );
+  const bold = await loadFontIntoPdf(
+    doc,
+    POPPINS_BOLD_URLS,
+    POPPINS_BOLD_VFS,
+    POPPINS_FAMILY,
+    "bold"
+  );
+  return { regular, bold };
+}
+
+function setPdfFontPoppinsBoldOrFallback(
+  doc: InstanceType<typeof jsPDF>,
+  poppins: { regular: boolean; bold: boolean }
+) {
+  if (poppins.bold) {
+    doc.setFont(POPPINS_FAMILY, "bold");
+  } else if (poppins.regular) {
+    doc.setFont(POPPINS_FAMILY, "normal");
+  } else {
+    doc.setFont("helvetica", "bold");
+  }
+}
+
+async function registerSignatureCursiveFont(
+  doc: InstanceType<typeof jsPDF>
+): Promise<boolean> {
+  return loadFontIntoPdf(
+    doc,
+    SIGNATURE_FONT_URLS,
+    SIGNATURE_VFS_NAME,
+    SIGNATURE_FAMILY,
+    "normal"
+  );
+}
+
+function setPdfFontSignatureCursive(
+  doc: InstanceType<typeof jsPDF>,
+  hasSignatureFont: boolean
+) {
+  if (hasSignatureFont) {
+    doc.setFont(SIGNATURE_FAMILY, "normal");
+  } else {
+    doc.setFont("times", "italic");
+  }
+}
 
 interface CertificateModalProps {
   open: boolean;
@@ -36,7 +172,6 @@ export function CertificateModal({
   useEffect(() => {
     if (open) {
       getCurrentUser().then(setUser);
-      // Gera o link de compartilhamento apenas se houver certificateId válido
       const normalizedId =
         !course.certificateId || course.certificateId === "null"
           ? null
@@ -51,23 +186,6 @@ export function CertificateModal({
     }
   }, [open, course.id, course.certificateId]);
 
-  // const handleGenerateCertificate = async () => {
-  //   if (isGenerating) return;
-
-  //   try {
-  //     setIsGenerating(true);
-  //     await generateCertificate(course.id);
-  //     // Após gerar, atualiza o link se necessário
-  //   } catch (error) {
-  //     console.error("Erro ao gerar certificado:", error);
-  //     alert(
-  //       error instanceof Error ? error.message : "Erro ao gerar certificado"
-  //     );
-  //   } finally {
-  //     setIsGenerating(false);
-  //   }
-  // };
-
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareLink);
     alert("Link copiado para a área de transferência!");
@@ -75,156 +193,132 @@ export function CertificateModal({
 
   const handleDownloadCertificate = async () => {
     if (isDownloading || !user) return;
-
     setIsDownloading(true);
 
+
     try {
-      // Carregar a imagem da logo e converter para base64 usando canvas
-      const logoUrl = "/code-legends-logo.svg";
-
-      // Criar um canvas para renderizar o SVG
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = 212;
-      canvas.height = 16;
-
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-
-      const logoBase64 = await new Promise<string>((resolve, reject) => {
-        img.onload = () => {
-          if (ctx) {
-            ctx.fillStyle = "#0c0c0d"; // Fundo escuro (igual --color-surface)
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL("image/png"));
-          } else {
-            reject(new Error("Não foi possível criar contexto do canvas"));
-          }
-        };
-        img.onerror = reject;
-        img.src = logoUrl;
-      });
-
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "mm",
         format: "a4",
       });
 
+      const [hasSignatureCursive, poppins] = await Promise.all([
+        registerSignatureCursiveFont(doc),
+        registerPoppinsFonts(doc),
+      ]);
+
       const width = doc.internal.pageSize.getWidth();
       const height = doc.internal.pageSize.getHeight();
 
-      // Background escuro (--color-surface)
       doc.setFillColor(18, 18, 20);
       doc.rect(0, 0, width, height, "F");
 
-      // Logo Code Legends - adicionar imagem
-      const logoWidth = 40; // largura em mm
-      const logoHeight = 3; // altura em mm (proporção mantida)
-      const logoX = (width - logoWidth) / 2; // centralizado
-      const logoY = 20; // posição Y
-      doc.addImage(logoBase64, "PNG", logoX, logoY, logoWidth, logoHeight);
+      doc.setDrawColor(0, 200, 255);
+      doc.setLineWidth(0.5);
+      doc.line(10, 10, 30, 10);
+      doc.line(10, 10, 10, 30);
 
-      // Title com gradient (simulado com cor azul)
-      doc.setFontSize(36);
-      doc.setTextColor(0, 200, 255); // #00C8FF
+      const logoDataUrl = await loadLogoPngDataUrlForPdf();
+      const logoWidth = 40;
+      const logoHeight = 3;
+      const logoX = (width - logoWidth) / 2;
+      const logoY = 20;
+      if (logoDataUrl) {
+        doc.addImage(logoDataUrl, "PNG", logoX, logoY, logoWidth, logoHeight);
+      } else {
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.text("CODE LEGENDS", width / 2, 25, { align: "center" });
+      }
+
+      doc.setFontSize(7);
+      doc.setTextColor(102, 102, 102);
+      doc.text("CÓDIGO DE VERIFICAÇÃO", width - 20, 22, { align: "right" });
+      doc.setTextColor(150, 150, 150);
+      doc.text(course.id.toUpperCase(), width - 20, 27, { align: "right" });
+
+      doc.setFontSize(32);
+      doc.setTextColor(0, 200, 255);
       doc.setFont("helvetica", "bold");
-      doc.text("CERTIFICADO DE CONCLUSÃO", width / 2, 55, {
-        align: "center",
-      });
+      doc.text("CERTIFICADO DE CONCLUSÃO", width / 2, 55, { align: "center" });
 
-      // Subtitle
-      doc.setFontSize(14);
-      doc.setTextColor(196, 196, 204); // #c4c4cc
+      doc.setFontSize(12);
+      doc.setTextColor(196, 196, 204);
       doc.setFont("helvetica", "normal");
       doc.text(
-        language === "pt" ? "Certificamos que" : "This certifies that",
+        language === "pt" ? "Certificamos orgulhosamente que" : "This proudly certifies that",
         width / 2,
         75,
         { align: "center" }
       );
 
-      // Student name
-      doc.setFontSize(22);
-      doc.setTextColor(255, 255, 255); // Branco
-      doc.setFont("helvetica", "bold");
-      doc.text(user.name || "Estudante", width / 2, 95, {
+      doc.setFontSize(38);
+      doc.setTextColor(255, 255, 255);
+      setPdfFontPoppinsBoldOrFallback(doc, poppins);
+      doc.text(user.name.toUpperCase() || "ESTUDANTE", width / 2, 95, {
         align: "center",
-        maxWidth: width - 40,
+        maxWidth: width - 40
       });
 
-      // Course completion text
       doc.setFontSize(14);
-      doc.setTextColor(196, 196, 204); // #c4c4cc
+      doc.setTextColor(196, 196, 204);
       doc.setFont("helvetica", "normal");
-      const completionText =
-        language === "pt"
-          ? `concluiu com sucesso o curso de ${course.title}`
-          : `has successfully completed the course ${course.title}`;
-      doc.text(completionText, width / 2, 115, {
-        align: "center",
-        maxWidth: width - 40,
-      });
+      const completionText = language === "pt"
+        ? `concluiu com êxito o treinamento de`
+        : `has successfully completed the training of`;
+      doc.text(completionText, width / 2, 110, { align: "center" });
 
-      // Date
-      const completionDate = new Date(course.completedAt);
-      const dateText =
-        language === "pt"
-          ? `Concluído em ${completionDate.toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            })}`
-          : `Completed on ${completionDate.toLocaleDateString("en-US", {
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            })}`;
+      doc.setFontSize(22);
+      doc.setTextColor(255, 255, 255);
+      setPdfFontPoppinsBoldOrFallback(doc, poppins);
+      doc.text(course.title, width / 2, 125, { align: "center" });
 
+      const footerY = 165;
+
+      doc.setDrawColor(60, 60, 60);
+      doc.line(40, footerY + 5, 110, footerY + 5);
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      setPdfFontSignatureCursive(doc, hasSignatureCursive);
+      doc.text("João Victor", 75, footerY, { align: "center" });
+      doc.setFontSize(8);
+      doc.setTextColor(102, 102, 102);
+      doc.setFont("helvetica", "normal");
+      doc.text("INSTRUTOR PRINCIPAL", 75, footerY + 12, { align: "center" });
+
+      doc.line(width / 2 + 5, footerY - 5, width / 2 + 5, footerY + 15);
+
+      const completionDate = new Date(course.completedAt).toLocaleDateString(
+        language === "pt" ? "pt-BR" : "en-US",
+        { day: '2-digit', month: '2-digit', year: 'numeric' }
+      );
+
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(12);
-      doc.setTextColor(196, 196, 204); // #c4c4cc
-      doc.text(dateText, width / 2, 135, { align: "center" });
+      doc.setFont("helvetica", "bold");
+      doc.text(`${course.progress || "10h"}`, width / 2 + 40, footerY + 2);
+      doc.text(completionDate, width / 2 + 80, footerY + 2);
 
-      // Certificate ID
-      doc.setFontSize(10);
-      doc.setTextColor(102, 102, 102); // #666666
-      doc.text(`ID: ${course.id}`, width / 2, height - 20, {
-        align: "center",
-      });
+      doc.setFontSize(8);
+      doc.setTextColor(102, 102, 102);
+      doc.setFont("helvetica", "normal");
+      doc.text(language === "pt" ? "Carga horária" : "Total hours", width / 2 + 40, footerY + 10);
+      doc.text(language === "pt" ? "Data de conclusão" : "Completion date", width / 2 + 80, footerY + 10);
 
-      // Download
-      doc.save(`certificado-${course.title}-${user.name}.pdf`);
+      doc.setFontSize(7);
+      doc.setTextColor(60, 60, 60);
+      const authUrl = `Para validar este certificado, acesse codelegends.com.br/verify/${course.id}`;
+      doc.text(authUrl, width / 2, height - 15, { align: "center" });
+
+      doc.save(`Certificado-${course.title.replace(/\s+/g, '-')}-${user.name}.pdf`);
     } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      alert("Erro ao gerar o certificado em PDF");
+      console.error("Erro ao gerar certificado:", error);
     } finally {
       setIsDownloading(false);
     }
   };
-
-  // const handleShare = (platform: string) => {
-  //   const text =
-  //     language === "pt"
-  //       ? `Acabei de concluir o curso ${course.title}!`
-  //       : `I just completed the course ${course.title}!`;
-  //   const url = encodeURIComponent(shareLink);
-
-  //   const shareUrls: Record<string, string> = {
-  //     whatsapp: `https://wa.me/?text=${encodeURIComponent(
-  //       text + " " + shareLink
-  //     )}`,
-  //     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
-  //     twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-  //       text
-  //     )}&url=${url}`,
-  //     facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
-  //   };
-
-  //   if (shareUrls[platform]) {
-  //     window.open(shareUrls[platform], "_blank");
-  //   }
-  // };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -247,10 +341,8 @@ export function CertificateModal({
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-          {/* Preview do Certificado */}
           <div className="bg-surface rounded-[24px] shadow-xl p-8 border border-[#25252a] relative overflow-hidden">
             <div className="text-center space-y-6 relative z-10">
-              {/* Logo Code Legends */}
               <div className="flex justify-center mb-4">
                 <NextImage
                   src={codeLegendsLogo}
@@ -261,14 +353,12 @@ export function CertificateModal({
                 />
               </div>
 
-              {/* Título com Gradient */}
               <div className="space-y-2">
                 <span className="bg-blue-gradient-500 bg-clip-text text-transparent font-bold text-2xl">
                   CERTIFICADO DE CONCLUSÃO
                 </span>
               </div>
 
-              {/* Conteúdo do Certificado */}
               <div className="space-y-4 mt-8">
                 <div className="text-[#c4c4cc] text-sm">
                   {language === "pt"
@@ -277,16 +367,37 @@ export function CertificateModal({
                 </div>
 
                 <div className="rounded-lg px-4 py-3">
-                  <div className="text-white font-semibold text-2xl">
+                  <div
+                    className="text-white font-semibold text-2xl"
+                    style={{ fontFamily: "var(--font-poppins), sans-serif" }}
+                  >
                     {user?.name || "Estudante"}
                   </div>
                 </div>
 
-                <div className=" rounded-lg px-4 py-3">
+                <div className="rounded-lg px-4 py-3">
                   <div className="text-[#c4c4cc] text-sm">
-                    {language === "pt"
-                      ? `concluiu com sucesso o curso de ${course.title}`
-                      : `has successfully completed the course ${course.title}`}
+                    {language === "pt" ? (
+                      <>
+                        concluiu com sucesso o curso de{" "}
+                        <span
+                          className="text-white font-semibold"
+                          style={{ fontFamily: "var(--font-poppins), sans-serif" }}
+                        >
+                          {course.title}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        has successfully completed the course{" "}
+                        <span
+                          className="text-white font-semibold"
+                          style={{ fontFamily: "var(--font-poppins), sans-serif" }}
+                        >
+                          {course.title}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -302,15 +413,26 @@ export function CertificateModal({
                     )}
                   </div>
                 </div>
+
+                <div className="mt-10 pt-6 border-t border-[#333333] max-w-[220px] mx-auto text-center">
+                  <div
+                    className={`text-white text-2xl ${instructorSignatureFont.className}`}
+                  >
+                    João Victor
+                  </div>
+                  <div className="text-[#666666] text-xs mt-2 uppercase tracking-wide">
+                    {language === "pt"
+                      ? "Instrutor principal"
+                      : "Lead instructor"}
+                  </div>
+                </div>
               </div>
 
               <div className="text-xs text-[#666666] mt-6">ID: {course.id}</div>
             </div>
           </div>
 
-          {/* Opções */}
           <div className="space-y-6">
-            {/* Idioma */}
             <div>
               <label className="text-sm font-medium text-white mb-2 block">
                 Idioma
@@ -341,7 +463,6 @@ export function CertificateModal({
               </div>
             </div>
 
-            {/* Link para compartilhamento */}
             <div>
               <label className="text-sm font-medium text-white mb-2 block">
                 Link para compartilhamento
@@ -364,7 +485,6 @@ export function CertificateModal({
               </div>
             </div>
 
-            {/* Botão de Download */}
             <Button
               onClick={handleDownloadCertificate}
               disabled={isDownloading || !user}
