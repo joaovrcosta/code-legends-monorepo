@@ -10,6 +10,20 @@ import Link from 'next/link'
 import { ModuleProgressBar } from './module-progress-bar'
 import { findLessonContext } from '@/utils/lesson-url'
 
+/** Próximo número de módulo na trilha; nunca repete o atual (evita API/next inconsistente). */
+function resolveNextModuleNumber(
+  currentModuleNumber: number,
+  totalModules: number,
+  apiNext: number | null | undefined,
+): number | null {
+  if (currentModuleNumber >= totalModules) return null
+  const fallback =
+    currentModuleNumber + 1 <= totalModules ? currentModuleNumber + 1 : null
+  if (apiNext == null || apiNext <= currentModuleNumber) return fallback
+  if (apiNext > totalModules) return fallback
+  return apiNext
+}
+
 export function LevelProgressBar() {
   const { activeCourse } = useActiveCourseStore()
   const { lessonCompletedTimestamp, moduleUnlockedTimestamp, currentLesson } =
@@ -58,14 +72,19 @@ export function LevelProgressBar() {
             moduleIndex >= 0
               ? moduleIndex + 1
               : roadmap.course.currentModule || 1
-          const nextModuleNumber = roadmap.course.nextModule || moduleNumber + 1
-
           const isLastModule = moduleNumber === totalModules
+          const nextModuleNumber = isLastModule
+            ? null
+            : resolveNextModuleNumber(
+              moduleNumber,
+              totalModules,
+              roadmap.course.nextModule,
+            )
 
           return {
             currentModule: context.module,
             currentLevel: moduleNumber,
-            nextLevel: isLastModule ? null : nextModuleNumber,
+            nextLevel: nextModuleNumber,
             isLastModule,
           }
         }
@@ -73,17 +92,23 @@ export function LevelProgressBar() {
 
       // Fallback: usa os valores diretamente da API
       const currentModuleNumber = roadmap.course.currentModule || 1
-      const nextModuleNumber = roadmap.course.nextModule
 
       const currentModuleIndex = currentModuleNumber - 1
       const currentModule = roadmap.modules[currentModuleIndex] || null
 
       const isLastModule = currentModuleNumber === totalModules
+      const nextModuleNumber = isLastModule
+        ? null
+        : resolveNextModuleNumber(
+          currentModuleNumber,
+          totalModules,
+          roadmap.course.nextModule,
+        )
 
       return {
         currentModule,
         currentLevel: currentModuleNumber,
-        nextLevel: nextModuleNumber || null,
+        nextLevel: nextModuleNumber,
         isLastModule,
       }
     }, [roadmap, currentLesson])
@@ -126,7 +151,7 @@ export function LevelProgressBar() {
                   />
                 </div>
                 <span className="text-xs text-nowrap text-[#00c8ff]">
-                  Certificado
+                  Gerar Certificado
                 </span>
               </Link>
             ) : (
@@ -147,11 +172,10 @@ export function LevelProgressBar() {
         ) : (
           <>
             <div
-              className={`w-[32px] h-[32px] rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                progressValue === 100
+              className={`w-[32px] h-[32px] rounded-full flex items-center justify-center border-2 transition-all duration-300 ${progressValue === 100
                   ? 'bg-blue-gradient-500 border-[#00C8FF] shadow-[0_0_12px_#00C8FF]'
                   : 'bg-[#19191b] border-[#484850]'
-              }`}
+                }`}
             >
               {progressValue === 100 ? (
                 <LockOpen size={18} weight="fill" className="text-white" />
