@@ -153,6 +153,56 @@ function setPdfFontSignatureCursive(
   }
 }
 
+
+function drawPdfGrayGradientBackground(
+  doc: InstanceType<typeof jsPDF>,
+  widthMm: number,
+  heightMm: number,
+  steps = 180 // 🔥 aumenta resolução do gradient
+) {
+  // easing mais suave ainda (menos contraste no meio)
+  const ease = (u: number) =>
+    0.5 - Math.cos(u * Math.PI) / 2; // cosine easing (melhor pra gradiente)
+
+  const stops = [
+    { t: 0.0, r: 8, g: 8, b: 10 },
+    { t: 0.25, r: 18, g: 18, b: 22 },
+    { t: 0.5, r: 30, g: 30, b: 36 },
+    { t: 0.75, r: 44, g: 42, b: 48 },
+    { t: 1.0, r: 60, g: 58, b: 64 },
+  ];
+
+  const sample = (u: number) => {
+    const t = Math.min(1, Math.max(0, u));
+
+    let i = 0;
+    while (i < stops.length - 1 && stops[i + 1].t < t) i++;
+
+    const a = stops[i];
+    const b = stops[i + 1];
+
+    const span = b.t - a.t || 1;
+    const w = (t - a.t) / span;
+
+    return {
+      r: Math.round(a.r + (b.r - a.r) * w),
+      g: Math.round(a.g + (b.g - a.g) * w),
+      b: Math.round(a.b + (b.b - a.b) * w),
+    };
+  };
+
+  const stripW = widthMm / steps;
+
+  for (let i = 0; i < steps; i++) {
+    const raw = steps <= 1 ? 0 : i / (steps - 1);
+
+    // 🔥 aplica easing aqui
+    const { r, g, b } = sample(ease(raw));
+
+    doc.setFillColor(r, g, b);
+    doc.rect(i * stripW, 0, stripW + 0.02, heightMm, "F");
+  }
+}
 interface CertificateModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -211,8 +261,7 @@ export function CertificateModal({
       const width = doc.internal.pageSize.getWidth();
       const height = doc.internal.pageSize.getHeight();
 
-      doc.setFillColor(18, 18, 20);
-      doc.rect(0, 0, width, height, "F");
+      drawPdfGrayGradientBackground(doc, width, height);
 
       doc.setDrawColor(0, 200, 255);
       doc.setLineWidth(0.5);
@@ -341,7 +390,7 @@ export function CertificateModal({
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-          <div className="bg-surface rounded-[24px] shadow-xl p-8 border border-[#25252a] relative overflow-hidden">
+          <div className="rounded-[24px] shadow-xl p-8 border border-[#25252a] relative overflow-hidden">
             <div className="text-center space-y-6 relative z-10">
               <div className="flex justify-center mb-4">
                 <NextImage
