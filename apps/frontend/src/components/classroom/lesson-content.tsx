@@ -29,9 +29,9 @@ export const LessonContent = memo(function LessonContent({
 
   if (shouldShowStats) {
     return (
-      <div className="flex-1 flex flex-col min-h-0 lg:mx-4 mx-0">
-        <div className="flex-1 flex flex-col min-h-0 px-0 border border-[#25252A] rounded-[20px] bg-surface">
-          <div className="flex-1 min-h-0 flex flex-col lg:px-4 px-3 lg:pt-4 pt-3 pb-[54px] lg:pb-[84px]">
+      <div className="mx-0 flex min-h-full w-full min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col border border-[#25252A] rounded-[20px] bg-surface px-0">
+          <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col px-3 pt-3 lg:px-4 lg:pt-4 pb-4 lg:pb-5">
             <SkillStatsOverview />
           </div>
         </div>
@@ -40,9 +40,9 @@ export const LessonContent = memo(function LessonContent({
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 mx-0 w-full">
-      <div className="flex-1 flex flex-col min-h-0 px-0 border border-[#25252A] lg:rounded-t-[20px] lg:border-b-0 bg-surface">
-        <div className="flex-1 min-h-0 flex flex-col lg:px-2 px-0 lg:pt-2 pt-0 pb-[54px] lg:pb-[84px]">
+    <div className="mx-0 flex min-h-full w-full min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col border border-[#25252A] bg-surface px-0 lg:rounded-t-[20px] lg:border-b-0">
+        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col px-0 pt-0 lg:px-2 lg:pt-2 pb-3 lg:pb-4">
           {lesson?.type === 'video' && (
             <VideoComponent
               description={lesson.description}

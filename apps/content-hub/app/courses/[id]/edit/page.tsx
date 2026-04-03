@@ -29,6 +29,7 @@ import {
   type CourseSkillsConfigResponse,
 } from "@/actions/skill/get-course-skills";
 import { getAuthTokenFromClient } from "@/lib/auth";
+import { parseSkillWeightInput } from "@/lib/parse-skill-weight";
 import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -765,7 +766,9 @@ export default function EditCoursePage() {
                             max={100}
                             value={item.weight}
                             onChange={(e) => {
-                              const value = Number(e.target.value) || 0;
+                              const value = parseSkillWeightInput(
+                                e.target.value,
+                              );
                               setCourseSkills((prev) =>
                                 prev.map((cs) =>
                                   cs.skillId === item.skillId

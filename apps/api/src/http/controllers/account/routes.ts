@@ -16,6 +16,7 @@ import {
   updateAccountData,
 } from './account-overview.controller'
 import { getUserSkills } from './get-user-skills.controller'
+import { resetUserSkills } from './reset-user-skills.controller'
 import { getCheckoutDados } from './get-checkout-dados.controller'
 import { getSubscriptionOverview } from './get-subscription-overview.controller'
 import { listPayments } from './list-payments.controller'
@@ -65,6 +66,7 @@ export async function usersRoutes(app: FastifyInstance) {
   app.get('/users', { onRequest: [verifyInstructorOrAdmin] }, listUsers)
   app.get('/users/:id', { onRequest: [verifyInstructorOrAdmin] }, getById)
   app.get('/users/:userId/skills', { onRequest: [verifyJWT] }, getUserSkills)
+  app.delete('/users/:userId/skills', { onRequest: [verifyInstructorOrAdmin] }, resetUserSkills)
   app.delete('/users/:id', { onRequest: [verifyAdmin] }, remove)
   app.get(
     '/users/:userId/overview',

@@ -6,7 +6,7 @@ import { CourseNotFoundError } from '../../../use-cases/errors/course-not-found'
 async function handleGetSkillsConfig(
   request: FastifyRequest,
   reply: FastifyReply,
-  allowUnpublished: boolean,
+  opts: { allowUnpublished: boolean; mergeLessonSkills?: boolean },
 ) {
   const paramsSchema = z.object({
     id: z.string(),
@@ -16,7 +16,10 @@ async function handleGetSkillsConfig(
 
   try {
     const useCase = makeGetCourseSkillsConfigUseCase()
-    const { skills } = await useCase.execute(courseId, { allowUnpublished })
+    const { skills } = await useCase.execute(courseId, {
+      allowUnpublished: opts.allowUnpublished,
+      mergeLessonSkills: opts.mergeLessonSkills,
+    })
     return reply.status(200).send({ courseId, skills })
   } catch (error) {
     if (error instanceof CourseNotFoundError) {
@@ -27,19 +30,24 @@ async function handleGetSkillsConfig(
   }
 }
 
-/** Público: apenas curso PUBLISHED. */
+/** Público: apenas curso PUBLISHED; lista união curso + aulas (merge). */
 export async function getSkillsConfig(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  return handleGetSkillsConfig(request, reply, false)
+  return handleGetSkillsConfig(request, reply, {
+    allowUnpublished: false,
+  })
 }
 
-/** Instructor/admin: inclui rascunhos (content hub). */
+/** Instructor/admin: rascunhos; só CourseSkill (sem merge com LessonSkill) para o editor. */
 export async function getSkillsConfigEditor(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  return handleGetSkillsConfig(request, reply, true)
+  return handleGetSkillsConfig(request, reply, {
+    allowUnpublished: true,
+    mergeLessonSkills: false,
+  })
 }
 

@@ -15,12 +15,16 @@ export class GetCourseSkillsConfigUseCase {
 
   /**
    * @param options.allowUnpublished — true só na rota autenticada `/skills-config/editor`.
+   * @param options.mergeLessonSkills — default true: inclui skills configuradas por aula na lista
+   *   (união com CourseSkill). Use false no editor do Content Hub para listar só CourseSkill
+   *   e não esconder skills lesson-only do select de outras aulas.
    */
   async execute(
     courseId: string,
-    options: { allowUnpublished?: boolean } = {},
+    options: { allowUnpublished?: boolean; mergeLessonSkills?: boolean } = {},
   ) {
     const allowUnpublished = options.allowUnpublished === true
+    const mergeLessonSkills = options.mergeLessonSkills !== false
 
     const course = await this.courseRepository.findById(courseId)
     if (!course) throw new CourseNotFoundError()
@@ -34,6 +38,11 @@ export class GetCourseSkillsConfigUseCase {
 
     const courseSkills =
       await this.courseSkillRepository.listConfigByCourseId(courseId)
+
+    if (!mergeLessonSkills) {
+      const skills = [...courseSkills].sort((a, b) => b.weight - a.weight)
+      return { courseId, skills }
+    }
 
     const lessonSkillRows = await prisma.lessonSkill.findMany({
       where: {

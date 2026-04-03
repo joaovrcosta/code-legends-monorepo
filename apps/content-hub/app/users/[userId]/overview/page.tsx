@@ -13,8 +13,9 @@ import { getUserOverview, type UserOverview } from "@/actions/user/get-user-over
 import { getUserSkills, type UserSkillsResponse } from "@/actions/user/get-user-skills";
 import { updateUserOverview, type UpdateUserOverviewData } from "@/actions/user/update-user-overview";
 import { unenrollUserFromCourse } from "@/actions/user/unenroll-course";
+import { resetUserSkills } from "@/actions/user/reset-user-skills";
 import { getAuthTokenFromClient } from "@/lib/auth";
-import { ArrowLeft, User, BookOpen, CheckCircle2, TrendingUp, Award, Clock, Target, Edit, X, CreditCard, Calendar } from "lucide-react";
+import { ArrowLeft, User, BookOpen, CheckCircle2, TrendingUp, Award, Clock, Target, Edit, X, CreditCard, Calendar, Eraser } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -30,6 +31,7 @@ function UserOverviewPageContent() {
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resettingSkills, setResettingSkills] = useState(false);
   const [editFormData, setEditFormData] = useState<UpdateUserOverviewData>({});
   const [lessonsLimit, setLessonsLimit] = useState<number>(() => {
     const limit = searchParams.get("completedLessonsLimit");
@@ -182,6 +184,34 @@ function UserOverviewPageContent() {
 
   const getPlanLabel = (plan: string | undefined) => plan === "PREMIUM" ? "Premium" : plan === "PRO" ? "Pro" : "Free";
 
+  const handleResetAllSkills = async () => {
+    const confirmed = window.confirm(
+      "Zerar todas as skills deste aluno?\n\n" +
+        "Serão removidos o XP por skill e o histórico de XP de skills. " +
+        "O XP total e o nível globais da conta (barra de nível geral) não são alterados por esta ação."
+    );
+    if (!confirmed) return;
+
+    try {
+      setResettingSkills(true);
+      const token = getAuthTokenFromClient();
+      if (!token) {
+        toast.error("Token de autenticação não encontrado");
+        return;
+      }
+      await resetUserSkills(userId, token);
+      toast.success("Skills do aluno zeradas.");
+      await loadOverview();
+    } catch (error) {
+      console.error("Erro ao zerar skills:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao zerar skills do aluno"
+      );
+    } finally {
+      setResettingSkills(false);
+    }
+  };
+
   const handleUnenrollFromCourse = async (courseId: string) => {
     if (!overview) return;
     const confirmed = window.confirm(
@@ -320,10 +350,23 @@ function UserOverviewPageContent() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="h-5 w-5" />
-                  Skills do aluno
-                </CardTitle>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Award className="h-5 w-5" />
+                    Skills do aluno
+                  </CardTitle>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={resettingSkills}
+                    className="shrink-0 border-red-500/60 text-red-600 hover:bg-red-500/10 dark:text-red-400"
+                    onClick={handleResetAllSkills}
+                  >
+                    <Eraser className="h-4 w-4 mr-2" />
+                    {resettingSkills ? "Zerando…" : "Zerar todas as skills"}
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {skillsProfile.skills.length === 0 ? (
@@ -500,15 +543,32 @@ function UserOverviewPageContent() {
           </Card>
         </div>
 
-      {overview.skills && overview.skills.length > 0 && (
-        <Card>
-          <CardHeader>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="flex items-center gap-2">
               <Award className="h-5 w-5" />
               Skills do aluno
             </CardTitle>
-          </CardHeader>
-          <CardContent>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={resettingSkills}
+              className="shrink-0 border-red-500/60 text-red-600 hover:bg-red-500/10 dark:text-red-400"
+              onClick={handleResetAllSkills}
+            >
+              <Eraser className="h-4 w-4 mr-2" />
+              {resettingSkills ? "Zerando…" : "Zerar todas as skills"}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!overview.skills || overview.skills.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+              Nenhuma skill com XP para este usuário
+            </p>
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -531,9 +591,9 @@ function UserOverviewPageContent() {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
 
         {/* Informações do Usuário */}
         <Card>

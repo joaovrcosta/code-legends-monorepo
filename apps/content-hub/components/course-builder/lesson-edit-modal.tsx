@@ -20,6 +20,7 @@ import {
 import { listSkills } from '@/actions/skill/list-skills'
 import { getAuthTokenFromClient } from '@/lib/auth'
 import { generateSlug } from '@/lib/utils'
+import { parseSkillWeightInput } from '@/lib/parse-skill-weight'
 import { X, ChevronDown, ChevronUp } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -287,7 +288,7 @@ export function LessonEditModal({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title">Título *</Label>
                 <Input
@@ -299,36 +300,6 @@ export function LessonEditModal({
                   required
                 />
               </div>
-
-              {formData.type !== 'article' && (
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Slug *</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="slug"
-                      value={formData.slug}
-                      onChange={(e) => {
-                        setFormData({ ...formData, slug: e.target.value })
-                        setSlugManuallyEdited(true)
-                      }}
-                      required
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newSlug = generateSlug(formData.title)
-                        setFormData({ ...formData, slug: newSlug })
-                        setSlugManuallyEdited(true)
-                      }}
-                    >
-                      Gerar
-                    </Button>
-                  </div>
-                </div>
-              )}
 
               <div className="space-y-2">
                 <Label htmlFor="type">Tipo *</Label>
@@ -357,39 +328,24 @@ export function LessonEditModal({
                   <option value="project">Projeto</option>
                 </Select>
               </div>
+            </div>
 
-              {formData.type !== 'article' && (
-                <div className="space-y-2">
-                  <Label htmlFor="order">Ordem</Label>
-                  <Input
-                    id="order"
-                    type="number"
-                    value={formData.order}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        order: parseInt(e.target.value) || 0,
-                      })
-                    }
-                  />
-                </div>
-              )}
+            {(formData.type !== 'article' && formData.type !== 'text') && (
+              <div className="space-y-2">
+                <Label htmlFor="url">URL</Label>
+                <Input
+                  id="url"
+                  value={formData.url}
+                  onChange={(e) =>
+                    setFormData({ ...formData, url: e.target.value })
+                  }
+                  placeholder="https://..."
+                />
+              </div>
+            )}
 
-              {(formData.type !== 'article' && formData.type !== 'text') && (
-                <div className="space-y-2">
-                  <Label htmlFor="url">URL</Label>
-                  <Input
-                    id="url"
-                    value={formData.url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, url: e.target.value })
-                    }
-                    placeholder="https://..."
-                  />
-                </div>
-              )}
-
-              {formData.type === 'video' && (
+            {formData.type === 'video' && (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="video_url">URL do Vídeo</Label>
                   <Input
@@ -401,9 +357,6 @@ export function LessonEditModal({
                     placeholder="https://..."
                   />
                 </div>
-              )}
-
-              {formData.type === 'video' && (
                 <div className="space-y-2">
                   <Label htmlFor="video_duration">Duração do Vídeo</Label>
                   <Input
@@ -418,8 +371,8 @@ export function LessonEditModal({
                     placeholder="00:00:00"
                   />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {(formData.type === 'article' || formData.type === 'text') && (
               <ArticleBodyEditor
@@ -481,256 +434,216 @@ export function LessonEditModal({
               </div>
             )}
 
-            {formData.type === 'article' && (
-              <div className="border rounded-lg">
-                <button
-                  type="button"
-                  className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left font-medium hover:bg-muted/50 rounded-t-lg"
-                  onClick={() => setMetadadosOpen((o) => !o)}
-                >
-                  <span>Metadados</span>
-                  {metadadosOpen ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </button>
-                {metadadosOpen && (
-                  <div className="px-4 pb-4 pt-0 space-y-4 border-t">
-                    <div className="space-y-2 pt-4">
-                      <Label htmlFor="article-slug">Slug *</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="article-slug"
-                          value={formData.slug}
-                          onChange={(e) => {
-                            setFormData({ ...formData, slug: e.target.value })
-                            setSlugManuallyEdited(true)
-                          }}
-                          required
-                          className="flex-1"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const newSlug = generateSlug(formData.title)
-                            setFormData({ ...formData, slug: newSlug })
-                            setSlugManuallyEdited(true)
-                          }}
-                        >
-                          Gerar
-                        </Button>
+            <div className="space-y-2">
+              <Label htmlFor="lesson-description">Descrição *</Label>
+              <Textarea
+                id="lesson-description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    description: e.target.value,
+                  })
+                }
+                rows={4}
+                required
+              />
+            </div>
+
+            {formData.type !== 'article' && (
+              <div className="space-y-2">
+                <Label>Skills desta aula (opcional)</Label>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Essas skills recebem XP adicional quando o aluno conclui esta aula.
+                </p>
+                <div className="flex gap-2">
+                  <Select
+                    value={selectedSkillId}
+                    onChange={(e) => setSelectedSkillId(e.target.value)}
+                  >
+                    <option value="">Selecione uma skill</option>
+                    {availableSkills
+                      .filter((skill) => {
+                        const alreadyInLesson = lessonSkills.some(
+                          (ls) => ls.skillId === skill.id,
+                        )
+                        const alreadyInCourse = (courseSkillIds ?? []).includes(skill.id)
+                        return !alreadyInLesson && !alreadyInCourse
+                      })
+                      .map((skill) => (
+                        <option key={skill.id} value={skill.id}>
+                          {skill.name} ({skill.slug})
+                        </option>
+                      ))}
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      if (!selectedSkillId) return
+                      const skill = availableSkills.find((s) => s.id === selectedSkillId)
+                      if (!skill) return
+                      setLessonSkills((prev) => [
+                        ...prev,
+                        {
+                          skillId: skill.id,
+                          name: skill.name,
+                          slug: skill.slug,
+                          weight: 100,
+                        },
+                      ])
+                      setSelectedSkillId('')
+                    }}
+                  >
+                    Adicionar
+                  </Button>
+                </div>
+
+                {lessonSkills.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {lessonSkills.map((item) => (
+                      <div
+                        key={item.skillId}
+                        className="flex items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm"
+                      >
+                        <div>
+                          <div className="font-medium">{item.name}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            slug: {item.slug}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={item.weight}
+                            onChange={(e) => {
+                              const value = parseSkillWeightInput(
+                                e.target.value,
+                              )
+                              setLessonSkills((prev) =>
+                                prev.map((ls) =>
+                                  ls.skillId === item.skillId
+                                    ? { ...ls, weight: value }
+                                    : ls,
+                                ),
+                              )
+                            }}
+                            className="w-20"
+                          />
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            %
+                          </span>
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            onClick={() =>
+                              setLessonSkills((prev) =>
+                                prev.filter((ls) => ls.skillId !== item.skillId),
+                              )
+                            }
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="article-order">Ordem</Label>
-                      <Input
-                        id="article-order"
-                        type="number"
-                        value={formData.order}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            order: parseInt(e.target.value) || 0,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="article-description">Descrição *</Label>
-                      <Textarea
-                        id="article-description"
-                        value={formData.description}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            description: e.target.value,
-                          })
-                        }
-                        rows={4}
-                        required
-                      />
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={formData.isFree}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              isFree: e.target.checked,
-                            })
-                          }
-                          className="rounded"
-                        />
-                        <span>Aula Gratuita</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={formData.locked}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              locked: e.target.checked,
-                            })
-                          }
-                          className="rounded"
-                        />
-                        <span>Bloqueada</span>
-                      </label>
-                    </div>
+                    ))}
                   </div>
                 )}
               </div>
             )}
 
-            {formData.type !== 'article' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descrição *</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    rows={4}
-                    required
-                  />
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.isFree}
-                      onChange={(e) =>
-                        setFormData({ ...formData, isFree: e.target.checked })
-                      }
-                      className="rounded"
-                    />
-                    <span>Aula Gratuita</span>
-                  </label>
-
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.locked}
-                      onChange={(e) =>
-                        setFormData({ ...formData, locked: e.target.checked })
-                      }
-                      className="rounded"
-                    />
-                    <span>Bloqueada</span>
-                  </label>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Skills desta aula (opcional)</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Essas skills recebem XP adicional quando o aluno conclui esta aula.
-                  </p>
-                  <div className="flex gap-2">
-                    <Select
-                      value={selectedSkillId}
-                      onChange={(e) => setSelectedSkillId(e.target.value)}
-                    >
-                      <option value="">Selecione uma skill</option>
-                      {availableSkills
-                        .filter((skill) => {
-                          const alreadyInLesson = lessonSkills.some(
-                            (ls) => ls.skillId === skill.id,
-                          )
-                          const alreadyInCourse = (courseSkillIds ?? []).includes(skill.id)
-                          return !alreadyInLesson && !alreadyInCourse
-                        })
-                        .map((skill) => (
-                          <option key={skill.id} value={skill.id}>
-                            {skill.name} ({skill.slug})
-                          </option>
-                        ))}
-                    </Select>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        if (!selectedSkillId) return
-                        const skill = availableSkills.find((s) => s.id === selectedSkillId)
-                        if (!skill) return
-                        setLessonSkills((prev) => [
-                          ...prev,
-                          {
-                            skillId: skill.id,
-                            name: skill.name,
-                            slug: skill.slug,
-                            weight: 100,
-                          },
-                        ])
-                        setSelectedSkillId('')
-                      }}
-                    >
-                      Adicionar
-                    </Button>
-                  </div>
-
-                  {lessonSkills.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      {lessonSkills.map((item) => (
-                        <div
-                          key={item.skillId}
-                          className="flex items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm"
-                        >
-                          <div>
-                            <div className="font-medium">{item.name}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              slug: {item.slug}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
-                              min={0}
-                              max={100}
-                              value={item.weight}
-                              onChange={(e) => {
-                                const value = Number(e.target.value) || 0
-                                setLessonSkills((prev) =>
-                                  prev.map((ls) =>
-                                    ls.skillId === item.skillId
-                                      ? { ...ls, weight: value }
-                                      : ls,
-                                  ),
-                                )
-                              }}
-                              className="w-20"
-                            />
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              %
-                            </span>
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="ghost"
-                              onClick={() =>
-                                setLessonSkills((prev) =>
-                                  prev.filter((ls) => ls.skillId !== item.skillId),
-                                )
-                              }
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                className="flex w-full items-center justify-between gap-2 rounded-t-lg px-4 py-3 text-left font-medium hover:bg-muted/50"
+                onClick={() => setMetadadosOpen((o) => !o)}
+              >
+                <span>Metadados</span>
+                {metadadosOpen ? (
+                  <ChevronUp className="h-4 w-4 shrink-0" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 shrink-0" />
+                )}
+              </button>
+              {metadadosOpen && (
+                <div className="space-y-4 border-t px-4 pb-4 pt-0">
+                  <div className="space-y-2 pt-4">
+                    <Label htmlFor="lesson-slug">Slug *</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="lesson-slug"
+                        value={formData.slug}
+                        onChange={(e) => {
+                          setFormData({ ...formData, slug: e.target.value })
+                          setSlugManuallyEdited(true)
+                        }}
+                        required
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newSlug = generateSlug(formData.title)
+                          setFormData({ ...formData, slug: newSlug })
+                          setSlugManuallyEdited(true)
+                        }}
+                      >
+                        Gerar
+                      </Button>
                     </div>
-                  )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lesson-order">Ordem</Label>
+                    <Input
+                      id="lesson-order"
+                      type="number"
+                      value={formData.order}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          order: parseInt(e.target.value, 10) || 0,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.isFree}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            isFree: e.target.checked,
+                          })
+                        }
+                        className="rounded"
+                      />
+                      <span>Aula gratuita</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.locked}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            locked: e.target.checked,
+                          })
+                        }
+                        className="rounded"
+                      />
+                      <span>Bloqueada</span>
+                    </label>
+                  </div>
                 </div>
-              </>
-            )}
+              )}
+            </div>
 
             <div className="flex justify-end gap-4 pt-4">
               <Button variant="outline" onClick={onClose} disabled={loading}>

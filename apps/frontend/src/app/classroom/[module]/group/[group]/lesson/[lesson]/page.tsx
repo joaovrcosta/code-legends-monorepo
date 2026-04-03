@@ -571,7 +571,8 @@ export default function DynamicLessonPage() {
 
         <div className="flex flex-1 flex-col min-h-0 w-full min-w-0 overflow-hidden">
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden max-lg:scrollbar-classroom-none lg:scrollbar-classroom">
-            <div className="w-full px-0">
+            {/* min-h-full: filho ocupa a altura do scrollport — o card da aula pode crescer e não deixa “buraco” de gradiente quando o acordeão está fechado */}
+            <div className="flex min-h-full w-full min-w-0 flex-col lg:pr-4 pr-0">
               <LessonContent
                 lesson={lesson}
                 courseTitle={activeCourse?.title ?? 'Curso'}
@@ -583,7 +584,7 @@ export default function DynamicLessonPage() {
           </div>
 
           <div className="shrink-0 min-w-0">
-            <div className="w-full px-0">
+            <div className="w-full lg:pr-4 pr-0">
               <footer className="z-50 w-full overflow-hidden border-t border-[#25252A] bg-[#0C0C0F] transition-all duration-300 ease-in-out lg:rounded-b-[20px]">
                 <div className="flex h-[60px] w-full items-stretch lg:h-[84px]">
                   <div className="flex min-w-0 flex-1 justify-start">
