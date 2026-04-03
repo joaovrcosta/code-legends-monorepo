@@ -26,8 +26,8 @@ export class GetCourseBySlugUseCase {
       throw new CourseNotFoundError();
     }
 
-    // Se não for admin e o curso estiver em draft, retornar erro
-    if (!includeDrafts && course.status === "DRAFT") {
+    // Público: apenas curso publicado (inclui ocultar DRAFT e REVIEW)
+    if (!includeDrafts && course.status !== "PUBLISHED") {
       throw new CourseNotFoundError();
     }
 

@@ -97,6 +97,8 @@ export class GetAccountOverviewUseCase {
       throw new UserNotFoundError();
     }
 
+    let responseUser = user;
+
     // Buscar curso ativo
     let activeCourse = null;
     if (user.activeCourseId) {
@@ -112,10 +114,11 @@ export class GetAccountOverviewUseCase {
             id: true,
             title: true,
             slug: true,
+            status: true,
           },
         });
 
-        if (course) {
+        if (course?.status === "PUBLISHED") {
           activeCourse = {
             id: course.id,
             title: course.title,
@@ -125,6 +128,9 @@ export class GetAccountOverviewUseCase {
             currentModuleId: userCourse.currentModuleId,
             currentTaskId: userCourse.currentTaskId,
           };
+        } else {
+          await this.usersRepository.update(userId, { activeCourseId: null });
+          responseUser = { ...user, activeCourseId: null };
         }
       }
     }
@@ -265,7 +271,7 @@ export class GetAccountOverviewUseCase {
     });
 
     return {
-      user,
+      user: responseUser,
       payments: payments.map((p) => ({
         id: p.id,
         amountCents: p.amountCents,

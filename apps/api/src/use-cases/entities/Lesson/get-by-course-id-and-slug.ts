@@ -45,6 +45,14 @@ export class GetLessonByCourseIdAndSlugUseCase {
     userId,
     moduleSlug,
   }: GetLessonByCourseIdAndSlugRequest): Promise<GetLessonByCourseIdAndSlugResponse> {
+    const courseRow = await prisma.course.findUnique({
+      where: { id: courseId },
+      select: { status: true },
+    })
+    if (!courseRow || courseRow.status !== 'PUBLISHED') {
+      throw new LessonNotFoundError()
+    }
+
     const lessonEntity = moduleSlug
       ? await this.lessonRepository.findByCourseIdAndSlugAndModuleSlug(
           courseId,
@@ -146,7 +154,8 @@ export class GetLessonByCourseIdAndSlugUseCase {
     const canReview = isCompleted
 
     // Obter título do módulo da lesson atual
-    const moduleTitle = lessonEntity.submodule?.module?.title
+    const moduleTitle = (lessonEntity as { submodule?: { module?: { title: string } } })
+      .submodule?.module?.title
 
     // Construir lista de todas as lessons com contexto (módulo e grupo) para navigation
     const allLessonsWithContext: Array<{

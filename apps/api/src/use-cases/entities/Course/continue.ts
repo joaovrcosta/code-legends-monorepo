@@ -75,6 +75,10 @@ export class ContinueCourseUseCase {
       throw new CourseNotFoundError()
     }
 
+    if (course.status !== 'PUBLISHED') {
+      throw new CourseNotFoundError()
+    }
+
     // Buscar inscrição do usuário
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,

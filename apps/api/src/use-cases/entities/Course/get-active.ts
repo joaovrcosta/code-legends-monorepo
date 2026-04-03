@@ -45,6 +45,12 @@ export class GetActiveCourseUseCase {
     // Buscar o curso ativo
     const course = await this.courseRepository.findById(user.activeCourseId);
     if (!course) {
+      await this.usersRepository.update(userId, { activeCourseId: null });
+      return { course: null };
+    }
+
+    if (course.status !== "PUBLISHED") {
+      await this.usersRepository.update(userId, { activeCourseId: null });
       return { course: null };
     }
 

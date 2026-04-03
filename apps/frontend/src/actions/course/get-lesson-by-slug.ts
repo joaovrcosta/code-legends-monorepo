@@ -1,46 +1,10 @@
 "use server";
 
 import { getAuthToken } from "../auth/session";
-import type { Lesson } from "@/types/roadmap";
-
-export interface LessonResponse {
-  lesson: Lesson;
-  moduleTitle: string;
-  groupTitle: string;
-  status: "completed" | "unlocked" | "locked";
-  isCurrent: boolean;
-  canReview: boolean;
-  module: {
-    id: string;
-    slug: string;
-    title: string;
-  };
-  group: {
-    id: number;
-    slug?: string;
-    title: string;
-  };
-  navigation?: {
-    previous?: {
-      slug: string;
-      title: string;
-      moduleSlug: string;
-      groupSlug: string;
-    };
-    next?: {
-      slug: string;
-      title: string;
-      moduleSlug: string;
-      groupSlug: string;
-    };
-  };
-}
-
-/** Resposta quando a API retorna 403 (conteúdo exclusivo para assinantes). Não lança erro. */
-export interface LessonUpgradeRequired {
-  __upgradeRequired: true;
-  message: string;
-}
+import type {
+  LessonBySlugResult,
+  LessonResponse,
+} from "./lesson-by-slug-shared";
 
 /**
  * Busca uma aula específica pelo slug do curso e slug da aula.
@@ -51,7 +15,7 @@ export async function getLessonBySlug(
   courseId: string,
   lessonSlug: string,
   moduleSlug?: string
-): Promise<LessonResponse | LessonUpgradeRequired | null> {
+): Promise<LessonBySlugResult> {
   try {
     const token = await getAuthToken();
 
@@ -79,7 +43,7 @@ export async function getLessonBySlug(
 
     if (!response.ok) {
       if (response.status === 404) {
-        return null;
+        return { __apiNotFound: true };
       }
 
       if (response.status === 403) {
@@ -100,4 +64,3 @@ export async function getLessonBySlug(
     return null;
   }
 }
-

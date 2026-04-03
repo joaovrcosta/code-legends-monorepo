@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
+import { Role } from '@prisma/client'
 import { prisma } from '../../../lib/prisma'
 import { canViewUserSkills } from '../../utils/skill-visibility'
 
@@ -34,10 +35,17 @@ export async function getSkillsProgress(
   try {
     const course = await prisma.course.findUnique({
       where: { id: courseId },
-      select: { id: true },
+      select: { id: true, status: true },
     })
 
     if (!course) {
+      return reply.status(404).send({ message: 'Course not found' })
+    }
+
+    if (
+      request.user.role === Role.STUDENT &&
+      course.status !== 'PUBLISHED'
+    ) {
       return reply.status(404).send({ message: 'Course not found' })
     }
 

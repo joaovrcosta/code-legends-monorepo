@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams, notFound } from 'next/navigation'
 import {
   getLessonBySlug,
   type LessonResponse,
   type LessonUpgradeRequired,
   getCourseRoadmapFresh,
   revalidateRoadmapCache,
+  isLessonApiNotFound,
 } from '@/actions/course'
 import { LessonContent } from '@/components/classroom/lesson-content'
 import { LessonPaywall } from '@/components/classroom/lesson-paywall'
@@ -118,37 +119,48 @@ export default function DynamicLessonPage() {
       setError(null)
       setUpgradeRequired(false)
 
+      let data: Awaited<ReturnType<typeof getLessonBySlug>> = null
       try {
-        const data = await getLessonBySlug(courseId, lessonSlug, moduleSlug)
-        if (cancelled || seq !== loadSeqRef.current) return
-
-        if (isLessonUpgradeRequiredResult(data)) {
-          lastLoadedKeyRef.current = null
-          setError(data.message)
-          setUpgradeRequired(true)
-          return
-        }
-        if (data) {
-          lastLoadedKeyRef.current = fetchKey
-          setLessonData(data)
-          const lessonWithStatus = {
-            ...data.lesson,
-            status: data.status,
-          }
-          setLessonForPage(lessonWithStatus)
-        } else {
-          lastLoadedKeyRef.current = null
-          setError('Aula não encontrada')
-        }
+        data = await getLessonBySlug(courseId, lessonSlug, moduleSlug)
       } catch (err) {
         if (cancelled || seq !== loadSeqRef.current) return
         lastLoadedKeyRef.current = null
         console.error('Erro ao carregar aula:', err)
         setError(err instanceof Error ? err.message : 'Erro ao carregar aula')
-      } finally {
-        if (!cancelled && seq === loadSeqRef.current) {
-          setIsLoading(false)
+        setIsLoading(false)
+        return
+      }
+
+      if (cancelled || seq !== loadSeqRef.current) return
+
+      // notFound() lança: não pode ficar dentro do catch acima
+      if (isLessonApiNotFound(data)) {
+        setIsLoading(false)
+        notFound()
+      }
+
+      if (isLessonUpgradeRequiredResult(data)) {
+        lastLoadedKeyRef.current = null
+        setError(data.message)
+        setUpgradeRequired(true)
+        setIsLoading(false)
+        return
+      }
+      if (data) {
+        lastLoadedKeyRef.current = fetchKey
+        setLessonData(data)
+        const lessonWithStatus = {
+          ...data.lesson,
+          status: data.status,
         }
+        setLessonForPage(lessonWithStatus)
+      } else {
+        lastLoadedKeyRef.current = null
+        setError('Aula não encontrada')
+      }
+
+      if (!cancelled && seq === loadSeqRef.current) {
+        setIsLoading(false)
       }
     }
 
@@ -216,34 +228,41 @@ export default function DynamicLessonPage() {
       const currentLessonData = lessonDataRef.current
       if (!currentLessonData) return
 
+      let refreshedLessonData: Awaited<ReturnType<typeof getLessonBySlug>> = null
+      let roadmapData: Awaited<ReturnType<typeof getCourseRoadmapFresh>> = null
+
       try {
         await revalidateRoadmapCache(cid)
 
         await new Promise((resolve) => setTimeout(resolve, 300))
 
-        const [refreshedLessonData, roadmapData] = await Promise.all([
+        ;[refreshedLessonData, roadmapData] = await Promise.all([
           getLessonBySlug(cid, lessonSlug, moduleSlug),
           getCourseRoadmapFresh(cid),
         ])
-
-        if (
-          refreshedLessonData &&
-          !isLessonUpgradeRequiredResult(refreshedLessonData)
-        ) {
-          setLessonData(refreshedLessonData)
-          // Atualiza o store com o status correto do nível raiz
-          const lessonWithStatus = {
-            ...refreshedLessonData.lesson,
-            status: refreshedLessonData.status,
-          }
-          setLessonForPage(lessonWithStatus)
-        }
-
-        if (roadmapData) {
-          setRoadmap(roadmapData)
-        }
       } catch (error) {
         console.error('Erro ao atualizar após completar lição:', error)
+        return
+      }
+
+      if (isLessonApiNotFound(refreshedLessonData)) {
+        notFound()
+      }
+
+      if (
+        refreshedLessonData &&
+        !isLessonUpgradeRequiredResult(refreshedLessonData)
+      ) {
+        setLessonData(refreshedLessonData)
+        const lessonWithStatus = {
+          ...refreshedLessonData.lesson,
+          status: refreshedLessonData.status,
+        }
+        setLessonForPage(lessonWithStatus)
+      }
+
+      if (roadmapData) {
+        setRoadmap(roadmapData)
       }
     }
 

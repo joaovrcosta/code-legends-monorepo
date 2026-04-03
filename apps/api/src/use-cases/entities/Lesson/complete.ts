@@ -83,6 +83,10 @@ export class CompleteLessonUseCase {
       throw new CourseNotFoundError()
     }
 
+    if (course.status !== 'PUBLISHED') {
+      throw new CourseNotFoundError()
+    }
+
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,
       courseId,

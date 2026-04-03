@@ -114,7 +114,10 @@ export class PrismaUserCourseRepository implements IUserCourseRepository {
   async findByUserId(userId: string): Promise<UserCourse[]> {
     try {
       const userCourses = await prisma.userCourse.findMany({
-        where: { userId },
+        where: {
+          userId,
+          course: { status: "PUBLISHED" },
+        },
         include: {
           course: {
             include: {

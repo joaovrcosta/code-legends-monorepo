@@ -114,6 +114,10 @@ export class GetRoadmapUseCase {
       throw new CourseNotFoundError()
     }
 
+    if (course.status !== 'PUBLISHED') {
+      throw new CourseNotFoundError()
+    }
+
     // Verificar se o usuário está inscrito
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,

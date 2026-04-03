@@ -33,12 +33,18 @@ export default function ClassroomHeader({
   const [isAutoplay, setIsAutoplay] = useState(false)
   const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
 
-  // No classroom, o servidor é a fonte da verdade: sempre sincronizar curso ativo
   useEffect(() => {
-    if (initialActiveCourse !== undefined) {
-      setActiveCourse(initialActiveCourse ?? null)
-    }
-  }, [initialActiveCourse, setActiveCourse])
+    setActiveCourse(initialActiveCourse ?? null)
+  }, [
+    initialActiveCourse?.id,
+    initialActiveCourse?.title,
+    initialActiveCourse?.slug,
+    initialActiveCourse?.progress,
+    initialActiveCourse?.isCompleted,
+    initialActiveCourse?.currentModuleId,
+    initialActiveCourse?.currentTaskId,
+    setActiveCourse,
+  ])
 
   useRoadmapUpdater({
     isOpen: true,
@@ -161,7 +167,6 @@ export default function ClassroomHeader({
           </li>
         </ul>
 
-        {/* Lesson Header - abaixo do header principal, apenas no mobile */}
         <div className="relative z-0 lg:hidden block border-t border-[#25252A]">
           <div className="bg-surface/90">
             <div className="flex items-center justify-between px-4 py-2">
