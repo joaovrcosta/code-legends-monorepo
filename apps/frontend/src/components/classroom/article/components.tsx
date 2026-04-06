@@ -17,6 +17,7 @@ import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
 import type { Lesson, Challenge, PlaygroundBlock } from '@/types/roadmap'
+import { HashIcon } from '@phosphor-icons/react/dist/ssr'
 
 type ImageAlign = 'left' | 'center' | 'right' | 'justify'
 
@@ -264,7 +265,7 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
                               href={`#${encodeURIComponent(id)}`}
                               aria-label="Link para esta secção"
                               className={cn(
-                                'absolute -left-10 top-[0.32em] w-8 text-right font-normal text-xl leading-none text-sky-300 no-underline lg:-left-12 lg:w-9',
+                                'absolute -left-4 top-[0.40em] w-14 text-right font-normal text-xl leading-none text-sky-300 no-underline lg:-left-14 lg:w-12 flex items-center justify-center',
                                 'select-none opacity-0 transition-opacity duration-200',
                                 'group-hover:opacity-70 hover:!opacity-100',
                                 'focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50 focus-visible:rounded',
@@ -274,7 +275,7 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
                                 scrollHeadingIntoView(id)
                               }}
                             >
-                              #
+                              <HashIcon size={28} weight="regular" />
                             </a>
                             {children}
                           </span>
