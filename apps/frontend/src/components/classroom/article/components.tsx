@@ -1,11 +1,12 @@
 'use client'
 
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ComponentProps } from 'react'
 import type { Root } from 'mdast'
 
+import { cn } from '@/lib/utils'
 import { CodeBlockPre, InlineCode } from './CodeBlock'
 import { CalloutBlockquote } from './CalloutBlockquote'
 import { ChallengeBlock } from '@/components/classroom/challenge/ChallengeBlock'
@@ -34,6 +35,37 @@ function getCodeString(children: React.ReactNode): string {
   if (typeof children === 'string') return children
   if (Array.isArray(children)) return children.map(c => typeof c === 'string' ? c : '').join('')
   return String(children ?? '')
+}
+
+function markdownTextContent(node: React.ReactNode): string {
+  if (node == null || typeof node === 'boolean') return ''
+  if (typeof node === 'string' || typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(markdownTextContent).join('')
+  if (React.isValidElement(node)) {
+    const props = node.props as { children?: React.ReactNode }
+    return markdownTextContent(props?.children)
+  }
+  return ''
+}
+
+function slugifyHeading(text: string): string {
+  const s = text
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+  return s.slice(0, 80)
+}
+
+function scrollHeadingIntoView(id: string) {
+  const el = document.getElementById(id)
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  window.history.replaceState(null, '', `#${encodeURIComponent(id)}`)
 }
 
 function useCompleteLesson(lesson: Lesson, moduleTitle?: string) {
@@ -165,6 +197,20 @@ function remarkImageAlign() {
 export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; moduleTitle?: string }) {
   const body = lesson.article?.body?.trim()
   const { isMarking, isMarked, handleMarkAsComplete, currentLesson } = useCompleteLesson(lesson, moduleTitle)
+  const h2SerialRef = useRef(0)
+  h2SerialRef.current = 0
+
+  useLayoutEffect(() => {
+    if (!body) return
+    const raw = window.location.hash.slice(1)
+    if (!raw) return
+    const id = decodeURIComponent(raw)
+    const el = document.getElementById(id)
+    if (!el) return
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: 'auto', block: 'start' })
+    })
+  }, [lesson.id, body])
 
   return (
     <ArticlePlaygroundProvider>
@@ -198,12 +244,43 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
                         {...p}
                       />
                     ),
-                    h2: (p) => (
-                      <h2
-                        className="lg:text-4xl font-wotfard text-2xl font-semibold text-sky-300/90 mt-16 mb-5 border-b border-white/5 pb-2"
-                        {...p}
-                      />
-                    ),
+                    h2: ({ children, className, node: _node, ...rest }) => {
+                      h2SerialRef.current += 1
+                      const plain = markdownTextContent(children)
+                      const slug = slugifyHeading(plain) || 'secao'
+                      const id = `${lesson.id}-${slug}-${h2SerialRef.current}`
+                      return (
+                        <h2
+                          id={id}
+                          className={cn(
+                            'group relative scroll-mt-[92px]',
+                            'lg:text-4xl font-wotfard text-2xl font-semibold text-sky-300/90 mt-16 mb-5 border-b border-white/5 pb-2',
+                            className,
+                          )}
+                          {...rest}
+                        >
+                          <span className="relative block min-w-0">
+                            <a
+                              href={`#${encodeURIComponent(id)}`}
+                              aria-label="Link para esta secção"
+                              className={cn(
+                                'absolute -left-10 top-[0.32em] w-8 text-right font-normal text-xl leading-none text-sky-300 no-underline lg:-left-12 lg:w-9',
+                                'select-none opacity-0 transition-opacity duration-200',
+                                'group-hover:opacity-70 hover:!opacity-100',
+                                'focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50 focus-visible:rounded',
+                              )}
+                              onClick={(e) => {
+                                e.preventDefault()
+                                scrollHeadingIntoView(id)
+                              }}
+                            >
+                              #
+                            </a>
+                            {children}
+                          </span>
+                        </h2>
+                      )
+                    },
                     h3: (p) => (
                       <h3
                         className="lg:text-2xl text-xl font-wotfard !font-medium text-sky-300/90 mt-6 mb-4"
