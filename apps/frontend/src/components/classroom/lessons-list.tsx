@@ -19,7 +19,8 @@ import {
 } from '@/components/ui/accordion'
 import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { Skeleton } from '@/components/skeleton'
-import { CheckCircleIcon } from '@phosphor-icons/react/dist/ssr'
+import { CheckCircleIcon, CheckFatIcon } from '@phosphor-icons/react/dist/ssr'
+import { CheckIcon } from '@phosphor-icons/react'
 
 function getLessonMeta(lesson: Lesson) {
   const typeLabel =
@@ -219,8 +220,8 @@ export const LessonsList = memo(function LessonsList({
                     </span>
                     <span
                       className={`font-bold text-[16px] ${isCurrentModule
-                          ? 'bg-blue-gradient-500 bg-clip-text text-transparent'
-                          : 'text-zinc-200'
+                        ? 'bg-blue-gradient-500 bg-clip-text text-transparent'
+                        : 'text-zinc-200'
                         }`}
                     >
                       {moduleItem.title}
@@ -259,11 +260,8 @@ export const LessonsList = memo(function LessonsList({
                           <div className="flex flex-col">
                             {group.lessons.map((lesson, lessonIndex) => {
                               const isActive = currentLessonId === lesson.id
-                              const isLastLesson =
-                                lessonIndex === group.lessons.length - 1
-                              const lessonIndexInAll = lessons.findIndex(
-                                (l) => l.id === lesson.id,
-                              )
+                              const isLastLesson = lessonIndex === group.lessons.length - 1
+                              const lessonIndexInAll = lessons.findIndex((l) => l.id === lesson.id)
                               const isPaidLesson = lesson.isFree === false
                               const isFreePlan = userPlan === 'FREE'
 
@@ -272,39 +270,31 @@ export const LessonsList = memo(function LessonsList({
                                   key={lesson.id}
                                   className="relative pl-8 pt-1"
                                 >
+                                  <div
+                                    className="absolute left-0 top-0 h-[32px] w-8 border-b-2 border-l-2 border-[#1a1a1b] rounded-bl-xl"
+                                  />
+
                                   {isLastLesson && (
-                                    <div className="absolute left-0 top-4 bottom-0 w-[4px] bg-surface z-10" />
+                                    <div className="absolute left-0 top-[26px] bottom-0 w-[2px] bg-surface z-10" />
                                   )}
-                                  <div className="absolute left-0 top-0 h-[24px] w-[24px] border-b-2 border-l-2 border-zinc-800/50 rounded-bl-xl translate-y-[-50%]" />
 
                                   <button
-                                    onClick={() =>
-                                      handleLessonClick(
-                                        lesson,
-                                        lessonIndexInAll,
-                                      )
-                                    }
-                                    className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${isActive
-                                        ? 'bg-zinc-800/50 shadow-xl'
-                                        : 'hover:bg-zinc-800/30'
-                                      } ${isFreePlan && isPaidLesson
-                                        ? 'opacity-50'
-                                        : ''
-                                      }`}
+                                    onClick={() => handleLessonClick(lesson, lessonIndexInAll)}
+                                    className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${isActive ? 'bg-zinc-800/50 shadow-xl' : 'hover:bg-zinc-800/30'
+                                      } ${isFreePlan && isPaidLesson ? 'opacity-50' : ''}`}
                                   >
                                     {lesson.status === 'completed' ? (
-                                      <CheckCircleIcon
+                                      <CheckIcon
                                         size={20}
-                                        weight="fill"
-                                        className="shrink-0 text-[#a8f3d1]"
+                                        className="shrink-0 text-[#278b4d]"
                                       />
                                     ) : (
                                       <Circle
                                         size={20}
                                         strokeWidth={1.75}
                                         className={`shrink-0 fill-transparent transition-colors ${isActive
-                                            ? 'text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]'
-                                            : 'text-zinc-500'
+                                          ? 'text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]'
+                                          : 'text-zinc-500'
                                           }`}
                                       />
                                     )}
@@ -312,16 +302,14 @@ export const LessonsList = memo(function LessonsList({
                                     <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                                       <span
                                         className={`text-sm truncate transition-colors duration-200 ${isActive
-                                            ? 'text-cyan-50 font-semibold'
-                                            : 'text-zinc-400 font-base group-hover:text-zinc-200'
+                                          ? 'text-cyan-50 font-semibold'
+                                          : 'text-zinc-400 font-base group-hover:text-zinc-200'
                                           }`}
                                       >
                                         {lesson.title}
                                       </span>
                                       <span
-                                        className={`text-xs tabular-nums ${isActive
-                                            ? 'text-cyan-400/80'
-                                            : 'text-zinc-500'
+                                        className={`text-xs tabular-nums ${isActive ? 'text-cyan-400/80' : 'text-zinc-500'
                                           }`}
                                       >
                                         {getLessonMeta(lesson)}
@@ -331,8 +319,8 @@ export const LessonsList = memo(function LessonsList({
                                     {userPlan === 'FREE' && (
                                       <span
                                         className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${lesson.isFree
-                                            ? 'bg-lime-500/10 text-lime-400 border border-lime-500/20'
-                                            : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                          ? 'bg-lime-500/10 text-lime-400 border border-lime-500/20'
+                                          : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
                                           }`}
                                       >
                                         {lesson.isFree ? 'G' : 'P'}

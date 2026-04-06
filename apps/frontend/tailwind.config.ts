@@ -56,6 +56,12 @@ export default {
         },
       },
       fontFamily: {
+        poppins: [
+          "var(--font-poppins)",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
         mono: ['"Space Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       backgroundImage: {

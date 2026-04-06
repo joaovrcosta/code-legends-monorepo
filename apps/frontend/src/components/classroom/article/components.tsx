@@ -169,7 +169,7 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
   return (
     <ArticlePlaygroundProvider>
       <div className="min-h-screen">
-        <header className="bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.15)] px-6 py-16 flex flex-col justify-center items-center lg:rounded-[20px]">
+        <header className="bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.15)] px-6 py-20 flex flex-col justify-center items-center lg:rounded-[16px]">
           <div className="max-w-5xl w-full space-y-2">
             {moduleTitle && (
               <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
@@ -186,17 +186,32 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
         <main className="flex justify-center mt-8 px-4">
           <div className="max-w-5xl w-full">
             {body ? (
-              <article className="article-body prose prose-invert max-w-[1024px] mx-auto text-slate-300">
+              <article className="article-body prose prose-invert prose-p:leading-[2.1]  max-w-[1024px] prose-p:text-[18px] mx-auto text-slate-300">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkImageAlign]}
                   components={{
                     pre: ArticleCodeBlockPre,
                     code: InlineCode,
+                    h1: (p) => (
+                      <h1
+                        className="text-5xl font-poppins font-bold text-sky-300 mb-8 tracking-tight"
+                        {...p}
+                      />
+                    ),
+                    h2: (p) => (
+                      <h2
+                        className="lg:text-4xl font-poppins text-2xl font-semibold text-sky-300/90 mt-16 mb-5 border-b border-white/5 pb-2"
+                        {...p}
+                      />
+                    ),
+                    h3: (p) => (
+                      <h3
+                        className="lg:text-2xl text-xl !font-medium text-slate-300 mt-6 mb-4"
+                        {...p}
+                      />
+                    ),
                     blockquote: CalloutBlockquote,
-                    p: (p) => <p className="leading-[1.8] lg:text-lg text-base mb-6 text-slate-300" {...p} />,
-                    h1: (p) => <h1 className="text-5xl font-bold text-sky-300 mb-8 tracking-tight font-poppins" {...p} />,
-                    h2: (p) => <h2 className="lg:text-4xl text-2xl font-semibold text-sky-300/90 mt-12 mb-5 border-b border-white/5 pb-2 font-poppins" {...p} />,
-                    h3: (p) => <h3 className="lg:text-2xl text-xl font-semibold text-sky-300/80 mt-10 mb-4 font-poppins" {...p} />,
+
                     img: ({ node, ...props }) => {
                       const align = (node as any)?.properties?.['data-cl-align'] as ImageAlign || 'left'
                       return (
