@@ -168,7 +168,7 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
 
   return (
     <ArticlePlaygroundProvider>
-      <div className="min-h-screen">
+      <div className="min-h-screen font-wotfard">
         <header className="bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.15)] px-6 py-20 flex flex-col justify-center items-center lg:rounded-[16px]">
           <div className="max-w-5xl w-full space-y-2">
             {moduleTitle && (
@@ -183,10 +183,10 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
           </div>
         </header>
 
-        <main className="flex justify-center mt-8 px-4">
+        <main className="flex justify-center mt-4 px-4">
           <div className="max-w-5xl w-full">
             {body ? (
-              <article className="article-body prose prose-invert prose-p:leading-[2.1]  max-w-[1024px] prose-p:text-[18px] mx-auto text-slate-300">
+              <article className="article-body font-wotfard prose prose-invert prose-headings:font-wotfard prose-p:font-wotfard prose-li:font-wotfard prose-blockquote:font-wotfard prose-strong:font-wotfard prose-em:font-wotfard prose-p:leading-[1.8] max-w-[1024px] prose-p:text-[18px] mx-auto text-[#e3e6e8]">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkImageAlign]}
                   components={{
@@ -194,19 +194,19 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
                     code: InlineCode,
                     h1: (p) => (
                       <h1
-                        className="text-5xl font-poppins font-bold text-sky-300 mb-8 tracking-tight"
+                        className="text-5xl font-wotfard font-bold text-sky-300 mb-8 tracking-tight"
                         {...p}
                       />
                     ),
                     h2: (p) => (
                       <h2
-                        className="lg:text-4xl font-poppins text-2xl font-semibold text-sky-300/90 mt-16 mb-5 border-b border-white/5 pb-2"
+                        className="lg:text-4xl font-wotfard text-2xl font-semibold text-sky-300/90 mt-16 mb-5 border-b border-white/5 pb-2"
                         {...p}
                       />
                     ),
                     h3: (p) => (
                       <h3
-                        className="lg:text-2xl text-xl !font-medium text-slate-300 mt-6 mb-4"
+                        className="lg:text-2xl text-xl font-wotfard !font-medium text-sky-300/90 mt-6 mb-4"
                         {...p}
                       />
                     ),

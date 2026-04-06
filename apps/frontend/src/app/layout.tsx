@@ -1,4 +1,5 @@
 import './globals.css'
+import localFont from 'next/font/local'
 import { Poppins, Inter, Instrument_Sans } from 'next/font/google'
 import { Providers } from '@/components/providers/session-provider'
 import { ConditionalAppShell } from '@/components/layout/conditional-app-shell'
@@ -24,6 +25,14 @@ const instrumentSans = Instrument_Sans({
   variable: '--font-instrument-sans',
 })
 
+const wotfard = localFont({
+  src: '../../fonts/wotfard-regular-webfont.woff2',
+  variable: '--font-wotfard',
+  weight: '400',
+  style: 'normal',
+  display: 'swap',
+})
+
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
@@ -46,7 +55,7 @@ export default async function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${poppins.variable} ${inter.variable} ${instrumentSans.variable}`}
+      className={`${poppins.variable} ${inter.variable} ${instrumentSans.variable} ${wotfard.variable}`}
     >
       <body className="font-instrumentSans antialiased">
         <Providers>
