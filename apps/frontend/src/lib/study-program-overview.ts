@@ -13,15 +13,12 @@ export type StudyProgramLessonLine = {
 export type StudyProgramModuleSection = {
   id: string
   title: string
-  /** Resumo por tipo: lições, artigos, questionários, etc. (só tipos com quantidade > 0) */
+  /** Resumo por tipo: lições, leituras, questionários, etc. (só tipos com quantidade > 0) */
   subtitle: string
   progress: number
   lessons: StudyProgramLessonLine[]
 }
 
-/**
- * Ex.: "4 lições · 2 artigos · 1 questionário" — apenas tipos presentes no módulo.
- */
 export function formatModuleContentBreakdown(types: LessonType[]): string {
   let video = 0
   let article = 0
@@ -57,10 +54,10 @@ export function formatModuleContentBreakdown(types: LessonType[]): string {
 
   const parts: string[] = []
   if (video > 0) {
-    parts.push(video === 1 ? '1 lição' : `${video} lições`)
+    parts.push(video === 1 ? '1 vídeo' : `${video} vídeos`)
   }
   if (article > 0) {
-    parts.push(article === 1 ? '1 artigo' : `${article} artigos`)
+    parts.push(article === 1 ? '1 leitura' : `${article} leituras`)
   }
   if (text > 0) {
     parts.push(

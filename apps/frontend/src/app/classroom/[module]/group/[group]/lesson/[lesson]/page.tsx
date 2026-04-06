@@ -236,10 +236,10 @@ export default function DynamicLessonPage() {
 
         await new Promise((resolve) => setTimeout(resolve, 300))
 
-        ;[refreshedLessonData, roadmapData] = await Promise.all([
-          getLessonBySlug(cid, lessonSlug, moduleSlug),
-          getCourseRoadmapFresh(cid),
-        ])
+          ;[refreshedLessonData, roadmapData] = await Promise.all([
+            getLessonBySlug(cid, lessonSlug, moduleSlug),
+            getCourseRoadmapFresh(cid),
+          ])
       } catch (error) {
         console.error('Erro ao atualizar após completar lição:', error)
         return
@@ -324,9 +324,9 @@ export default function DynamicLessonPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
+      <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-78px)]">
         <aside
-          className={`hidden lg:block fixed left-0 top-[63px] bg-surface flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
+          className={`hidden lg:block fixed left-0 top-[78px] bg-surface flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
             }`}
         >
           {isSidebarOpen && (
@@ -386,7 +386,7 @@ export default function DynamicLessonPage() {
           )}
         </aside>
         <div
-          className={`flex-1 w-full min-h-[calc(100dvh-63px)] lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)] bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)] text-white flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+          className={`flex-1 w-full min-h-[calc(100dvh-63px)] lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)] bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)] text-white flex flex-col transition-all duration-300 ease-in-out pt-[132px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
             }`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
@@ -412,9 +412,9 @@ export default function DynamicLessonPage() {
 
   if (isUpgradeRequired && (activeCourse || courseIdFromUrl)) {
     return (
-      <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-63px)]">
+      <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-78px)]">
         <aside
-          className={`hidden lg:block fixed left-0 top-[63px] bg-surface flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
+          className={`hidden lg:block fixed left-0 top-[78px] bg-surface flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
             }`}
         >
           {isSidebarOpen && (
@@ -489,7 +489,7 @@ export default function DynamicLessonPage() {
         <div
           className={`flex-1 w-full min-h-0 flex flex-col lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)]
-             text-white shadow-2xl shadow-[#00C8FF]/10 transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+             text-white shadow-2xl shadow-[#00C8FF]/10 transition-all duration-300 ease-in-out pt-[132px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
             }`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
@@ -548,7 +548,7 @@ export default function DynamicLessonPage() {
   return (
     <div className="flex h-[100dvh] w-full">
       <aside
-        className={`hidden lg:block fixed left-0 top-[63px] bg-surface flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
+        className={`hidden lg:block fixed left-0 top-[78px] bg-surface flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
           }`}
       >
         {isSidebarOpen && (
@@ -573,10 +573,10 @@ export default function DynamicLessonPage() {
       <div
         className={`flex-1 w-full min-h-0 max-w-full overflow-x-hidden lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)]
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[132px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
           }`}
       >
-        <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none mb-0 flex-shrink-0 lg:block hidden">
+        <header className="h-[78px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none mb-0 flex-shrink-0 lg:block hidden">
           <div className="flex items-center justify-between w-full px-4">
             <div className="lg:hidden flex">
               <Menu size={32} className="text-white" />
@@ -591,7 +591,7 @@ export default function DynamicLessonPage() {
         <div className="flex flex-1 flex-col min-h-0 w-full min-w-0 overflow-hidden">
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden max-lg:scrollbar-classroom-none lg:scrollbar-classroom">
             {/* min-h-full: filho ocupa a altura do scrollport — o card da aula pode crescer e não deixa “buraco” de gradiente quando o acordeão está fechado */}
-            <div className="flex min-h-full w-full min-w-0 flex-col lg:pr-4 pr-0">
+            <div className="flex min-h-full w-full min-w-0 flex-col lg:pr-2 pr-0">
               <LessonContent
                 lesson={lesson}
                 courseTitle={activeCourse?.title ?? 'Curso'}

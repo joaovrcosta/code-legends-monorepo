@@ -321,7 +321,7 @@ export function LessonEditModal({
                   required
                 >
                   <option value="video">Vídeo</option>
-                  <option value="article">Artigo</option>
+                  <option value="article">Leitura</option>
                   <option value="text">Texto</option>
                   <option value="quiz">Quiz</option>
                   <option value="multi_quiz">Multi quiz</option>

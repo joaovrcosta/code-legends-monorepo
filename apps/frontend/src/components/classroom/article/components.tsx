@@ -186,16 +186,17 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
         <main className="flex justify-center mt-8 px-4">
           <div className="max-w-5xl w-full">
             {body ? (
-              <article className="article-body prose prose-invert max-w-none prose-headings:text-sky-300 prose-p:leading-relaxed text-white/90">
+              <article className="article-body prose prose-invert max-w-[1024px] mx-auto text-slate-300">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkImageAlign]}
                   components={{
                     pre: ArticleCodeBlockPre,
                     code: InlineCode,
                     blockquote: CalloutBlockquote,
-                    h1: (p) => <h1 className="text-3xl font-bold text-sky-300 mb-6" {...p} />,
-                    h2: (p) => <h2 className="text-2xl font-semibold text-sky-300 mt-10 mb-4" {...p} />,
-                    h3: (p) => <h3 className="text-xl font-semibold text-sky-300 mt-8 mb-3" {...p} />,
+                    p: (p) => <p className="leading-[1.8] lg:text-lg text-base mb-6 text-slate-300" {...p} />,
+                    h1: (p) => <h1 className="text-5xl font-bold text-sky-300 mb-8 tracking-tight font-poppins" {...p} />,
+                    h2: (p) => <h2 className="lg:text-4xl text-2xl font-semibold text-sky-300/90 mt-12 mb-5 border-b border-white/5 pb-2 font-poppins" {...p} />,
+                    h3: (p) => <h3 className="lg:text-2xl text-xl font-semibold text-sky-300/80 mt-10 mb-4 font-poppins" {...p} />,
                     img: ({ node, ...props }) => {
                       const align = (node as any)?.properties?.['data-cl-align'] as ImageAlign || 'left'
                       return (

@@ -12,6 +12,31 @@ import { toast } from "sonner";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+function lessonTypeLabel(type: string): string {
+  const key = type.trim().toLowerCase();
+  switch (key) {
+    case "video":
+      return "Vídeo";
+    case "article":
+      return "Leitura";
+    case "text":
+      return "Texto";
+    case "quiz":
+      return "Quiz";
+    case "multi_quiz":
+      return "Multi quiz";
+    case "project":
+      return "Projeto";
+    default:
+      if (!key) return "Aula";
+      return key
+        .split(/[\s_]+/)
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+  }
+}
+
 interface LessonNodeProps {
   lesson: LessonWithStructure;
   onUpdate: (lesson: LessonWithStructure) => void;
@@ -81,14 +106,22 @@ export function LessonNode({
         >
           <GripVertical className="h-4 w-4 text-gray-400" />
         </button>
-        <span className="flex-1 text-sm text-gray-600 dark:text-gray-400">
+        <span className="flex-1 min-w-0 text-sm text-gray-600 dark:text-gray-400">
           {lesson.title}
         </span>
-        {lesson.isFree && (
-          <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
-            Grátis
+        <div className="flex shrink-0 items-center gap-2">
+          <Badge
+            variant="outline"
+            className="border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 font-normal"
+          >
+            {lessonTypeLabel(lesson.type)}
           </Badge>
-        )}
+          {lesson.isFree && (
+            <Badge className="bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400">
+              Grátis
+            </Badge>
+          )}
+        </div>
         <Button
           size="sm"
           variant="ghost"

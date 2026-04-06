@@ -16,9 +16,9 @@ export function mapLessonTypeToCategoryLabel(type: LessonType): string {
     case 'text':
       return 'Informativo'
     case 'article':
-      return 'Artigo'
+      return 'Leitura'
     case 'video':
-      return 'Lição'
+      return 'Vídeo'
     case 'quiz':
     case 'multi_quiz':
       return 'Questionário'

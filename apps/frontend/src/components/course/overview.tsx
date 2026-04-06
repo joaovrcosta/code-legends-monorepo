@@ -523,7 +523,7 @@ export function CourseOverview({
           </div>
         </Card>
       </div>
-      <div className="max-w-[500px] w-full space-y-4 lg:sticky lg:top-[100px] lg:h-fit">
+      <div className="lg:max-w-[500px] w-full space-y-4 lg:sticky lg:top-[100px] lg:h-fit">
         {sessionReady && !isPaidUser && <LearnUpgradeCard />}
         <Card className="p-0 text-white bg-gray-gradient rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">

@@ -38,6 +38,7 @@ import {
 } from '@phosphor-icons/react/dist/ssr'
 import {
   ArrowLeft,
+  BookOpen,
   ChartNoAxesColumnIncreasingIcon,
   Loader2,
 } from 'lucide-react'
@@ -295,13 +296,14 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
         <div className="flex w-full items-center justify-center max-w-[1356px] gap-12 mx-auto flex-col lg:flex-row">
           <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
 
-          <div className="flex-col flex-1 relative z-10">
-            {/* Back Button */}
+          <div className="flex-col flex-1 relative z-10 w-full">
             <button
               onClick={() => router.back()}
-              className="hover:bg-[#25252A] group p-2 lg:bg-transparent relative lg:top-0 top-[12px] bg-white/5 rounded-lg flex items-center gap-2 mb-4 text-[#7e7e89] transition-colors"
+              className="group p-2 lg:bg-transparent relative lg:top-0 top-[12px] bg-white/5 rounded-lg flex items-center gap-2 mb-4 text-[#7e7e89] transition-colors duration-200 hover:bg-black/20 hover:text-[#e0e0e8]"
             >
-              <CaretLeftIcon size={24} weight="bold" />
+              <span className="inline-flex shrink-0 transition-transform duration-200 ease-out group-hover:-translate-x-1 group-active:-translate-x-0.5">
+                <CaretLeftIcon size={24} weight="bold" />
+              </span>
               <span className="text-xs lg:block hidden uppercase tracking-wider">
                 Voltar
               </span>
@@ -315,12 +317,22 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                   alt={course.title}
                   width={120}
                   height={120}
-                  className="relative lg:right-[20px] right-0"
+                  className="relative lg:right-[24px] right-0"
                 />
               )}
             </div>
 
             <div className="flex flex-col items-center lg:items-start">
+              <span
+                className={cn(
+                  'shrink-0 rounded-full border mb-4 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider',
+                  course.isFree
+                    ? 'bg-lime-500/10 border border-lime-500/20 rounded-full px-2 py-1 text-lime-500'
+                    : 'shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-1 rounded-full bg-gradient-to-r from-purple-500/10 to-orange-400/20 text-purple-400 border border-purple-500/20',
+                )}
+              >
+                {course.isFree ? 'Gratuito' : 'Para assinantes'}
+              </span>
               <h1
                 className={cn(
                   'font-bold lg:text-[44px] text-2xl lg:text-left leading-tight text-center mb-4',
@@ -499,14 +511,19 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
 function InfoItem({
   icon,
   text,
+  suffix,
 }: {
   icon: React.ReactNode
   text: React.ReactNode
+  suffix?: React.ReactNode
 }) {
   return (
     <li className="flex w-full items-center gap-3 py-4 border-b border-[#25252A]/50 last:border-0">
       {icon}
-      <p className="text-[#a5a5a6] text-sm font-light">{text}</p>
+      <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
+        <p className="text-[#a5a5a6] text-sm font-light">{text}</p>
+        {suffix}
+      </div>
     </li>
   )
 }

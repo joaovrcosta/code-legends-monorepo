@@ -371,7 +371,7 @@ export default function ClassroomPage() {
     return (
       <div className="flex h-[100dvh] w-full">
         <aside
-          className={`hidden lg:block fixed left-0 top-[63px] bg-surface border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
+          className={`hidden lg:block fixed left-0 top-[78px] bg-surface border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
             }`}
         >
           {isSidebarOpen && (
@@ -396,7 +396,7 @@ export default function ClassroomPage() {
 
         <div
           className={`flex-1 w-full bg-blue-aurora
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-[margin-left] duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-[margin-left] duration-300 ease-in-out pt-[132px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
             }`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
@@ -426,7 +426,7 @@ export default function ClassroomPage() {
     <div className="flex h-[100dvh] w-full">
       {/* Sidebar com lista de aulas - apenas no desktop */}
       <aside
-        className={`hidden lg:block fixed left-0 top-[63px] bg-surface border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
+        className={`hidden lg:block fixed left-0 top-[78px] bg-surface border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
           }`}
       >
         {isSidebarOpen && (
@@ -448,7 +448,7 @@ export default function ClassroomPage() {
       {/* Conteúdo principal */}
       <div
         className={`flex-1 w-full bg-blue-aurora
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-[margin-left] duration-300 ease-in-out pt-[112px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-[margin-left] duration-300 ease-in-out pt-[132px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
           }`}
       >
 
