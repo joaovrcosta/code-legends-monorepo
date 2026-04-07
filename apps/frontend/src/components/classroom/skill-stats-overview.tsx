@@ -84,6 +84,38 @@ export function SkillStatsOverview() {
 
   const displayList = hasEnrichedResponse ? data.skills : skillsWithGainFallback
 
+  /** XP anterior: prioriza o breakdown do último complete (store); senão usa API/histórico. */
+  const skillsForDisplay = useMemo(() => {
+    const storeMap =
+      xpGainedInModuleBySkill && xpGainedInModuleBySkill.length > 0
+        ? new Map(xpGainedInModuleBySkill.map((s) => [s.skillId, s.xp]))
+        : null
+
+    return displayList.map((skill) => {
+      const totalXp = skill.totalXp
+      const s = skill as {
+        gainedXpInModule?: number
+        gainedXp?: number
+      }
+      const apiGained =
+        typeof s.gainedXpInModule === 'number'
+          ? s.gainedXpInModule
+          : typeof s.gainedXp === 'number'
+            ? s.gainedXp
+            : 0
+      const storeXp = storeMap?.get(skill.skillId)
+      const gainedInModule =
+        storeXp !== undefined ? storeXp : apiGained
+      const previousXp = Math.max(0, totalXp - gainedInModule)
+      return {
+        ...skill,
+        gainedXpInModule: gainedInModule,
+        previousXp,
+        currentXp: totalXp,
+      }
+    })
+  }, [displayList, xpGainedInModuleBySkill])
+
   const axisMaxValue = useMemo(() => {
     if (!displayList.length) return 100
     const maxXp = Math.max(
@@ -164,13 +196,13 @@ export function SkillStatsOverview() {
     }
   }, [lastModuleCompletion?.moduleCompleted])
 
-  const displayListLength = displayList.length
+  const skillsForDisplayLength = skillsForDisplay.length
   useEffect(() => {
-    if (!showBars || displayListLength === 0) return
-    if (barRevealIndex >= displayListLength) return
+    if (!showBars || skillsForDisplayLength === 0) return
+    if (barRevealIndex >= skillsForDisplayLength) return
     const t = setTimeout(() => setBarRevealIndex((i) => i + 1), 100)
     return () => clearTimeout(t)
-  }, [showBars, barRevealIndex, displayListLength])
+  }, [showBars, barRevealIndex, skillsForDisplayLength])
 
   useEffect(() => {
     const load = async () => {
@@ -210,7 +242,7 @@ export function SkillStatsOverview() {
   if (isLoading) {
     return (
       <TooltipProvider delayDuration={300}>
-        <div className="rounded-2xl px-5 py-5 lg:px-6 lg:py-6 space-y-8">
+        <div className="font-wotfard rounded-2xl px-5 py-5 lg:px-6 lg:py-6 space-y-8">
           <div className="space-y-6">
             <Skeleton className="h-6 w-64" />
             <div className="flex items-center gap-4 py-4">
@@ -244,7 +276,7 @@ export function SkillStatsOverview() {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="rounded-2xl px-5 py-5 lg:px-6 lg:py-6 space-y-8">
+      <div className="font-wotfard rounded-2xl px-5 py-5 lg:px-6 lg:py-6 space-y-8">
         <div className="space-y-6">
           <div
             className={`space-y-1 transition-all duration-500 ease-out ${showTitle ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
@@ -290,12 +322,12 @@ export function SkillStatsOverview() {
             }`}
         >
           <div className="rounded-xl py-6 overflow-hidden">
-            {displayList.length > 0 ? (
+            {skillsForDisplay.length > 0 ? (
               <div className="w-full overflow-x-auto">
-                <div className="min-w-[650px]">
-                  {/* Eixo X */}
+                <div className="min-w-[720px]">
+                  {/* Eixo X — mesma largura da coluna de skills que as linhas (w-72) */}
                   <div className="flex pr-6 pl-6">
-                    <div className="w-56 shrink-0" />
+                    <div className="w-72 shrink-0" />
                     <div className="flex-1 flex justify-between text-sm font-medium text-[#9ca3af] pb-2 relative">
                       <span className="-translate-x-1/2 absolute left-0">
                         0
@@ -313,7 +345,7 @@ export function SkillStatsOverview() {
                   {/* Grade e Barras */}
                   <div className="relative flex flex-col mt-2">
                     <div className="absolute inset-y-0 right-6 left-6 flex pointer-events-none">
-                      <div className="w-56 shrink-0" />
+                      <div className="w-72 shrink-0" />
                       <div className="flex-1 flex justify-between relative">
                         <div className="w-px h-full bg-[#1f2937] absolute left-0" />
                         <div className="w-px h-full bg-[#1f2937] absolute left-1/2" />
@@ -322,15 +354,9 @@ export function SkillStatsOverview() {
                       <div className="w-48 shrink-0" />
                     </div>
 
-                    {displayList.map((skill, index) => {
-                      const skillWithCurrent = skill as {
-                        totalXp: number
-                        previousXp?: number
-                        currentXp?: number
-                      }
-                      const currentXp =
-                        skillWithCurrent.currentXp ?? skillWithCurrent.totalXp
-                      const previousXp = skillWithCurrent.previousXp ?? 0
+                    {skillsForDisplay.map((skill, index) => {
+                      const currentXp = skill.currentXp ?? skill.totalXp
+                      const previousXp = skill.previousXp ?? 0
                       const percentage = Math.max(
                         2,
                         Math.min(100, (currentXp / axisMaxValue) * 100),
@@ -347,11 +373,14 @@ export function SkillStatsOverview() {
                             }`}
                         >
                           {/* Nome da Skill */}
-                          <div className="w-56 shrink-0 flex items-center gap-3">
-                            <div className="p-1.5 rounded-md border border-white/10 bg-white/5">
+                          <div className="relative z-20 w-72 shrink-0 flex items-center gap-3 pr-3 bg-inherit">
+                            <div className="shrink-0 p-1.5 rounded-md border border-white/10 bg-white/5">
                               {isWebDesign ? <Monitor /> : <Code />}
                             </div>
-                            <span className="text-white font-semibold text-sm">
+                            <span
+                              className="min-w-0 text-white font-normal text-[18px] truncate"
+                              title={skill.name}
+                            >
                               {skill.name}
                             </span>
                           </div>
