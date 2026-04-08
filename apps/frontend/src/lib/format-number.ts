@@ -5,7 +5,9 @@
 export function formatNumberCompact(value: number): string {
   if (value < 1000) return value.toLocaleString('pt-BR')
   const k = value / 1000
-  const fixed = k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)
+  // A partir de 1000, mostramos "k" com 2 casas decimais quando não for inteiro:
+  // 1750 => 1,75k (ao invés de 1,8k)
+  const fixed = k % 1 === 0 ? k.toFixed(0) : k.toFixed(2)
   return fixed.replace('.', ',') + 'k'
 }
 

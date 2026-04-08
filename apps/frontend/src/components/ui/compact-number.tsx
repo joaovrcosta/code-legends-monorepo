@@ -22,7 +22,6 @@ type CompactNumberProps = {
   suffix?: string
   tooltipOnlyWhenCompact?: boolean
   enableCountUp?: boolean
-  /** Aplica gradiente vermelho → laranja → amarelo no número e sufixo */
   flameGradient?: boolean
 }
 

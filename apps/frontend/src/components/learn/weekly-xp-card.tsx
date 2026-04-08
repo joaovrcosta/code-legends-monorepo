@@ -7,6 +7,7 @@ import { CompactNumber } from '@/components/ui/compact-number'
 type WeeklyXpCardProps = {
   days: { date: string; xp: number }[]
   totalXp?: number
+  playerName?: string // Adicionado para seguir o estilo da foto
 }
 
 function buildPath(points: { x: number; y: number }[]) {
@@ -21,7 +22,7 @@ function weekdayLetterFromISODate(date: string) {
   return letters[idx] ?? '·'
 }
 
-export function WeeklyXpCard({ days, totalXp }: WeeklyXpCardProps) {
+export function WeeklyXpCard({ days, totalXp, playerName = "Você" }: WeeklyXpCardProps) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
 
   const safeDays =
@@ -29,138 +30,151 @@ export function WeeklyXpCard({ days, totalXp }: WeeklyXpCardProps) {
       ? days.slice(0, 7)
       : [...days, ...Array.from({ length: Math.max(0, 7 - days.length) }, () => ({ date: '', xp: 0 }))]
 
-  const v = safeDays.map((d) => d.xp)
-  const max = Math.max(1, ...v)
+  const values = safeDays.map((d) => d.xp)
+  const maxXP = Math.max(100, ...values) // Mínimo de 100 para o gráfico não ficar vazio
 
-  const w = 320
-  const h = 120
-  const padX = 20 // Aumentado levemente para não cortar o tooltip nas bordas
-  const padY = 20
-  const innerW = w - padX * 2
-  const innerH = h - padY * 2
+  // Define os 5 níveis do eixo Y (como na foto: 0, 25%, 50%, 75%, 100%)
+  const yAxisLevels = [
+    maxXP,
+    Math.round(maxXP * 0.75),
+    Math.round(maxXP * 0.5),
+    Math.round(maxXP * 0.25),
+    0
+  ]
 
-  const pts = v.map((val, idx) => {
-    const x = padX + (innerW * idx) / (v.length - 1)
-    const y = padY + innerH - (innerH * val) / max
-    return { x, y, val, date: safeDays[idx].date }
+  const w = 400
+  const h = 200
+  const labelWidth = 40 // Espaço para os números da esquerda
+  const padBottom = 30 // Espaço para as letras dos dias
+  const padTop = 20
+  const padRight = 10
+
+  const innerW = w - labelWidth - padRight
+  const innerH = h - padTop - padBottom
+
+  const pts = values.map((val, idx) => {
+    const x = labelWidth + (innerW * idx) / (values.length - 1)
+    const y = padTop + innerH - (innerH * val) / maxXP
+    return { x, y, val }
   })
 
   const path = buildPath(pts)
-  const total = typeof totalXp === 'number' ? totalXp : v.reduce((acc, n) => acc + n, 0)
+  const total = typeof totalXp === 'number' ? totalXp : values.reduce((acc, n) => acc + n, 0)
 
   return (
-    <div className="rounded-[20px] border border-[#25252A] bg-gray-gradient p-6 select-none">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-white">XP da semana</p>
+    <div className="rounded-[20px] border border-[#25252A] bg-[#111114] p-6 select-none font-sans w-full max-w-[450px]">
+      {/* Header Estilo Foto */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-[#FF6200]" />
+          <span className="text-sm font-bold text-white tracking-tight">{playerName}</span>
         </div>
-        <p className="text-xs font-semibold text-[#FF6200] tabular-nums">
-          <CompactNumber value={total} suffix="xp" />
-        </p>
+        <div className="text-right">
+          <span className="text-sm font-black text-white tabular-nums">
+            <CompactNumber value={total} /> XP
+          </span>
+        </div>
       </div>
 
-      <div className="relative mt-4 rounded-2xl border border-[#25252A] bg-[#141417] p-4">
-        {/* Tooltip Flutuante */}
+      <div className="relative">
         <AnimatePresence>
           {hoveredIdx !== null && (
             <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="absolute z-10 pointer-events-none"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute z-10 pointer-events-none px-2 py-1 bg-[#FF6200] text-white text-[10px] font-bold rounded shadow-xl"
               style={{
                 left: pts[hoveredIdx].x,
-                top: pts[hoveredIdx].y - 35,
+                top: pts[hoveredIdx].y - 30,
                 transform: 'translateX(-50%)',
               }}
             >
-              <div className="bg-[#FF6200] text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap">
-                {pts[hoveredIdx].val} XP
-                {/* Triângulo do Tooltip */}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#FF6200] rotate-45" />
-              </div>
+              {pts[hoveredIdx].val} XP
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="flex items-center justify-between text-[10px] font-semibold text-[#7e7e89]">
-          <span>0</span>
-          <span><CompactNumber value={Math.round(max / 2)} /></span>
-          <span><CompactNumber value={max} /></span>
-        </div>
-
-        <div className="mt-3 relative">
-          <svg width="100%" viewBox={`0 0 ${w} ${h}`} className="block overflow-visible">
-            <defs>
-              <linearGradient id="weeklyXpLine" x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0%" stopColor="#FF6200" stopOpacity="0.3" />
-                <stop offset="50%" stopColor="#FF6200" stopOpacity="1" />
-                <stop offset="100%" stopColor="#FF6200" stopOpacity="0.3" />
-              </linearGradient>
-            </defs>
-
-            {/* Grid vertical */}
-            {[0, 0.5, 1].map((pos) => (
-              <line
-                key={pos}
-                x1={padX + (innerW * pos)} y1={padY}
-                x2={padX + (innerW * pos)} y2={h - padY}
-                stroke="#25252A" strokeDasharray="2 2"
-              />
-            ))}
-
-            {/* Linha principal com animação de desenho */}
-            <motion.path
-              d={path}
-              fill="none"
-              stroke="url(#weeklyXpLine)"
-              strokeWidth="3"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-            />
-
-            {/* Pontos Interativos */}
-            {pts.map((p, i) => (
-              <g key={i} onMouseEnter={() => setHoveredIdx(i)} onMouseLeave={() => setHoveredIdx(null)}>
-                {/* Área de detecção ampliada (invisível) */}
-                <rect
-                  x={p.x - 15}
-                  y={0}
-                  width={30}
-                  height={h}
-                  fill="transparent"
-                  className="cursor-pointer"
-                />
-
-                {/* O ponto visual */}
-                <motion.circle
-                  cx={p.x}
-                  cy={p.y}
-                  r={hoveredIdx === i ? 5 : 3.5}
-                  fill={hoveredIdx === i ? "#fff" : "#FF6200"}
-                  stroke="#FF6200"
-                  strokeWidth={hoveredIdx === i ? 2 : 0}
-                  animate={{
-                    r: hoveredIdx === i ? 5 : 3.5,
-                  }}
-                  className="transition-colors duration-200"
+        <svg width="100%" viewBox={`0 0 ${w} ${h}`} className="block overflow-visible">
+          {yAxisLevels.map((val, i) => {
+            const yPos = padTop + (innerH * i) / (yAxisLevels.length - 1)
+            return (
+              <g key={`grid-${i}`}>
+                <text
+                  x="0"
+                  y={yPos + 4}
+                  className="fill-[#5e5e66] text-[11px] font-bold"
+                >
+                  {val}
+                </text>
+                <line
+                  x1={labelWidth}
+                  y1={yPos}
+                  x2={w - padRight}
+                  y2={yPos}
+                  stroke="#25252A"
+                  strokeWidth="1.5"
                 />
               </g>
-            ))}
-          </svg>
-        </div>
+            )
+          })}
 
-        <div className="mt-2 flex items-center justify-between px-1 text-[10px] font-semibold text-[#7e7e89]">
-          {safeDays.map((d, idx) => (
-            <span
-              key={`${d.date || 'x'}-${idx}`}
-              className={`w-6 text-center transition-colors ${hoveredIdx === idx ? 'text-white' : ''}`}
+          <motion.path
+            d={path}
+            fill="none"
+            stroke="#FF6200"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ filter: 'drop-shadow(0px 4px 8px rgba(255, 98, 0, 0.2))' }}
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+          />
+
+          {pts.map((p, i) => (
+            <g
+              key={i}
+              onMouseEnter={() => setHoveredIdx(i)}
+              onMouseLeave={() => setHoveredIdx(null)}
+              className="cursor-pointer"
             >
-              {d.date ? weekdayLetterFromISODate(d.date) : '·'}
-            </span>
+              <rect
+                x={p.x - 20}
+                y={0}
+                width={40}
+                height={h}
+                fill="transparent"
+              />
+
+              <motion.circle
+                cx={p.x}
+                cy={p.y}
+                // Aumentamos o raio base de 4 para 8, e o de hover de 5 para 12
+                r={hoveredIdx === i ? 12 : 8}
+                fill={hoveredIdx === i ? "#fff" : "#FF6200"}
+                stroke="#111114"
+                // Aumentar o strokeWidth ajuda a destacar o círculo maior
+                strokeWidth="2"
+                animate={{
+                  // O scale pode ser mantido em 1 ou levemente aumentado para um efeito suave
+                  scale: hoveredIdx === i ? 1.1 : 1
+                }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              />
+
+              <text
+                x={p.x}
+                y={h - 5}
+                textAnchor="middle"
+                className={`text-[11px] font-bold transition-colors duration-200 ${hoveredIdx === i ? 'fill-white' : 'fill-[#5e5e66]'
+                  }`}
+              >
+                {safeDays[i].date ? weekdayLetterFromISODate(safeDays[i].date) : '·'}
+              </text>
+            </g>
           ))}
-        </div>
+        </svg>
       </div>
     </div>
   )

@@ -14,6 +14,7 @@ import { getUserSkills, type UserSkillsResponse } from "@/actions/user/get-user-
 import { updateUserOverview, type UpdateUserOverviewData } from "@/actions/user/update-user-overview";
 import { unenrollUserFromCourse } from "@/actions/user/unenroll-course";
 import { resetUserSkills } from "@/actions/user/reset-user-skills";
+import { getUserXpHistory, type UserXpHistoryRow } from "@/actions/user/get-user-xp-history";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft, User, BookOpen, CheckCircle2, TrendingUp, Award, Clock, Target, Edit, X, CreditCard, Calendar, Eraser } from "lucide-react";
 import Image from "next/image";
@@ -30,9 +31,12 @@ function UserOverviewPageContent() {
   const [skillsProfile, setSkillsProfile] = useState<UserSkillsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showXpLogsModal, setShowXpLogsModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [resettingSkills, setResettingSkills] = useState(false);
   const [editFormData, setEditFormData] = useState<UpdateUserOverviewData>({});
+  const [xpLogsLoading, setXpLogsLoading] = useState(false);
+  const [xpLogsRows, setXpLogsRows] = useState<UserXpHistoryRow[] | null>(null);
   const [lessonsLimit, setLessonsLimit] = useState<number>(() => {
     const limit = searchParams.get("completedLessonsLimit");
     if (limit) {
@@ -141,6 +145,34 @@ function UserOverviewPageContent() {
 
   const formatProgress = (progress: number) => {
     return `${(progress * 100).toFixed(1)}%`;
+  };
+
+  const formatXpLogDate = (iso: string) => {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return new Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(d);
+  };
+
+  const loadXpLogs = async () => {
+    try {
+      setXpLogsLoading(true);
+      const token = getAuthTokenFromClient();
+      if (!token) {
+        toast.error("Token de autenticação não encontrado");
+        return;
+      }
+      const res = await getUserXpHistory(userId, token, { days: 30, limit: 200 });
+      setXpLogsRows(res?.rows ?? []);
+    } catch (error) {
+      console.error("Erro ao carregar logs de XP:", error);
+      toast.error("Erro ao carregar logs de XP");
+      setXpLogsRows([]);
+    } finally {
+      setXpLogsLoading(false);
+    }
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -598,10 +630,25 @@ function UserOverviewPageContent() {
         {/* Informações do Usuário */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Informações do Usuário
-            </CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Informações do Usuário
+              </CardTitle>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  setShowXpLogsModal(true);
+                  if (xpLogsRows == null && !xpLogsLoading) {
+                    await loadXpLogs();
+                  }
+                }}
+              >
+                Ver logs de XP
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -717,6 +764,79 @@ function UserOverviewPageContent() {
             )}
           </CardContent>
         </Card>
+
+        {/* Modal - Logs de XP */}
+        {showXpLogsModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Logs de XP (últimos 30 dias)</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowXpLogsModal(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {xpLogsLoading ? (
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Carregando…
+                  </p>
+                ) : !xpLogsRows || xpLogsRows.length === 0 ? (
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Nenhum log de XP encontrado nesse período.
+                  </p>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Total no período
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">
+                        {xpLogsRows.reduce((acc, r) => acc + (r.xpAmount ?? 0), 0).toLocaleString("pt-BR")} XP
+                      </span>
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Data</TableHead>
+                          <TableHead className="text-right">XP</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {[...xpLogsRows].reverse().map((row, idx) => (
+                          <TableRow key={`${row.createdAt}-${idx}`}>
+                            <TableCell>{formatXpLogDate(row.createdAt)}</TableCell>
+                            <TableCell className="text-right font-medium">
+                              {row.xpAmount.toLocaleString("pt-BR")} XP
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </>
+                )}
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-200 dark:border-[#25252a]">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={async () => {
+                      await loadXpLogs();
+                    }}
+                    disabled={xpLogsLoading}
+                  >
+                    {xpLogsLoading ? "Atualizando…" : "Atualizar"}
+                  </Button>
+                  <Button type="button" onClick={() => setShowXpLogsModal(false)}>
+                    Fechar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Pagamentos */}
         <Card>

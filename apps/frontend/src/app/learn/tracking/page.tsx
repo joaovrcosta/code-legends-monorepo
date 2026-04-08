@@ -11,6 +11,7 @@ import {
 import { CompactNumber } from '@/components/ui/compact-number'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { getUserFromAPI } from '@/actions/user/get-user-from-api'
 import { getWeeklyXp } from '@/actions/user/get-weekly-xp'
@@ -41,6 +42,8 @@ export default async function TrackingPage() {
   const totalXp =
     userFromAPI?.totalXp ?? user.totalXp ?? skills.reduce((acc, s) => acc + (s.xp ?? 0), 0)
   const level = userFromAPI?.level ?? user.level ?? 1
+  const xpToNextLevel = userFromAPI?.xpToNextLevel ?? user.xpToNextLevel ?? 100
+  const xpForNextLevel = totalXp + xpToNextLevel
   const offensive = 0
 
   return (
@@ -77,16 +80,29 @@ export default async function TrackingPage() {
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-[#7e7e89]">
                     XP Total
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-[#FF6200] tabular-nums">
-                    <CompactNumber value={totalXp} />
-                  </p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Image src="/xp-icon.svg" alt="XP" width={11} height={20} />
+                    <p className="text-lg font-semibold tabular-nums">
+                      <CompactNumber
+                        value={totalXp}
+                        flameGradient
+                        enableCountUp
+                      />{' '}
+                      <span className="text-[#7e7e89]">/</span>{' '}
+                      <CompactNumber
+                        value={xpForNextLevel}
+                        className="text-[#7e7e89]"
+                        tooltipOnlyWhenCompact={false}
+                      />
+                    </p>
+                  </div>
                 </div>
 
                 <div className="rounded-full border border-[#25252A] bg-[#141417] px-6 py-3">
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-[#7e7e89]">
                     Nível geral
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-[#00C8FF] tabular-nums">
+                  <p className="mt-1 text-lg font-semibold text-[#00C8FF] tabular-nums">
                     {level}
                   </p>
                 </div>

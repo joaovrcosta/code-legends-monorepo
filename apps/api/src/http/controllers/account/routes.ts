@@ -29,6 +29,8 @@ import { verifyAdmin } from '../../middlewares/verify-admin'
 import { verifyInstructorOrAdmin } from '../../middlewares/verify-instructor-or-admin'
 import { updateCheckoutDados } from './update-checkout-dados.controller'
 import { getWeeklyXp } from './get-weekly-xp.controller'
+import { getXpHistory } from './get-xp-history.controller'
+import { getUserXpHistory } from './get-user-xp-history.controller'
 
 export async function usersRoutes(app: FastifyInstance) {
   app.post('/users', create)
@@ -39,6 +41,7 @@ export async function usersRoutes(app: FastifyInstance) {
   // Rotas autenticadas
   app.get('/me', { onRequest: [verifyJWT] }, profile)
   app.get('/me/xp/weekly', { onRequest: [verifyJWT] }, getWeeklyXp)
+  app.get('/me/xp/history', { onRequest: [verifyJWT] }, getXpHistory)
   app.get('/me/subscription-overview', { onRequest: [verifyJWT] }, getSubscriptionOverview)
   app.get('/me/checkout-dados', { onRequest: [verifyJWT] }, getCheckoutDados)
   app.patch(
@@ -79,6 +82,11 @@ export async function usersRoutes(app: FastifyInstance) {
     '/users/:userId/overview',
     { onRequest: [verifyAdmin] },
     updateAccountData,
+  )
+  app.get(
+    '/users/:userId/xp/history',
+    { onRequest: [verifyInstructorOrAdmin] },
+    getUserXpHistory,
   )
 
   // Rotas protegidas - ADMIN ou INSTRUCTOR

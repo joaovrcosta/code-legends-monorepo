@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import type { UserSkillTrackingItem } from '@/actions/user/get-my-skills'
 import { SkillMark } from '@/components/classroom/skill-mark'
 import { CompactNumber } from '@/components/ui/compact-number'
+import Image from 'next/image'
 
 const VISIBLE_COLLAPSED = 3
 
@@ -36,7 +37,7 @@ export function SkillsTrackingCard({ skills }: SkillsTrackingCardProps) {
   }
 
   return (
-    <div className="rounded-[20px] border border-[#25252A] bg-transparent p-6">
+    <div className="rounded-[20px] border border-[#25252A] bg-gray-gradient p-6">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-sm font-medium text-white">Principais skills</h2>
       </div>
@@ -67,9 +68,10 @@ export function SkillsTrackingCard({ skills }: SkillsTrackingCardProps) {
               </div>
             </div>
 
-            <div className="shrink-0 text-right">
-              <span className="text-base font-semibold text-[#FF6200] tabular-nums">
-                <CompactNumber value={skill.xp} suffix="XP" />
+            <div className="shrink-0">
+              <span className="inline-flex items-center gap-2 text-base font-semibold text-[#FF6200] tabular-nums">
+                <Image src="/xp-icon.svg" alt="XP" width={11} height={20} />
+                <CompactNumber value={skill.xp} suffix="XP" flameGradient enableCountUp />
               </span>
             </div>
           </div>
