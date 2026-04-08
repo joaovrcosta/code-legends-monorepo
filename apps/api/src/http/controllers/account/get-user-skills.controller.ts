@@ -44,6 +44,7 @@ export async function getUserSkills(request: FastifyRequest, reply: FastifyReply
             id: true,
             name: true,
             slug: true,
+            imageUrl: true,
           },
         },
       },
@@ -64,6 +65,7 @@ export async function getUserSkills(request: FastifyRequest, reply: FastifyReply
         skillId: item.skillId,
         name: item.skill.name,
         slug: item.skill.slug,
+        imageUrl: item.skill.imageUrl,
         xp: item.xp,
       })),
     });

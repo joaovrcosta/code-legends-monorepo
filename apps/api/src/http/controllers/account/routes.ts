@@ -28,6 +28,7 @@ import { verifyJWT } from '../../middlewares/verify-jwt'
 import { verifyAdmin } from '../../middlewares/verify-admin'
 import { verifyInstructorOrAdmin } from '../../middlewares/verify-instructor-or-admin'
 import { updateCheckoutDados } from './update-checkout-dados.controller'
+import { getWeeklyXp } from './get-weekly-xp.controller'
 
 export async function usersRoutes(app: FastifyInstance) {
   app.post('/users', create)
@@ -37,6 +38,7 @@ export async function usersRoutes(app: FastifyInstance) {
 
   // Rotas autenticadas
   app.get('/me', { onRequest: [verifyJWT] }, profile)
+  app.get('/me/xp/weekly', { onRequest: [verifyJWT] }, getWeeklyXp)
   app.get('/me/subscription-overview', { onRequest: [verifyJWT] }, getSubscriptionOverview)
   app.get('/me/checkout-dados', { onRequest: [verifyJWT] }, getCheckoutDados)
   app.patch(

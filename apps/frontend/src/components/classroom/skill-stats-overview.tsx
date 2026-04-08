@@ -11,7 +11,8 @@ import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { CompactNumber } from '@/components/ui/compact-number'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { Code, Monitor, TrendUp } from '@phosphor-icons/react/dist/ssr'
+import { SkillMark } from '@/components/classroom/skill-mark'
+import { TrendUp } from '@phosphor-icons/react/dist/ssr'
 
 const CONFETTI_COLORS = [
   '#00C8FF',
@@ -361,10 +362,9 @@ export function SkillStatsOverview() {
                         2,
                         Math.min(100, (currentXp / axisMaxValue) * 100),
                       )
-                      // Define o ícone com base no nome da skill para exemplificar
-                      const isWebDesign = skill.name
-                        .toLowerCase()
-                        .includes('design')
+                      const imageUrl = (
+                        skill as { imageUrl?: string | null }
+                      ).imageUrl
 
                       return (
                         <div
@@ -374,8 +374,13 @@ export function SkillStatsOverview() {
                         >
                           {/* Nome da Skill */}
                           <div className="relative z-20 w-72 shrink-0 flex items-center gap-3 pr-3 bg-inherit">
-                            <div className="shrink-0 p-1.5 rounded-md border border-white/10 bg-white/5">
-                              {isWebDesign ? <Monitor /> : <Code />}
+                            <div className="shrink-0 p-1.5 rounded-md border border-white/10 bg-white/5 flex items-center justify-center">
+                              <SkillMark
+                                name={skill.name}
+                                slug={skill.slug}
+                                imageUrl={imageUrl}
+                                size={22}
+                              />
                             </div>
                             <span
                               className="min-w-0 text-white font-normal text-[18px] truncate"

@@ -3,6 +3,7 @@ export type SkillConfigItem = {
   name: string
   slug: string
   description?: string | null
+  imageUrl?: string | null
   weight: number
 }
 

@@ -10,11 +10,19 @@ export async function createSkill(
     name: z.string().min(2),
     slug: z.string().min(2),
     description: z.string().optional(),
+    imageUrl: z
+      .union([z.string().max(2048), z.literal(''), z.null()])
+      .optional(),
   })
 
-  const { name, slug, description } = createSkillBodySchema.parse(
-    request.body,
-  )
+  const body = createSkillBodySchema.parse(request.body)
+  const { name, slug, description, imageUrl: imageUrlRaw } = body
+  const imageUrl =
+    imageUrlRaw !== undefined &&
+    imageUrlRaw !== null &&
+    String(imageUrlRaw).length > 0
+      ? String(imageUrlRaw)
+      : null
 
   try {
     const skill = await prisma.skill.create({
@@ -22,6 +30,7 @@ export async function createSkill(
         name,
         slug,
         description,
+        imageUrl,
       },
     })
 

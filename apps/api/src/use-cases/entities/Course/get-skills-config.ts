@@ -61,6 +61,7 @@ export class GetCourseSkillsConfigUseCase {
             name: true,
             slug: true,
             description: true,
+            imageUrl: true,
           },
         },
       },
@@ -79,6 +80,7 @@ export class GetCourseSkillsConfigUseCase {
         name: row.skill.name,
         slug: row.skill.slug,
         description: row.skill.description,
+        imageUrl: row.skill.imageUrl,
         weight: row.weight,
       }
       if (!existing) {

@@ -6,6 +6,7 @@ export type UserSkillTrackingItem = {
   skillId: string;
   name: string;
   slug: string;
+  imageUrl?: string | null;
   xp: number;
 };
 

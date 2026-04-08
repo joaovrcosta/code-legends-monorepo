@@ -6,6 +6,7 @@ export interface CourseSkillProgressItem {
   skillId: string;
   name: string;
   slug: string;
+  imageUrl?: string | null;
   weight: number;
   totalXp: number;
   gainedXpInModule?: number;

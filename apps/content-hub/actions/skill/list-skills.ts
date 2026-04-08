@@ -5,6 +5,7 @@ export interface Skill {
   name: string;
   slug: string;
   description?: string | null;
+  imageUrl?: string | null;
   coursesCount?: number;
 }
 

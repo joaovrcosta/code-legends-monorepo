@@ -13,11 +13,26 @@ export async function updateSkill(
   const updateSkillBodySchema = z.object({
     name: z.string().min(2).optional(),
     slug: z.string().min(2).optional(),
-    description: z.string().optional(),
+    description: z.string().optional().nullable(),
+    imageUrl: z.union([z.string().max(2048), z.literal(''), z.null()]).optional(),
   })
 
   const { id } = paramsSchema.parse(request.params)
-  const data = updateSkillBodySchema.parse(request.body)
+  const raw = updateSkillBodySchema.parse(request.body)
+
+  const data: {
+    name?: string
+    slug?: string
+    description?: string | null
+    imageUrl?: string | null
+  } = {}
+  if (raw.name !== undefined) data.name = raw.name
+  if (raw.slug !== undefined) data.slug = raw.slug
+  if (raw.description !== undefined) data.description = raw.description
+  if (raw.imageUrl !== undefined) {
+    data.imageUrl =
+      raw.imageUrl === null || raw.imageUrl === '' ? null : raw.imageUrl
+  }
 
   try {
     const skill = await prisma.skill.update({

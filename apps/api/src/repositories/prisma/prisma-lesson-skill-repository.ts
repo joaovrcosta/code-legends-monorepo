@@ -15,6 +15,7 @@ export class PrismaLessonSkillRepository implements ILessonSkillRepository {
             name: true,
             slug: true,
             description: true,
+            imageUrl: true,
           },
         },
       },
@@ -26,6 +27,7 @@ export class PrismaLessonSkillRepository implements ILessonSkillRepository {
       name: ls.skill.name,
       slug: ls.skill.slug,
       description: ls.skill.description,
+      imageUrl: ls.skill.imageUrl,
       weight: ls.weight,
     }))
   }

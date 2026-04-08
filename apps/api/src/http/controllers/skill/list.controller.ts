@@ -39,6 +39,7 @@ export async function listSkills(
         name: true,
         slug: true,
         description: true,
+        imageUrl: true,
         _count: {
           select: {
             courses: true,
@@ -57,6 +58,7 @@ export async function listSkills(
         name: skill.name,
         slug: skill.slug,
         description: skill.description,
+        imageUrl: skill.imageUrl,
         coursesCount: skill._count.courses,
       })),
     })

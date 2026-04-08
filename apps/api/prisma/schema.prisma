@@ -244,6 +244,8 @@ model Skill {
   slug        String           @unique
   name        String
   description String?
+  /// URL pública opcional (ícone/imagem da skill, análogo ao avatar do usuário)
+  imageUrl    String?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 

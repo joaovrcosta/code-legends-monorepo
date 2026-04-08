@@ -57,6 +57,7 @@ export async function getSkillsProgress(
             id: true,
             name: true,
             slug: true,
+            imageUrl: true,
           },
         },
       },
@@ -127,7 +128,7 @@ export async function getSkillsProgress(
         const [skillMeta, userSkills] = await Promise.all([
           prisma.skill.findMany({
             where: { id: { in: unionSkillIds } },
-            select: { id: true, name: true, slug: true },
+            select: { id: true, name: true, slug: true, imageUrl: true },
           }),
           prisma.userSkillXp.findMany({
             where: { userId: targetUserId, skillId: { in: unionSkillIds } },
@@ -135,8 +136,14 @@ export async function getSkillsProgress(
           }),
         ])
 
-        const metaById = new Map<string, { name: string; slug: string }>(
-          skillMeta.map((s) => [s.id, { name: s.name, slug: s.slug }]),
+        const metaById = new Map<
+          string,
+          { name: string; slug: string; imageUrl: string | null }
+        >(
+          skillMeta.map((s) => [
+            s.id,
+            { name: s.name, slug: s.slug, imageUrl: s.imageUrl },
+          ]),
         )
 
         const xpBySkill = new Map<string, number>()
@@ -151,6 +158,7 @@ export async function getSkillsProgress(
               skillId,
               name: meta?.name ?? skillId,
               slug: meta?.slug ?? skillId,
+              imageUrl: meta?.imageUrl ?? null,
               weight: weightByCourseSkill.get(skillId) ?? 0,
               totalXp: xpBySkill.get(skillId) ?? 0,
             }
@@ -184,6 +192,7 @@ export async function getSkillsProgress(
             skillId: s.skillId,
             name: s.name,
             slug: s.slug,
+            imageUrl: s.imageUrl ?? null,
             weight: s.weight,
             totalXp: s.totalXp,
             gainedXpInModule: s.gainedXpInModule,
@@ -228,6 +237,7 @@ export async function getSkillsProgress(
       skillId: cs.skillId,
       name: cs.skill.name,
       slug: cs.skill.slug,
+      imageUrl: cs.skill.imageUrl,
       weight: cs.weight,
       totalXp: xpBySkill.get(cs.skillId) ?? 0,
     }))

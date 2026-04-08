@@ -6,6 +6,7 @@ interface CreateSkillInput {
   name: string;
   slug: string;
   description?: string;
+  imageUrl?: string | null;
 }
 
 export async function createSkill(

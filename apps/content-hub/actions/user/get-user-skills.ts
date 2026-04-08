@@ -7,6 +7,7 @@ export interface UserSkillItem {
   skillId: string;
   name: string;
   slug: string;
+  imageUrl?: string | null;
   xp: number;
 }
 

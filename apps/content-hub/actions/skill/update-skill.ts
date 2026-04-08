@@ -6,6 +6,7 @@ interface UpdateSkillInput {
   name?: string;
   slug?: string;
   description?: string | null;
+  imageUrl?: string | null;
 }
 
 export async function updateSkill(
