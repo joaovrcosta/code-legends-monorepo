@@ -4,6 +4,10 @@ import { ICourseRepository } from "../../../repositories/course-repository";
 import { IUserCourseRepository } from "../../../repositories/user-course-repository";
 import { UserNotFoundError } from "../../errors/user-not-found";
 import { CourseNotFoundError } from "../../errors/course-not-found";
+import {
+  calculateLevel,
+  calculateXpRemainingToNextLevel,
+} from "../../../utils/xp-progression";
 
 interface UnenrollFromCourseRequest {
   userId: string;
@@ -62,42 +66,7 @@ export class UnenrollFromCourseUseCase {
       const lessonIds = lessons.map((l) => l.id);
 
       if (lessonIds.length > 0) {
-        // 2) Remover XP global relacionado a essas lessons
-        const xpHistoryEntries = await tx.userXpHistory.findMany({
-          where: {
-            userId,
-            source: "lesson_completed",
-            sourceId: {
-              in: lessonIds,
-            },
-          },
-        });
-
-        const xpToRemove = xpHistoryEntries.reduce(
-          (sum, entry) => sum + entry.xpAmount,
-          0
-        );
-
-        if (xpToRemove > 0) {
-          const updatedTotalXp = Math.max(0, user.totalXp - xpToRemove);
-
-          // Recalcular level e xpToNextLevel com base nas funções existentes
-          const level = this.calculateLevel(updatedTotalXp);
-          const xpToNextLevel = this.calculateXpToNextLevel(
-            level,
-            updatedTotalXp
-          );
-
-          await tx.user.update({
-            where: { id: userId },
-            data: {
-              totalXp: updatedTotalXp,
-              level,
-              xpToNextLevel,
-            },
-          });
-        }
-
+        // 2) Remover histórico global relacionado a essas lessons
         await tx.userXpHistory.deleteMany({
           where: {
             userId,
@@ -164,6 +133,33 @@ export class UnenrollFromCourseUseCase {
             },
           });
         }
+
+        // 3.1) Remover eventos idempotentes associados a essas lessons
+        await tx.userXpEvent.deleteMany({
+          where: {
+            userId,
+            source: "lesson_completed",
+            sourceId: { in: lessonIds },
+          },
+        });
+
+        // 3.2) Recalcular cache do usuário a partir da soma de skills (fonte da verdade)
+        const agg = await tx.userSkillXp.aggregate({
+          where: { userId },
+          _sum: { xp: true },
+        });
+        const totalXp = agg._sum.xp ?? 0;
+        const level = calculateLevel(totalXp);
+        const xpToNextLevel = calculateXpRemainingToNextLevel(level, totalXp);
+
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            totalXp,
+            level,
+            xpToNextLevel,
+          },
+        });
       }
 
       // 4) Apagar progressos e módulos desbloqueados desse curso
@@ -204,34 +200,5 @@ export class UnenrollFromCourseUseCase {
     };
   }
 
-  private calculateXpForLevel(level: number): number {
-    if (level <= 1) return 0;
-    let total = 0;
-    for (let lvl = 1; lvl < level; lvl++) {
-      total += this.calculateXpRequiredForNextLevel(lvl);
-    }
-    return total;
-  }
-
-  private calculateXpRequiredForNextLevel(level: number): number {
-    return 100 + (level - 1) * 50;
-  }
-
-  private calculateLevel(totalXp: number): number {
-    if (totalXp < 100) return 1;
-
-    let level = 1;
-    while (this.calculateXpForLevel(level + 1) <= totalXp) {
-      level++;
-    }
-    return level;
-  }
-
-  private calculateXpToNextLevel(level: number, totalXp: number): number {
-    const xpForCurrentLevel = this.calculateXpForLevel(level);
-    const xpForNextLevel = this.calculateXpForLevel(level + 1);
-    const xpNeeded = xpForNextLevel - totalXp;
-    return Math.max(0, xpNeeded);
-  }
 }
 

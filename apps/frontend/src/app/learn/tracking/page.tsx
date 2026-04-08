@@ -42,8 +42,8 @@ export default async function TrackingPage() {
   const totalXp =
     userFromAPI?.totalXp ?? user.totalXp ?? skills.reduce((acc, s) => acc + (s.xp ?? 0), 0)
   const level = userFromAPI?.level ?? user.level ?? 1
-  const xpToNextLevel = userFromAPI?.xpToNextLevel ?? user.xpToNextLevel ?? 100
-  const xpForNextLevel = totalXp + xpToNextLevel
+  const xpRemainingToNextLevel = userFromAPI?.xpToNextLevel ?? user.xpToNextLevel ?? 100
+  const xpForNextLevel = totalXp + xpRemainingToNextLevel
   const offensive = 0
 
   return (

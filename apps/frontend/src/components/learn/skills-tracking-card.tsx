@@ -15,9 +15,11 @@ export type SkillsTrackingCardProps = {
 export function SkillsTrackingCard({ skills }: SkillsTrackingCardProps) {
   const [expanded, setExpanded] = useState(false)
 
+  const visibleSkills = useMemo(() => skills.filter((s) => s.slug !== 'general'), [skills])
+
   const sortedSkills = useMemo(() => {
-    return [...skills].sort((a, b) => b.xp - a.xp)
-  }, [skills])
+    return [...visibleSkills].sort((a, b) => b.xp - a.xp)
+  }, [visibleSkills])
 
   const hasOverflow = sortedSkills.length > VISIBLE_COLLAPSED
   const displayed = useMemo(() => {
@@ -25,7 +27,7 @@ export function SkillsTrackingCard({ skills }: SkillsTrackingCardProps) {
     return sortedSkills.slice(0, VISIBLE_COLLAPSED)
   }, [sortedSkills, expanded, hasOverflow])
 
-  if (skills.length === 0) {
+  if (visibleSkills.length === 0) {
     return (
       <div className="rounded-[20px] border border-[#25252A] bg-[#1A1A1E] px-6 py-10 text-center">
         <p className="text-sm text-[#C4C4CC]">Ainda não há XP por skill.</p>

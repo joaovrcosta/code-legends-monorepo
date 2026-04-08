@@ -110,7 +110,7 @@ export class NotificationBuilder {
       userId,
       type: NotificationType.NEW_COURSE_AVAILABLE,
       title: "Novo Curso Disponível! 🎉",
-      message: `Um novo curso fresquinho saiu: ${course.courseTitle} por ${course.instructorName ? ` por ${course.instructorName}` : ""} está disponível. Confira agora!`,
+      message: `Um novo curso fresquinho saiu: ${course.courseTitle}${course.instructorName ? ` por ${course.instructorName}` : ""} está disponível. Confira agora!`,
       data: {
         courseId: course.courseId,
         courseTitle: course.courseTitle,

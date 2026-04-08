@@ -22,8 +22,8 @@ export async function UserProfiler() {
   const firstName = user?.name?.split(' ')[0] || 'Usuário'
 
   const level = userFromAPI?.level ?? user?.level ?? 1
-  const _totalXp = userFromAPI?.totalXp ?? user?.totalXp ?? 0
-  const xpToNextLevel = userFromAPI?.xpToNextLevel ?? user?.xpToNextLevel ?? 100
+  const xpRemainingToNextLevel =
+    userFromAPI?.xpToNextLevel ?? user?.xpToNextLevel ?? 100
 
   // Calcula o XP necessário apenas para o próximo nível
   const calculateXpRequiredForNextLevel = (lvl: number): number => {
@@ -33,7 +33,7 @@ export async function UserProfiler() {
   // XP necessário para passar do nível atual para o próximo
   const xpNeededForNextLevel = calculateXpRequiredForNextLevel(level)
   // XP atual no nível = XP necessário - XP que falta
-  const currentLevelXp = xpNeededForNextLevel - xpToNextLevel
+  const currentLevelXp = xpNeededForNextLevel - xpRemainingToNextLevel
   // Progresso: quanto XP já tem no nível atual / quanto precisa para o próximo nível
   const progress =
     xpNeededForNextLevel > 0

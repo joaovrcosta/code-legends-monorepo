@@ -121,6 +121,7 @@ model User {
   xpHistory           UserXpHistory[]
   skillXp             UserSkillXp[]
   skillXpHistory      UserSkillXpHistory[]
+  xpEvents            UserXpEvent[]
   requests            Request[]
   notifications       Notification[]
   payments            Payment[]
@@ -444,6 +445,20 @@ model UserXpHistory {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, createdAt])
+}
+
+model UserXpEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  reasonId  String
+  source    String
+  sourceId  Int?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reasonId])
   @@index([userId, createdAt])
 }
 

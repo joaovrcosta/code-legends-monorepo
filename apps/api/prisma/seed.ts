@@ -11,6 +11,11 @@ const INSTRUCTOR_EMAIL = 'seed-instructor@codelegends.com.br'
 
 const SKILLS = [
   {
+    slug: 'general',
+    name: 'Geral',
+    description: 'XP global/bônus não atribuído a uma skill específica.',
+  },
+  {
     slug: 'javascript',
     name: 'JavaScript',
     description: 'Fundamentos e práticas modernas de JavaScript para web.',

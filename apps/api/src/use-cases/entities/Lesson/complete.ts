@@ -10,6 +10,12 @@ import { CourseNotFoundError } from '../../errors/course-not-found'
 import { prisma } from '../../../lib/prisma'
 import { NotificationBuilder } from '../../../utils/notification-builder'
 import { createNotification } from '../../../utils/create-notification'
+import { AwardXpUseCase } from '../Account/award-xp'
+import {
+  calculateLevel,
+  calculateXpRemainingToNextLevel,
+} from '../../../utils/xp-progression'
+import { getGamificationSettingsCached } from '../../../utils/gamification-settings-cache'
 
 interface CompleteLessonRequest {
   userId: string
@@ -35,7 +41,7 @@ interface CompleteLessonResponse {
 }
 
 export class CompleteLessonUseCase {
-  private readonly XP_PER_LESSON = 15 // XP fixo por lição completada
+  private readonly awardXpUseCase = new AwardXpUseCase()
 
   constructor(
     private userProgressRepository: IUserProgressRepository,
@@ -45,7 +51,7 @@ export class CompleteLessonUseCase {
     private moduleRepository: IModuleRepository,
     private courseRepository: ICourseRepository,
     private usersRepository: IUsersRepository,
-  ) {}
+  ) { }
 
   async execute({
     userId,
@@ -122,94 +128,72 @@ export class CompleteLessonUseCase {
       throw new Error('User not found')
     }
 
-    xpToNextLevel = this.calculateXpToNextLevel(user.level, user.totalXp)
+    const gamification = await getGamificationSettingsCached()
 
     const xpAmount =
       isMultiQuiz && score != null && score >= 70
-        ? Math.round(this.XP_PER_LESSON * 1.4)
-        : this.XP_PER_LESSON
+        ? Math.round(gamification.xpPerLesson * gamification.xpQuizMultiplier)
+        : gamification.xpPerLesson
 
     // Também concede XP para QUIZ quando concluído (senão o final do módulo fica +0xp).
     if (!wasAlreadyCompleted && isCompleted) {
-      const newTotalXp = user.totalXp + xpAmount
-      const newLevel = this.calculateLevel(newTotalXp)
-      const newXpToNextLevel = this.calculateXpToNextLevel(newLevel, newTotalXp)
-
-      const levelUp = newLevel > user.level
+      const applySkillsXp = (
+        skillRows: Array<{ skillId: string; weight: number }>,
+      ) => {
+        if (skillRows.length === 0 || xpAmount <= 0) return []
+        return skillRows
+          .map((row) => ({
+            skillId: row.skillId,
+            xpAmount: Math.round(xpAmount * (row.weight / 100)),
+          }))
+          .filter((e) => e.xpAmount > 0)
+      }
 
       await prisma.$transaction(async (tx) => {
-        await tx.user.update({
-          where: { id: userId },
-          data: {
-            totalXp: newTotalXp,
-            level: newLevel,
-            xpToNextLevel: newXpToNextLevel,
-          },
-        })
+        // Regra aditiva: aplica skills do curso + skills específicas da aula (se existirem).
+        const entries = [...applySkillsXp(courseSkills), ...applySkillsXp(lessonSkills)]
+        const distributedXp = entries.reduce((acc, e) => acc + e.xpAmount, 0)
 
-        // Registrar no histórico de XP
-        await tx.userXpHistory.create({
-          data: {
-            userId,
-            xpAmount,
-            source: 'lesson_completed',
-            sourceId: lessonId,
-            description: `Completou lição: ${lesson.title}`,
-          },
-        })
+        if (distributedXp < xpAmount) {
+          const generalSkill = await tx.skill.upsert({
+            where: { slug: 'general' },
+            update: {},
+            create: {
+              slug: 'general',
+              name: 'Geral',
+              description: 'XP global/bônus não atribuído a uma skill específica.',
+            },
+            select: { id: true },
+          })
 
-        const applySkillsXp = async (
-          skillRows: Array<{ skillId: string; weight: number }>,
-        ) => {
-          if (skillRows.length === 0 || xpAmount <= 0) return
-
-          for (const row of skillRows) {
-            const skillXp = Math.round(xpAmount * (row.weight / 100))
-            if (skillXp <= 0) continue
-
-            await tx.userSkillXp.upsert({
-              where: {
-                userId_skillId: {
-                  userId,
-                  skillId: row.skillId,
-                },
-              },
-              update: {
-                xp: {
-                  increment: skillXp,
-                },
-              },
-              create: {
-                userId,
-                skillId: row.skillId,
-                xp: skillXp,
-              },
-            })
-
-            await tx.userSkillXpHistory.create({
-              data: {
-                userId,
-                skillId: row.skillId,
-                xpAmount: skillXp,
-                source: 'lesson_completed',
-                sourceId: lessonId,
-                description: `XP de skill ao completar lição: ${lesson.title}`,
-              },
-            })
-          }
+          entries.push({
+            skillId: generalSkill.id,
+            xpAmount: xpAmount - distributedXp,
+          })
         }
 
-        // Regra aditiva: aplica skills do curso + skills específicas da aula (se existirem).
-        await applySkillsXp(courseSkills)
-        await applySkillsXp(lessonSkills)
+        const awardResult = await this.awardXpUseCase.executeInTx(tx, {
+          userId,
+          reasonId: `lesson_completed:${lessonId}`,
+          source: 'lesson_completed',
+          sourceId: lessonId,
+          description: `Completou lição: ${lesson.title}`,
+          entries,
+        })
 
-        if (levelUp) {
+        // espelha para variáveis externas da resposta
+        xpGained = awardResult.xpGained
+        totalXp = awardResult.totalXp
+        level = awardResult.level
+        xpToNextLevel = awardResult.xpToNextLevel
+
+        if (awardResult.levelUp) {
           try {
             const notificationData =
               NotificationBuilder.createLevelUpNotification(userId, {
-                level: newLevel,
-                totalXp: newTotalXp,
-                xpToNextLevel: newXpToNextLevel,
+                level: awardResult.level,
+                totalXp: awardResult.totalXp,
+                xpToNextLevel: awardResult.xpToNextLevel,
               })
 
             await createNotification({
@@ -221,23 +205,25 @@ export class CompleteLessonUseCase {
           }
         }
       })
-
-      xpGained = xpAmount
-      totalXp = newTotalXp
-      level = newLevel
-      xpToNextLevel = newXpToNextLevel
     } else {
-      // Se já estava completa, recalcular nível e xpToNextLevel baseado no XP atual
-      // Isso garante que se a fórmula mudou, os valores sejam atualizados
-      totalXp = user.totalXp
-      level = this.calculateLevel(user.totalXp)
-      xpToNextLevel = this.calculateXpToNextLevel(level, user.totalXp)
+      // Se já estava completa, recalc cache a partir da soma de skills.
+      const agg = await prisma.userSkillXp.aggregate({
+        where: { userId },
+        _sum: { xp: true },
+      })
+      totalXp = agg._sum.xp ?? 0
+      level = calculateLevel(totalXp)
+      xpToNextLevel = calculateXpRemainingToNextLevel(level, totalXp)
 
-      // Se o nível calculado for diferente do armazenado, atualizar no banco
-      if (level !== user.level || xpToNextLevel !== user.xpToNextLevel) {
+      if (
+        totalXp !== user.totalXp ||
+        level !== user.level ||
+        xpToNextLevel !== user.xpToNextLevel
+      ) {
         await prisma.user.update({
           where: { id: userId },
           data: {
+            totalXp,
             level,
             xpToNextLevel,
           },
