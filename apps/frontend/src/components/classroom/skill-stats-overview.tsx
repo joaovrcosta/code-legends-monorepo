@@ -13,6 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { SkillMark } from '@/components/classroom/skill-mark'
 import { TrendUp } from '@phosphor-icons/react/dist/ssr'
+import { cn } from '@/lib/utils'
+import Image from 'next/image'
+import medalIcon from '../../../public/medalha-3d-icon-png-download-10823670.webp'
 
 const CONFETTI_COLORS = [
   '#00C8FF',
@@ -23,6 +26,19 @@ const CONFETTI_COLORS = [
   '#66dfff',
   '#0077aa',
 ]
+
+function XpIcon({ className }: { className?: string }) {
+  return (
+    <img
+      src="/xp-icon.svg"
+      alt=""
+      width={11}
+      height={20}
+      className={cn('shrink-0 object-contain', className)}
+      aria-hidden
+    />
+  )
+}
 
 export function SkillStatsOverview() {
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
@@ -50,6 +66,8 @@ export function SkillStatsOverview() {
     : (lastModuleCompletion?.xpGainedInModule ??
       lastModuleCompletion?.xpGained ??
       0)
+
+  const studyMinutesDisplay = data?.studyMinutesInModule ?? 0
 
   const skillsWithGainFallback = useMemo(() => {
     if (!data?.skills?.length) return []
@@ -278,33 +296,51 @@ export function SkillStatsOverview() {
   return (
     <TooltipProvider delayDuration={300}>
       <div className="font-wotfard rounded-2xl px-5 py-5 lg:px-6 lg:py-6 space-y-8">
-        <div className="space-y-6">
+        <div className="space-y-6 flex items-center justify-center flex-col">
           <div
             className={`space-y-1 transition-all duration-500 ease-out ${showTitle ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
               }`}
           >
-            <p className="text-xl font-semibold uppercase tracking-[0.18em] text-[#00c8ff] mb-4">
-              Módulo concluído!🎉
+            <p className="text-2xl font-semibold text-center uppercase text-yellow-500 font-wotfard mb-4">
+              Módulo concluído!
             </p>
-            <p className="text-sm text-[#e5e7eb]">
+            {/* <p className="text-sm text-[#e5e7eb] text-center">
               Curso <span className="font-semibold text-[#00c8ff]">{courseProgressPercent}%</span> completo
-            </p>
+            </p> */}
+            <div className="flex items-center justify-center">
+              <Image src={medalIcon} alt="Medalha" width={240} height={240} />
+            </div>
           </div>
 
           <div
-            className={`rounded-2xl py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between transition-all duration-500 ease-out ${showStats ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+            className={`rounded-2xl items-center justify-center py-4 px-4 flex flex-row gap-4 transition-all duration-500 ease-out ${showStats ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
               }`}
           >
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4 backdrop-blur-sm">
-              <div className="flex flex-col items-end">
-                <span className="text-[10px] uppercase tracking-[0.2em] text-[#7e7e89]">Total Ganhos</span>
-                <span className="font-semibold w-full italic mt-1 bg-[linear-gradient(90deg,#ef4444_0%,#f97316_50%,#eab308_100%)] bg-clip-text text-transparent gap-2 text-2xl">
-                  +<CompactNumber value={xpTotalDisplay} enableCountUp />
-                  <span className="text-sm text-orange-500 font-bold">XP</span>
-                </span>
+            {/* Card Total XP */}
+            <div className="border border-white/10 rounded-[32px] px-8 py-5 flex items-center justify-center bg-gray-gradient min-w-[180px]">
+              <div className="flex flex-col items-center justify-center">
+                <span className="text-[10px] uppercase tracking-[0.2em] text-[#7e7e89] whitespace-nowrap">Total XP</span>
+                <div className="font-semibold italic mt-1 flex flex-row items-center gap-2 text-3xl">
+                  <XpIcon className="h-7 w-auto shrink-0" />
+                  <span className="bg-[linear-gradient(90deg,#ef4444_0%,#f97316_50%,#eab308_100%)] bg-clip-text text-transparent whitespace-nowrap">
+                    +<CompactNumber value={xpTotalDisplay} enableCountUp />
+                  </span>
+                  <span className="text-sm text-orange-500 font-bold not-italic self-end mb-1">XP</span>
+                </div>
               </div>
-              <div className="w-[1px] h-10 bg-white/10" />
-              <TrendUp size={32} className="text-orange-500" weight="bold" />
+            </div>
+
+            {/* Card Tempo de Estudo */}
+            <div className="border border-white/10 rounded-[32px] px-8 py-5 flex items-center justify-center bg-gray-gradient min-w-[180px]">
+              <div className="flex flex-col items-center justify-center">
+                <span className="text-[10px] uppercase tracking-[0.2em] text-[#7e7e89] whitespace-nowrap">Tempo de estudo</span>
+                <div className="font-semibold italic mt-1 flex flex-row items-center justify-center text-3xl">
+                  <span className="text-white bg-clip-text text-transparent">
+                    <CompactNumber value={studyMinutesDisplay} enableCountUp />
+                  </span>
+                  <span className="text-sm text-blue-gradient-500 font-bold not-italic ml-2 self-end mb-1">MIN</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -312,8 +348,8 @@ export function SkillStatsOverview() {
             className={`transition-all duration-500 ease-out ${showStats ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
               }`}
           >
-            <p className="text-sm text-[#e5e7eb]">
-              Seus skills evoluíram nesse módulo!
+            <p className="text-sm text-[#e5e7eb] text-center">
+              Suas skills evoluíram muito nesse módulo!
             </p>
           </div>
         </div>
@@ -400,11 +436,13 @@ export function SkillStatsOverview() {
 
                           {/* Pontuação */}
                           <div className="w-48 shrink-0 flex justify-end items-center gap-3 text-[15px]">
-                            <span className="text-white font-medium">
+                            <span className="inline-flex items-center gap-1.5 text-white font-medium">
+                              <XpIcon className="h-4 w-auto" />
                               <CompactNumber value={previousXp} suffix=" XP" enableCountUp />
                             </span>
                             <span className="text-white font-bold">→</span>
-                            <span className="font-bold">
+                            <span className="inline-flex items-center gap-1.5 font-bold">
+                              <XpIcon className="h-4 w-auto" />
                               <CompactNumber value={currentXp} suffix=" XP" enableCountUp flameGradient />
                             </span>
                           </div>

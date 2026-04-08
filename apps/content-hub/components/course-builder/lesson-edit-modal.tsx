@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { LessonWithStructure } from '@/actions/course/get-course-with-structure'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { VideoDurationInput } from '@/components/ui/video-duration-input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { ArticleBodyEditor } from './article-body-editor'
@@ -359,16 +360,12 @@ export function LessonEditModal({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="video_duration">Duração do Vídeo</Label>
-                  <Input
+                  <VideoDurationInput
                     id="video_duration"
                     value={formData.video_duration}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        video_duration: e.target.value,
-                      })
+                    onChange={(video_duration) =>
+                      setFormData({ ...formData, video_duration })
                     }
-                    placeholder="00:00:00"
                   />
                 </div>
               </div>

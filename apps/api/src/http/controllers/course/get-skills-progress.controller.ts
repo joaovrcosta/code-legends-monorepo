@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { Role } from '@prisma/client'
 import { prisma } from '../../../lib/prisma'
+import { parseDurationToSeconds } from '../../../utils/parse-duration-to-seconds'
 import { canViewUserSkills } from '../../utils/skill-visibility'
 
 export async function getSkillsProgress(
@@ -74,6 +75,11 @@ export async function getSkillsProgress(
             include: {
               lessons: {
                 orderBy: { order: 'asc' },
+                select: {
+                  id: true,
+                  video_duration: true,
+                  video: { select: { duration: true } },
+                },
               },
             },
             orderBy: { id: 'asc' },
@@ -85,6 +91,21 @@ export async function getSkillsProgress(
         const moduleLessonIds = module.submodules.flatMap((s) =>
           s.lessons.map((l) => l.id),
         )
+
+        const catalogSeconds = module.submodules.reduce(
+          (acc, sub) =>
+            acc +
+            sub.lessons.reduce((sum, lesson) => {
+              const raw =
+                lesson.video?.duration?.trim() ||
+                lesson.video_duration?.trim() ||
+                ''
+              return sum + parseDurationToSeconds(raw)
+            }, 0),
+          0,
+        )
+
+        const studyMinutesInModule = Math.round(catalogSeconds / 60)
 
         const historyRows = await prisma.userSkillXpHistory.findMany({
           where: {
@@ -122,6 +143,7 @@ export async function getSkillsProgress(
             xpGainedInModule: 0,
             axisMax: 3000,
             topSkills: [],
+            studyMinutesInModule,
           })
         }
 
@@ -205,6 +227,7 @@ export async function getSkillsProgress(
           xpGainedInModule,
           axisMax,
           topSkills,
+          studyMinutesInModule,
         })
       }
     }

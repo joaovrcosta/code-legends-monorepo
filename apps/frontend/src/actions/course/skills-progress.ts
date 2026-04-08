@@ -19,6 +19,8 @@ export interface CourseSkillsProgressResponse {
   xpGainedInModule?: number;
   axisMax?: number;
   topSkills?: CourseSkillProgressItem[];
+  /** Soma das durações cadastradas das aulas do módulo (minutos, arredondado). */
+  studyMinutesInModule?: number;
 }
 
 export async function getCourseSkillsProgress(
