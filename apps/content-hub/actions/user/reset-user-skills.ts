@@ -3,8 +3,9 @@
 import { buildApiHeaders } from "@/actions/auth";
 
 /**
- * Remove todo o XP por skill e o histórico (UserSkillXp / UserSkillXpHistory).
- * Não altera totalXp/nível globais do usuário. Apenas administradores (API).
+ * Zera todo o XP do aluno na API: UserSkillXp, UserSkillXpHistory, UserXpHistory,
+ * UserXpEvent e recalcula totalXp / nível / xpToNextLevel para zero.
+ * Rota protegida (instrutor/admin).
  */
 export async function resetUserSkills(userId: string, token?: string): Promise<void> {
   const response = await fetch(

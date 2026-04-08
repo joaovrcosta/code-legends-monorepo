@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { Lesson } from '@/types/roadmap'
 import { CodePlayground } from '@/components/code-playground'
 import { continueCourse } from '@/actions/course'
+import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
@@ -44,6 +45,7 @@ export function ProjectView({ lesson, moduleTitle }: ProjectViewProps) {
       const result = await continueCourse(currentLesson.id, activeCourse?.id)
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao completar a lição')
+      showLessonXpToast(result)
       if (result.moduleCompleted) {
         setLastModuleCompletion({
           moduleCompleted: true,

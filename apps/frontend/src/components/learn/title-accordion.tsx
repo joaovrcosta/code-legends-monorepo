@@ -9,6 +9,7 @@ import {
 } from '../ui/accordion'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { continueCourse } from '@/actions/course'
+import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
 import { useState } from 'react'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
@@ -40,6 +41,7 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
       const result = await continueCourse(currentLesson.id, activeCourse?.id)
 
       if (result?.success) {
+        showLessonXpToast(result)
         if (result.moduleCompleted) {
           setLastModuleCompletion({
             moduleCompleted: true,

@@ -13,6 +13,7 @@ import { ChallengeBlock } from '@/components/classroom/challenge/ChallengeBlock'
 import { CodePlayground } from '@/components/code-playground'
 import { ArticlePlaygroundProvider, useArticlePlayground } from '@/contexts/article-playground-context'
 import { continueCourse } from '@/actions/course'
+import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
@@ -84,6 +85,8 @@ function useCompleteLesson(lesson: Lesson, moduleTitle?: string) {
       const result = await continueCourse(currentLesson.id, activeCourse?.id)
 
       if (!result?.success) throw new Error('API_ERROR')
+
+      showLessonXpToast(result)
 
       if (result.moduleCompleted) {
         setLastModuleCompletion({

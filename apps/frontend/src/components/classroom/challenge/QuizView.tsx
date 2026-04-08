@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import type { Challenge } from '@/types/roadmap'
 import { ChallengeBlock } from './ChallengeBlock'
 import { continueCourse } from '@/actions/course'
+import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { Button } from '@/components/ui/button'
@@ -69,6 +70,7 @@ export function QuizView({
       const result = await continueCourse(currentLesson.id, activeCourse?.id)
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao completar a lição')
+      showLessonXpToast(result)
       if (result.moduleCompleted) {
         setLastModuleCompletion({
           moduleCompleted: true,
@@ -110,6 +112,7 @@ export function QuizView({
       const result = await continueCourse(lessonId, activeCourse?.id, score)
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao salvar o resultado')
+      if (passed) showLessonXpToast(result)
       if (result.moduleCompleted) {
         setLastModuleCompletion({
           moduleCompleted: true,

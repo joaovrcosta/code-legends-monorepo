@@ -231,6 +231,7 @@ CREATE TABLE "Skill" (
     "slug" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
+    "imageUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -245,6 +246,16 @@ CREATE TABLE "CourseSkill" (
     "weight" INTEGER NOT NULL,
 
     CONSTRAINT "CourseSkill_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "LessonSkill" (
+    "id" TEXT NOT NULL,
+    "lessonId" INTEGER NOT NULL,
+    "skillId" TEXT NOT NULL,
+    "weight" INTEGER NOT NULL,
+
+    CONSTRAINT "LessonSkill_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -401,6 +412,18 @@ CREATE TABLE "UserXpHistory" (
 );
 
 -- CreateTable
+CREATE TABLE "UserXpEvent" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "reasonId" TEXT NOT NULL,
+    "source" TEXT NOT NULL,
+    "sourceId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "UserXpEvent_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Request" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -544,6 +567,12 @@ CREATE UNIQUE INDEX "Skill_slug_key" ON "Skill"("slug");
 CREATE UNIQUE INDEX "CourseSkill_courseId_skillId_key" ON "CourseSkill"("courseId", "skillId");
 
 -- CreateIndex
+CREATE INDEX "LessonSkill_lessonId_idx" ON "LessonSkill"("lessonId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "LessonSkill_lessonId_skillId_key" ON "LessonSkill"("lessonId", "skillId");
+
+-- CreateIndex
 CREATE INDEX "UserSkillXp_userId_idx" ON "UserSkillXp"("userId");
 
 -- CreateIndex
@@ -578,6 +607,12 @@ CREATE INDEX "UserXpHistory_userId_idx" ON "UserXpHistory"("userId");
 
 -- CreateIndex
 CREATE INDEX "UserXpHistory_userId_createdAt_idx" ON "UserXpHistory"("userId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "UserXpEvent_userId_createdAt_idx" ON "UserXpEvent"("userId", "createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UserXpEvent_userId_reasonId_key" ON "UserXpEvent"("userId", "reasonId");
 
 -- CreateIndex
 CREATE INDEX "Request_userId_idx" ON "Request"("userId");
@@ -664,6 +699,12 @@ ALTER TABLE "CourseSkill" ADD CONSTRAINT "CourseSkill_courseId_fkey" FOREIGN KEY
 ALTER TABLE "CourseSkill" ADD CONSTRAINT "CourseSkill_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "LessonSkill" ADD CONSTRAINT "LessonSkill_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LessonSkill" ADD CONSTRAINT "LessonSkill_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "UserSkillXp" ADD CONSTRAINT "UserSkillXp_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -728,6 +769,9 @@ ALTER TABLE "FavoriteCourse" ADD CONSTRAINT "FavoriteCourse_courseId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "UserXpHistory" ADD CONSTRAINT "UserXpHistory_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserXpEvent" ADD CONSTRAINT "UserXpEvent_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Request" ADD CONSTRAINT "Request_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

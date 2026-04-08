@@ -26,7 +26,10 @@ export async function resetUserSkills(request: FastifyRequest, reply: FastifyRep
     await tx.userSkillXpHistory.deleteMany({ where: { userId } });
     await tx.userSkillXp.deleteMany({ where: { userId } });
 
-    // Limpa eventos idempotentes para permitir reaplicação após reset.
+    // Histórico global de XP (timeline / semanal).
+    await tx.userXpHistory.deleteMany({ where: { userId } });
+
+    // Eventos idempotentes (ex.: lesson_completed:<id>) — sem isso o aluno não poderia ganhar XP de novo nas mesmas lições.
     await tx.userXpEvent.deleteMany({ where: { userId } });
 
     // Recalcula cache global a partir da fonte da verdade (skills).
@@ -45,7 +48,8 @@ export async function resetUserSkills(request: FastifyRequest, reply: FastifyRep
   });
 
   return reply.status(200).send({
-    message: "Skill XP and history cleared for user",
+    message:
+      "XP por skill, históricos, UserXpHistory e UserXpEvent limpos; nível e cache global zerados.",
     userId,
   });
 }

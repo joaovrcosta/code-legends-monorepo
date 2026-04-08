@@ -219,8 +219,8 @@ function UserOverviewPageContent() {
   const handleResetAllSkills = async () => {
     const confirmed = window.confirm(
       "Zerar todas as skills deste aluno?\n\n" +
-        "Serão removidos o XP por skill e o histórico de XP de skills. " +
-        "O XP total e o nível globais da conta (barra de nível geral) não são alterados por esta ação."
+        "Serão removidos: XP por skill, histórico por skill, histórico global de XP, " +
+        "registros idempotentes de XP (UserXpEvent) e a conta volta ao nível 1 com XP total zero."
     );
     if (!confirmed) return;
 

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { Prisma } from '@prisma/client'
 
 type UserRow = {
   id: string
@@ -18,10 +19,6 @@ type UserXpEventRow = {
   reasonId: string
   source: string
   sourceId: number | null
-}
-
-class UniqueViolation extends Error {
-  code = 'P2002'
 }
 
 function makeFakePrisma() {
@@ -52,7 +49,12 @@ function makeFakePrisma() {
     userXpEvent: {
       create: vi.fn(async ({ data }: { data: UserXpEventRow }) => {
         const key = `${data.userId}:${data.reasonId}`
-        if (state.events.has(key)) throw new UniqueViolation('duplicate')
+        if (state.events.has(key)) {
+          throw new Prisma.PrismaClientKnownRequestError(
+            'Unique constraint failed',
+            { code: 'P2002', clientVersion: '0.0.0' },
+          )
+        }
         state.events.add(key)
         return data
       }),

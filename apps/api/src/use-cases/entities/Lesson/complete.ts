@@ -16,6 +16,10 @@ import {
   calculateXpRemainingToNextLevel,
 } from '../../../utils/xp-progression'
 import { getGamificationSettingsCached } from '../../../utils/gamification-settings-cache'
+import {
+  lessonCompletedXpReasonId,
+  shouldGrantLessonCompletionXp,
+} from './lesson-complete-xp-gate'
 
 interface CompleteLessonRequest {
   userId: string
@@ -118,6 +122,10 @@ export class CompleteLessonUseCase {
       score,
     })
 
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d6a1ea'},body:JSON.stringify({sessionId:'d6a1ea',runId:'pre-fix',hypothesisId:'H2',location:'complete.ts:after_progress_upsert',message:'User progress upserted',data:{lessonId,isCompleted,wasAlreadyCompleted},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+
     let xpGained = 0
     let totalXp = 0
     let level = 1
@@ -135,8 +143,28 @@ export class CompleteLessonUseCase {
         ? Math.round(gamification.xpPerLesson * gamification.xpQuizMultiplier)
         : gamification.xpPerLesson
 
-    // Também concede XP para QUIZ quando concluído (senão o final do módulo fica +0xp).
+    const lessonXpReasonId = lessonCompletedXpReasonId(lessonId)
+    let lessonXpEventExists = false
     if (!wasAlreadyCompleted && isCompleted) {
+      const existingLessonXpEvent = await prisma.userXpEvent.findUnique({
+        where: {
+          userId_reasonId: {
+            userId,
+            reasonId: lessonXpReasonId,
+          },
+        },
+      })
+      lessonXpEventExists = existingLessonXpEvent != null
+    }
+
+    const shouldGrantLessonXp = shouldGrantLessonCompletionXp({
+      wasAlreadyCompleted,
+      isCompleted,
+      lessonXpEventExists,
+    })
+
+    // Também concede XP para QUIZ quando concluído (senão o final do módulo fica +0xp).
+    if (shouldGrantLessonXp) {
       const applySkillsXp = (
         skillRows: Array<{ skillId: string; weight: number }>,
       ) => {
@@ -174,7 +202,7 @@ export class CompleteLessonUseCase {
 
         const awardResult = await this.awardXpUseCase.executeInTx(tx, {
           userId,
-          reasonId: `lesson_completed:${lessonId}`,
+          reasonId: lessonXpReasonId,
           source: 'lesson_completed',
           sourceId: lessonId,
           description: `Completou lição: ${lesson.title}`,
@@ -443,6 +471,10 @@ export class CompleteLessonUseCase {
         .filter(([, xp]) => xp > 0)
         .map(([skillId, xp]) => ({ skillId, xp }))
     }
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d6a1ea'},body:JSON.stringify({sessionId:'d6a1ea',runId:'pre-fix',hypothesisId:'H3',location:'complete.ts:before_return',message:'Complete lesson success path',data:{lessonId,moduleCompleted,courseCompleted,xpGained},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
 
     return {
       success: true,

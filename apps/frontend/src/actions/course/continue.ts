@@ -59,6 +59,48 @@ export async function continueCourse(
       }
     );
 
+    // #region agent log
+    {
+      const peek = response.clone();
+      peek
+        .text()
+        .then((t) => {
+          let parsed: unknown = null;
+          try {
+            parsed = t ? JSON.parse(t) : null;
+          } catch {
+            parsed = { rawLen: t?.length ?? 0 };
+          }
+          fetch(
+            "http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Debug-Session-Id": "814d8b",
+              },
+              body: JSON.stringify({
+                sessionId: "814d8b",
+                runId: "pre-fix",
+                hypothesisId: "A-D",
+                location: "continue.ts:afterFetch",
+                message: "complete lesson fetch result",
+                data: {
+                  lessonId,
+                  score: score ?? null,
+                  status: response.status,
+                  ok: response.ok,
+                  bodyPreview: parsed,
+                },
+                timestamp: Date.now(),
+              }),
+            }
+          ).catch(() => {});
+        })
+        .catch(() => {});
+    }
+    // #endregion
+
     if (!response.ok) {
       if (response.status === 404) {
         console.error("Lição não encontrada");

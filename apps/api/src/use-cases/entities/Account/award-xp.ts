@@ -3,7 +3,7 @@ import {
   calculateLevel,
   calculateXpRemainingToNextLevel,
 } from '../../../utils/xp-progression'
-import type { Prisma, PrismaClient } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 export type AwardXpEntry = {
   skillId: string
@@ -80,9 +80,11 @@ export class AwardXpUseCase {
           sourceId: sourceId ?? null,
         },
       })
-    } catch (err: any) {
-      // Prisma unique violation
-      if (err?.code === 'P2002') {
+    } catch (err: unknown) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
         const user = await tx.user.findUniqueOrThrow({
           where: { id: userId },
           select: { totalXp: true, level: true, xpToNextLevel: true },
