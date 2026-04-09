@@ -11,6 +11,7 @@ import {
 import { getCurrentUser } from '@/actions/user/get-current-user'
 import { getUserFromAPI } from '@/actions/user/get-user-from-api'
 import { getMySkills } from '@/actions/user/get-my-skills'
+import { getLessonActivity } from '@/actions/user/get-lesson-activity'
 import { CompactNumber } from '@/components/ui/compact-number'
 import { CtaFacaUpgradeCard } from '@/components/cta'
 import freeIconPlan from '../../../public/free-plan-icon.svg'
@@ -19,10 +20,11 @@ import proIconPlan from '../../../public/pro-plan-icon.svg'
 import Image from 'next/image'
 
 export async function UserProfiler() {
-  const [user, userFromAPI, { skills }] = await Promise.all([
+  const [user, userFromAPI, { skills }, lessonActivity] = await Promise.all([
     getCurrentUser(),
     getUserFromAPI(),
     getMySkills(),
+    getLessonActivity({ days: 98 }),
   ])
   const firstName = user?.name?.split(' ')[0] || 'Usuário'
 
@@ -131,7 +133,7 @@ export async function UserProfiler() {
           </div>
           <div className="mt-6 w-full overflow-x-auto scrollbar-hide py-2">
             <div className="min-w-fit flex justify-center">
-              <ActivityCalendar />
+              <ActivityCalendar activities={lessonActivity?.days} />
             </div>
           </div>
           <div className="mt-6">

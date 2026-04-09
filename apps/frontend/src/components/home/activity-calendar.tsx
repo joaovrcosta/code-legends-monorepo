@@ -11,18 +11,47 @@ interface ActivityCalendarProps {
     activities?: ActivityData[];
 }
 
-const generateMockActivities = (): ActivityData[] => {
-    const data: ActivityData[] = [];
-    const today = new Date();
-    for (let i = 0; i < 100; i++) {
-        const date = new Date();
-        date.setDate(today.getDate() - i);
-        const dateStr = date.toISOString().split("T")[0];
-        const random = Math.random();
-        data.push({ date: dateStr, count: random > 0.6 ? Math.floor(random * 5) : 0 });
-    }
-    return data;
-};
+const SAO_PAULO_TZ = "America/Sao_Paulo";
+
+function formatYYYYMMDDInTZ(date: Date, timeZone: string) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).formatToParts(date);
+
+    const y = parts.find((p) => p.type === "year")?.value;
+    const m = parts.find((p) => p.type === "month")?.value;
+    const d = parts.find((p) => p.type === "day")?.value;
+    if (!y || !m || !d) return "";
+    return `${y}-${m}-${d}`;
+}
+
+function dayOfMonthInTZ(date: Date, timeZone: string) {
+    const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        day: "2-digit",
+    }).formatToParts(date);
+    const d = parts.find((p) => p.type === "day")?.value;
+    const n = d ? Number(d) : NaN;
+    return Number.isFinite(n) ? n : null;
+}
+
+function monthLabelInTZ(date: Date, timeZone: string) {
+    return date
+        .toLocaleDateString("pt-BR", { month: "short", timeZone })
+        .toUpperCase()
+        .replace(".", "");
+}
+
+function addDaysUTCNoon(base: Date, days: number) {
+    const d = new Date(base.getTime());
+    // Meio-dia UTC evita shift de dia no fuso local
+    d.setUTCHours(12, 0, 0, 0);
+    d.setUTCDate(d.getUTCDate() + days);
+    return d;
+}
 
 function getActivityColor(count: number): string {
     if (count === 0) return "bg-[#212124]";
@@ -50,28 +79,33 @@ export function ActivityCalendar({ activities }: ActivityCalendarProps) {
         }
     }, [isMounted]);
 
-    const activityData = useMemo(() =>
-        activities && activities.length > 0 ? activities : generateMockActivities(),
-        [activities]);
+    const dataMap = useMemo(() => {
+        const map = new Map<string, number>();
+        for (const a of activities ?? []) {
+            if (!a?.date) continue;
+            map.set(a.date, a.count ?? 0);
+        }
+        return map;
+    }, [activities]);
 
     const activityGrid = useMemo(() => {
         const days = [];
-        const dataMap = new Map(activityData.map((a) => [a.date, a.count]));
+        const todayNoonUTC = addDaysUTCNoon(new Date(), 0);
 
         for (let i = 90; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(new Date().getDate() - i);
-            const dateStr = date.toISOString().split("T")[0];
+            const date = addDaysUTCNoon(todayNoonUTC, -i);
+            const dateStr = formatYYYYMMDDInTZ(date, SAO_PAULO_TZ);
+            const dom = dayOfMonthInTZ(date, SAO_PAULO_TZ);
 
             days.push({
                 date: dateStr,
                 count: dataMap.get(dateStr) ?? 0,
-                month: date.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase().replace(".", ""),
-                isFirstDayOfMonth: date.getDate() === 1
+                month: monthLabelInTZ(date, SAO_PAULO_TZ),
+                isFirstDayOfMonth: dom === 1
             });
         }
         return days;
-    }, [activityData]);
+    }, [dataMap]);
 
     const weeks = useMemo(() => {
         const cols = [];
@@ -129,7 +163,7 @@ export function ActivityCalendar({ activities }: ActivityCalendarProps) {
                                                 ${getActivityColor(day.count)}
                                                 hover:ring-1 hover:ring-white/40 cursor-pointer
                                             `}
-                                            title={`${day.date}: ${day.count} aulas`}
+                                            title={`${day.date}: ${day.count} ${day.count === 1 ? "aula" : "aulas"}`}
                                         />
                                     ))}
                                 </div>
