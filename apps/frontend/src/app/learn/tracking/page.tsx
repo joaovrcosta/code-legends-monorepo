@@ -15,6 +15,8 @@ import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { getUserFromAPI } from '@/actions/user/get-user-from-api'
 import { getWeeklyXp } from '@/actions/user/get-weekly-xp'
+import { getStreak } from '@/actions/user/get-streak'
+import { FlameIcon, TargetIcon } from '@phosphor-icons/react/dist/ssr'
 
 function planToRingVariant(plan?: string): AvatarRingVariant {
   if (plan === 'PRO') return 'pro'
@@ -37,6 +39,7 @@ export default async function TrackingPage() {
 
   const userFromAPI = await getUserFromAPI()
   const weekly = await getWeeklyXp()
+  const streak = await getStreak()
   const { skills } = await getMySkills()
 
   const totalXp =
@@ -44,11 +47,11 @@ export default async function TrackingPage() {
   const level = userFromAPI?.level ?? user.level ?? 1
   const xpRemainingToNextLevel = userFromAPI?.xpToNextLevel ?? user.xpToNextLevel ?? 100
   const xpForNextLevel = totalXp + xpRemainingToNextLevel
-  const offensive = 0
+  const offensive = streak?.current ?? 0
 
   return (
     <TooltipProvider delayDuration={250}>
-      <div className="mx-auto max-w-[1420px] px-4 py-6 lg:px-0">
+      <div className="mx-auto max-w-[1420px] px-4 py-6 xl:px-0">
         <div className="mb-6">
           <p className="text-sm font-medium text-[#7e7e89]">Minha jornada</p>
         </div>
@@ -102,18 +105,24 @@ export default async function TrackingPage() {
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-[#7e7e89]">
                     Nível geral
                   </p>
-                  <p className="mt-1 text-lg font-semibold text-[#00C8FF] tabular-nums">
-                    {level}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <TargetIcon size={24} weight="fill" className="text-[#00C8FF]" />
+                    <p className="mt-1 text-lg font-semibold text-[#00C8FF] tabular-nums">
+                      {level}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="rounded-full border border-[#25252A] bg-[#141417] px-6 py-3">
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-[#7e7e89]">
                     Ofensivo
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-[#00C8FF] tabular-nums">
-                    {offensive}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <FlameIcon size={24} weight="fill" className="text-[#fda736]" />
+                    <p className="mt-1 text-lg font-semibold text-[#fda736] tabular-nums">
+                      {offensive}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

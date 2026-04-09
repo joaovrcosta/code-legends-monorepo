@@ -2,6 +2,7 @@
 
 import type { ContinueCourseResult } from "@/actions/course";
 import { useStreakCongratsStore } from "@/stores/streak-congrats-store";
+import { emitStreakUpdate } from "@/lib/emit-streak-update";
 
 const SAO_PAULO_TZ = "America/Sao_Paulo";
 
@@ -21,6 +22,13 @@ function todayKeyInSaoPaulo() {
 
 export function maybeShowStreakCongrats(result: ContinueCourseResult) {
   const streak = result?.streak;
+  if (streak) {
+    emitStreakUpdate({
+      current: streak.current,
+      best: streak.best,
+      totalActiveDays: streak.totalActiveDays,
+    });
+  }
   if (!streak?.increasedToday) return;
 
   const key = todayKeyInSaoPaulo();

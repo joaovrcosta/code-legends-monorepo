@@ -33,6 +33,8 @@ import { getXpHistory } from './get-xp-history.controller'
 import { getUserXpHistory } from './get-user-xp-history.controller'
 import { getLessonActivity } from './get-lesson-activity.controller'
 import { getStreak } from './get-streak.controller'
+import { getUserStreak } from './get-user-streak.controller'
+import { resetUserStreak } from './reset-user-streak.controller'
 
 export async function usersRoutes(app: FastifyInstance) {
   app.post('/users', create)
@@ -91,6 +93,16 @@ export async function usersRoutes(app: FastifyInstance) {
     '/users/:userId/xp/history',
     { onRequest: [verifyInstructorOrAdmin] },
     getUserXpHistory,
+  )
+  app.get(
+    '/users/:userId/streak',
+    { onRequest: [verifyAdmin] },
+    getUserStreak,
+  )
+  app.post(
+    '/users/:userId/streak/reset',
+    { onRequest: [verifyAdmin] },
+    resetUserStreak as RouteHandlerMethod,
   )
 
   // Rotas protegidas - ADMIN ou INSTRUCTOR

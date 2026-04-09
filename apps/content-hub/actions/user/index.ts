@@ -7,5 +7,6 @@ export { listInstructors } from "./list-instructors";
 export { getUserOverview, type UserOverview } from "./get-user-overview";
 export { getUserSkills, type UserSkillsResponse, type UserSkillItem } from "./get-user-skills";
 export { resetUserSkills } from "./reset-user-skills";
+export { resetUserStreak } from "./reset-user-streak";
 export { updateUserOverview, type UpdateUserOverviewData } from "./update-user-overview";
 

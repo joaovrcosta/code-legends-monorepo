@@ -12,6 +12,7 @@ import { getCurrentUser } from '@/actions/user/get-current-user'
 import { getUserFromAPI } from '@/actions/user/get-user-from-api'
 import { getMySkills } from '@/actions/user/get-my-skills'
 import { getLessonActivity } from '@/actions/user/get-lesson-activity'
+import { getStreak } from '@/actions/user/get-streak'
 import { CompactNumber } from '@/components/ui/compact-number'
 import { CtaFacaUpgradeCard } from '@/components/cta'
 import freeIconPlan from '../../../public/free-plan-icon.svg'
@@ -20,11 +21,12 @@ import proIconPlan from '../../../public/pro-plan-icon.svg'
 import Image from 'next/image'
 
 export async function UserProfiler() {
-  const [user, userFromAPI, { skills }, lessonActivity] = await Promise.all([
+  const [user, userFromAPI, { skills }, lessonActivity, streak] = await Promise.all([
     getCurrentUser(),
     getUserFromAPI(),
     getMySkills(),
     getLessonActivity({ days: 98 }),
+    getStreak(),
   ])
   const firstName = user?.name?.split(' ')[0] || 'Usuário'
 
@@ -173,8 +175,10 @@ export async function UserProfiler() {
           <span className="text-white text-lg font-semibold">Streak</span>
         </div>
         <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-white">0</span>
-          <span className="text-sm text-[#C4C4CC]">dias</span>
+          <span className="text-3xl font-bold text-white">{streak?.current ?? 0}</span>
+          <span className="text-sm text-[#C4C4CC]">
+            {(streak?.current ?? 0) === 1 ? 'dia' : 'dias'}
+          </span>
         </div>
         <p className="text-xs text-[#737373] mt-2">
           Assista uma aula para aumentar seu streak

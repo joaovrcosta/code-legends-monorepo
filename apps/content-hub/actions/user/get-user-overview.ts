@@ -100,6 +100,12 @@ export interface UserOverview {
         slug: string;
         xp: number;
     }>;
+    streak: {
+        current: number;
+        best: number;
+        totalActiveDays: number;
+        lastActiveDate: string | null;
+    };
 }
 
 export interface UserOverviewResponse {
@@ -111,6 +117,7 @@ export interface UserOverviewResponse {
     completedLessons: UserOverview["completedLessons"];
     statistics: UserOverview["statistics"];
     skills: UserOverview["skills"];
+    streak: UserOverview["streak"];
 }
 
 /**

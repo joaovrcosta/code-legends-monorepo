@@ -81,6 +81,12 @@ interface AccountOverviewResponse {
     slug: string;
     xp: number;
   }[];
+  streak: {
+    current: number;
+    best: number;
+    totalActiveDays: number;
+    lastActiveDate: string | null;
+  };
 }
 
 export class GetAccountOverviewUseCase {
@@ -270,6 +276,16 @@ export class GetAccountOverviewUseCase {
       },
     });
 
+    const streak = await prisma.userStreak.findUnique({
+      where: { userId },
+      select: {
+        currentStreak: true,
+        bestStreak: true,
+        totalActiveDays: true,
+        lastActiveDate: true,
+      },
+    });
+
     return {
       user: responseUser,
       payments: payments.map((p) => ({
@@ -312,6 +328,12 @@ export class GetAccountOverviewUseCase {
         slug: item.skill.slug,
         xp: item.xp,
       })),
+      streak: {
+        current: streak?.currentStreak ?? 0,
+        best: streak?.bestStreak ?? 0,
+        totalActiveDays: streak?.totalActiveDays ?? 0,
+        lastActiveDate: streak?.lastActiveDate ?? null,
+      },
     };
   }
 }

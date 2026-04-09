@@ -10,6 +10,51 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
 
+const SAO_PAULO_TZ = 'America/Sao_Paulo'
+
+function formatYYYYMMDDInTZ(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+
+  const y = parts.find((p) => p.type === 'year')?.value
+  const m = parts.find((p) => p.type === 'month')?.value
+  const d = parts.find((p) => p.type === 'day')?.value
+  if (!y || !m || !d) return null
+  return `${y}-${m}-${d}`
+}
+
+function addDaysUTCNoon(base: Date, days: number) {
+  const d = new Date(base.getTime())
+  d.setUTCHours(12, 0, 0, 0)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d
+}
+
+function weekdayIdxInTZ(date: Date, timeZone: string) {
+  const wd = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    weekday: 'short',
+  })
+    .formatToParts(date)
+    .find((p) => p.type === 'weekday')?.value
+
+  const toIdx: Record<string, number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  }
+
+  return wd != null ? toIdx[wd] : undefined
+}
+
 type StrikeSectionProps = {
   current?: number
   best?: number
@@ -20,6 +65,15 @@ type StreakState = {
   current: number
   best: number
   totalActiveDays: number
+}
+
+type LessonActivityDay = {
+  date: string
+  count: number
+}
+
+type LessonActivityResponse = {
+  days: LessonActivityDay[]
 }
 
 export function StrikeSection({
@@ -34,6 +88,7 @@ export function StrikeSection({
     best: initialBest ?? 0,
     totalActiveDays: initialTotalActiveDays ?? 0,
   }))
+  const [weekly, setWeekly] = useState<LessonActivityDay[]>([])
 
   const hasInitial = useMemo(() => {
     return (
@@ -59,21 +114,30 @@ export function StrikeSection({
 
     let cancelled = false
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
-    fetch(`${baseUrl}/me/streak`, {
-      cache: 'no-store',
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(async (r) => {
-        if (!r.ok) return null
-        return (await r.json()) as StreakState
-      })
-      .then((data) => {
-        if (cancelled || !data) return
-        setStreak({
-          current: data.current ?? 0,
-          best: data.best ?? 0,
-          totalActiveDays: data.totalActiveDays ?? 0,
-        })
+    Promise.all([
+      fetch(`${baseUrl}/me/streak`, {
+        cache: 'no-store',
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(async (r) => (r.ok ? ((await r.json()) as StreakState) : null)),
+      fetch(`${baseUrl}/me/activity/lessons?days=7`, {
+        cache: 'no-store',
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(async (r) =>
+        r.ok ? ((await r.json()) as LessonActivityResponse) : null,
+      ),
+    ])
+      .then(([streakData, activityData]) => {
+        if (cancelled) return
+        if (streakData) {
+          setStreak({
+            current: streakData.current ?? 0,
+            best: streakData.best ?? 0,
+            totalActiveDays: streakData.totalActiveDays ?? 0,
+          })
+        }
+        if (activityData?.days) {
+          setWeekly(activityData.days)
+        }
       })
       .catch(() => { })
 
@@ -88,6 +152,60 @@ export function StrikeSection({
     session,
     status,
   ])
+
+  useEffect(() => {
+    const handler = (evt: Event) => {
+      const custom = evt as CustomEvent<{
+        current: number
+        best: number
+        totalActiveDays: number
+      }>
+      if (!custom?.detail) return
+
+      setStreak({
+        current: custom.detail.current ?? 0,
+        best: custom.detail.best ?? 0,
+        totalActiveDays: custom.detail.totalActiveDays ?? 0,
+      })
+
+      // Otimização: marca o dia de hoje como ativo sem precisar refetch.
+      const todayKey = formatYYYYMMDDInTZ(new Date(), SAO_PAULO_TZ)
+      if (!todayKey) return
+      setWeekly((prev) => {
+        const next = [...prev]
+        const idx = next.findIndex((d) => d.date === todayKey)
+        if (idx !== -1) {
+          const prevCount = next[idx].count ?? 0
+          next[idx] = { ...next[idx], count: Math.max(1, prevCount) }
+          return next
+        }
+        return [...next, { date: todayKey, count: 1 }]
+      })
+    }
+
+    window.addEventListener('cl-streak-updated', handler)
+    return () => window.removeEventListener('cl-streak-updated', handler)
+  }, [])
+
+  const weeklyView = useMemo(() => {
+    const map = new Map(weekly.map((d) => [d.date, d.count]))
+
+    const todayKey = formatYYYYMMDDInTZ(new Date(), SAO_PAULO_TZ)
+    const todayNoonUTC = addDaysUTCNoon(new Date(), 0)
+    const todayWIdx = weekdayIdxInTZ(todayNoonUTC, SAO_PAULO_TZ) ?? 0
+
+    // Semana atual (Dom..Sáb) no fuso SP
+    const startOfWeekNoonUTC = addDaysUTCNoon(todayNoonUTC, -todayWIdx)
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const date = addDaysUTCNoon(startOfWeekNoonUTC, i)
+      const key = formatYYYYMMDDInTZ(date, SAO_PAULO_TZ) ?? ''
+      return { date: key, count: map.get(key) ?? 0 }
+    })
+
+    const activeDays = days.reduce((acc, d) => acc + (d.count > 0 ? 1 : 0), 0)
+    const percent = Math.round((activeDays / 7) * 100)
+    return { days, todayKey, percent }
+  }, [weekly])
 
   useEffect(() => {
     let timeoutRef: NodeJS.Timeout | null = null
@@ -121,16 +239,16 @@ export function StrikeSection({
         <DropdownMenuTrigger asChild>
           <div
             className={`flex items-center space-x-3 border py-2 px-3 rounded-[20px] transition-colors ${isOpen
-              ? 'bg-[#25252A] border-[#FFB733]'
+              ? 'bg-[#25252A] border-[#ff6200]'
               : streak.current > 0
-                ? 'border-[#fda736] hover:bg-[#25252A] hover:border-[#FFB733]'
-                : 'border-[#25252A] hover:bg-[#25252A] hover:border-[#FFB733]'
+                ? 'border-[#ff6200] hover:bg-[#25252A] hover:border-[#ff6200]'
+                : 'border-[#25252A] hover:bg-[#25252A] hover:border-[#ff6200]'
               }`}
           >
             <Flame
               size={24}
               weight="fill"
-              className={streak.current > 0 ? 'text-[#fda736]' : 'text-[#515155]'}
+              className={streak.current > 0 ? 'text-[#ff6200]' : 'text-[#515155]'}
             />
             <span
               className={`text-base ${streak.current > 0 ? 'text-white' : 'text-[#515155]'
@@ -171,7 +289,7 @@ export function StrikeSection({
                   Streak
                 </span>
               </p>
-              <Flame size={24} weight="fill" className="text-[#cf2649]" />
+              <Flame size={24} weight="fill" className="text-[#ff6200]" />
             </div>
             <p className="text-sm text-[#C4C4CC]">
               Assista uma aula para aumentar seu streak
@@ -201,27 +319,37 @@ export function StrikeSection({
             {/* Progresso Semanal */}
             <div className="mt-6 bg-[#25252A]/30 rounded-[20px] p-4">
               <div className="flex items-center justify-between mb-6">
-                {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, index) => (
-                  <div key={index} className="flex flex-col items-center">
-                    <span className="text-xs text-[#C4C4CC] mb-2">{day}</span>
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${index === 1 ? 'bg-yellow-lightning-500' : 'bg-[#25252A]'
-                        }`}
-                    >
-                      {index === 1 && (
-                        <Flame size={20} weight="fill" className="text-white" />
-                      )}
-                      {index === 6 && (
-                        <div className="w-6 h-6 rounded-full bg-white/20" />
-                      )}
+                {(['D', 'S', 'T', 'Q', 'Q', 'S', 'S'] as const).map((label, idx) => {
+                  const day = weeklyView.days[idx]
+                  const isToday =
+                    weeklyView.todayKey != null && day.date === weeklyView.todayKey
+                  const isActive = day.count > 0
+                  return (
+                    <div key={idx} className="flex flex-col items-center">
+                      <span className="text-xs text-[#C4C4CC] mb-2">{label}</span>
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isActive ? 'bg-yellow-lightning-500' : 'bg-[#25252A]'
+                          }`}
+                        title={
+                          day.date
+                            ? `${day.date}: ${day.count} ${day.count === 1 ? 'aula' : 'aulas'}`
+                            : undefined
+                        }
+                      >
+                        {isToday && isActive ? (
+                          <Flame size={20} weight="fill" className="text-white" />
+                        ) : isToday ? (
+                          <div className="w-6 h-6 rounded-full bg-white/20" />
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
               <div className="relative h-4 bg-[#25252A] rounded-full overflow-hidden">
                 <div
                   className="absolute h-full bg-yellow-lightning-500 rounded-full"
-                  style={{ width: '14%' }}
+                  style={{ width: `${weeklyView.percent}%` }}
                 />
               </div>
             </div>

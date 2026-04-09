@@ -14,6 +14,7 @@ import { getUserSkills, type UserSkillsResponse } from "@/actions/user/get-user-
 import { updateUserOverview, type UpdateUserOverviewData } from "@/actions/user/update-user-overview";
 import { unenrollUserFromCourse } from "@/actions/user/unenroll-course";
 import { resetUserSkills } from "@/actions/user/reset-user-skills";
+import { resetUserStreak } from "@/actions/user/reset-user-streak";
 import { getUserXpHistory, type UserXpHistoryRow } from "@/actions/user/get-user-xp-history";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft, User, BookOpen, CheckCircle2, TrendingUp, Award, Clock, Target, Edit, X, CreditCard, Calendar, Eraser } from "lucide-react";
@@ -34,6 +35,7 @@ function UserOverviewPageContent() {
   const [showXpLogsModal, setShowXpLogsModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [resettingSkills, setResettingSkills] = useState(false);
+  const [resettingStreak, setResettingStreak] = useState(false);
   const [editFormData, setEditFormData] = useState<UpdateUserOverviewData>({});
   const [xpLogsLoading, setXpLogsLoading] = useState(false);
   const [xpLogsRows, setXpLogsRows] = useState<UserXpHistoryRow[] | null>(null);
@@ -241,6 +243,33 @@ function UserOverviewPageContent() {
       );
     } finally {
       setResettingSkills(false);
+    }
+  };
+
+  const handleResetStreak = async () => {
+    const confirmed = window.confirm(
+      "Zerar streak (ofensiva) deste aluno?\n\n" +
+        "Isso vai setar streak atual, melhor streak e total de dias para 0."
+    );
+    if (!confirmed) return;
+
+    try {
+      setResettingStreak(true);
+      const token = getAuthTokenFromClient();
+      if (!token) {
+        toast.error("Token de autenticação não encontrado");
+        return;
+      }
+      await resetUserStreak(userId, token);
+      toast.success("Streak do aluno zerada.");
+      await loadOverview();
+    } catch (error) {
+      console.error("Erro ao zerar streak:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao zerar streak do aluno"
+      );
+    } finally {
+      setResettingStreak(false);
     }
   };
 
@@ -574,6 +603,72 @@ function UserOverviewPageContent() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Streak / Ofensiva */}
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Ofensiva (Streak)
+              </CardTitle>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={resettingStreak}
+                className="shrink-0 border-red-500/60 text-red-600 hover:bg-red-500/10 dark:text-red-400"
+                onClick={handleResetStreak}
+              >
+                <Eraser className="h-4 w-4 mr-2" />
+                {resettingStreak ? "Zerando…" : "Zerar streak"}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Streak atual
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {overview.streak?.current ?? 0}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Melhor streak
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {overview.streak?.best ?? 0}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Total de dias ativos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {overview.streak?.totalActiveDays ?? 0}
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Último dia ativo: {overview.streak?.lastActiveDate ?? "—"}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </CardContent>
+        </Card>
 
       <Card>
         <CardHeader>
