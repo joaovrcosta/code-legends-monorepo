@@ -111,11 +111,15 @@ export function LevelProgressBar() {
       }
     }, [roadmap, currentLesson])
 
-  const progressValue = currentModule
-    ? Math.round(currentModule.progress * 100)
-    : roadmap?.modules && roadmap.modules[0]
-      ? Math.round(roadmap.modules[0].progress * 100)
-      : 0
+  const progressValue = useMemo(() => {
+    if (currentModule) {
+      return Math.round(currentModule.progress * 100)
+    }
+    if (roadmap?.modules?.[0]) {
+      return Math.round(roadmap.modules[0].progress * 100)
+    }
+    return 0
+  }, [currentModule, roadmap])
 
   return (
     <div className="flex justify-between items-center w-full gap-3">
