@@ -22,11 +22,9 @@ export function showLessonXpToast(result: ContinueCourseResult) {
         role="status"
         aria-live="polite"
       >
-        {/* Barra de progresso superior */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,#ef4444_0%,#f97316_50%,#eab308_100%)]" />
 
         <div className="flex items-center gap-4">
-          {/* Ícone centralizado verticalmente */}
           <div className="flex-shrink-0">
             <Image
               src="/xp-icon.svg"
@@ -49,7 +47,6 @@ export function showLessonXpToast(result: ContinueCourseResult) {
             </p>
           </div>
 
-          {/* Botão de fechar centralizado */}
           <button
             type="button"
             onClick={() => dismiss(id)}

@@ -19,8 +19,9 @@ const SAO_PAULO_TZ = 'America/Sao_Paulo'
 
 function weekdayLetterFromISODate(date: string) {
   if (!date) return '·'
-  const letters = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
-  const instant = new Date(`${date}T00:00:00.000Z`)
+  // Importante: `YYYY-MM-DDT00:00:00Z` pode "voltar" um dia no fuso de São Paulo.
+  // Usar meio-dia UTC evita o shift de dia/weekday.
+  const instant = new Date(`${date}T12:00:00.000Z`)
   if (Number.isNaN(instant.getTime())) return '·'
 
   const wd = new Intl.DateTimeFormat('en-US', {
@@ -40,7 +41,8 @@ function weekdayLetterFromISODate(date: string) {
     Sat: 6,
   }
   const idx = wd !== undefined ? toIdx[wd] : undefined
-  return idx !== undefined ? (letters[idx] ?? '·') : '·'
+  const labels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] as const
+  return idx !== undefined ? (labels[idx] ?? '·') : '·'
 }
 
 export function WeeklyXpCard({ days, totalXp, playerName = "Você" }: WeeklyXpCardProps) {
