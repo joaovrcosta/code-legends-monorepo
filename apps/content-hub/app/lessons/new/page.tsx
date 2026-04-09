@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { VideoDurationInput } from "@/components/ui/video-duration-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
@@ -176,13 +177,12 @@ function NewLessonPageContent() {
 
                 <div className="space-y-2">
                   <Label htmlFor="video_duration">Duração do Vídeo</Label>
-                  <Input
+                  <VideoDurationInput
                     id="video_duration"
                     value={formData.video_duration}
-                    onChange={(e) =>
-                      setFormData({ ...formData, video_duration: e.target.value })
+                    onChange={(video_duration) =>
+                      setFormData({ ...formData, video_duration })
                     }
-                    placeholder="00:00:00"
                   />
                 </div>
               </div>

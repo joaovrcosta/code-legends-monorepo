@@ -23,10 +23,12 @@ const VideoDurationInput = React.forwardRef<
       ref={ref}
       type="text"
       inputMode="numeric"
+      pattern="[0-9:]*"
       autoComplete="off"
       spellCheck={false}
-      placeholder="mm:ss ou h:mm:ss"
-      title="Minutos e segundos (mm:ss) ou horas (h:mm:ss). Digite só números."
+      maxLength={8}
+      placeholder="00:00:00"
+      title="Duração em horas, minutos e segundos. Digite só números; os dois últimos são segundos, os dois anteriores minutos (máx. 59) e o restante horas."
       className={cn(
         "font-mono tabular-nums tracking-wide placeholder:tracking-normal",
         className

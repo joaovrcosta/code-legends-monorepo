@@ -11,7 +11,7 @@ import {
   CalendarDotsIcon,
   BookBookmarkIcon,
   House,
-  Graph,
+  RocketLaunchIcon,
 } from "@phosphor-icons/react/dist/ssr";
 
 const links = [
@@ -23,7 +23,7 @@ const links = [
     path: "/learn/my-learning",
     icon: BookBookmarkIcon,
   },
-  { name: "Roadmap", path: "/learn/tracking", icon: Graph },
+  { name: "Roadmap", path: "/learn/tracking", icon: RocketLaunchIcon },
   { name: "Projetos", path: "/learn/projects", icon: PuzzlePiece },
   { name: "Eventos", path: "/learn/badges", icon: CalendarDotsIcon },
 ];

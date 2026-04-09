@@ -38,9 +38,9 @@ export async function UserProfiler() {
   const progress =
     xpNeededForNextLevel > 0
       ? Math.max(
-          0,
-          Math.min(100, (currentLevelXp / xpNeededForNextLevel) * 100),
-        )
+        0,
+        Math.min(100, (currentLevelXp / xpNeededForNextLevel) * 100),
+      )
       : 0
 
   const userPlan = userFromAPI?.plan ?? user?.plan
