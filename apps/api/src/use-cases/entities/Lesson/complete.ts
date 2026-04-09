@@ -42,6 +42,12 @@ interface CompleteLessonResponse {
   progress?: number
   xpGainedInModule?: number
   xpGainedInModuleBySkill?: { skillId: string; xp: number }[]
+  streak?: {
+    current: number
+    best: number
+    totalActiveDays: number
+    increasedToday: boolean
+  }
 }
 
 export class CompleteLessonUseCase {
@@ -130,10 +136,40 @@ export class CompleteLessonUseCase {
     let totalXp = 0
     let level = 1
     let xpToNextLevel = 100
+    let streak:
+      | { current: number; best: number; totalActiveDays: number; increasedToday: boolean }
+      | undefined
 
     const user = await this.usersRepository.findById(userId)
     if (!user) {
       throw new Error('User not found')
+    }
+
+    const SAO_PAULO_TZ = 'America/Sao_Paulo'
+    const formatYYYYMMDDInTZ = (date: Date) => {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: SAO_PAULO_TZ,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).formatToParts(date)
+
+      const y = parts.find((p) => p.type === 'year')?.value
+      const m = parts.find((p) => p.type === 'month')?.value
+      const d = parts.find((p) => p.type === 'day')?.value
+      if (!y || !m || !d) return null
+      return `${y}-${m}-${d}`
+    }
+
+    const addDaysToISODateKey = (key: string, days: number) => {
+      // key: YYYY-MM-DD
+      const [y, m, d] = key.split('-').map((n) => Number(n))
+      if (!y || !m || !d) return null
+      // meio-dia UTC para evitar DST/shift ao converter
+      const base = new Date(Date.UTC(y, m - 1, d, 12, 0, 0, 0))
+      base.setUTCDate(base.getUTCDate() + days)
+      // volta para key no fuso SP (mantém consistência do produto)
+      return formatYYYYMMDDInTZ(base)
     }
 
     const gamification = await getGamificationSettingsCached()
@@ -162,6 +198,78 @@ export class CompleteLessonUseCase {
       isCompleted,
       lessonXpEventExists,
     })
+
+    // Streak/ofensiva: só conta quando a lição transiciona para concluída pela primeira vez.
+    if (!wasAlreadyCompleted && isCompleted) {
+      const todayKey = formatYYYYMMDDInTZ(new Date())
+      if (todayKey) {
+        const yesterdayKey = addDaysToISODateKey(todayKey, -1)
+
+        const row = await prisma.$transaction(async (tx) => {
+          const existing = await tx.userStreak.findUnique({
+            where: { userId },
+            select: {
+              currentStreak: true,
+              bestStreak: true,
+              totalActiveDays: true,
+              lastActiveDate: true,
+            },
+          })
+
+          // primeira atividade do usuário
+          if (!existing) {
+            const created = await tx.userStreak.create({
+              data: {
+                userId,
+                currentStreak: 1,
+                bestStreak: 1,
+                totalActiveDays: 1,
+                lastActiveDate: todayKey,
+              },
+              select: {
+                currentStreak: true,
+                bestStreak: true,
+                totalActiveDays: true,
+                lastActiveDate: true,
+              },
+            })
+            return { ...created, increasedToday: true }
+          }
+
+          // já contou hoje: idempotente
+          if (existing.lastActiveDate === todayKey) {
+            return { ...existing, increasedToday: false }
+          }
+
+          const isConsecutive = yesterdayKey != null && existing.lastActiveDate === yesterdayKey
+          const nextCurrent = isConsecutive ? existing.currentStreak + 1 : 1
+          const nextBest = Math.max(existing.bestStreak, nextCurrent)
+          const updated = await tx.userStreak.update({
+            where: { userId },
+            data: {
+              currentStreak: nextCurrent,
+              bestStreak: nextBest,
+              totalActiveDays: existing.totalActiveDays + 1,
+              lastActiveDate: todayKey,
+            },
+            select: {
+              currentStreak: true,
+              bestStreak: true,
+              totalActiveDays: true,
+              lastActiveDate: true,
+            },
+          })
+          return { ...updated, increasedToday: true }
+        })
+
+        streak = {
+          current: row.currentStreak,
+          best: row.bestStreak,
+          totalActiveDays: row.totalActiveDays,
+          increasedToday: row.increasedToday,
+        }
+      }
+    }
 
     // Também concede XP para QUIZ quando concluído (senão o final do módulo fica +0xp).
     if (shouldGrantLessonXp) {
@@ -489,6 +597,7 @@ export class CompleteLessonUseCase {
       level,
       xpToNextLevel,
       progress: Math.round(moduleProgress * 100), // Progresso do módulo em porcentagem (0-100)
+      streak,
       ...(moduleCompleted && {
         xpGainedInModule,
         xpGainedInModuleBySkill,

@@ -10,6 +10,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { continueCourse } from '@/actions/course'
 import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
+import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
 import { useState } from 'react'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
@@ -42,6 +43,7 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
 
       if (result?.success) {
         showLessonXpToast(result)
+        maybeShowStreakCongrats(result)
         if (result.moduleCompleted) {
           setLastModuleCompletion({
             moduleCompleted: true,

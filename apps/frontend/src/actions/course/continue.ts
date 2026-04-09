@@ -19,6 +19,12 @@ export interface ContinueCourseResult {
   progress?: number;
   xpGainedInModule?: number;
   xpGainedInModuleBySkill?: { skillId: string; xp: number }[];
+  streak?: {
+    current: number;
+    best: number;
+    totalActiveDays: number;
+    increasedToday: boolean;
+  };
 }
 
 export async function continueCourse(
@@ -50,7 +56,6 @@ export async function continueCourse(
       }
     );
 
-    // #region agent log
     {
       const peek = response.clone();
       peek

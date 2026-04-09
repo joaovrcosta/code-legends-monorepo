@@ -122,10 +122,27 @@ model User {
   skillXp             UserSkillXp[]
   skillXpHistory      UserSkillXpHistory[]
   xpEvents            UserXpEvent[]
+  streak              UserStreak?
   requests            Request[]
   notifications       Notification[]
   payments            Payment[]
   subscriptions       Subscription[]
+}
+
+model UserStreak {
+  userId          String   @id
+  currentStreak   Int      @default(0)
+  bestStreak      Int      @default(0)
+  totalActiveDays Int      @default(0)
+  /// Último dia ativo no fuso America/Sao_Paulo, formato YYYY-MM-DD
+  lastActiveDate  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lastActiveDate])
 }
 
 model Expertise {

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useSession } from 'next-auth/react'
 
 import { Flame } from '@phosphor-icons/react/dist/ssr'
 import {
@@ -9,8 +10,84 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
 
-export function StrikeSection() {
+type StrikeSectionProps = {
+  current?: number
+  best?: number
+  totalActiveDays?: number
+}
+
+type StreakState = {
+  current: number
+  best: number
+  totalActiveDays: number
+}
+
+export function StrikeSection({
+  current: initialCurrent,
+  best: initialBest,
+  totalActiveDays: initialTotalActiveDays,
+}: StrikeSectionProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const { data: session, status } = useSession()
+  const [streak, setStreak] = useState<StreakState>(() => ({
+    current: initialCurrent ?? 0,
+    best: initialBest ?? 0,
+    totalActiveDays: initialTotalActiveDays ?? 0,
+  }))
+
+  const hasInitial = useMemo(() => {
+    return (
+      initialCurrent != null ||
+      initialBest != null ||
+      initialTotalActiveDays != null
+    )
+  }, [initialCurrent, initialBest, initialTotalActiveDays])
+
+  useEffect(() => {
+    if (hasInitial) {
+      setStreak({
+        current: initialCurrent ?? 0,
+        best: initialBest ?? 0,
+        totalActiveDays: initialTotalActiveDays ?? 0,
+      })
+      return
+    }
+
+    if (status !== 'authenticated') return
+    const token = (session as unknown as { accessToken?: string } | null)?.accessToken
+    if (!token) return
+
+    let cancelled = false
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
+    fetch(`${baseUrl}/me/streak`, {
+      cache: 'no-store',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (r) => {
+        if (!r.ok) return null
+        return (await r.json()) as StreakState
+      })
+      .then((data) => {
+        if (cancelled || !data) return
+        setStreak({
+          current: data.current ?? 0,
+          best: data.best ?? 0,
+          totalActiveDays: data.totalActiveDays ?? 0,
+        })
+      })
+      .catch(() => { })
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    hasInitial,
+    initialCurrent,
+    initialBest,
+    initialTotalActiveDays,
+    session,
+    status,
+  ])
 
   useEffect(() => {
     let timeoutRef: NodeJS.Timeout | null = null
@@ -43,14 +120,24 @@ export function StrikeSection() {
       <DropdownMenu onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <div
-            className={`flex items-center space-x-3 border py-2 px-3 rounded-[20px] transition-colors ${
-              isOpen
-                ? 'bg-[#25252A] border-[#FFB733]'
+            className={`flex items-center space-x-3 border py-2 px-3 rounded-[20px] transition-colors ${isOpen
+              ? 'bg-[#25252A] border-[#FFB733]'
+              : streak.current > 0
+                ? 'border-[#fda736] hover:bg-[#25252A] hover:border-[#FFB733]'
                 : 'border-[#25252A] hover:bg-[#25252A] hover:border-[#FFB733]'
-            }`}
+              }`}
           >
-            <Flame size={24} weight="fill" className="text-[#515155]" />
-            <span className="text-base text-[#515155]">0</span>
+            <Flame
+              size={24}
+              weight="fill"
+              className={streak.current > 0 ? 'text-[#fda736]' : 'text-[#515155]'}
+            />
+            <span
+              className={`text-base ${streak.current > 0 ? 'text-white' : 'text-[#515155]'
+                }`}
+            >
+              {streak.current}
+            </span>
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -92,19 +179,19 @@ export function StrikeSection() {
 
             <div className="grid grid-cols-3 gap-3 mt-4 w-full">
               <div className="flex flex-col bg-[#25252A] items-center justify-center border border-[#25252A] rounded-[20px] p-4 min-w-0">
-                <h3 className="text-2xl font-bold text-white">0</h3>
+                <h3 className="text-2xl font-bold text-white">{streak.current}</h3>
                 <p className="text-[11px] text-[#C4C4CC] text-center">
                   Streak atual
                 </p>
               </div>
               <div className="flex flex-col items-center justify-center border border-[#25252A] rounded-[20px] p-4 min-w-0">
-                <h3 className="text-2xl font-bold text-white">0</h3>
+                <h3 className="text-2xl font-bold text-white">{streak.best}</h3>
                 <p className="text-[11px] text-[#C4C4CC] text-center whitespace-nowrap">
                   Melhor streak
                 </p>
               </div>
               <div className="flex flex-col items-center justify-center border border-[#25252A] rounded-[20px] p-4 min-w-0">
-                <h3 className="text-2xl font-bold text-white">0</h3>
+                <h3 className="text-2xl font-bold text-white">{streak.totalActiveDays}</h3>
                 <p className="text-[11px] text-[#C4C4CC] text-center">
                   Total de dias
                 </p>
@@ -118,9 +205,8 @@ export function StrikeSection() {
                   <div key={index} className="flex flex-col items-center">
                     <span className="text-xs text-[#C4C4CC] mb-2">{day}</span>
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        index === 1 ? 'bg-yellow-lightning-500' : 'bg-[#25252A]'
-                      }`}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center ${index === 1 ? 'bg-yellow-lightning-500' : 'bg-[#25252A]'
+                        }`}
                     >
                       {index === 1 && (
                         <Flame size={20} weight="fill" className="text-white" />

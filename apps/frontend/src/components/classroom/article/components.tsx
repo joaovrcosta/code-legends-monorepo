@@ -14,6 +14,7 @@ import { CodePlayground } from '@/components/code-playground'
 import { ArticlePlaygroundProvider, useArticlePlayground } from '@/contexts/article-playground-context'
 import { continueCourse } from '@/actions/course'
 import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
+import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
@@ -87,6 +88,7 @@ function useCompleteLesson(lesson: Lesson, moduleTitle?: string) {
       if (!result?.success) throw new Error('API_ERROR')
 
       showLessonXpToast(result)
+      maybeShowStreakCongrats(result)
 
       if (result.moduleCompleted) {
         setLastModuleCompletion({

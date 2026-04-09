@@ -5,6 +5,7 @@ import type { Challenge } from '@/types/roadmap'
 import { ChallengeBlock } from './ChallengeBlock'
 import { continueCourse } from '@/actions/course'
 import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
+import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { Button } from '@/components/ui/button'
@@ -71,6 +72,7 @@ export function QuizView({
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao completar a lição')
       showLessonXpToast(result)
+      maybeShowStreakCongrats(result)
       if (result.moduleCompleted) {
         setLastModuleCompletion({
           moduleCompleted: true,
@@ -113,6 +115,7 @@ export function QuizView({
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao salvar o resultado')
       if (passed) showLessonXpToast(result)
+      if (passed) maybeShowStreakCongrats(result)
       if (result.moduleCompleted) {
         setLastModuleCompletion({
           moduleCompleted: true,

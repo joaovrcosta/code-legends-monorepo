@@ -32,6 +32,7 @@ import { getWeeklyXp } from './get-weekly-xp.controller'
 import { getXpHistory } from './get-xp-history.controller'
 import { getUserXpHistory } from './get-user-xp-history.controller'
 import { getLessonActivity } from './get-lesson-activity.controller'
+import { getStreak } from './get-streak.controller'
 
 export async function usersRoutes(app: FastifyInstance) {
   app.post('/users', create)
@@ -44,6 +45,7 @@ export async function usersRoutes(app: FastifyInstance) {
   app.get('/me/xp/weekly', { onRequest: [verifyJWT] }, getWeeklyXp)
   app.get('/me/xp/history', { onRequest: [verifyJWT] }, getXpHistory)
   app.get('/me/activity/lessons', { onRequest: [verifyJWT] }, getLessonActivity)
+  app.get('/me/streak', { onRequest: [verifyJWT] }, getStreak)
   app.get('/me/subscription-overview', { onRequest: [verifyJWT] }, getSubscriptionOverview)
   app.get('/me/checkout-dados', { onRequest: [verifyJWT] }, getCheckoutDados)
   app.patch(
