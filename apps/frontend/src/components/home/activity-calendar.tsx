@@ -13,6 +13,66 @@ interface ActivityCalendarProps {
 
 const SAO_PAULO_TZ = "America/Sao_Paulo";
 
+function ActivityCalendarSkeleton() {
+    const weeks = Array.from({ length: 14 }, (_, i) => i);
+    const days = Array.from({ length: 7 }, (_, i) => i);
+
+    return (
+        <div className="w-full font-sans select-none flex flex-col items-center">
+            <div className="w-full overflow-x-auto scrollbar-hide py-2">
+                <div className="flex flex-col gap-2 w-max mx-auto lg:ml-auto lg:mr-0 animate-pulse">
+                    <div className="flex text-[9px] font-bold text-[#737373] h-4 ml-8">
+                        {weeks.map((i) => (
+                            <div key={i} className="relative w-full">
+                                <span className="absolute left-0 whitespace-nowrap">
+                                    {i % 4 === 0 ? "···" : ""}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="flex gap-3">
+                        <div className="flex flex-col justify-between text-[9px] font-medium text-[#525252] py-[2px] h-[105px] sm:h-[130px]">
+                            <span>Seg</span>
+                            <span>Qua</span>
+                            <span>Sex</span>
+                        </div>
+
+                        <div className="flex gap-[5px] sm:gap-[6px]">
+                            {weeks.map((weekIndex) => (
+                                <div
+                                    key={weekIndex}
+                                    className="flex flex-col gap-[5px] sm:gap-[6px]"
+                                >
+                                    {days.map((dayIndex) => (
+                                        <div
+                                            key={`${weekIndex}-${dayIndex}`}
+                                            className="w-[13px] h-[13px] sm:w-[15px] sm:h-[14px] rounded-[4px] bg-[#1a1a1e]/70"
+                                        />
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="w-full flex justify-center lg:justify-end mt-4 px-2 gap-2 text-[10px] text-[#525252]">
+                        <span>Menos</span>
+                        <div className="flex gap-[3px]">
+                            {Array.from({ length: 5 }, (_, lvl) => (
+                                <div
+                                    key={lvl}
+                                    className="w-[10px] h-[10px] rounded-[2px] bg-[#1a1a1e]/70"
+                                />
+                            ))}
+                        </div>
+                        <span>Mais</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function formatYYYYMMDDInTZ(date: Date, timeZone: string) {
     const parts = new Intl.DateTimeFormat("en-CA", {
         timeZone,
@@ -115,7 +175,7 @@ export function ActivityCalendar({ activities }: ActivityCalendarProps) {
         return cols;
     }, [activityGrid]);
 
-    if (!isMounted) return <div className="h-[140px] w-full bg-[#1a1a1e]/50 rounded-xl animate-pulse" />;
+    if (!isMounted || activities == null) return <ActivityCalendarSkeleton />;
 
     return (
         <div className="w-full font-sans select-none flex flex-col items-center">
