@@ -65,7 +65,7 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
   }
 
   return (
-    <Accordion type="single" collapsible className="mt-6 mb-8" defaultValue="lesson-info">
+    <Accordion type="single" collapsible className="mt-6 mb-8 px-6" defaultValue="lesson-info">
       <AccordionItem value="lesson-info" className="border-none">
         <div className="w-full mx-auto lg:rounded-[24px] rounded-none overflow-hidden lg:border border-y border-[#2A2A2A] bg-[#151518] shadow-2xl">
 
@@ -96,7 +96,6 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
                 </div>
               </div>
             </div>
-            {/* Seta Arrow com transição de rotação */}
             <ChevronDown
               className="h-5 w-5 shrink-0 text-[#7e7e89] transition-transform duration-200"
             />
