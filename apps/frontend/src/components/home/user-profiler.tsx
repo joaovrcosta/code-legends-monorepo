@@ -10,6 +10,8 @@ import {
 } from '../ui/avatar'
 import { getCurrentUser } from '@/actions/user/get-current-user'
 import { getUserFromAPI } from '@/actions/user/get-user-from-api'
+import { getMySkills } from '@/actions/user/get-my-skills'
+import { CompactNumber } from '@/components/ui/compact-number'
 import { CtaFacaUpgradeCard } from '@/components/cta'
 import freeIconPlan from '../../../public/free-plan-icon.svg'
 import premiumIconPlan from '../../../public/premium-plan-icon.svg'
@@ -17,30 +19,26 @@ import proIconPlan from '../../../public/pro-plan-icon.svg'
 import Image from 'next/image'
 
 export async function UserProfiler() {
-  const user = await getCurrentUser()
-  const userFromAPI = await getUserFromAPI()
+  const [user, userFromAPI, { skills }] = await Promise.all([
+    getCurrentUser(),
+    getUserFromAPI(),
+    getMySkills(),
+  ])
   const firstName = user?.name?.split(' ')[0] || 'Usuário'
 
   const level = userFromAPI?.level ?? user?.level ?? 1
   const xpRemainingToNextLevel =
     userFromAPI?.xpToNextLevel ?? user?.xpToNextLevel ?? 100
 
-  // Calcula o XP necessário apenas para o próximo nível
-  const calculateXpRequiredForNextLevel = (lvl: number): number => {
-    return 100 + (lvl - 1) * 50
-  }
-
-  // XP necessário para passar do nível atual para o próximo
-  const xpNeededForNextLevel = calculateXpRequiredForNextLevel(level)
-  // XP atual no nível = XP necessário - XP que falta
-  const currentLevelXp = xpNeededForNextLevel - xpRemainingToNextLevel
-  // Progresso: quanto XP já tem no nível atual / quanto precisa para o próximo nível
+  // Mesma regra da página de tracking: XP acumulado da API e meta = atual + falta para o próximo nível
+  const totalXp =
+    userFromAPI?.totalXp ??
+    user?.totalXp ??
+    skills.reduce((acc, s) => acc + (s.xp ?? 0), 0)
+  const xpForNextLevel = totalXp + xpRemainingToNextLevel
   const progress =
-    xpNeededForNextLevel > 0
-      ? Math.max(
-        0,
-        Math.min(100, (currentLevelXp / xpNeededForNextLevel) * 100),
-      )
+    xpForNextLevel > 0
+      ? Math.max(0, Math.min(100, (totalXp / xpForNextLevel) * 100))
       : 0
 
   const userPlan = userFromAPI?.plan ?? user?.plan
@@ -106,9 +104,29 @@ export async function UserProfiler() {
                   {Math.round(progress)}%
                 </p>
               </div>
-              <p className="mt-1.5 text-xs text-[#C4C4CC] tabular-nums">
-                {Math.max(0, currentLevelXp)} / {xpNeededForNextLevel} XP
-              </p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs tabular-nums">
+                <Image
+                  src="/xp-icon.svg"
+                  alt="XP"
+                  width={11}
+                  height={20}
+                  className="shrink-0"
+                />
+                <p className="font-semibold text-white">
+                  <CompactNumber
+                    value={totalXp}
+                    flameGradient
+                    enableCountUp
+                  />{' '}
+                  <span className="text-[#7e7e89] font-medium">/</span>{' '}
+                  <CompactNumber
+                    value={xpForNextLevel}
+                    className="text-[#7e7e89]"
+                    tooltipOnlyWhenCompact={false}
+                  />{' '}
+                  <span className="text-[#7e7e89] font-medium">XP</span>
+                </p>
+              </div>
             </div>
           </div>
           <div className="mt-6 w-full overflow-x-auto scrollbar-hide py-2">

@@ -10,7 +10,6 @@ import Link from 'next/link'
 import { ModuleProgressBar } from './module-progress-bar'
 import { findLessonContext } from '@/utils/lesson-url'
 
-/** Próximo número de módulo na trilha; nunca repete o atual (evita API/next inconsistente). */
 function resolveNextModuleNumber(
   currentModuleNumber: number,
   totalModules: number,
@@ -90,7 +89,6 @@ export function LevelProgressBar() {
         }
       }
 
-      // Fallback: usa os valores diretamente da API
       const currentModuleNumber = roadmap.course.currentModule || 1
 
       const currentModuleIndex = currentModuleNumber - 1
@@ -121,7 +119,6 @@ export function LevelProgressBar() {
 
   return (
     <div className="flex justify-between items-center w-full gap-3">
-      {/* Nível Atual */}
       <div className="flex items-center justify-center flex-col text-muted-foreground">
         <div className="w-[32px] h-[32px] bg-blue-gradient-500 border-[#00C8FF] shadow-[0_0_12px_#00C8FF] rounded-full border flex items-center justify-center">
           <span className="text-white font-semibold text-sm">
@@ -131,10 +128,8 @@ export function LevelProgressBar() {
         <span className="text-xs text-nowrap">Level {currentLevel}</span>
       </div>
 
-      {/* Barra de Progresso */}
       <ModuleProgressBar value={progressValue} showTrophy={false} />
 
-      {/* Próximo Nível ou Certificado */}
       <div className="flex items-center justify-center flex-col text-muted-foreground">
         {isLastModule ? (
           <>
@@ -173,8 +168,8 @@ export function LevelProgressBar() {
           <>
             <div
               className={`w-[32px] h-[32px] rounded-full flex items-center justify-center border-2 transition-all duration-300 ${progressValue === 100
-                  ? 'bg-blue-gradient-500 border-[#00C8FF] shadow-[0_0_12px_#00C8FF]'
-                  : 'bg-[#19191b] border-[#484850]'
+                ? 'bg-blue-gradient-500 border-[#00C8FF] shadow-[0_0_12px_#00C8FF]'
+                : 'bg-[#19191b] border-[#484850]'
                 }`}
             >
               {progressValue === 100 ? (

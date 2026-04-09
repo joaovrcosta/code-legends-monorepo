@@ -5,6 +5,7 @@ import CountUp from 'react-countup'
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import {
@@ -60,15 +61,17 @@ export function CompactNumber({
 
   if (showTooltip) {
     return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="cursor-help">{content}</span>
-        </TooltipTrigger>
-        <TooltipContent>
-          {full}
-          {suffix}
-        </TooltipContent>
-      </Tooltip>
+      <TooltipProvider delayDuration={250}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="cursor-help">{content}</span>
+          </TooltipTrigger>
+          <TooltipContent>
+            {full}
+            {suffix}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     )
   }
 

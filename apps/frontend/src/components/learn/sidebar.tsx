@@ -23,7 +23,7 @@ const links = [
     path: "/learn/my-learning",
     icon: BookBookmarkIcon,
   },
-  { name: "Roadmap", path: "/learn/tracking", icon: RocketLaunchIcon },
+  { name: "Meu Progresso", path: "/learn/tracking", icon: RocketLaunchIcon },
   { name: "Projetos", path: "/learn/projects", icon: PuzzlePiece },
   { name: "Eventos", path: "/learn/badges", icon: CalendarDotsIcon },
 ];
