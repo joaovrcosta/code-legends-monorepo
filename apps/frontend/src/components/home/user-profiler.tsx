@@ -93,16 +93,21 @@ export async function UserProfiler() {
         </div>
         <div className="mt-6">
           <div>
-            <p className="text-white text-sm font-medium">Nível {level}</p>
-          </div>
-          <div className="mt-2">
-            <div className="flex items-center gap-4 w-full">
-              <Progress
-                value={progress}
-                className="w-full bg-[#25252A] h-[2px]"
-              />
-              <p className="text-sm text-center text-white">
-                {Math.round(progress)}%
+            <div>
+              <p className="text-white text-sm font-medium">Nível {level}</p>
+            </div>
+            <div className="mt-2">
+              <div className="flex items-center gap-4 w-full">
+                <Progress
+                  value={progress}
+                  className="w-full bg-[#25252A] h-[2px]"
+                />
+                <p className="text-sm text-center text-white">
+                  {Math.round(progress)}%
+                </p>
+              </div>
+              <p className="mt-1.5 text-xs text-[#C4C4CC] tabular-nums">
+                {Math.max(0, currentLevelXp)} / {xpNeededForNextLevel} XP
               </p>
             </div>
           </div>

@@ -48,7 +48,10 @@ export default async function TrackingPage() {
 
   return (
     <TooltipProvider delayDuration={250}>
-      <div className="px-4 py-6 lg:px-12">
+      {/* Adicionada a classe max-w-[1520px] e mx-auto para centralizar.
+          Mantive o padding lateral para telas menores.
+      */}
+      <div className="mx-auto max-w-[1520px] px-4 py-6 lg:px-12">
         <div className="mb-6">
           <p className="text-sm font-medium text-[#7e7e89]">Minha jornada</p>
         </div>

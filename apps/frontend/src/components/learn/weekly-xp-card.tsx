@@ -15,11 +15,32 @@ function buildPath(points: { x: number; y: number }[]) {
   return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
 }
 
+const SAO_PAULO_TZ = 'America/Sao_Paulo'
+
 function weekdayLetterFromISODate(date: string) {
-  const d = new Date(`${date}T00:00:00.000Z`)
+  if (!date) return '·'
   const letters = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
-  const idx = d.getUTCDay()
-  return letters[idx] ?? '·'
+  const instant = new Date(`${date}T00:00:00.000Z`)
+  if (Number.isNaN(instant.getTime())) return '·'
+
+  const wd = new Intl.DateTimeFormat('en-US', {
+    timeZone: SAO_PAULO_TZ,
+    weekday: 'short',
+  })
+    .formatToParts(instant)
+    .find((p) => p.type === 'weekday')?.value
+
+  const toIdx: Record<string, number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  }
+  const idx = wd !== undefined ? toIdx[wd] : undefined
+  return idx !== undefined ? (letters[idx] ?? '·') : '·'
 }
 
 export function WeeklyXpCard({ days, totalXp, playerName = "Você" }: WeeklyXpCardProps) {
