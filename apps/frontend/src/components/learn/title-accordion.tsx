@@ -65,7 +65,7 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
   }
 
   return (
-    <Accordion type="single" collapsible className="mt-6 mb-8 px-6" defaultValue="lesson-info">
+    <Accordion type="single" collapsible className="mt-6 mb-8 lg:px-6 px-0" defaultValue="lesson-info">
       <AccordionItem value="lesson-info" className="border-none">
         <div className="w-full mx-auto lg:rounded-[24px] rounded-none overflow-hidden lg:border border-y border-[#2A2A2A] bg-[#151518] shadow-2xl">
 
@@ -78,7 +78,10 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
               <div className="flex items-center gap-3">
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className={cn((isMarking || !currentLesson) && "opacity-50")}
+                  className={cn(
+                    "w-full lg:w-auto",
+                    (isMarking || !currentLesson) && "opacity-50",
+                  )}
                 >
                   <CompleteLessonButton
                     variant="learn"
@@ -88,7 +91,7 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
                     isMarked={isMarked}
                     disabled={isMarking || !currentLesson || isMarked}
                     iconSize={18}
-                    className="cursor-pointer"
+                    className="cursor-pointer w-full lg:w-fit"
                     markLabel="Completar lição"
                     markedLabel="Concluída"
                     markingLabel="Marcando..."

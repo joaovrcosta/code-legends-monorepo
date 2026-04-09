@@ -16,20 +16,11 @@ export interface ContinueCourseResult {
   totalXp?: number;
   level?: number;
   xpToNextLevel?: number;
-  /**
-   * Progresso do módulo em porcentagem (0–100)
-   */
   progress?: number;
-  /** Total de XP ganho em todo o módulo */
   xpGainedInModule?: number;
-  /** XP por skill ganho no módulo */
   xpGainedInModuleBySkill?: { skillId: string; xp: number }[];
 }
 
-/**
- * Marca a lição atual como concluída e avança para a próxima.
- * Para lições do tipo quiz, envie score (0–100); o backend só marca como concluído se score >= 70.
- */
 export async function continueCourse(
   lessonId: number,
   courseId?: string,
@@ -95,9 +86,9 @@ export async function continueCourse(
                 timestamp: Date.now(),
               }),
             }
-          ).catch(() => {});
+          ).catch(() => { });
         })
-        .catch(() => {});
+        .catch(() => { });
     }
     // #endregion
 
@@ -116,7 +107,7 @@ export async function continueCourse(
       console.error("Erro na resposta da API:", errorData);
       throw new Error(
         (errorData as { message?: string }).message ||
-          "Erro ao marcar lição como completa"
+        "Erro ao marcar lição como completa"
       );
     }
 
@@ -126,7 +117,7 @@ export async function continueCourse(
     try {
       // Se courseId não foi fornecido, busca o curso ativo
       const activeCourseId = courseId || (await getActiveCourse())?.id;
-      
+
       if (activeCourseId) {
         // Invalida o cache do roadmap usando a tag
         revalidateTag(`roadmap-${activeCourseId}`);
