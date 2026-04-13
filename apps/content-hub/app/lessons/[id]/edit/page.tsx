@@ -334,7 +334,7 @@ export default function EditLessonPage() {
                   <Label htmlFor="video_duration">Duração do Vídeo</Label>
                   <VideoDurationInput
                     id="video_duration"
-                    value={formData.video_duration}
+                    value={formData.video_duration ?? ""}
                     onChange={(video_duration) =>
                       setFormData({ ...formData, video_duration })
                     }
