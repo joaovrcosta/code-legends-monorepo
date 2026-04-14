@@ -199,8 +199,11 @@ export class CompleteLessonUseCase {
       lessonXpEventExists,
     })
 
-    // Streak/ofensiva: só conta quando a lição transiciona para concluída pela primeira vez.
-    if (!wasAlreadyCompleted && isCompleted) {
+    // Streak/ofensiva:
+    // - Regra padrão: só conta quando a lição transiciona para concluída pela primeira vez.
+    // - Exceção (reset manual pelo admin): se a streak foi resetada (0/0/null),
+    //   permitimos contar a próxima conclusão do dia mesmo que a lição já estivesse concluída.
+    if (isCompleted) {
       const todayKey = formatYYYYMMDDInTZ(new Date())
       if (todayKey) {
         const yesterdayKey = addDaysToISODateKey(todayKey, -1)
@@ -215,6 +218,17 @@ export class CompleteLessonUseCase {
               lastActiveDate: true,
             },
           })
+
+          const wasReset =
+            existing != null &&
+            existing.currentStreak === 0 &&
+            existing.totalActiveDays === 0 &&
+            existing.lastActiveDate == null
+
+          // Se a lição já estava concluída e não houve reset, não conta streak.
+          if (wasAlreadyCompleted && !wasReset) {
+            return existing ? { ...existing, increasedToday: false } : null
+          }
 
           // primeira atividade do usuário
           if (!existing) {
@@ -262,11 +276,13 @@ export class CompleteLessonUseCase {
           return { ...updated, increasedToday: true }
         })
 
-        streak = {
-          current: row.currentStreak,
-          best: row.bestStreak,
-          totalActiveDays: row.totalActiveDays,
-          increasedToday: row.increasedToday,
+        if (row) {
+          streak = {
+            current: row.currentStreak,
+            best: row.bestStreak,
+            totalActiveDays: row.totalActiveDays,
+            increasedToday: row.increasedToday,
+          }
         }
       }
     }

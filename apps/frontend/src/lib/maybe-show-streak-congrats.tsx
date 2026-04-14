@@ -35,14 +35,30 @@ export function maybeShowStreakCongrats(result: ContinueCourseResult) {
   if (!key) return;
 
   const storageKey = `cl_streak_congrats_shown:${key}`;
-  try {
-    if (sessionStorage.getItem(storageKey) === "1") return;
-    sessionStorage.setItem(storageKey, "1");
-  } catch {
+  const disableGuard =
+    process.env.NEXT_PUBLIC_DISABLE_STREAK_CONGRATS_GUARD === "1";
+  if (!disableGuard) {
+    try {
+      const raw = sessionStorage.getItem(storageKey);
+      const lastShownTotal = raw ? Number(raw) : null;
+      const currentTotal = streak.totalActiveDays ?? 0;
+
+      if (
+        lastShownTotal != null &&
+        Number.isFinite(lastShownTotal) &&
+        lastShownTotal >= 0
+      ) {
+        if (currentTotal >= lastShownTotal) return;
+      }
+
+      sessionStorage.setItem(storageKey, String(currentTotal));
+    } catch {
+    }
   }
   useStreakCongratsStore.getState().open({
     current: streak.current,
     best: streak.best,
+    totalActiveDays: streak.totalActiveDays,
   });
 }
 

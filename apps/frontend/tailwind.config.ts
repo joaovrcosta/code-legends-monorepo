@@ -107,6 +107,8 @@ export default {
           "linear-gradient(267deg, #39007F 0%, #6547EB 100%)",
         "yellow-lightning-500":
           "linear-gradient(267deg, #ec2352 0%, #ffb733 100%)",
+        "yellow-lightning-600":
+          "linear-gradient(267deg, #FFBF00 0%, #FF5900 100%)",
         "yellow-gradient-first":
           "linear-gradient(0deg, rgba(15,15,16, 0.05) 0%, rgba(255,204,0,0.39) 100%)",
       },

@@ -135,6 +135,10 @@ export function StrikeSection({
             totalActiveDays: streakData.totalActiveDays ?? 0,
           })
         }
+        if ((streakData?.current ?? 0) === 0) {
+          setWeekly([])
+          return
+        }
         if (activityData?.days) {
           setWeekly(activityData.days)
         }
@@ -167,6 +171,11 @@ export function StrikeSection({
         best: custom.detail.best ?? 0,
         totalActiveDays: custom.detail.totalActiveDays ?? 0,
       })
+
+      if ((custom.detail.current ?? 0) === 0) {
+        setWeekly([])
+        return
+      }
 
       // Otimização: marca o dia de hoje como ativo sem precisar refetch.
       const todayKey = formatYYYYMMDDInTZ(new Date(), SAO_PAULO_TZ)
@@ -239,16 +248,16 @@ export function StrikeSection({
         <DropdownMenuTrigger asChild>
           <div
             className={`flex items-center space-x-3 border py-2 px-3 rounded-[20px] transition-colors ${isOpen
-              ? 'bg-[#25252A] border-[#ff6200]'
+              ? 'bg-[#25252A] border-[#FFBF00]'
               : streak.current > 0
-                ? 'border-[#ff6200] hover:bg-[#25252A] hover:border-[#ff6200]'
-                : 'border-[#25252A] hover:bg-[#25252A] hover:border-[#ff6200]'
+                ? 'border-[#FFBF00] hover:bg-[#25252A] hover:border-[#FFBF00]'
+                : 'border-[#25252A] hover:bg-[#25252A] hover:border-[#FFBF00]'
               }`}
           >
             <Flame
               size={24}
               weight="fill"
-              className={streak.current > 0 ? 'text-[#ff6200]' : 'text-[#515155]'}
+              className={streak.current > 0 ? 'text-[#FFBF00]' : 'text-[#515155]'}
             />
             <span
               className={`text-base ${streak.current > 0 ? 'text-white' : 'text-[#515155]'
@@ -285,11 +294,11 @@ export function StrikeSection({
           <div className="p-4 text-sm w-full">
             <div className="flex items-center gap-2 mb-1">
               <p>
-                <span className="font-bold bg-yellow-lightning-500 bg-clip-text text-lg text-transparent">
+                <span className="font-bold bg-yellow-lightning-600 bg-clip-text text-lg text-transparent">
                   Streak
                 </span>
               </p>
-              <Flame size={24} weight="fill" className="text-[#ff6200]" />
+              <Flame size={24} weight="fill" className="text-[#FFBF00]" />
             </div>
             <p className="text-sm text-[#C4C4CC]">
               Assista uma aula para aumentar seu streak
@@ -316,7 +325,6 @@ export function StrikeSection({
               </div>
             </div>
 
-            {/* Progresso Semanal */}
             <div className="mt-6 bg-[#25252A]/30 rounded-[20px] p-4">
               <div className="flex items-center justify-between mb-6">
                 {(['D', 'S', 'T', 'Q', 'Q', 'S', 'S'] as const).map((label, idx) => {
@@ -328,7 +336,7 @@ export function StrikeSection({
                     <div key={idx} className="flex flex-col items-center">
                       <span className="text-xs text-[#C4C4CC] mb-2">{label}</span>
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isActive ? 'bg-yellow-lightning-500' : 'bg-[#25252A]'
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isActive ? 'bg-yellow-lightning-600' : 'bg-[#25252A]'
                           }`}
                         title={
                           day.date
@@ -348,7 +356,7 @@ export function StrikeSection({
               </div>
               <div className="relative h-4 bg-[#25252A] rounded-full overflow-hidden">
                 <div
-                  className="absolute h-full bg-yellow-lightning-500 rounded-full"
+                  className="absolute h-full bg-yellow-lightning-600 rounded-full"
                   style={{ width: `${weeklyView.percent}%` }}
                 />
               </div>

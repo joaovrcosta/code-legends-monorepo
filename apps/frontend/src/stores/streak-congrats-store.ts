@@ -3,6 +3,7 @@ import { create } from "zustand";
 type StreakCongratsPayload = {
   current: number;
   best: number;
+  totalActiveDays: number;
 };
 
 type StreakCongratsStore = {
