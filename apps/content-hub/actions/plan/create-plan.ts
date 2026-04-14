@@ -7,6 +7,7 @@ export interface CreatePlanData {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  colorHex?: string | null;
   amountCents?: number;
   order?: number;
   active?: boolean;
@@ -28,6 +29,7 @@ export async function createPlan(
         name: data.name,
         description: data.description ?? null,
         imageUrl: data.imageUrl ?? null,
+        colorHex: data.colorHex ?? null,
         amountCents: data.amountCents ?? 0,
         order: data.order ?? 0,
         active: data.active ?? true,

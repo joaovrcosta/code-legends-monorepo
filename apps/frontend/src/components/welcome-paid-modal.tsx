@@ -8,7 +8,6 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useWelcomePaidStore } from "@/stores/welcome-paid-store";
 import Image from "next/image";
-import welcomePaidImage from "../../public/welcome-image-1.png";
 import codeLegendsLogo from "../../public/logo-mobile.png";
 
 function useIsDesktop() {
@@ -31,13 +30,30 @@ function planLabel(slug: string | null, name: string | null) {
   return slug;
 }
 
+function planColorHex(slug: string | null): string {
+  const s = (slug ?? "").toLowerCase();
+  if (s === "pro") return "#8234E9";
+  if (s === "premium") return "#FF6200";
+  if (s === "free") return "#B8E62E";
+  return "#00c8ff";
+}
+
+function readableTextColor(backgroundHex: string): "#000000" | "#FFFFFF" {
+  const hex = backgroundHex.replace("#", "").trim();
+  if (hex.length !== 6) return "#FFFFFF";
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 150 ? "#000000" : "#FFFFFF";
+}
+
 export function WelcomePaidModal() {
-  // const isOpen = true
-  // const payload = { planSlug: "PRO", planName: "Premium", planImageUrl: 'https://raw.githubusercontent.com/joaovrcosta/code-icons/main/pro-icon.svg', subscriptionId: null, endsAt: null }
-  // const close = () => { }
   const { isOpen, payload, close } = useWelcomePaidStore();
 
   const isDesktop = useIsDesktop();
+  const accentHex = planColorHex(payload?.planSlug ?? null);
+  const accentText = readableTextColor(accentHex);
 
   const title = "Bem-vindo!";
   const subtitle = payload
@@ -61,9 +77,9 @@ export function WelcomePaidModal() {
             <Image
               src={payload.planImageUrl}
               alt={payload.planName ?? payload.planSlug ?? "Plano"}
-              width={160}
-              height={160}
-              className="h-auto w-[160px] object-contain"
+              width={120}
+              height={20}
+              className="h-48 w-[160px] object-contain"
             />
           ) : (
             <Image
@@ -74,7 +90,10 @@ export function WelcomePaidModal() {
             />
           )}
         </div>
-        <div className="mt-2 text-xs font-semibold tracking-widest text-[#00c8ff] uppercase">
+        <div
+          className="mt-2 text-xs font-semibold tracking-widest uppercase"
+          style={{ color: accentHex }}
+        >
           Bem vindo!
         </div>
         <div className="mt-2 text-2xl font-semibold text-white">{title}</div>
@@ -85,7 +104,8 @@ export function WelcomePaidModal() {
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Button
             onClick={close}
-            className="rounded-full bg-[#00c8ff] px-6 text-black hover:opacity-90"
+            className="rounded-full px-6 hover:opacity-90"
+            style={{ backgroundColor: accentHex, color: accentText }}
           >
             Começar agora
           </Button>

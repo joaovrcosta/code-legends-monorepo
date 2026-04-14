@@ -8,6 +8,7 @@ export interface Plan {
   name: string;
   description: string | null;
   imageUrl?: string | null;
+  colorHex?: string | null;
   amountCents: number;
   order: number;
   active: boolean;

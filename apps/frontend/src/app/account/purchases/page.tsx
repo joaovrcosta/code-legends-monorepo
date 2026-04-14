@@ -32,12 +32,13 @@ export default async function AccountPurchasesPage() {
 
   const nextRenewalDate = planInfo?.expirationDate ?? null
 
-  const displayColor =
-    userPlan === 'PRO'
-      ? 'text-[#8234E9]'
+  const displayColorHex =
+    planInfo?.colorHex ??
+    (userPlan === 'PRO'
+      ? '#8234E9'
       : userPlan === 'PREMIUM'
-        ? 'text-[#FF6200]'
-        : 'text-[#B8E62E]'
+        ? '#FF6200'
+        : '#B8E62E')
 
   const paymentMethod = null
   const lastPaymentDate = null
@@ -83,7 +84,7 @@ export default async function AccountPurchasesPage() {
 
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`font-semibold ${displayColor}`}>
+                    <span className="font-semibold" style={{ color: displayColorHex }}>
                       {displayTitle}
                     </span>
 

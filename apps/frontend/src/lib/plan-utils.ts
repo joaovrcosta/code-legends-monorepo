@@ -4,6 +4,7 @@ export interface PlanFromAPIInput {
   slug: string;
   name: string;
   description: string | null;
+  colorHex?: string | null;
   amountCents: number;
   /** Data de expiração (Date, ISO string ou null) - opcional */
   expirationDate?: Date | string | null;
@@ -13,6 +14,12 @@ const PLAN_ICON_BY_SLUG: Record<string, string> = {
   pro: "/pro-plan-icon.svg",
   premium: "/premium-plan-icon.svg",
   free: "/free-plan-icon.svg",
+};
+
+const PLAN_COLOR_BY_SLUG: Record<string, string> = {
+  pro: "#8234E9",
+  premium: "#FF6200",
+  free: "#B8E62E",
 };
 
 function formatBRL(cents: number): string {
@@ -33,6 +40,7 @@ export function planFromApiToPlanInfo(p: PlanFromAPIInput): PlanInfo {
     : [];
   const slug = p.slug.toLowerCase();
   const icon = PLAN_ICON_BY_SLUG[slug] ?? "/pro-plan-icon.svg";
+  const colorHex = p.colorHex ?? PLAN_COLOR_BY_SLUG[slug] ?? null;
   let expirationDate: string | null = null;
   if (p.expirationDate != null) {
     const d =
@@ -51,6 +59,7 @@ export function planFromApiToPlanInfo(p: PlanFromAPIInput): PlanInfo {
     icon,
     title: p.name,
     description: p.description ?? "",
+    colorHex,
     price: priceStr,
     installments: installmentsStr,
     features:

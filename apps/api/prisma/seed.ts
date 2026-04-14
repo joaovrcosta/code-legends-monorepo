@@ -47,6 +47,7 @@ const PLANS = [
     slug: 'FREE',
     name: 'Plano gratuito',
     description: 'Acesso a conteúdos gratuitos do catálogo.',
+    colorHex: '#B8E62E',
     amountCents: 0,
     order: 0,
     externalId: null,
@@ -57,6 +58,7 @@ const PLANS = [
     name: 'Code Legends PRO',
     description:
       'Acesso a todos os conteúdos do catálogo, certificados e suporte. Assinatura anual.',
+    colorHex: '#8234E9',
     amountCents: 19700,
     order: 1,
     externalId: 'CODE-LEGENDS-PRO',
@@ -67,6 +69,7 @@ const PLANS = [
     name: 'Code Legends PREMIUM',
     description:
       'Tudo do PRO com mentorias, vagas e certificados ilimitados. Assinatura anual.',
+    colorHex: '#FF6200',
     amountCents: 39700,
     order: 2,
     externalId: 'CODE-LEGENDS-PREMIUM',

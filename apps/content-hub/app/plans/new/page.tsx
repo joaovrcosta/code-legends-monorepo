@@ -22,6 +22,7 @@ export default function NewPlanPage() {
     name: "",
     description: "",
     imageUrl: "",
+    colorHex: "",
     amountCents: 0,
     order: 0,
     active: true,
@@ -44,6 +45,7 @@ export default function NewPlanPage() {
           slug: formData.slug.toUpperCase(),
           description: formData.description || null,
           imageUrl: formData.imageUrl || null,
+          colorHex: formData.colorHex || null,
           externalId: formData.externalId || null,
           productName: formData.productName || null,
         },
@@ -142,6 +144,21 @@ export default function NewPlanPage() {
                 />
                 <p className="text-xs text-muted-foreground">
                   Opcional. Usada no frontend como ícone/imagem do plano.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="colorHex">Cor (Hex)</Label>
+                <Input
+                  id="colorHex"
+                  value={formData.colorHex || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, colorHex: e.target.value })
+                  }
+                  placeholder="Ex: #8234E9"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Opcional. Usada no frontend como cor do plano.
                 </p>
               </div>
 

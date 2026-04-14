@@ -2,6 +2,7 @@ export type PlanInfo = {
   icon: string
   title: string
   description: string
+  colorHex?: string | null
   price: string
   installments: string
   features: string[]

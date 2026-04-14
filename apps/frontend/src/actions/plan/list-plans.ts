@@ -5,6 +5,7 @@ export interface PlanFromAPI {
   slug: string;
   name: string;
   description: string | null;
+  colorHex?: string | null;
   amountCents: number;
   order: number;
   active: boolean;

@@ -37,6 +37,7 @@ export async function getSubscriptionForAccount(): Promise<{
     slug: plan.slug,
     name: plan.name,
     description: plan.description ?? null,
+    colorHex: plan.colorHex ?? null,
     amountCents: plan.amountCents,
     expirationDate: subscription?.endsAt ?? null,
   });

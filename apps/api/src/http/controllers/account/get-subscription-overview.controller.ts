@@ -40,6 +40,7 @@ export async function getSubscriptionOverview(
           name: true,
           description: true,
           imageUrl: true,
+          colorHex: true,
           amountCents: true,
         },
       }),

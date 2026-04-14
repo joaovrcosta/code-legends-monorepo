@@ -68,6 +68,7 @@ model Plan {
   name        String
   description String?
   imageUrl    String?
+  colorHex    String?
   amountCents Int      @default(0)
   order       Int      @default(0)
   active      Boolean  @default(true)
