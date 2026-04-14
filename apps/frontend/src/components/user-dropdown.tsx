@@ -12,18 +12,49 @@ import {
 } from './ui/dropdown-menu'
 import { Headset, LogOut, User } from 'lucide-react'
 import { logout } from '@/actions/auth'
+import { getUserFromAPI } from '@/actions/user/get-user-from-api'
 import { useSession } from 'next-auth/react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import freeIconPlan from '../../public/free-plan-icon.svg'
 import premiumIconPlan from '../../public/premium-plan-icon.svg'
 import proIconPlan from '../../public/pro-plan-icon.svg'
 
+type UserPlan = 'FREE' | 'PRO' | 'PREMIUM'
+
+function normalizePlan(plan: string | undefined): UserPlan {
+  if (plan === 'PRO' || plan === 'PREMIUM') return plan
+  return 'FREE'
+}
+
 export function UserDropdown() {
   const { data: session } = useSession()
   const user = session?.user
-  const userPlan = (user as { plan?: string } | undefined)?.plan
+  const sessionPlan = normalizePlan(
+    (user as { plan?: string } | undefined)?.plan
+  )
+  /** Plano vindo de GET /me — mesma fonte do UserProfiler (JWT da sessão atrasa após upgrade). */
+  const [planFromApi, setPlanFromApi] = useState<UserPlan | null>(null)
+  const userPlan = planFromApi ?? sessionPlan
   const [open, setOpen] = useState(false)
+
+  const refreshPlanFromApi = useCallback(() => {
+    if (!session?.user) {
+      setPlanFromApi(null)
+      return
+    }
+    void getUserFromAPI().then((u) => {
+      if (u) setPlanFromApi(normalizePlan(u.plan))
+    })
+  }, [session?.user])
+
+  useEffect(() => {
+    refreshPlanFromApi()
+  }, [refreshPlanFromApi])
+
+  useEffect(() => {
+    if (open) refreshPlanFromApi()
+  }, [open, refreshPlanFromApi])
 
   // Obtém as iniciais do nome para o fallback
   const getInitials = (name?: string | null) => {
