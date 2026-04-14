@@ -67,6 +67,7 @@ model Plan {
   slug        String   @unique
   name        String
   description String?
+  imageUrl    String?
   amountCents Int      @default(0)
   order       Int      @default(0)
   active      Boolean  @default(true)
@@ -115,9 +116,9 @@ model User {
   Certificate         Certificate[]
   favoriteCourses     FavoriteCourse[]
   activeCourseId      String?
-  activeCourse        Course?          @relation("ActiveCourse", fields: [activeCourseId], references: [id])
-  coursesAsInstructor Course[]         @relation("CourseInstructor")
-  lessonsAsAuthor     Lesson[]         @relation("LessonAuthor")
+  activeCourse        Course?              @relation("ActiveCourse", fields: [activeCourseId], references: [id])
+  coursesAsInstructor Course[]             @relation("CourseInstructor")
+  lessonsAsAuthor     Lesson[]             @relation("LessonAuthor")
   xpHistory           UserXpHistory[]
   skillXp             UserSkillXp[]
   skillXpHistory      UserSkillXpHistory[]
@@ -258,14 +259,14 @@ model Project {
 }
 
 model Skill {
-  id          String           @id @default(cuid())
-  slug        String           @unique
+  id          String   @id @default(cuid())
+  slug        String   @unique
   name        String
   description String?
   /// URL pública opcional (ícone/imagem da skill, análogo ao avatar do usuário)
   imageUrl    String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   courses CourseSkill[]
   lessons LessonSkill[]

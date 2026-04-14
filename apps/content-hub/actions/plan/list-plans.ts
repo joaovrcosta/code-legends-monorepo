@@ -7,6 +7,7 @@ export interface Plan {
   slug: string;
   name: string;
   description: string | null;
+  imageUrl?: string | null;
   amountCents: number;
   order: number;
   active: boolean;

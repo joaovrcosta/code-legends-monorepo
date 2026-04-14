@@ -39,6 +39,7 @@ export async function getSubscriptionOverview(
           slug: true,
           name: true,
           description: true,
+          imageUrl: true,
           amountCents: true,
         },
       }),

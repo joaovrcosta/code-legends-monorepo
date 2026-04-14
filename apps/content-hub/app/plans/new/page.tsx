@@ -21,6 +21,7 @@ export default function NewPlanPage() {
     slug: "",
     name: "",
     description: "",
+    imageUrl: "",
     amountCents: 0,
     order: 0,
     active: true,
@@ -42,6 +43,7 @@ export default function NewPlanPage() {
           ...formData,
           slug: formData.slug.toUpperCase(),
           description: formData.description || null,
+          imageUrl: formData.imageUrl || null,
           externalId: formData.externalId || null,
           productName: formData.productName || null,
         },
@@ -126,6 +128,21 @@ export default function NewPlanPage() {
                   placeholder="Descreva o plano..."
                   rows={3}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="imageUrl">Imagem do plano (URL)</Label>
+                <Input
+                  id="imageUrl"
+                  value={formData.imageUrl || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, imageUrl: e.target.value })
+                  }
+                  placeholder="Ex: https://.../pro-plan.png"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Opcional. Usada no frontend como ícone/imagem do plano.
+                </p>
               </div>
 
               <div className="grid gap-6 md:grid-cols-2">

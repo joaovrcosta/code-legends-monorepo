@@ -6,6 +6,7 @@ export interface UpdatePlanData {
   slug?: string;
   name?: string;
   description?: string | null;
+  imageUrl?: string | null;
   amountCents?: number;
   order?: number;
   active?: boolean;
@@ -22,6 +23,7 @@ export async function updatePlan(
   if (data.slug !== undefined) payload.slug = data.slug.toUpperCase();
   if (data.name !== undefined) payload.name = data.name;
   if (data.description !== undefined) payload.description = data.description;
+  if (data.imageUrl !== undefined) payload.imageUrl = data.imageUrl;
   if (data.amountCents !== undefined) payload.amountCents = data.amountCents;
   if (data.order !== undefined) payload.order = data.order;
   if (data.active !== undefined) payload.active = data.active;

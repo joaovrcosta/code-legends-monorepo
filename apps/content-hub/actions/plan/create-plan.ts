@@ -6,6 +6,7 @@ export interface CreatePlanData {
   slug: string;
   name: string;
   description?: string | null;
+  imageUrl?: string | null;
   amountCents?: number;
   order?: number;
   active?: boolean;
@@ -26,6 +27,7 @@ export async function createPlan(
         slug: data.slug.toUpperCase(),
         name: data.name,
         description: data.description ?? null,
+        imageUrl: data.imageUrl ?? null,
         amountCents: data.amountCents ?? 0,
         order: data.order ?? 0,
         active: data.active ?? true,
