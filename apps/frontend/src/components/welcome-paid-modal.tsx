@@ -7,6 +7,7 @@ import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useWelcomePaidStore } from "@/stores/welcome-paid-store";
+import { ackPostPurchaseWelcome } from "@/actions/account/post-purchase-welcome";
 import Image from "next/image";
 import codeLegendsLogo from "../../public/logo-mobile.png";
 
@@ -49,7 +50,7 @@ function readableTextColor(backgroundHex: string): "#000000" | "#FFFFFF" {
 }
 
 export function WelcomePaidModal() {
-  const { isOpen, payload, close } = useWelcomePaidStore();
+  const { isOpen, payload } = useWelcomePaidStore();
 
   const isDesktop = useIsDesktop();
   const accentHex =
@@ -58,15 +59,26 @@ export function WelcomePaidModal() {
   const accentText = readableTextColor(accentHex);
 
   const title = "Bem-vindo!";
-  const subtitle = payload
-    ? `Seu acesso ${planLabel(payload.planSlug, payload.planName)} foi liberado.`
-    : "Seu acesso foi liberado.";
+  const subtitle =
+    payload?.welcomeSubtitle?.trim() ||
+    (payload
+      ? `Seu acesso ${planLabel(payload.planSlug, payload.planName)} foi liberado.`
+      : "Seu acesso foi liberado.");
+
+  const ackAndClose = async () => {
+    const p = useWelcomePaidStore.getState().payload;
+    const pid = p?.paymentId;
+    if (pid) {
+      await ackPostPurchaseWelcome(pid).catch(() => {});
+    }
+    useWelcomePaidStore.getState().close();
+  };
 
   const Content = (
     <div className="relative">
       <button
         type="button"
-        onClick={close}
+        onClick={() => void ackAndClose()}
         aria-label="Fechar"
         className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full border border-[#25252A] bg-[#28282C] text-[#C4C4CC] hover:bg-[#1b1b1f]"
       >
@@ -105,14 +117,14 @@ export function WelcomePaidModal() {
 
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Button
-            onClick={close}
+            onClick={() => void ackAndClose()}
             className="rounded-full px-6 hover:opacity-90"
             style={{ backgroundColor: accentHex, color: accentText }}
           >
             Começar agora
           </Button>
           <Button
-            onClick={close}
+            onClick={() => void ackAndClose()}
             variant="outline"
             className="rounded-full border-[#25252A] bg-transparent text-white hover:bg-[#25252A]"
           >
@@ -125,7 +137,7 @@ export function WelcomePaidModal() {
 
   if (isDesktop) {
     return (
-      <Dialog open={isOpen} onOpenChange={(open) => !open && close()}>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && void ackAndClose()}>
         <DialogContent className="bg-[#1A1A1E] border border-[#25252A] text-white p-0 max-w-[520px] sm:rounded-[28px] overflow-hidden">
           <DialogTitle className="sr-only">Boas-vindas</DialogTitle>
           {Content}
@@ -135,7 +147,7 @@ export function WelcomePaidModal() {
   }
 
   return (
-    <Drawer open={isOpen} onOpenChange={(open) => !open && close()}>
+    <Drawer open={isOpen} onOpenChange={(open) => !open && void ackAndClose()}>
       <DrawerContent className="bg-[#1A1A1E] border border-[#25252A] text-white p-0 rounded-t-[28px]">
         <DrawerTitle className="sr-only">Boas-vindas</DrawerTitle>
         {Content}

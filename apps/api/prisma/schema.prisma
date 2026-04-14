@@ -108,6 +108,8 @@ model User {
   level               Int           @default(1)
   xpToNextLevel       Int           @default(100)
   lastLogin           DateTime?
+  /// Último Payment.id para o qual o modal pós-compra já foi confirmado (evita repetir entre dispositivos).
+  postPurchaseWelcomeAckPaymentId String?
 
   expertise Expertise[] @relation("UserToExpertise")
 

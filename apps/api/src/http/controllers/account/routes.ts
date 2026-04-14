@@ -19,6 +19,8 @@ import { getUserSkills } from './get-user-skills.controller'
 import { resetUserSkills } from './reset-user-skills.controller'
 import { getCheckoutDados } from './get-checkout-dados.controller'
 import { getSubscriptionOverview } from './get-subscription-overview.controller'
+import { getPostPurchaseWelcome } from './get-post-purchase-welcome.controller'
+import { postPostPurchaseWelcomeAck } from './post-post-purchase-welcome-ack.controller'
 import { listPayments } from './list-payments.controller'
 import { syncPayments } from './sync-payments.controller'
 import { createCheckout } from '../payments/create-checkout.controller'
@@ -49,6 +51,12 @@ export async function usersRoutes(app: FastifyInstance) {
   app.get('/me/activity/lessons', { onRequest: [verifyJWT] }, getLessonActivity)
   app.get('/me/streak', { onRequest: [verifyJWT] }, getStreak)
   app.get('/me/subscription-overview', { onRequest: [verifyJWT] }, getSubscriptionOverview)
+  app.get('/me/post-purchase-welcome', { onRequest: [verifyJWT] }, getPostPurchaseWelcome)
+  app.post(
+    '/me/post-purchase-welcome-ack',
+    { onRequest: [verifyJWT] },
+    postPostPurchaseWelcomeAck as RouteHandlerMethod,
+  )
   app.get('/me/checkout-dados', { onRequest: [verifyJWT] }, getCheckoutDados)
   app.patch(
     '/me/checkout-dados',
