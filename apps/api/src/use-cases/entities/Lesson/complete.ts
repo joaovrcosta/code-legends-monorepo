@@ -20,6 +20,11 @@ import {
   lessonCompletedXpReasonId,
   shouldGrantLessonCompletionXp,
 } from './lesson-complete-xp-gate'
+import { resolveUserStreakForApi } from '../../../lib/user-streak-resolve'
+import {
+  addDaysToISODateKeySP,
+  formatYYYYMMDDInTZSP,
+} from '../../../utils/streak-calendar'
 
 interface CompleteLessonRequest {
   userId: string
@@ -111,7 +116,6 @@ export class CompleteLessonUseCase {
       throw new Error('User is not enrolled in this course')
     }
 
-    // Verificar se a lição já foi completada (para evitar duplicação de XP)
     const existingProgress =
       await this.userProgressRepository.findByUserAndTask(userId, lessonId)
     const wasAlreadyCompleted = existingProgress?.isCompleted ?? false
@@ -129,7 +133,7 @@ export class CompleteLessonUseCase {
     })
 
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d6a1ea'},body:JSON.stringify({sessionId:'d6a1ea',runId:'pre-fix',hypothesisId:'H2',location:'complete.ts:after_progress_upsert',message:'User progress upserted',data:{lessonId,isCompleted,wasAlreadyCompleted},timestamp:Date.now()})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd6a1ea' }, body: JSON.stringify({ sessionId: 'd6a1ea', runId: 'pre-fix', hypothesisId: 'H2', location: 'complete.ts:after_progress_upsert', message: 'User progress upserted', data: { lessonId, isCompleted, wasAlreadyCompleted }, timestamp: Date.now() }) }).catch(() => { });
     // #endregion
 
     let xpGained = 0
@@ -143,33 +147,6 @@ export class CompleteLessonUseCase {
     const user = await this.usersRepository.findById(userId)
     if (!user) {
       throw new Error('User not found')
-    }
-
-    const SAO_PAULO_TZ = 'America/Sao_Paulo'
-    const formatYYYYMMDDInTZ = (date: Date) => {
-      const parts = new Intl.DateTimeFormat('en-CA', {
-        timeZone: SAO_PAULO_TZ,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      }).formatToParts(date)
-
-      const y = parts.find((p) => p.type === 'year')?.value
-      const m = parts.find((p) => p.type === 'month')?.value
-      const d = parts.find((p) => p.type === 'day')?.value
-      if (!y || !m || !d) return null
-      return `${y}-${m}-${d}`
-    }
-
-    const addDaysToISODateKey = (key: string, days: number) => {
-      // key: YYYY-MM-DD
-      const [y, m, d] = key.split('-').map((n) => Number(n))
-      if (!y || !m || !d) return null
-      // meio-dia UTC para evitar DST/shift ao converter
-      const base = new Date(Date.UTC(y, m - 1, d, 12, 0, 0, 0))
-      base.setUTCDate(base.getUTCDate() + days)
-      // volta para key no fuso SP (mantém consistência do produto)
-      return formatYYYYMMDDInTZ(base)
     }
 
     const gamification = await getGamificationSettingsCached()
@@ -199,14 +176,11 @@ export class CompleteLessonUseCase {
       lessonXpEventExists,
     })
 
-    // Streak/ofensiva:
-    // - Regra padrão: só conta quando a lição transiciona para concluída pela primeira vez.
-    // - Exceção (reset manual pelo admin): se a streak foi resetada (0/0/null),
-    //   permitimos contar a próxima conclusão do dia mesmo que a lição já estivesse concluída.
     if (isCompleted) {
-      const todayKey = formatYYYYMMDDInTZ(new Date())
+      const todayKey = formatYYYYMMDDInTZSP(new Date())
       if (todayKey) {
-        const yesterdayKey = addDaysToISODateKey(todayKey, -1)
+        await resolveUserStreakForApi(userId)
+        const yesterdayKey = addDaysToISODateKeySP(todayKey, -1)
 
         const row = await prisma.$transaction(async (tx) => {
           const existing = await tx.userStreak.findUnique({
@@ -225,12 +199,10 @@ export class CompleteLessonUseCase {
             existing.totalActiveDays === 0 &&
             existing.lastActiveDate == null
 
-          // Se a lição já estava concluída e não houve reset, não conta streak.
           if (wasAlreadyCompleted && !wasReset) {
             return existing ? { ...existing, increasedToday: false } : null
           }
 
-          // primeira atividade do usuário
           if (!existing) {
             const created = await tx.userStreak.create({
               data: {
@@ -250,7 +222,6 @@ export class CompleteLessonUseCase {
             return { ...created, increasedToday: true }
           }
 
-          // já contou hoje: idempotente
           if (existing.lastActiveDate === todayKey) {
             return { ...existing, increasedToday: false }
           }
@@ -287,7 +258,6 @@ export class CompleteLessonUseCase {
       }
     }
 
-    // Também concede XP para QUIZ quando concluído (senão o final do módulo fica +0xp).
     if (shouldGrantLessonXp) {
       const applySkillsXp = (
         skillRows: Array<{ skillId: string; weight: number }>,
@@ -302,7 +272,6 @@ export class CompleteLessonUseCase {
       }
 
       await prisma.$transaction(async (tx) => {
-        // Regra aditiva: aplica skills do curso + skills específicas da aula (se existirem).
         const entries = [...applySkillsXp(courseSkills), ...applySkillsXp(lessonSkills)]
         const distributedXp = entries.reduce((acc, e) => acc + e.xpAmount, 0)
 
@@ -333,7 +302,6 @@ export class CompleteLessonUseCase {
           entries,
         })
 
-        // espelha para variáveis externas da resposta
         xpGained = awardResult.xpGained
         totalXp = awardResult.totalXp
         level = awardResult.level
@@ -358,7 +326,6 @@ export class CompleteLessonUseCase {
         }
       })
     } else {
-      // Se já estava completa, recalc cache a partir da soma de skills.
       const agg = await prisma.userSkillXp.aggregate({
         where: { userId },
         _sum: { xp: true },
@@ -410,19 +377,16 @@ export class CompleteLessonUseCase {
       0,
     )
 
-    // Contar aulas concluídas no módulo
     const tasksCompleted =
       await this.userProgressRepository.countCompletedInModule(
         userId,
         group.moduleId,
       )
 
-    // Calcular progresso do módulo
     const moduleProgress =
       totalTasksInModule > 0 ? tasksCompleted / totalTasksInModule : 0
     const moduleCompleted = tasksCompleted === totalTasksInModule
 
-    // Atualizar progresso do módulo
     await this.userModuleProgressRepository.upsert({
       userId,
       moduleId: group.moduleId,
@@ -454,7 +418,6 @@ export class CompleteLessonUseCase {
       }
     }
 
-    // Calcular progresso do curso
     const completedLessons = await prisma.userProgress.count({
       where: {
         userId,
@@ -475,7 +438,6 @@ export class CompleteLessonUseCase {
     const wasCourseCompleted = userCourse.isCompleted
     const isNewlyCompleted = courseCompleted && !wasCourseCompleted
 
-    // [COURSE_COMPLETION_DEBUG] Só loga quando há inconsistência (getAllLessons != count no DB)
     const totalLessonsInDb = await prisma.lesson.count({
       where: {
         submodule: { module: { courseId } },
@@ -500,7 +462,6 @@ export class CompleteLessonUseCase {
       })
     }
 
-    // Atualizar UserCourse (quiz reprovado: não avança, usuário permanece na mesma lição para tentar de novo)
     const effectiveNextTaskId = isCompleted ? nextLessonId : lessonId
     const nextLesson = effectiveNextTaskId
       ? allLessons.find((l) => l.id === effectiveNextTaskId)
@@ -541,7 +502,6 @@ export class CompleteLessonUseCase {
         })
       }
     } else {
-      // Sem próxima lição (ex.: última da lista). Só marcar curso completo se todas foram concluídas.
       await this.userCourseRepository.update(userCourse.id, {
         currentTaskId: null,
         progress: courseProgress,
@@ -550,7 +510,6 @@ export class CompleteLessonUseCase {
       })
     }
 
-    // Criar notificação de curso completado
     if (isNewlyCompleted) {
       try {
         const notificationData =
@@ -562,12 +521,10 @@ export class CompleteLessonUseCase {
 
         await createNotification(notificationData)
       } catch (error) {
-        // Não quebra o fluxo se a notificação falhar
         console.error('Erro ao criar notificação de curso completado:', error)
       }
     }
 
-    // XP total do módulo (soma de todas as lições): só quando o módulo acabou de ser completado
     let xpGainedInModule: number | undefined
     let xpGainedInModuleBySkill: { skillId: string; xp: number }[] | undefined
 
@@ -597,7 +554,7 @@ export class CompleteLessonUseCase {
     }
 
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d6a1ea'},body:JSON.stringify({sessionId:'d6a1ea',runId:'pre-fix',hypothesisId:'H3',location:'complete.ts:before_return',message:'Complete lesson success path',data:{lessonId,moduleCompleted,courseCompleted,xpGained},timestamp:Date.now()})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd6a1ea' }, body: JSON.stringify({ sessionId: 'd6a1ea', runId: 'pre-fix', hypothesisId: 'H3', location: 'complete.ts:before_return', message: 'Complete lesson success path', data: { lessonId, moduleCompleted, courseCompleted, xpGained }, timestamp: Date.now() }) }).catch(() => { });
     // #endregion
 
     return {
@@ -612,7 +569,7 @@ export class CompleteLessonUseCase {
       totalXp,
       level,
       xpToNextLevel,
-      progress: Math.round(moduleProgress * 100), // Progresso do módulo em porcentagem (0-100)
+      progress: Math.round(moduleProgress * 100),
       streak,
       ...(moduleCompleted && {
         xpGainedInModule,

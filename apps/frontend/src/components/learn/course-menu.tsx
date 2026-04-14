@@ -86,11 +86,10 @@ export function CourseDropdownMenu({
     shadow-[0_0_15px_rgba(255,255,255,0.10)] hover:shadow-[0_0_20px_rgba(255,255,255,0.30)]
     lg:bg-transparent lg:backdrop-blur-none lg:shadow-none lg:hover:shadow-none
     
-    ${
-      open
-        ? 'border-[#00C8FF]/70 lg:border-[#25252A] shadow-[0_0_25px_rgba(255,255,255,0.2)] lg:shadow-none'
-        : 'border-[#55555c]/50 lg:border-[#25252A]'
-    }`}
+    ${open
+              ? 'border-[#00C8FF]/70 lg:border-[#25252A] shadow-[0_0_25px_rgba(255,255,255,0.2)] lg:shadow-none'
+              : 'border-[#55555c]/50 lg:border-[#25252A]'
+            }`}
         >
           {currentActiveCourse?.icon ? (
             <Image
@@ -116,7 +115,7 @@ export function CourseDropdownMenu({
       >
         <DropdownMenuLabel className="p-4 flex items-center justify-center">
           <span className="bg-blue-gradient-500 bg-clip-text text-transparent font-bold text-base">
-            {currentActiveCourse ? 'Meus cursos' : 'Começar um curso'}
+            {currentActiveCourse ? 'Mudar de trilha' : 'Começar um curso'}
           </span>
         </DropdownMenuLabel>
 
@@ -166,28 +165,27 @@ export function CourseDropdownMenu({
                 return (
                   <DropdownMenuItem
                     key={enrolledCourse.id}
-                    className={`pl-2 pr-4 w-full min-w-[352px] text-white border-none rounded-[20px] ${
-                      isChanging
+                    className={`pl-2 pr-4 w-full min-w-[352px] text-white border-none rounded-[20px] ${isChanging
                         ? 'opacity-50 cursor-not-allowed'
                         : 'cursor-pointer'
-                    }`}
+                      }`}
                     onClick={handleCourseClick}
                   >
                     <div className="flex items-center gap-3">
                       {(enrolledCourse.course.icon ||
                         enrolledCourse.course.thumbnail) && (
-                        <Image
-                          src={
-                            enrolledCourse.course.icon ||
-                            enrolledCourse.course.thumbnail ||
-                            ''
-                          }
-                          alt={enrolledCourse.course.title}
-                          width={70}
-                          height={70}
-                          className="object-contain h-[70px] w-[70px]"
-                        />
-                      )}
+                          <Image
+                            src={
+                              enrolledCourse.course.icon ||
+                              enrolledCourse.course.thumbnail ||
+                              ''
+                            }
+                            alt={enrolledCourse.course.title}
+                            width={70}
+                            height={70}
+                            className="object-contain h-[70px] w-[70px]"
+                          />
+                        )}
                       <div className="flex flex-col flex-1">
                         <span className="text-sm">
                           {enrolledCourse.course.title}

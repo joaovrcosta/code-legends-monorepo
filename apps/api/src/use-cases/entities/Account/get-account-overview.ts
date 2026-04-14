@@ -4,6 +4,7 @@ import { IUserCourseRepository } from "../../../repositories/user-course-reposit
 import { IUserProgressRepository } from "../../../repositories/user-progress-repository";
 import { UserNotFoundError } from "../../errors/user-not-found";
 import { prisma } from "../../../lib/prisma";
+import { resolveUserStreakForApi } from "../../../lib/user-streak-resolve";
 
 interface GetAccountOverviewRequest {
   userId: string;
@@ -276,15 +277,7 @@ export class GetAccountOverviewUseCase {
       },
     });
 
-    const streak = await prisma.userStreak.findUnique({
-      where: { userId },
-      select: {
-        currentStreak: true,
-        bestStreak: true,
-        totalActiveDays: true,
-        lastActiveDate: true,
-      },
-    });
+    const streak = await resolveUserStreakForApi(userId);
 
     return {
       user: responseUser,
@@ -329,10 +322,10 @@ export class GetAccountOverviewUseCase {
         xp: item.xp,
       })),
       streak: {
-        current: streak?.currentStreak ?? 0,
-        best: streak?.bestStreak ?? 0,
-        totalActiveDays: streak?.totalActiveDays ?? 0,
-        lastActiveDate: streak?.lastActiveDate ?? null,
+        current: streak.current,
+        best: streak.best,
+        totalActiveDays: streak.totalActiveDays,
+        lastActiveDate: streak.lastActiveDate,
       },
     };
   }
