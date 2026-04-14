@@ -32,10 +32,10 @@ function planLabel(slug: string | null, name: string | null) {
 }
 
 export function WelcomePaidModal() {
-  const isOpen = true
-  const payload = { planSlug: "PRO", planName: "Premium", planImageUrl: 'https://raw.githubusercontent.com/joaovrcosta/code-icons/main/pro-icon.svg', subscriptionId: null, endsAt: null }
-  const close = () => { }
-  // const { isOpen, payload, close } = useWelcomePaidStore();
+  // const isOpen = true
+  // const payload = { planSlug: "PRO", planName: "Premium", planImageUrl: 'https://raw.githubusercontent.com/joaovrcosta/code-icons/main/pro-icon.svg', subscriptionId: null, endsAt: null }
+  // const close = () => { }
+  const { isOpen, payload, close } = useWelcomePaidStore();
 
   const isDesktop = useIsDesktop();
 
