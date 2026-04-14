@@ -30,7 +30,7 @@ const envSchema = z.object({
     .preprocess(
       (val) => {
         if (val === undefined || val === null) {
-          return true; // Por padrão permite associar provider
+          return true;
         }
         if (typeof val === "boolean") {
           return val;
