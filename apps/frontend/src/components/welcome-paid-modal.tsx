@@ -52,7 +52,9 @@ export function WelcomePaidModal() {
   const { isOpen, payload, close } = useWelcomePaidStore();
 
   const isDesktop = useIsDesktop();
-  const accentHex = planColorHex(payload?.planSlug ?? null);
+  const accentHex =
+    payload?.planColorHex?.trim() ||
+    planColorHex(payload?.planSlug ?? null);
   const accentText = readableTextColor(accentHex);
 
   const title = "Bem-vindo!";

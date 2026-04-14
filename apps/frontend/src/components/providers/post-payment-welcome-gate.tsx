@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useWelcomePaidStore } from "@/stores/welcome-paid-store";
 
 type SubscriptionOverview = {
-  plan: { slug: string; name: string; imageUrl?: string | null } | null;
+  plan: { slug: string; name: string; imageUrl?: string | null; colorHex?: string | null } | null;
   subscription:
   | { id: string; plan: string; status: string; startsAt: string; endsAt: string }
   | null;
@@ -13,6 +13,7 @@ type SubscriptionOverview = {
 };
 
 const LS_HAS_PAID_LAST = "cl_has_paid_plan:last";
+const LS_PLAN_SLUG_LAST = "cl_plan_slug:last";
 const LS_SHOWN_PREFIX = "cl_welcome_shown_for_plan:";
 
 function safeGetBool(key: string) {
@@ -71,6 +72,7 @@ export function PostPaymentWelcomeGate() {
 
     const run = async () => {
       const prevHasPaid = safeGetBool(LS_HAS_PAID_LAST);
+      const prevPlanSlug = safeGet(LS_PLAN_SLUG_LAST);
       const hasPrev = (() => {
         try {
           return localStorage.getItem(LS_HAS_PAID_LAST) != null;
@@ -90,11 +92,15 @@ export function PostPaymentWelcomeGate() {
         safeSetBool(LS_HAS_PAID_LAST, nowHasPaid);
 
         const planSlug = data.plan?.slug ?? (nowHasPaid ? "PAID" : "FREE");
+        safeSet(LS_PLAN_SLUG_LAST, planSlug);
         const shownKey = `${LS_SHOWN_PREFIX}${planSlug}`;
         const alreadyShown = safeGet(shownKey) === "1";
+        const planChanged = !!prevPlanSlug && prevPlanSlug !== planSlug;
 
         const shouldShow =
-          nowHasPaid && (!hasPrev || prevHasPaid === false) && !alreadyShown;
+          nowHasPaid &&
+          !alreadyShown &&
+          ((!hasPrev || prevHasPaid === false) || planChanged);
 
         if (shouldShow) {
           safeSet(shownKey, "1");
@@ -102,6 +108,7 @@ export function PostPaymentWelcomeGate() {
             planSlug: data.plan?.slug ?? null,
             planName: data.plan?.name ?? null,
             planImageUrl: data.plan?.imageUrl ?? null,
+            planColorHex: data.plan?.colorHex ?? null,
             subscriptionId: data.subscription?.id ?? null,
             endsAt: data.subscription?.endsAt ?? null,
           });

@@ -6,6 +6,7 @@ export type WelcomePaidPayload = {
   planSlug: string | null;
   planName: string | null;
   planImageUrl: string | null;
+  planColorHex?: string | null;
   subscriptionId: string | null;
   endsAt: string | null;
 };
