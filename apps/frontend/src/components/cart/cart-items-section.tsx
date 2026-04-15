@@ -18,7 +18,7 @@ export function CartItemsSection({ plan }: CartItemsSectionProps) {
         Meus itens
       </h2>
 
-      <Card className="border-[#25252A] bg-[#1a1a1e] rounded-[20px] overflow-hidden">
+      <Card className="border-[#25252A] bg-gray-gradient rounded-[20px] overflow-hidden">
         <CardHeader className="p-6 pb-4">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">

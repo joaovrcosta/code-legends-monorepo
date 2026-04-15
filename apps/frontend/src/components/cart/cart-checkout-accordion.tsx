@@ -7,7 +7,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import type { CartMeusDadosFormHandle } from "./cart-meus-dados-form";
 import { CartMeusDadosForm } from "./cart-meus-dados-form";
+import type { PaymentMethodId } from "./cart-payment-methods";
 import { CartPaymentMethods } from "./cart-payment-methods";
 
 interface CartCheckoutAccordionProps {
@@ -15,18 +17,26 @@ interface CartCheckoutAccordionProps {
   value: string | undefined;
   onValueChange: (value: string | undefined) => void;
   accordionRef: React.RefObject<HTMLDivElement | null>;
+  meusDadosFormRef: React.RefObject<CartMeusDadosFormHandle | null>;
+  onMeusDadosValidityChange?: (isValid: boolean) => void;
+  selectedPaymentMethod: PaymentMethodId | null;
+  onSelectedPaymentMethodChange: (method: PaymentMethodId) => void;
 }
 
 const TRIGGER_CLASS =
   "text-white hover:no-underline hover:text-[#c4c4cc] py-4 [&[data-state=open]_svg]:rotate-180";
 const ITEM_CLASS =
-  "border border-[#25252A] rounded-[12px] bg-[#1a1a1e] px-4";
+  "border border-[#25252A] rounded-[12px] bg-gray-gradient px-4";
 
 export function CartCheckoutAccordion({
   planSlug,
   value,
   onValueChange,
   accordionRef,
+  meusDadosFormRef,
+  onMeusDadosValidityChange,
+  selectedPaymentMethod,
+  onSelectedPaymentMethodChange,
 }: CartCheckoutAccordionProps) {
   return (
     <div ref={accordionRef}>
@@ -48,10 +58,13 @@ export function CartCheckoutAccordion({
               className="text-[#7e7e89] shrink-0 transition-transform duration-200"
             />
           </AccordionTrigger>
-          <AccordionContent className="pb-6 pt-0">
+          <AccordionContent className="w-full pb-6 pt-0">
             <CartMeusDadosForm
+              ref={meusDadosFormRef}
               isOpen={value === "dados"}
               onAdvanceToPayment={() => onValueChange("pagamento")}
+              showInternalAdvanceButton={false}
+              onValidityChange={onMeusDadosValidityChange}
             />
           </AccordionContent>
         </AccordionItem>
@@ -67,8 +80,12 @@ export function CartCheckoutAccordion({
               className="text-[#7e7e89] shrink-0 transition-transform duration-200"
             />
           </AccordionTrigger>
-          <AccordionContent className="pb-6 pt-0">
-            <CartPaymentMethods planSlug={planSlug} />
+          <AccordionContent className="w-full pb-6 pt-0">
+            <CartPaymentMethods
+              planSlug={planSlug}
+              value={selectedPaymentMethod}
+              onChange={onSelectedPaymentMethodChange}
+            />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

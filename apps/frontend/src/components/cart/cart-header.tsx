@@ -17,7 +17,6 @@ export function CartHeader() {
         className="flex items-center gap-2 text-sm font-medium text-[#C4C4CC] hover:text-white transition-colors shrink-0"
       >
         <CaretLeft size={20} weight="bold" />
-        Voltar
       </button>
       <Link
         href="/learn"

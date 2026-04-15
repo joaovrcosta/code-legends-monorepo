@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CreditCard, Receipt, QrCode, Check, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 import { createCheckout } from "@/actions/payments/create-checkout";
@@ -43,16 +43,9 @@ interface CartPaymentMethodsProps {
   onChange?: (method: PaymentMethodId) => void;
 }
 
-export function CartPaymentMethods({ planSlug, value = null, onChange }: CartPaymentMethodsProps) {
-  const [selected, setSelected] = useState<PaymentMethodId | null>(value ?? null);
+export function CartPayWithCardButton({ planSlug }: { planSlug: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const handleSelect = (id: PaymentMethodId) => {
-    setSelected(id);
-    setError(null);
-    onChange?.(id);
-  };
 
   const handlePayWithCard = async () => {
     setLoading(true);
@@ -67,7 +60,13 @@ export function CartPaymentMethods({ planSlug, value = null, onChange }: CartPay
         window.location.href = result.checkoutUrl;
         return;
       }
-      setError(!result ? "Erro ao criar checkout" : "message" in result ? result.message : "Erro ao criar checkout");
+      setError(
+        !result
+          ? "Erro ao criar checkout"
+          : "message" in result
+            ? result.message
+            : "Erro ao criar checkout",
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao redirecionar");
     } finally {
@@ -76,7 +75,42 @@ export function CartPaymentMethods({ planSlug, value = null, onChange }: CartPay
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      <Button
+        type="button"
+        onClick={handlePayWithCard}
+        disabled={loading}
+        className="w-full h-12 rounded-full bg-blue-gradient-500 hover:opacity-90 border-0 font-semibold text-sm"
+      >
+        {loading ? "Redirecionando..." : "Pagar com cartão"}
+      </Button>
+      {process.env.NODE_ENV === "development" && (
+        <p className="text-xs text-[#7e7e89] text-center">
+          Teste: use o cartão{" "}
+          <strong className="text-[#c4c4cc]">4242 4242 4242 4242</strong>, validade futura e
+          qualquer CVV.
+        </p>
+      )}
+      {error && <p className="text-xs text-red-400 text-center">{error}</p>}
+    </div>
+  );
+}
+
+export function CartPaymentMethods({ planSlug, value = null, onChange }: CartPaymentMethodsProps) {
+  const [selected, setSelected] = useState<PaymentMethodId | null>(value ?? null);
+  // (Desktop) o CTA de pagar fica na sidebar; aqui exibimos só no mobile.
+
+  const handleSelect = (id: PaymentMethodId) => {
+    setSelected(id);
+    onChange?.(id);
+  };
+
+  useEffect(() => {
+    setSelected(value ?? null);
+  }, [value]);
+
+  return (
+    <div className="w-full min-w-0 space-y-4">
       <p className="text-xs font-medium text-[#7e7e89]">Compra nacional</p>
 
       <div className="space-y-2">
@@ -111,23 +145,8 @@ export function CartPaymentMethods({ planSlug, value = null, onChange }: CartPay
       </div>
 
       {selected === "card" && (
-        <div className="space-y-3 pt-2">
-          <Button
-            type="button"
-            onClick={handlePayWithCard}
-            disabled={loading}
-            className="w-full h-12 rounded-full bg-blue-gradient-500 hover:opacity-90 border-0 font-semibold text-sm"
-          >
-            {loading ? "Redirecionando..." : "Pagar com cartão"}
-          </Button>
-          {process.env.NODE_ENV === "development" && (
-            <p className="text-xs text-[#7e7e89] text-center">
-              Teste: use o cartão <strong className="text-[#c4c4cc]">4242 4242 4242 4242</strong>, validade futura e qualquer CVV.
-            </p>
-          )}
-          {error && (
-            <p className="text-xs text-red-400 text-center">{error}</p>
-          )}
+        <div className="pt-2 lg:hidden">
+          <CartPayWithCardButton planSlug={planSlug} />
         </div>
       )}
 

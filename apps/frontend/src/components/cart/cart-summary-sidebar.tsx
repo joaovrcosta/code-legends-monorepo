@@ -4,12 +4,20 @@ import Image from "next/image";
 import { Check, FileText } from "@phosphor-icons/react/dist/ssr";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { PlanInfo } from "./constants";
+import type { PaymentMethodId } from "./cart-payment-methods";
+import { CartPayWithCardButton } from "./cart-payment-methods";
 
 interface CartSummarySidebarProps {
   plan: PlanInfo;
+  planSlug: string;
+  selectedPaymentMethod?: PaymentMethodId | null;
 }
 
-export function CartSummarySidebar({ plan }: CartSummarySidebarProps) {
+export function CartSummarySidebar({
+  plan,
+  planSlug,
+  selectedPaymentMethod = null,
+}: CartSummarySidebarProps) {
   return (
     <div className="lg:sticky lg:top-8 space-y-4">
       <Card className="border-[#25252A] border-[#00C8FF]/30 bg-[#1a1a1e] rounded-[20px] overflow-hidden">
@@ -72,6 +80,12 @@ export function CartSummarySidebar({ plan }: CartSummarySidebarProps) {
           </p>
         </div>
       </div>
+
+      {selectedPaymentMethod === "card" ? (
+        <div className="hidden lg:block">
+          <CartPayWithCardButton planSlug={planSlug} />
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -8,6 +8,8 @@ import { CartHeader } from "./cart-header";
 import { CartItemsSection } from "./cart-items-section";
 import { CartCheckoutAccordion } from "./cart-checkout-accordion";
 import { CartSummarySidebar } from "./cart-summary-sidebar";
+import type { CartMeusDadosFormHandle } from "./cart-meus-dados-form";
+import type { PaymentMethodId } from "./cart-payment-methods";
 
 interface CartContentProps {
   planSlug: string;
@@ -17,12 +19,26 @@ interface CartContentProps {
 export function CartContent({ planSlug, plan }: CartContentProps) {
   const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
   const accordionRef = useRef<HTMLDivElement>(null);
+  const meusDadosFormRef = useRef<CartMeusDadosFormHandle | null>(null);
+  const [meusDadosValid, setMeusDadosValid] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethodId | null>(null);
 
-  const handleAvançar = () => {
-    setAccordionValue("dados");
-    setTimeout(() => {
-      accordionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
+  const handleAvançar = async () => {
+    if (!accordionValue) {
+      setAccordionValue("dados");
+      setTimeout(() => {
+        accordionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+      return;
+    }
+
+    if (accordionValue === "dados") {
+      await meusDadosFormRef.current?.advanceToPayment();
+      return;
+    }
+
+    // Em "pagamento", o avanço/submit depende do método de pagamento (fica dentro do bloco)
+    accordionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
@@ -38,11 +54,16 @@ export function CartContent({ planSlug, plan }: CartContentProps) {
             value={accordionValue}
             onValueChange={setAccordionValue}
             accordionRef={accordionRef}
+            meusDadosFormRef={meusDadosFormRef}
+            onMeusDadosValidityChange={setMeusDadosValid}
+            selectedPaymentMethod={selectedPaymentMethod}
+            onSelectedPaymentMethodChange={setSelectedPaymentMethod}
           />
 
           <Button
             type="button"
             onClick={handleAvançar}
+            disabled={accordionValue === "dados" && !meusDadosValid}
             className={cn(
               "w-full h-14 rounded-full text-base font-semibold",
               "bg-blue-gradient-500 hover:opacity-90 border-0"
@@ -53,7 +74,11 @@ export function CartContent({ planSlug, plan }: CartContentProps) {
         </div>
 
         <div className="lg:col-span-1">
-          <CartSummarySidebar plan={plan} />
+          <CartSummarySidebar
+            plan={plan}
+            planSlug={planSlug}
+            selectedPaymentMethod={selectedPaymentMethod}
+          />
         </div>
       </div>
     </div>
