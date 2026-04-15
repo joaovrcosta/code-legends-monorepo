@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const session = await authenticateUserSessionData(email, password);
-    const response = NextResponse.redirect(new URL("/", request.url));
+    const response = NextResponse.redirect(new URL("/", request.url), 303);
 
     response.cookies.set(ACCESS_TOKEN_COOKIE, session.token, getCookieOptions(true));
     if (session.refreshToken) {
