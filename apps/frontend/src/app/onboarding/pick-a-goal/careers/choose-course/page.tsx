@@ -4,11 +4,10 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { completeOnboarding } from "@/actions/user";
-import { PrimaryButton } from "@/components/ui/primary-button";
-import { Progress } from "@/components/ui/progress";
+import { OnboardingTopBar } from "@/components/onboarding/onboarding-top-bar";
+import { ONBOARDING_STEP } from "@/components/onboarding/onboarding-constants";
 import Image from "next/image";
-import codeLogo from "../../../../../../public/code-legends-logo.svg";
-import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
+import { BookOpen } from "lucide-react";
 import { listCoursesByCategory } from "@/actions/course/list-courses-by-category";
 import { CourseWithCount } from "@/types/user-course.ts";
 
@@ -129,11 +128,12 @@ function ChooseCourseContent() {
 
   if (!categorySlug) {
     return (
-      <div className="flex-1 flex flex-col p-8 lg:p-20 items-center justify-center">
-        <p className="text-white text-lg">Categoria não encontrada.</p>
+      <div className="flex flex-1 flex-col items-center justify-center bg-[#0D0D12] px-6 py-16">
+        <p className="text-center text-lg text-white">Categoria não encontrada.</p>
         <button
+          type="button"
           onClick={() => router.back()}
-          className="mt-4 text-[#00C8FF] hover:underline"
+          className="mt-6 text-sm font-medium text-[#B8E62E] hover:underline"
         >
           Voltar
         </button>
@@ -141,100 +141,108 @@ function ChooseCourseContent() {
     );
   }
 
+  const areaLabel =
+    categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1).replace(/-/g, " ");
+
   return (
-    <div className="flex-1 flex flex-col p-8 lg:p-20">
-      <div className="absolute w-[200px] h-[200px] md:w-[300px] md:h-[300px] lg:w-[400px] lg:h-[400px] top-0 left-0 rounded-full bg-[#00b3ffa9] opacity-40 blur-[100px] md:blur-[150px] lg:blur-[200px] pointer-events-none" />
-      <div className="absolute w-[150px] h-[150px] md:w-[250px] md:h-[250px] lg:w-[300px] lg:h-[300px] top-[10%] left-[20%] md:top-[15%] md:left-[25%] lg:top-[20%] lg:left-[30%] rounded-full bg-[#00b3ff5b] opacity-30 blur-[100px] md:blur-[150px] lg:blur-[200px] pointer-events-none" />
-      <div className="absolute w-[250px] h-[250px] md:w-[400px] md:h-[400px] lg:w-[500px] lg:h-[500px] bottom-0 right-0 rounded-full bg-[#00b3ffb6] opacity-40 blur-[120px] md:blur-[180px] lg:blur-[220px] pointer-events-none" />
+    <div className="relative flex min-h-0 flex-1 flex-col bg-[#0D0D12] max-w-3xl w-full mx-auto">
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col px-5 pb-10 pt-6 sm:px-8 lg:px-14 lg:pb-14 lg:pt-10">
+        <OnboardingTopBar currentStep={ONBOARDING_STEP.course} />
 
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-16">
-          <Image src={codeLogo} alt="" quality={100} />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-white text-sm font-medium">3</span>
-          <Progress value={100} className="flex-1" />
-          <span className="text-white/60 text-sm">3</span>
-        </div>
-      </div>
+        <header className="mt-6 flex gap-4 sm:mt-10">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#B8E62E] shadow-[0_0_20px_rgba(184,230,46,0.25)]">
+            <BookOpen className="h-6 w-6 text-[#0D0D12]" strokeWidth={2.25} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-semibold leading-snug tracking-tight text-white sm:text-2xl">
+              Escolha sua primeira trilha em{" "}
+              <span className="text-[#B8E62E]">{areaLabel}</span>
+            </h1>
+            <p className="mt-2 text-sm leading-relaxed text-white/60 sm:text-base">
+              Essa será sua primeira trilha de aprendizado na plataforma.
+            </p>
+          </div>
+        </header>
 
-      <div className="flex-1 flex flex-col">
-        <div className="mb-12">
-          <h1 className="text-[24px] lg:text-[28px] font-semibold text-white mb-3">
-            Já que você quer ser um{" "}
-            <span className="text-[#00C8FF]">
-              {categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1)}
-            </span>
-            , escolha uma trilha para começar
-          </h1>
-          <p className="text-white/70 text-base">
-            Essa será sua primeira trilha de aprendizado.
-          </p>
-        </div>
-
-        {error && (
-          <div className="text-red-500 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-6">
+        {error ? (
+          <div className="mt-6 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             {error}
           </div>
-        )}
+        ) : null}
 
-        <div className="flex-1 space-y-3 mb-8 z-50">
+        <div className="mt-8 grid flex-1 grid-cols-1 content-start gap-4 sm:grid-cols-2 sm:gap-5">
           {courses.length === 0 && !error && (
-            <div className="text-white/60 text-sm text-center py-8">
-              Carregando cursos...
+            <div className="col-span-full py-12 text-center text-sm text-white/50">
+              Carregando cursos…
             </div>
           )}
-          {courses.map((course) => (
-            <button
-              key={course.id}
-              onClick={() => setSelectedCourse(course.slug)}
-              disabled={isLoading}
-              className={`w-full p-3 rounded-full px-4 border flex justify-start items-center text-left gap-3 ${selectedCourse === course.slug
-                  ? "border-[#00C8FF] shadow-[0_0_12px_#00C8FF]"
-                  : "border-[#25252A] bg-[#1A1A1E] hover:border-[#3A3A3F]"
-                }`}
-            >
-              {course.icon && (
-                <Image
-                  src={course.icon}
-                  alt={course.title}
-                  width={40}
-                  height={40}
-                />
-              )}
-              <span className="text-white text-sm">{course.title}</span>
-            </button>
-          ))}
+          {courses.map((course) => {
+            const isSelected = selectedCourse === course.slug;
+            return (
+              <button
+                key={course.id}
+                type="button"
+                onClick={() => setSelectedCourse(course.slug)}
+                disabled={isLoading}
+                className={[
+                  "flex min-h-[140px] flex-col items-center justify-center gap-4 rounded-2xl border px-5 py-6 text-center transition-all duration-200 sm:min-h-[160px]",
+                  isSelected
+                    ? "border-transparent bg-gradient-to-br from-[#2a1040] via-[#4a1f6e] to-[#8234E9] shadow-[0_12px_40px_rgba(130,52,233,0.25)] ring-1 ring-white/10"
+                    : "border-[#2a2a31] bg-[#16161c] hover:border-[#3d3d46] hover:bg-[#1a1a22]",
+                  isLoading ? "pointer-events-none opacity-50" : "",
+                ].join(" ")}
+              >
+                {course.icon ? (
+                  <span className="relative block h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[#25252a]">
+                    <Image
+                      src={course.icon}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="56px"
+                    />
+                  </span>
+                ) : (
+                  <span
+                    className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#25252a] text-xl text-white/80"
+                    aria-hidden
+                  >
+                    📘
+                  </span>
+                )}
+                <span
+                  className={[
+                    "text-sm leading-snug sm:text-[15px]",
+                    isSelected
+                      ? "font-semibold text-white"
+                      : "font-medium text-white/90",
+                  ].join(" ")}
+                >
+                  {course.title}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="flex items-center justify-between pt-4 z-50">
+        <footer className="mt-auto space-y-4 pt-10 flex flex-col items-center justify-center">
           <button
-            onClick={() => router.back()}
-            className="w-12 h-12 rounded-full bg-[#25252A] border border-[#3A3A3F] flex items-center justify-center hover:bg-[#3A3A3F] transition-colors"
-            disabled={isLoading}
+            type="button"
+            onClick={handleContinue}
+            disabled={!selectedCourse || isLoading}
+            className="w-full rounded-full bg-[#ececee] max-w-[280px] mx-auto py-4 text-center text-base font-semibold text-[#0D0D12] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <ArrowLeft className="text-white" size={20} />
+            {isLoading ? "Criando sua trilha…" : "Finalizar"}
           </button>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              disabled={isLoading}
-              onClick={finishOnboardingAndGoToLearn}
-              className="text-sm text-white/60 hover:text-white underline-offset-4 hover:underline disabled:opacity-50"
-            >
-              Pular etapa
-            </button>
-
-            <PrimaryButton
-              onClick={handleContinue}
-              disabled={!selectedCourse || isLoading}
-              className="min-w-[200px] max-w-[200px] z-50"
-            >
-              {isLoading ? "Criando sua trilha..." : "Finalizar"}
-            </PrimaryButton>
-          </div>
-        </div>
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={finishOnboardingAndGoToLearn}
+            className="w-full text-center text-sm text-white/45 transition-colors hover:text-white/75 disabled:opacity-50"
+          >
+            Pular etapa
+          </button>
+        </footer>
       </div>
     </div>
   );
@@ -242,11 +250,13 @@ function ChooseCourseContent() {
 
 export default function ChooseCoursePage() {
   return (
-    <Suspense fallback={
-      <div className="flex-1 flex flex-col p-8 lg:p-20 items-center justify-center">
-        <p className="text-white text-lg">Carregando...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex flex-1 flex-col items-center justify-center bg-[#0D0D12] px-6 py-20">
+          <p className="text-lg text-white/70">Carregando…</p>
+        </div>
+      }
+    >
       <ChooseCourseContent />
     </Suspense>
   );

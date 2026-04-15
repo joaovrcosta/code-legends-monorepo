@@ -3,21 +3,26 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateOnboarding } from '@/actions/user'
-import { PrimaryButton } from '@/components/ui/primary-button'
-import { Progress } from '@/components/ui/progress'
-import codeLogo from '../../../../public/code-legends-logo.svg'
-
+import { OnboardingTopBar } from '@/components/onboarding/onboarding-top-bar'
 import {
-  ArrowLeft,
+  ONBOARDING_BAR_TRANSITION_MS,
+  ONBOARDING_STEP,
+  onboardingProgressPercent,
+} from '@/components/onboarding/onboarding-constants'
+import {
   Play,
   GraduationCap,
   Link as LinkIcon,
   Rocket,
   Settings,
+  Target,
+  type LucideIcon,
 } from 'lucide-react'
+import codeLegendsLogo from '../../../../public/loading-logo.svg'
 import Image from 'next/image'
 
-const GOALS = [
+
+const GOALS: { id: string; label: string; icon: LucideIcon }[] = [
   {
     id: 'no-experience',
     label: 'Não tenho experiência e quero começar meus estudos em programação',
@@ -34,11 +39,6 @@ const GOALS = [
     icon: LinkIcon,
   },
   {
-    id: 'get-promotion',
-    label: 'Conseguir uma promoção no meu emprego atual',
-    icon: Rocket,
-  },
-  {
     id: 'specialize',
     label: 'Me especializar em uma tecnologia',
     icon: Settings,
@@ -49,126 +49,133 @@ export default function PickAGoalPage() {
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [barFill, setBarFill] = useState(() =>
+    onboardingProgressPercent(ONBOARDING_STEP.goal),
+  )
   const router = useRouter()
+
+  const goCareers = () => {
+    router.push('/onboarding/pick-a-goal/careers')
+  }
+
+  const animateThen = (fn: () => void) => {
+    setBarFill(onboardingProgressPercent(ONBOARDING_STEP.career))
+    window.setTimeout(fn, ONBOARDING_BAR_TRANSITION_MS)
+  }
 
   const handleContinue = async () => {
     if (!selectedGoal) return
+
+    const prevFill = barFill
+    setBarFill(onboardingProgressPercent(ONBOARDING_STEP.career))
 
     try {
       setIsLoading(true)
       setError('')
       await updateOnboarding({ goal: selectedGoal })
-      router.push('/onboarding/pick-a-goal/careers')
-    } catch (error) {
+      await new Promise((r) => setTimeout(r, ONBOARDING_BAR_TRANSITION_MS))
+      goCareers()
+    } catch (err) {
+      setBarFill(prevFill)
       setError(
-        error instanceof Error ? error.message : 'Erro ao salvar progresso',
+        err instanceof Error ? err.message : 'Erro ao salvar progresso',
       )
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleSkip = () => {
+    if (isLoading) return
+    animateThen(goCareers)
+  }
+
   return (
-    <div className="flex-1 flex flex-col p-8 lg:p-20">
-      <div className="absolute w-[200px] h-[200px] md:w-[300px] md:h-[300px] lg:w-[400px] lg:h-[400px] top-0 left-0 rounded-full bg-[#00b3ffa9] opacity-40 blur-[100px] md:blur-[150px] lg:blur-[200px] pointer-events-none" />
-      <div className="absolute w-[150px] h-[150px] md:w-[250px] md:h-[250px] lg:w-[300px] lg:h-[300px] top-[10%] left-[20%] md:top-[15%] md:left-[25%] lg:top-[20%] lg:left-[30%] rounded-full bg-[#00b3ff5b] opacity-30 blur-[100px] md:blur-[150px] lg:blur-[200px] pointer-events-none" />
-      <div className="absolute w-[250px] h-[250px] md:w-[400px] md:h-[400px] lg:w-[500px] lg:h-[500px] bottom-0 right-0 rounded-full bg-[#00b3ffb6] opacity-40 blur-[120px] md:blur-[180px] lg:blur-[220px] pointer-events-none" />
+    <div className="relative flex min-h-0 flex-1 flex-col bg-[#0D0D12] max-w-3xl w-full mx-auto">
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col px-5 pb-10 pt-6 sm:px-8 lg:px-14 lg:pb-14 lg:pt-10">
+        <OnboardingTopBar
+          currentStep={ONBOARDING_STEP.goal}
+          progressFillPercent={barFill}
+        />
 
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-16">
-          <Image src={codeLogo} alt="" quality={100} />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-white text-sm font-medium">1</span>
-          <Progress value={33} className="flex-1" />
-          <span className="text-white/60 text-sm">3</span>
-        </div>
-      </div>
+        <header className="mt-6 flex gap-4 sm:mt-10">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
+            <Image src={codeLegendsLogo} alt="Code Legends" className="h-12 w-12" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-semibold leading-snug tracking-tight text-white sm:text-2xl">
+              Qual sua meta com a programação?
+            </h1>
+            <p className="mt-2 text-sm leading-relaxed text-white/60 sm:text-base">
+              Conhecer seu objetivo nos ajuda a guiar melhor sua jornada de
+              aprendizado.
+            </p>
+          </div>
+        </header>
 
-      {/* Conteúdo Principal */}
-      <div className="flex-1 flex flex-col">
-        <div className="mb-12">
-          <h1 className="text-3xl lg:text-[28px] font-semibold text-white mb-3">
-            Qual sua meta com a programação?
-          </h1>
-          <p className="text-white/70 text-base">
-            Conhecer seu objetivo nos ajuda a guiar melhor sua jornada de
-            aprendizado.
-          </p>
-        </div>
-
-        {error && (
-          <div className="text-red-500 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-6">
+        {error ? (
+          <div className="mt-6 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             {error}
           </div>
-        )}
+        ) : null}
 
-        {/* Opções de Metas */}
-        <div className="flex-1 space-y-3 mb-8 z-50">
+        <div className="mt-8 grid flex-1 grid-cols-1 content-start gap-4 sm:grid-cols-2 sm:gap-5">
           {GOALS.map((goal) => {
             const Icon = goal.icon
             const isSelected = selectedGoal === goal.id
             return (
               <button
                 key={goal.id}
+                type="button"
                 onClick={() => setSelectedGoal(goal.id)}
                 disabled={isLoading}
-                className={`
-                      w-full p-2 px-4 rounded-full border transition-all text-left
-                      flex items-center gap-4 
-                      ${
-                        isSelected
-                          ? 'border-[#00C8FF] bg-[#00C8FF]-500/10 shadow-[0_0_12px_#00C8FF]'
-                          : 'border-[#25252A] bg-[#1A1A1E] hover:border-[#3A3A3F]'
-                      }
-                      ${
-                        isLoading
-                          ? 'opacity-50 cursor-not-allowed'
-                          : 'cursor-pointer'
-                      }
-                    `}
+                className={[
+                  'flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-[20px] px-5 py-6 text-center transition-all duration-200 sm:min-h-[200px]',
+                  isSelected
+                    ? 'bg-gradient-to-br from-[#367f930f] via-[#00aad949] to-[#00abd9]'
+                    : ' bg-[#16161c] hover:border-[#3d3d46] hover:bg-[#1a1a22]',
+                  isLoading ? 'pointer-events-none opacity-50' : '',
+                ].join(' ')}
               >
-                <div className="p-2">
-                  <Icon
-                    className={isSelected ? 'text-[#00C8FF]' : 'text-white'}
-                    size={20}
-                  />
-                </div>
-                <span className="text-white text-sm flex-1">{goal.label}</span>
+                <span
+                  className={[
+                    'flex h-12 w-12 items-center justify-center rounded-xl',
+                    isSelected ? 'bg-white/15 text-white' : 'bg-[#25252a] text-white/90',
+                  ].join(' ')}
+                >
+                  <Icon className="h-6 w-6" strokeWidth={2} />
+                </span>
+                <span
+                  className={[
+                    'text-sm leading-snug sm:text-[15px]',
+                    isSelected ? 'font-semibold text-white' : 'font-medium text-white/90',
+                  ].join(' ')}
+                >
+                  {goal.label}
+                </span>
               </button>
             )
           })}
         </div>
 
-        {/* Botões de Navegação */}
-        <div className="flex items-center justify-between pt-4 z-50">
+        <footer className="mt-auto space-y-4 pt-10 flex flex-col items-center justify-center">
           <button
-            onClick={() => router.back()}
-            className="w-12 h-12 rounded-full bg-[#25252A] border border-[#3A3A3F] flex items-center justify-center hover:bg-[#3A3A3F] transition-colors"
-            disabled={isLoading}
+            type="button"
+            onClick={handleContinue}
+            disabled={!selectedGoal || isLoading}
+            className="w-full rounded-full bg-[#ececee] max-w-[280px] mx-auto py-4 text-center text-base font-semibold text-[#0D0D12] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <ArrowLeft className="text-white" size={20} />
+            {isLoading ? 'Salvando…' : 'Continuar'}
           </button>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => router.push('/onboarding/pick-a-goal/careers')}
-              disabled={isLoading}
-              className="text-sm text-white/60 hover:text-white underline-offset-4 hover:underline disabled:opacity-50"
-            >
-              Pular etapa
-            </button>
-
-            <PrimaryButton
-              onClick={handleContinue}
-              disabled={!selectedGoal || isLoading}
-              className="min-w-[200px] max-w-[200px] z-50 rounded-full"
-            >
-              {isLoading ? 'Salvando...' : 'Continuar'}
-            </PrimaryButton>
-          </div>
-        </div>
+          <button
+            type="button"
+            onClick={handleSkip}
+            disabled={isLoading}
+            className="w-full text-center text-sm text-white/45 transition-colors hover:text-white/75 disabled:opacity-50"
+          >
+            Pular etapa
+          </button>
+        </footer>
       </div>
     </div>
   )

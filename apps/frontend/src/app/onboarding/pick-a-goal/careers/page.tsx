@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateOnboarding } from "@/actions/user";
-import { PrimaryButton } from "@/components/ui/primary-button";
-import { Progress } from "@/components/ui/progress";
-import Image from "next/image";
-import codeLogo from "../../../../../public/code-legends-logo.svg";
-import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
+import { OnboardingTopBar } from "@/components/onboarding/onboarding-top-bar";
+import {
+  ONBOARDING_BAR_TRANSITION_MS,
+  ONBOARDING_STEP,
+  onboardingProgressPercent,
+} from "@/components/onboarding/onboarding-constants";
+import { Compass } from "lucide-react";
 import { listCategories } from "@/actions/course/list-categories";
 import { Category } from "@/types/categories";
 
@@ -16,13 +18,16 @@ export default function CareersPage() {
   const [selectedCareer, setSelectedCareer] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [barFill, setBarFill] = useState(() =>
+    onboardingProgressPercent(ONBOARDING_STEP.career),
+  );
   const router = useRouter();
 
   useEffect(() => {
     async function fetchCategories() {
       try {
         const data = await listCategories();
-        setCategories(data); // ✅ Corrigido — apenas define o array
+        setCategories(data);
       } catch (err) {
         console.error("Erro ao buscar categorias:", err);
         setError("Não foi possível carregar as categorias.");
@@ -31,114 +36,135 @@ export default function CareersPage() {
     fetchCategories();
   }, []);
 
+  const pushChooseCourse = (slug: string) => {
+    router.push(
+      `/onboarding/pick-a-goal/careers/choose-course?categorySlug=${slug}`,
+    );
+  };
+
   const handleContinue = async () => {
     if (!selectedCareer) return;
+
+    const prevFill = barFill;
+    setBarFill(onboardingProgressPercent(ONBOARDING_STEP.course));
 
     try {
       setIsLoading(true);
       setError("");
       await updateOnboarding({ career: selectedCareer });
-      router.push(
-        `/onboarding/pick-a-goal/careers/choose-course?categorySlug=${selectedCareer}`
-      );
-    } catch (error) {
-      console.error("Erro ao salvar carreira:", error);
+      await new Promise((r) => setTimeout(r, ONBOARDING_BAR_TRANSITION_MS));
+      pushChooseCourse(selectedCareer);
+    } catch (err) {
+      console.error("Erro ao salvar carreira:", err);
+      setBarFill(prevFill);
       setError(
-        error instanceof Error
-          ? error.message
-          : "Erro ao salvar carreira. Tente novamente."
+        err instanceof Error
+          ? err.message
+          : "Erro ao salvar carreira. Tente novamente.",
       );
+    } finally {
       setIsLoading(false);
     }
   };
 
+  const handleSkip = () => {
+    if (isLoading || categories.length === 0) return;
+    const fallbackSlug = selectedCareer || categories[0]?.slug;
+    if (!fallbackSlug) return;
+    setBarFill(onboardingProgressPercent(ONBOARDING_STEP.course));
+    window.setTimeout(
+      () => pushChooseCourse(fallbackSlug),
+      ONBOARDING_BAR_TRANSITION_MS,
+    );
+  };
+
   return (
-    <div className="flex-1 flex flex-col p-8 lg:p-20">
-      <div className="absolute w-[200px] h-[200px] md:w-[300px] md:h-[300px] lg:w-[400px] lg:h-[400px] top-0 left-0 rounded-full bg-[#00b3ffa9] opacity-40 blur-[100px] md:blur-[150px] lg:blur-[200px] pointer-events-none" />
-      <div className="absolute w-[150px] h-[150px] md:w-[250px] md:h-[250px] lg:w-[300px] lg:h-[300px] top-[10%] left-[20%] md:top-[15%] md:left-[25%] lg:top-[20%] lg:left-[30%] rounded-full bg-[#00b3ff5b] opacity-30 blur-[100px] md:blur-[150px] lg:blur-[200px] pointer-events-none" />
-      <div className="absolute w-[250px] h-[250px] md:w-[400px] md:h-[400px] lg:w-[500px] lg:h-[500px] bottom-0 right-0 rounded-full bg-[#00b3ffb6] opacity-40 blur-[120px] md:blur-[180px] lg:blur-[220px] pointer-events-none" />
+    <div className="relative flex min-h-0 flex-1 flex-col bg-[#0D0D12] max-w-3xl w-full mx-auto">
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col px-5 pb-10 pt-6 sm:px-8 lg:px-14 lg:pb-14 lg:pt-10">
+        <OnboardingTopBar
+          currentStep={ONBOARDING_STEP.career}
+          progressFillPercent={barFill}
+        />
 
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-16">
-          <Image src={codeLogo} alt="" quality={100} />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-white text-sm font-medium">2</span>
-          <Progress value={66} className="flex-1" />
-          <span className="text-white/60 text-sm">3</span>
-        </div>
-      </div>
+        <header className="mt-6 flex gap-4 sm:mt-10 items-center justify-center">
+          <Compass className="h-6 w-6 text-[#00C8FF]" strokeWidth={2.25} />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-semibold leading-snug tracking-tight text-white sm:text-2xl">
+              Por qual área você quer se especializar?
+            </h1>
+          </div>
+        </header>
 
-      <div className="flex-1 flex flex-col">
-        <div className="mb-12">
-          <h1 className="text-3xl lg:text-[28px] font-semibold text-white mb-3">
-            Qual sua meta com a programação?
-          </h1>
-          <p className="text-white/70 text-base">
-            Por qual área você quer se especializar?
-          </p>
-        </div>
-
-        {error && (
-          <div className="text-red-500 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-6">
+        {error ? (
+          <div className="mt-6 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             {error}
           </div>
-        )}
+        ) : null}
 
-        <div className="flex-1 space-y-3 mb-8 z-50">
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setSelectedCareer(category.slug)}
-              disabled={isLoading}
-              className={`w-full p-3 rounded-full px-4 border flex justify-start items-center text-left h-[54px] ${
-                selectedCareer === category.slug
-                  ? "border-[#00C8FF] shadow-[0_0_12px_#00C8FF]"
-                  : "border-[#25252A] bg-[#1A1A1E] hover:border-[#3A3A3F]"
-              }`}
-            >
-              <p className="text-white text-sm">
-                <span className="mr-2">{category.icon}</span> Quero ser um{" "}
-                {category.name}
-              </p>
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between pt-4 z-50">
-          <button
-            onClick={() => router.back()}
-            className="w-12 h-12 rounded-full bg-[#25252A] border border-[#3A3A3F] flex items-center justify-center hover:bg-[#3A3A3F] transition-colors"
-            disabled={isLoading}
+        <div className="mt-8 flex min-h-0 flex-1 flex-col items-center">
+          <div
+            className="flex w-full flex-col gap-3 overflow-y-auto pb-2"
+            role="listbox"
+            aria-label="Áreas de especialização"
           >
-            <ArrowLeft className="text-white" size={20} />
-          </button>
+            {categories.length === 0 && !error ? (
+              <p className="py-6 text-center text-sm text-white/45">
+                Carregando trilhas…
+              </p>
+            ) : null}
 
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              disabled={isLoading || categories.length === 0}
-              onClick={() => {
-                const fallbackSlug = selectedCareer || categories[0]?.slug;
-                if (!fallbackSlug) return;
-                router.push(
-                  `/onboarding/pick-a-goal/careers/choose-course?categorySlug=${fallbackSlug}`
-                );
-              }}
-              className="text-sm text-white/60 hover:text-white underline-offset-4 hover:underline disabled:opacity-50"
-            >
-              Pular etapa
-            </button>
-
-            <PrimaryButton
-              onClick={handleContinue}
-              disabled={!selectedCareer || isLoading}
-              className="min-w-[200px] max-w-[200px] z-50"
-            >
-              {isLoading ? "Carregando..." : "Continuar"}
-            </PrimaryButton>
+            {categories.map((category) => {
+              const isSelected = selectedCareer === category.slug;
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => setSelectedCareer(category.slug)}
+                  disabled={isLoading}
+                  className={[
+                    "flex  items-center justify-center gap-1 h-[56px] self-start text-base rounded-full w-fit px-4 py-3.5 text-left transition-all duration-200",
+                    isSelected
+                      ? "border-[#00C8FF] bg-blue-gradient-500 shadow-[0_0_20px_rgba(0,200,255,0.12)]"
+                      : "border-[#32323a] bg-[#1b1b26] hover:border-[#3d3d46] hover:bg-[#2a2a32]",
+                    isLoading ? "pointer-events-none opacity-50" : "",
+                  ].join(" ")}
+                >
+                  <span
+                    className={[
+                      "min-w-0 flex-1 text-sm leading-snug",
+                      isSelected
+                        ? "font-semibold text-white"
+                        : "font-medium text-white/90",
+                    ].join(" ")}
+                  >
+                    {category.name}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
+
+        <footer className="mt-auto space-y-4 pt-10 flex flex-col items-center justify-center">
+          <button
+            type="button"
+            onClick={handleContinue}
+            disabled={!selectedCareer || isLoading}
+            className="mx-auto w-full lg:max-w-[280px] rounded-full bg-[#ececee] py-4 text-center text-base font-semibold text-[#0D0D12] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {isLoading ? "Salvando…" : "Continuar"}
+          </button>
+          <button
+            type="button"
+            disabled={isLoading || categories.length === 0}
+            onClick={handleSkip}
+            className="w-full text-center text-sm text-white/45 transition-colors hover:text-white/75 disabled:opacity-50"
+          >
+            Pular etapa
+          </button>
+        </footer>
       </div>
     </div>
   );
