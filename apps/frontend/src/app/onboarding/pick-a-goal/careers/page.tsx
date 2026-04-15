@@ -29,6 +29,7 @@ const CAREERS_PAGE_TITLE = "Por qual área você quer se especializar?";
 const TITLE_TYPING_MS = 36;
 const COURSES_MIN_TYPING_MS = 1200;
 const BOT_RESPONSE_INITIAL_DELAY_MS = 600;
+const BOT_MESSAGE_STAGGER_MS = 260;
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -59,6 +60,7 @@ function CareersPageContent() {
   const [typedTitle, setTypedTitle] = useState("");
   const [titleTypingDone, setTitleTypingDone] = useState(false);
   const [botMessageVisible, setBotMessageVisible] = useState(false);
+  const [botRevealedCount, setBotRevealedCount] = useState(0);
 
   const slugFromUrl = searchParams.get("categorySlug");
 
@@ -124,6 +126,7 @@ function CareersPageContent() {
       setSelectedCourse(null);
       setBarFill(onboardingProgressPercent(ONBOARDING_STEP.career));
       setBotMessageVisible(false);
+      setBotRevealedCount(0);
       return;
     }
 
@@ -133,6 +136,7 @@ function CareersPageContent() {
     setCourses([]);
     setSelectedCourse(null);
     setBotMessageVisible(false);
+    setBotRevealedCount(0);
 
     const botDelayId = window.setTimeout(() => {
       if (!cancelled) setBotMessageVisible(true);
@@ -174,6 +178,35 @@ function CareersPageContent() {
       window.clearTimeout(botDelayId);
     };
   }, [selectedCareer]);
+
+  useEffect(() => {
+    if (!selectedCareer || !botMessageVisible) return;
+    if (coursesLoadState !== "done") return;
+
+    // 1 = primeira mensagem textual, depois 1 por curso
+    let cancelled = false;
+    setBotRevealedCount(1);
+
+    if (courses.length === 0) {
+      return;
+    }
+
+    const total = 1 + courses.length;
+    let current = 1;
+    const id = window.setInterval(() => {
+      if (cancelled) return;
+      current += 1;
+      setBotRevealedCount(current);
+      if (current >= total) {
+        window.clearInterval(id);
+      }
+    }, BOT_MESSAGE_STAGGER_MS);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [selectedCareer, botMessageVisible, coursesLoadState, courses.length]);
 
   const scrollChatToLatest = useCallback(() => {
     const el = chatAnchorRef.current;
@@ -447,7 +480,7 @@ function CareersPageContent() {
 
                 {botMessageVisible ? (
                   <div className="flex gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#1b1b26]">
+                    <div className="flex h-10 w-10 shrink-0 items-start justify-center overflow-hidden rounded-xl bg-[#1b1b26] pt-0.5">
                       <Image
                         src={codeLegendsLogo}
                         alt=""
@@ -461,58 +494,42 @@ function CareersPageContent() {
                       <p className="mb-1.5 text-xs font-medium text-white/50">
                         Code Legends
                       </p>
-                      <div className="rounded-[24px] bg-[#1b1b26] px-4 py-4 sm:px-5">
-                        {coursesLoadState === "loading" ? (
-                          <div
-                            className="flex items-center gap-2 text-sm text-white/60"
-                            role="status"
-                            aria-label="Code Legends está digitando"
-                          >
-                            <span className="inline-flex items-center gap-1">
-                              <span className="h-2 w-2 rounded-full bg-white/40 animate-bounce [animation-delay:-0.2s]" />
-                              <span className="h-2 w-2 rounded-full bg-white/40 animate-bounce [animation-delay:-0.1s]" />
-                              <span className="h-2 w-2 rounded-full bg-white/40 animate-bounce" />
-                            </span>
-                          </div>
-                        ) : null}
-                        {coursesLoadState === "error" ? (
-                          <p className="text-sm text-red-400">{coursesError}</p>
-                        ) : null}
-                        {coursesLoadState === "done" ? (
-                          <>
-                            <p className="text-sm leading-relaxed text-white/90">
-                              Separamos estas trilhas em{" "}
-                              <span className="font-semibold text-[#00C8FF]">
-                                {selectedCategoryName}
-                              </span>{" "}
-                              para você começar. Escolha uma:
-                            </p>
-                            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-                              {courses.length === 0 ? (
-                                <p className="col-span-full text-center text-sm text-white/50">
-                                  Nenhuma trilha disponível nesta área no
-                                  momento.
-                                </p>
-                              ) : null}
-                              {courses.map((course) => {
-                                const isSelected =
-                                  selectedCourse === course.slug;
-                                return (
+
+                      {/* Mensagem 1: texto */}
+                      {coursesLoadState === "done" && botRevealedCount >= 1 ? (
+                        <div className="w-fit max-w-[min(100%,28rem)] rounded-[24px] bg-[#1b1b26] px-4 py-4 sm:px-5 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-300 fill-mode-both">
+                          <p className="text-sm leading-relaxed text-white/90">
+                            Separamos estas trilhas em{" "}
+                            <span className="font-semibold text-[#00C8FF]">
+                              {selectedCategoryName}
+                            </span>{" "}
+                            para você começar. Escolha uma:
+                          </p>
+                        </div>
+                      ) : null}
+
+                      {/* Mensagens seguintes: 1 curso por mensagem */}
+                      {coursesLoadState === "done" && courses.length > 0 ? (
+                        <div className="mt-3 flex flex-col gap-3">
+                          {courses
+                            .slice(0, Math.max(0, botRevealedCount - 1))
+                            .map((course) => {
+                              const isSelected = selectedCourse === course.slug;
+                              return (
+                                <div
+                                  key={course.id}
+                                  className="w-fit max-w-[min(100%,28rem)] rounded-[24px] bg-[#1b1b26] px-3 py-3 sm:px-4 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-300 fill-mode-both"
+                                >
                                   <button
-                                    key={course.id}
                                     type="button"
-                                    onClick={() =>
-                                      setSelectedCourse(course.slug)
-                                    }
+                                    onClick={() => setSelectedCourse(course.slug)}
                                     disabled={isLoading}
                                     className={[
-                                      "flex min-h-[120px] flex-col items-center justify-center gap-3 rounded-2xl border px-4 py-4 text-center transition-all duration-200 sm:min-h-[140px]",
+                                      "flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition-all duration-200",
                                       isSelected
                                         ? "border-transparent bg-gradient-to-br from-[#2a1040] via-[#4a1f6e] to-[#8234E9] shadow-[0_12px_40px_rgba(130,52,233,0.25)] ring-1 ring-white/10"
                                         : "border-[#2a2a31] bg-[#121218] hover:border-[#3d3d46] hover:bg-[#1a1a22]",
-                                      isLoading
-                                        ? "pointer-events-none opacity-50"
-                                        : "",
+                                      isLoading ? "pointer-events-none opacity-50" : "",
                                     ].join(" ")}
                                   >
                                     {course.icon ? (
@@ -535,7 +552,7 @@ function CareersPageContent() {
                                     )}
                                     <span
                                       className={[
-                                        "text-xs leading-snug sm:text-[13px]",
+                                        "text-sm leading-snug",
                                         isSelected
                                           ? "font-semibold text-white"
                                           : "font-medium text-white/90",
@@ -544,12 +561,48 @@ function CareersPageContent() {
                                       {course.title}
                                     </span>
                                   </button>
-                                );
-                              })}
-                            </div>
-                          </>
-                        ) : null}
-                      </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      ) : null}
+
+                      {/* Mensagem quando não há cursos */}
+                      {coursesLoadState === "done" &&
+                      botRevealedCount >= 1 &&
+                      courses.length === 0 ? (
+                        <div className="mt-3 w-fit max-w-[min(100%,28rem)] rounded-[24px] bg-[#1b1b26] px-4 py-4 sm:px-5 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-300 fill-mode-both">
+                          <p className="text-sm text-white/60">
+                            Nenhuma trilha disponível nesta área no momento.
+                          </p>
+                        </div>
+                      ) : null}
+
+                      {/* Digitando: enquanto carrega ou enquanto ainda está revelando cursos */}
+                      {coursesLoadState === "loading" ||
+                      (coursesLoadState === "done" &&
+                        courses.length > 0 &&
+                        botRevealedCount < 1 + courses.length) ? (
+                        <div className="mt-3 w-fit rounded-[24px] bg-[#1b1b26] px-4 py-3">
+                          <div
+                            className="flex items-center gap-2 text-sm text-white/60"
+                            role="status"
+                            aria-label="Code Legends está digitando"
+                          >
+                            <span className="inline-flex items-center gap-1">
+                              <span className="h-2 w-2 rounded-full bg-white/40 animate-bounce [animation-delay:-0.2s]" />
+                              <span className="h-2 w-2 rounded-full bg-white/40 animate-bounce [animation-delay:-0.1s]" />
+                              <span className="h-2 w-2 rounded-full bg-white/40 animate-bounce" />
+                            </span>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {coursesLoadState === "error" ? (
+                        <div className="w-fit max-w-[min(100%,28rem)] rounded-[24px] bg-[#1b1b26] px-4 py-4 sm:px-5">
+                          <p className="text-sm text-red-400">{coursesError}</p>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 ) : null}
