@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateOnboarding } from '@/actions/user'
 import { OnboardingTopBar } from '@/components/onboarding/onboarding-top-bar'
@@ -15,12 +15,14 @@ import {
   Link as LinkIcon,
   Rocket,
   Settings,
-  Target,
   type LucideIcon,
 } from 'lucide-react'
 import codeLegendsLogo from '../../../../public/loading-logo.svg'
 import Image from 'next/image'
 
+const GOAL_PAGE_TITLE = 'Qual sua meta com a programação?'
+/** Intervalo entre cada caractere do título (ms). */
+const TITLE_TYPING_MS = 36
 
 const GOALS: { id: string; label: string; icon: LucideIcon }[] = [
   {
@@ -52,7 +54,22 @@ export default function PickAGoalPage() {
   const [barFill, setBarFill] = useState(() =>
     onboardingProgressPercent(ONBOARDING_STEP.goal),
   )
+  const [typedTitle, setTypedTitle] = useState('')
+  const [titleTypingDone, setTitleTypingDone] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    let i = 0
+    const id = window.setInterval(() => {
+      i += 1
+      setTypedTitle(GOAL_PAGE_TITLE.slice(0, i))
+      if (i >= GOAL_PAGE_TITLE.length) {
+        window.clearInterval(id)
+        setTitleTypingDone(true)
+      }
+    }, TITLE_TYPING_MS)
+    return () => window.clearInterval(id)
+  }, [])
 
   const goCareers = () => {
     router.push('/onboarding/pick-a-goal/careers')
@@ -98,18 +115,29 @@ export default function PickAGoalPage() {
           progressFillPercent={barFill}
         />
 
-        <header className="mt-6 flex gap-4 sm:mt-10">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
-            <Image src={codeLegendsLogo} alt="Code Legends" className="h-12 w-12" />
+        <header className="mt-6 flex items-center justify-center gap-4 sm:mt-10">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
+            <Image
+              src={codeLegendsLogo}
+              alt="Code Legends"
+              width={48}
+              height={48}
+              className="h-12 w-12"
+            />
           </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-semibold leading-snug tracking-tight text-white sm:text-2xl">
-              Qual sua meta com a programação?
+          <div className="flex min-h-12 min-w-0 flex-1 items-center">
+            <h1
+              className="flex flex-wrap items-center gap-1 text-xl font-semibold leading-snug tracking-tight text-white sm:text-2xl"
+              aria-label={GOAL_PAGE_TITLE}
+            >
+              <span className="min-w-0">{typedTitle}</span>
+              {!titleTypingDone ? (
+                <span
+                  className="inline-block h-[1em] w-0.5 shrink-0 self-center bg-[#00C8FF] animate-pulse"
+                  aria-hidden
+                />
+              ) : null}
             </h1>
-            <p className="mt-2 text-sm leading-relaxed text-white/60 sm:text-base">
-              Conhecer seu objetivo nos ajuda a guiar melhor sua jornada de
-              aprendizado.
-            </p>
           </div>
         </header>
 
@@ -133,15 +161,12 @@ export default function PickAGoalPage() {
                   'flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-[20px] px-5 py-6 text-center transition-all duration-200 sm:min-h-[200px]',
                   isSelected
                     ? 'bg-gradient-to-br from-[#367f930f] via-[#00aad949] to-[#00abd9]'
-                    : ' bg-[#16161c] hover:border-[#3d3d46] hover:bg-[#1a1a22]',
+                    : ' bg-[#1b1b26] hover:bg-[#1a1a22]',
                   isLoading ? 'pointer-events-none opacity-50' : '',
                 ].join(' ')}
               >
                 <span
-                  className={[
-                    'flex h-12 w-12 items-center justify-center rounded-xl',
-                    isSelected ? 'bg-white/15 text-white' : 'bg-[#25252a] text-white/90',
-                  ].join(' ')}
+                  className='flex items-center justify-center'
                 >
                   <Icon className="h-6 w-6" strokeWidth={2} />
                 </span>

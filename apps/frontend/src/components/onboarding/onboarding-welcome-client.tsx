@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { OnboardingTopBar } from '@/components/onboarding/onboarding-top-bar'
@@ -11,6 +11,9 @@ import {
 } from '@/components/onboarding/onboarding-constants'
 import onboardingImage from '../../../public/onboarding-img-1.png'
 import codeLegendsLogo from '../../../public/loading-logo.svg'
+
+/** Intervalo entre cada caractere do título (ms). */
+const TITLE_TYPING_MS = 36
 
 type OnboardingWelcomeClientProps = {
   greetingName: string
@@ -24,6 +27,26 @@ export function OnboardingWelcomeClient({
   const nextPct = onboardingProgressPercent(ONBOARDING_STEP.goal)
   const [barFill, setBarFill] = useState(startPct)
   const [navigating, setNavigating] = useState(false)
+  const [typedTitle, setTypedTitle] = useState('')
+  const [titleTypingDone, setTitleTypingDone] = useState(false)
+
+  const welcomeTitle = `Bem-vindo(a), ${greetingName}!`
+
+  useEffect(() => {
+    const fullTitle = `Bem-vindo(a), ${greetingName}!`
+    setTypedTitle('')
+    setTitleTypingDone(false)
+    let i = 0
+    const id = window.setInterval(() => {
+      i += 1
+      setTypedTitle(fullTitle.slice(0, i))
+      if (i >= fullTitle.length) {
+        window.clearInterval(id)
+        setTitleTypingDone(true)
+      }
+    }, TITLE_TYPING_MS)
+    return () => window.clearInterval(id)
+  }, [greetingName])
 
   const goNext = useCallback(() => {
     if (navigating) return
@@ -53,8 +76,17 @@ export function OnboardingWelcomeClient({
               aria-hidden
             />
           </div>
-          <h1 className="mt-5 w-full max-w-lg px-1 text-2xl font-semibold leading-snug tracking-tight text-white sm:text-2xl">
-            Bem-vindo(a), {greetingName}!
+          <h1
+            className="mt-5 flex w-full max-w-lg flex-wrap items-center justify-center gap-1 px-1 text-center text-2xl font-semibold leading-snug tracking-tight text-white sm:text-2xl"
+            aria-label={welcomeTitle}
+          >
+            <span className="min-w-0">{typedTitle}</span>
+            {!titleTypingDone ? (
+              <span
+                className="inline-block h-[1em] w-0.5 shrink-0 self-center bg-[#00C8FF] animate-pulse"
+                aria-hidden
+              />
+            ) : null}
           </h1>
         </div>
         <p className="w-full max-w-lg px-1 text-center text-sm leading-relaxed text-white/60 sm:text-base">

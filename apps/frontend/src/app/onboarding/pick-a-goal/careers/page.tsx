@@ -9,9 +9,16 @@ import {
   ONBOARDING_STEP,
   onboardingProgressPercent,
 } from "@/components/onboarding/onboarding-constants";
-import { Compass } from "lucide-react";
 import { listCategories } from "@/actions/course/list-categories";
 import { Category } from "@/types/categories";
+import codeLegendsLogo from '../../../../../public/loading-logo.svg'
+import Image from "next/image";
+
+const CATEGORY_REVEAL_STAGGER_MS = 200;
+const CATEGORY_REVEAL_INITIAL_DELAY_MS = 100;
+
+const CAREERS_PAGE_TITLE = "Por qual área você quer se especializar?";
+const TITLE_TYPING_MS = 36;
 
 export default function CareersPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -21,7 +28,24 @@ export default function CareersPage() {
   const [barFill, setBarFill] = useState(() =>
     onboardingProgressPercent(ONBOARDING_STEP.career),
   );
+  /** Quantas categorias já foram reveladas (uma por vez, estilo chat). */
+  const [visibleCategoryCount, setVisibleCategoryCount] = useState(0);
+  const [typedTitle, setTypedTitle] = useState("");
+  const [titleTypingDone, setTitleTypingDone] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    let i = 0;
+    const id = window.setInterval(() => {
+      i += 1;
+      setTypedTitle(CAREERS_PAGE_TITLE.slice(0, i));
+      if (i >= CAREERS_PAGE_TITLE.length) {
+        window.clearInterval(id);
+        setTitleTypingDone(true);
+      }
+    }, TITLE_TYPING_MS);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -35,6 +59,28 @@ export default function CareersPage() {
     }
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    if (categories.length === 0) {
+      setVisibleCategoryCount(0);
+      return;
+    }
+
+    setVisibleCategoryCount(0);
+    const timeoutIds: ReturnType<typeof setTimeout>[] = [];
+
+    for (let i = 0; i < categories.length; i++) {
+      timeoutIds.push(
+        setTimeout(() => {
+          setVisibleCategoryCount(i + 1);
+        }, CATEGORY_REVEAL_INITIAL_DELAY_MS + i * CATEGORY_REVEAL_STAGGER_MS),
+      );
+    }
+
+    return () => {
+      timeoutIds.forEach(clearTimeout);
+    };
+  }, [categories]);
 
   const pushChooseCourse = (slug: string) => {
     router.push(
@@ -86,11 +132,22 @@ export default function CareersPage() {
           progressFillPercent={barFill}
         />
 
-        <header className="mt-6 flex gap-4 sm:mt-10 items-center justify-center">
-          <Compass className="h-6 w-6 text-[#00C8FF]" strokeWidth={2.25} />
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-semibold leading-snug tracking-tight text-white sm:text-2xl">
-              Por qual área você quer se especializar?
+        <header className="mt-6 flex items-center justify-center gap-4 sm:mt-10">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+            <Image src={codeLegendsLogo} alt="Code Legends" className="h-12 w-12" />
+          </div>
+          <div className="flex min-h-12 min-w-0 flex-1 items-center">
+            <h1
+              className="flex flex-wrap items-center gap-1 text-xl font-semibold leading-snug tracking-tight text-white sm:text-2xl"
+              aria-label={CAREERS_PAGE_TITLE}
+            >
+              <span className="min-w-0">{typedTitle}</span>
+              {!titleTypingDone ? (
+                <span
+                  className="inline-block h-[1em] w-0.5 shrink-0 self-center bg-[#00C8FF] animate-pulse"
+                  aria-hidden
+                />
+              ) : null}
             </h1>
           </div>
         </header>
@@ -113,7 +170,7 @@ export default function CareersPage() {
               </p>
             ) : null}
 
-            {categories.map((category) => {
+            {categories.slice(0, visibleCategoryCount).map((category) => {
               const isSelected = selectedCareer === category.slug;
               return (
                 <button
@@ -124,16 +181,17 @@ export default function CareersPage() {
                   onClick={() => setSelectedCareer(category.slug)}
                   disabled={isLoading}
                   className={[
-                    "flex  items-center justify-center gap-1 h-[56px] self-start text-base rounded-full w-fit px-4 py-3.5 text-left transition-all duration-200",
+                    "flex h-[56px] w-fit animate-in fade-in-0 slide-in-from-bottom-2 items-center justify-center gap-2 self-start rounded-full px-4 py-3.5 text-left text-base duration-300 fill-mode-both motion-reduce:animate-none",
                     isSelected
                       ? "border-[#00C8FF] bg-blue-gradient-500 shadow-[0_0_20px_rgba(0,200,255,0.12)]"
                       : "border-[#32323a] bg-[#1b1b26] hover:border-[#3d3d46] hover:bg-[#2a2a32]",
                     isLoading ? "pointer-events-none opacity-50" : "",
                   ].join(" ")}
                 >
+
                   <span
                     className={[
-                      "min-w-0 flex-1 text-sm leading-snug",
+                      "min-w-0 text-sm leading-snug",
                       isSelected
                         ? "font-semibold text-white"
                         : "font-medium text-white/90",

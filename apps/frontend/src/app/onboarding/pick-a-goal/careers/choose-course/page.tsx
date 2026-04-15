@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { completeOnboarding } from "@/actions/user";
 import { OnboardingTopBar } from "@/components/onboarding/onboarding-top-bar";
 import { ONBOARDING_STEP } from "@/components/onboarding/onboarding-constants";
 import Image from "next/image";
-import { BookOpen } from "lucide-react";
 import { listCoursesByCategory } from "@/actions/course/list-courses-by-category";
 import { CourseWithCount } from "@/types/user-course.ts";
+import codeLegendsLogo from '../../../../../../public/loading-logo.svg'
+
+const CHOOSE_COURSE_TITLE_PREFIX = "Escolha sua primeira trilha em ";
+const TITLE_TYPING_MS = 36;
 
 function ChooseCourseContent() {
   const [courses, setCourses] = useState<CourseWithCount[]>([]);
@@ -20,6 +23,35 @@ function ChooseCourseContent() {
   const searchParams = useSearchParams();
   const { update } = useSession();
   const categorySlug = searchParams.get("categorySlug");
+
+  const areaLabel = useMemo(() => {
+    if (!categorySlug) return "";
+    return (
+      categorySlug.charAt(0).toUpperCase() +
+      categorySlug.slice(1).replace(/-/g, " ")
+    );
+  }, [categorySlug]);
+
+  const [typedTitle, setTypedTitle] = useState("");
+  const [titleTypingDone, setTitleTypingDone] = useState(false);
+
+  useEffect(() => {
+    if (!categorySlug || !areaLabel) return;
+
+    const fullTitle = `${CHOOSE_COURSE_TITLE_PREFIX}${areaLabel}`;
+    setTypedTitle("");
+    setTitleTypingDone(false);
+    let i = 0;
+    const id = window.setInterval(() => {
+      i += 1;
+      setTypedTitle(fullTitle.slice(0, i));
+      if (i >= fullTitle.length) {
+        window.clearInterval(id);
+        setTitleTypingDone(true);
+      }
+    }, TITLE_TYPING_MS);
+    return () => window.clearInterval(id);
+  }, [categorySlug, areaLabel]);
 
   useEffect(() => {
     async function fetchCourses() {
@@ -39,14 +71,12 @@ function ChooseCourseContent() {
     fetchCourses();
   }, [categorySlug]);
 
-  const finishOnboardingAndGoToLearn = async () => {
+  const finishOnboardingAndGoHome = async () => {
     try {
       setIsLoading(true);
       setError("");
       await completeOnboarding();
 
-      // Verificar diretamente na API se o onboarding foi completado
-      // Isso garante que temos confirmação antes de redirecionar
       const { getOnboardingStatus } = await import(
         "@/actions/user/get-onboarding-status"
       );
@@ -61,30 +91,11 @@ function ChooseCourseContent() {
         verificationAttempts++;
       }
 
-      // Forçar atualização imediata da sessão para refletir o onboarding completo
-      // Isso garante que o middleware detecte a mudança imediatamente
       await update();
 
-      // Aguardar um pouco mais para garantir que a sessão seja propagada no servidor
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      // Aguardar que o curso ativo esteja disponível na API
-      const { getActiveCourse } = await import(
-        "@/actions/user/get-active-course"
-      );
-      let activeCourse = null;
-      let attempts = 0;
-      const maxAttempts = 10;
-
-      while (!activeCourse && attempts < maxAttempts) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        activeCourse = await getActiveCourse();
-        attempts++;
-      }
-
-      // Usar window.location.href para fazer hard redirect e forçar o middleware
-      // a buscar a sessão atualizada do servidor
-      window.location.href = "/learn";
+      window.location.href = "/";
     } catch (error) {
       console.error("Erro ao completar onboarding:", error);
       setError(
@@ -114,7 +125,7 @@ function ChooseCourseContent() {
         await startCourse(course.id);
       }
 
-      await finishOnboardingAndGoToLearn();
+      await finishOnboardingAndGoHome();
     } catch (error) {
       console.error("Erro ao completar onboarding:", error);
       setError(
@@ -141,26 +152,47 @@ function ChooseCourseContent() {
     );
   }
 
-  const areaLabel =
-    categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1).replace(/-/g, " ");
+  const chooseCourseFullTitle = `${CHOOSE_COURSE_TITLE_PREFIX}${areaLabel}`;
+  const prefixLen = CHOOSE_COURSE_TITLE_PREFIX.length;
+  const typedLen = typedTitle.length;
+  const whitePart =
+    typedLen <= prefixLen ? typedTitle : typedTitle.slice(0, prefixLen);
+  const cyanPart =
+    typedLen > prefixLen ? typedTitle.slice(prefixLen) : "";
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col bg-[#0D0D12] max-w-3xl w-full mx-auto">
       <div className="relative z-10 flex min-h-0 flex-1 flex-col px-5 pb-10 pt-6 sm:px-8 lg:px-14 lg:pb-14 lg:pt-10">
         <OnboardingTopBar currentStep={ONBOARDING_STEP.course} />
 
-        <header className="mt-6 flex gap-4 sm:mt-10">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#B8E62E] shadow-[0_0_20px_rgba(184,230,46,0.25)]">
-            <BookOpen className="h-6 w-6 text-[#0D0D12]" strokeWidth={2.25} />
+        <header className="mt-6 flex items-center justify-center gap-4 sm:mt-10">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
+            <Image
+              src={codeLegendsLogo}
+              alt="Code Legends"
+              width={48}
+              height={48}
+              className="h-12 w-12"
+            />
           </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-semibold leading-snug tracking-tight text-white sm:text-2xl">
-              Escolha sua primeira trilha em{" "}
-              <span className="text-[#B8E62E]">{areaLabel}</span>
+          <div className="flex min-h-12 min-w-0 flex-1 items-center">
+            <h1
+              className="flex flex-wrap items-center gap-1 text-xl font-semibold leading-snug tracking-tight sm:text-2xl"
+              aria-label={chooseCourseFullTitle}
+            >
+              <span className="min-w-0">
+                <span className="text-white">{whitePart}</span>
+                {cyanPart ? (
+                  <span className="text-[#00C8FF]">{cyanPart}</span>
+                ) : null}
+              </span>
+              {!titleTypingDone ? (
+                <span
+                  className="inline-block h-[1em] w-0.5 shrink-0 self-center bg-[#00C8FF] animate-pulse"
+                  aria-hidden
+                />
+              ) : null}
             </h1>
-            <p className="mt-2 text-sm leading-relaxed text-white/60 sm:text-base">
-              Essa será sua primeira trilha de aprendizado na plataforma.
-            </p>
           </div>
         </header>
 
@@ -237,7 +269,7 @@ function ChooseCourseContent() {
           <button
             type="button"
             disabled={isLoading}
-            onClick={finishOnboardingAndGoToLearn}
+            onClick={finishOnboardingAndGoHome}
             className="w-full text-center text-sm text-white/45 transition-colors hover:text-white/75 disabled:opacity-50"
           >
             Pular etapa
