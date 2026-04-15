@@ -35,7 +35,7 @@ export function CtaFacaUpgradeCard({
       className={cn(
         "border border-[#25252A] rounded-[20px] w-full overflow-hidden",
         "shadow-[0_0_32px_rgba(0,200,255,0.12),0_0_64px_rgba(0,200,255,0.06)]",
-        "border-[#00C8FF]/20 bg-[#1A1A1E]",
+        "border-[#00C8FF]/20 bg-surface-2",
         className
       )}
     >

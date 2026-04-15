@@ -117,7 +117,7 @@ export function MobileNavSheet() {
     <Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
       <SheetContent
         side="left"
-        className="w-[90vw] border-r border-white/10 bg-[#1a1a1e]/80 backdrop-blur-2xl p-0 flex flex-col [&>button]:hidden shadow-2xl"
+        className="w-[90vw] border-r border-white/10 bg-surface-2/80 backdrop-blur-2xl p-0 flex flex-col [&>button]:hidden shadow-2xl"
       >
         <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
 

@@ -106,7 +106,7 @@ export function ChartTooltipContent({
   return (
     <div
       className={cn(
-        "min-w-[180px] rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-md dark:border-[#25252a] dark:bg-[#1a1a1e]",
+        "min-w-[180px] rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-md dark:border-[#25252a] dark:bg-[#101013]",
         className
       )}
     >

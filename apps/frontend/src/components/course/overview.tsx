@@ -465,7 +465,7 @@ export function CourseOverview({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Horas de estudo */}
               <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-lg bg-[#1A1A1E] flex items-center justify-center flex-shrink-0">
+                <div className="h-10 w-10 rounded-lg bg-surface-2 flex items-center justify-center flex-shrink-0">
                   <Clock size={20} className="text-[#00C8FF]" />
                 </div>
                 <div className="flex-1">
@@ -484,7 +484,7 @@ export function CourseOverview({
 
               {/* Aulas */}
               <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-lg bg-[#1A1A1E] flex items-center justify-center flex-shrink-0">
+                <div className="h-10 w-10 rounded-lg bg-surface-2 flex items-center justify-center flex-shrink-0">
                   <VideoCamera size={20} className="text-[#00C8FF]" />
                 </div>
                 <div className="flex-1">
@@ -497,7 +497,7 @@ export function CourseOverview({
 
               {/* Alunos desta trilha */}
               <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-lg bg-[#1A1A1E] flex items-center justify-center flex-shrink-0">
+                <div className="h-10 w-10 rounded-lg bg-surface-2 flex items-center justify-center flex-shrink-0">
                   <GraduationCap size={20} className="text-[#00C8FF]" />
                 </div>
                 <div className="flex-1">
@@ -510,7 +510,7 @@ export function CourseOverview({
 
               {/* Fim do acesso */}
               <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-lg bg-[#1A1A1E] flex items-center justify-center flex-shrink-0">
+                <div className="h-10 w-10 rounded-lg bg-surface-2 flex items-center justify-center flex-shrink-0">
                   <Calendar size={20} className="text-[#00C8FF]" />
                 </div>
                 <div className="flex-1">
@@ -587,7 +587,7 @@ export function CourseOverview({
                   tags.map((tag: string, index: number) => (
                     <span
                       key={index}
-                      className="px-4 py-2 text-xs bg-[#1A1A1E] rounded-full text-[#ffffff] font-semibold"
+                      className="px-4 py-2 text-xs bg-surface-2 rounded-full text-[#ffffff] font-semibold"
                     >
                       {tag}
                     </span>

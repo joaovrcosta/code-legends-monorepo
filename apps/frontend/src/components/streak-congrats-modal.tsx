@@ -123,7 +123,7 @@ export function StreakCongratsModal() {
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && close()}>
-        <DialogContent className="bg-[#1A1A1E] border border-[#25252A] text-white p-0 max-w-[520px] sm:rounded-[28px]">
+        <DialogContent className="bg-surface-2 border border-[#25252A] text-white p-0 max-w-[520px] sm:rounded-[28px]">
           <DialogTitle className="sr-only">Parabéns</DialogTitle>
           {Content}
         </DialogContent>
@@ -133,7 +133,7 @@ export function StreakCongratsModal() {
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && close()}>
-      <DrawerContent className="bg-[#1A1A1E] border border-[#25252A] text-white p-0 rounded-t-[28px]">
+      <DrawerContent className="bg-surface-2 border border-[#25252A] text-white p-0 rounded-t-[28px]">
         <DrawerTitle className="sr-only">Parabéns</DrawerTitle>
         {Content}
       </DrawerContent>

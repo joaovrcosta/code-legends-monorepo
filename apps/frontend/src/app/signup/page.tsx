@@ -86,7 +86,7 @@ export default function SignupPage() {
           <Card className="w-full border border-[#25252A] rounded-[20px] mb-8">
             <CardHeader className="flex flex-col items-center space-y-4 mb-6 mt-6 px-4">
               <h1 className="text-2xl text-white font-medium text-center">
-              Crie sua conta grátis e comece a programar hoje.
+                Crie sua conta grátis e comece a programar hoje.
               </h1>
             </CardHeader>
 
@@ -97,7 +97,7 @@ export default function SignupPage() {
                   {/* Google */}
                   <button
                     type="button"
-                    className="w-full h-[42px] bg-[#1a1a1e] border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
+                    className="w-full h-[42px] bg-surface-2 border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
                     aria-label="Cadastro com Google"
                   >
                     <svg
@@ -128,7 +128,7 @@ export default function SignupPage() {
                   {/* LinkedIn */}
                   <button
                     type="button"
-                    className="w-full h-[42px] bg-[#1a1a1e] border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
+                    className="w-full h-[42px] bg-surface-2 border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
                     aria-label="Cadastro com LinkedIn"
                   >
                     <svg
@@ -148,7 +148,7 @@ export default function SignupPage() {
                   {/* Facebook */}
                   <button
                     type="button"
-                    className="w-full h-[42px] bg-[#1a1a1e] border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
+                    className="w-full h-[42px] bg-surface-2 border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
                     aria-label="Cadastro com Facebook"
                   >
                     <svg
@@ -168,7 +168,7 @@ export default function SignupPage() {
                   {/* Apple */}
                   <button
                     type="button"
-                    className="w-full h-[42px] bg-[#1a1a1e] border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
+                    className="w-full h-[42px] bg-surface-2 border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
                     aria-label="Cadastro com Apple"
                   >
                     <svg
@@ -196,11 +196,10 @@ export default function SignupPage() {
                   )}
                   <div>
                     <Input
-                      className={`h-[52px] rounded-full bg-surface text-white border px-4 ${
-                        errors.email
+                      className={`h-[52px] rounded-full bg-surface text-white border px-4 ${errors.email
                           ? "border-red-500"
                           : "border-[#25252A]"
-                      }`}
+                        }`}
                       placeholder="Seu e-mail"
                       type="email"
                       {...register("email")}
@@ -213,11 +212,10 @@ export default function SignupPage() {
                   </div>
                   <div>
                     <Input
-                      className={`h-[52px] rounded-full bg-surface text-white border px-4 ${
-                        errors.password
+                      className={`h-[52px] rounded-full bg-surface text-white border px-4 ${errors.password
                           ? "border-red-500"
                           : "border-[#25252A]"
-                      }`}
+                        }`}
                       placeholder="Deve ter no mínimo 8 caracteres"
                       type="password"
                       {...register("password")}

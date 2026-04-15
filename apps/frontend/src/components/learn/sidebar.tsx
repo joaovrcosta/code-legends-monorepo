@@ -44,7 +44,7 @@ const Sidebar = () => {
 
   return (
     <section
-      className={`flex h-full min-h-0 flex-col gap-2 overflow-hidden bg-[#1A1A1E] text-white py-4 transition-all duration-300 ease-in-out ${isOpen ? "w-64" : "w-16"
+      className={`flex h-full min-h-0 flex-col gap-2 overflow-hidden bg-surface-2 text-white py-4 transition-all duration-300 ease-in-out ${isOpen ? "w-64" : "w-16"
         }`}
     >
       <div className="min-h-0 flex-1 overflow-hidden">

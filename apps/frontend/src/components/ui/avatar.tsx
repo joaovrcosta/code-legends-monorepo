@@ -45,7 +45,7 @@ const Avatar = React.forwardRef<
         className="rounded-full p-[2px] flex-shrink-0 w-fit"
         style={RING_GRADIENT_BY_VARIANT[ringVariant]}
       >
-        <div className="bg-[#1A1A1E] rounded-full p-[6px]">
+        <div className="bg-surface-2 rounded-full p-[6px]">
           <AvatarPrimitive.Root
             ref={ref}
             className={cn(

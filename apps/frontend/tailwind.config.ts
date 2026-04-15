@@ -12,6 +12,7 @@ export default {
     extend: {
       colors: {
         surface: "var(--color-surface)",
+        "surface-2": "var(--color-surface-2)",
         blueGradient500:
           "linear-gradient(267deg, rgba(0,78,99,1) 0%, #00c8ff 100%)",
         gray500: "#1a1a1e",

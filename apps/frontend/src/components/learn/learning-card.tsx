@@ -176,20 +176,20 @@ export function LearningCard({
                             className={`
                             flex items-center gap-3 p-3 rounded-lg
                             ${lesson.locked
-                                ? 'bg-[#1A1A1E] opacity-50'
+                                ? 'bg-surface-2 opacity-50'
                                 : 'bg-[#25252A] hover:bg-[#2E2E32] cursor-pointer transition-colors'
                               }
                           `}
                           >
                             {lesson.locked ? (
-                              <div className="w-10 h-10 rounded-lg bg-[#1A1A1E] flex items-center justify-center flex-shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-surface-2 flex items-center justify-center flex-shrink-0">
                                 <Lock
                                   size={20}
                                   className="text-[#C4C4CC] flex-shrink-0"
                                 />
                               </div>
                             ) : (
-                              <div className="w-10 h-10 rounded-lg bg-[#1A1A1E] flex items-center justify-center flex-shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-surface-2 flex items-center justify-center flex-shrink-0">
                                 <span className="text-xs text-[#C4C4CC]">
                                   {lesson.type === 'video' ? (
                                     <VideoCamera size={20} weight="regular" />
@@ -244,20 +244,20 @@ export function LearningCard({
                   className={`
                     flex items-center gap-3 p-3 rounded-lg
                     ${lesson.locked
-                      ? 'bg-[#1A1A1E] opacity-50'
+                      ? 'bg-surface-2 opacity-50'
                       : 'bg-[#25252A] hover:bg-[#2E2E32] cursor-pointer transition-colors'
                     }
                   `}
                 >
                   {lesson.locked ? (
-                    <div className="w-10 h-10 rounded-lg bg-[#1A1A1E] flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-surface-2 flex items-center justify-center flex-shrink-0">
                       <Lock
                         size={20}
                         className="text-[#C4C4CC] flex-shrink-0"
                       />
                     </div>
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-[#1A1A1E] flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-surface-2 flex items-center justify-center flex-shrink-0">
                       <span className="text-xs text-[#C4C4CC]">
                         {lesson.type === 'video' ? (
                           <VideoCamera size={20} weight="regular" />

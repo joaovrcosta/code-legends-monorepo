@@ -44,7 +44,7 @@ export function NewContentCard() {
                 <Plus size={32} />
                 Adicionar
               </Button>
-              <Button className="h-[44px] lg:w-[50px] w-full bg-[#1a1a1e] rounded-[12px]">
+              <Button className="h-[44px] lg:w-[50px] w-full bg-surface-2 rounded-[12px]">
                 <Info size={32} weight="fill" />
               </Button>
             </div>

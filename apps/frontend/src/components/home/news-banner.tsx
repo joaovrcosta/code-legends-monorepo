@@ -62,7 +62,7 @@ export function NewsBanner() {
                                 <TicketIcon size={18} weight="fill" className="mr-2" />
                                 Retirar meu ingresso
                             </Button>
-                            <Button className="h-[40px] lg:h-[44px] bg-[#1a1a1e] text-white rounded-full hover:bg-[#25252a] px-6 border border-[#25252A] text-sm">
+                            <Button className="h-[40px] lg:h-[44px] bg-surface-2 text-white rounded-full hover:bg-[#25252a] px-6 border border-[#25252A] text-sm">
                                 <Plus size={18} className="mr-2" />
                                 Salvar
                             </Button>

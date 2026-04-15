@@ -476,7 +476,7 @@ export function LearnPageContent({
             currentClass={currentClass}
             courseTitle={roadmap?.course?.title || 'Curso'}
             lessonTitle={currentLessonTitle}
-            onToggleModules={() => {}}
+            onToggleModules={() => { }}
             loadingModules={false}
           />
           <LessonsContent
@@ -494,18 +494,18 @@ export function LearnPageContent({
           <div className="flex items-center justify-between flex-col border border-[#25252A] lg:border-b-[1px] lg:border-r-[1px] lg:border-l-[1px] border-l-0 border-r-0 border-b-0 lg:rounded-[20px] rounded-none p-8 w-full max-w-[412px]">
             {(nextLockedModule ||
               currentActiveCourse?.isCompleted === true) && (
-              <div className="flex items-center justify-between p-2 bg-[#1a1a1e] rounded-lg mb-4">
-                <span
-                  className={
-                    nextLockedModule?.canUnlock
-                      ? 'text-xs font-bold bg-blue-gradient-500 bg-clip-text text-transparent bg-[#1a1a1e]'
-                      : 'text-xs font-bold text-zinc-500'
-                  }
-                >
-                  {nextLockedModule ? 'A SEGUIR' : 'CERTIFICADO'}
-                </span>
-              </div>
-            )}
+                <div className="flex items-center justify-between p-2 bg-surface-2 rounded-lg mb-4">
+                  <span
+                    className={
+                      nextLockedModule?.canUnlock
+                        ? 'text-xs font-bold bg-blue-gradient-500 bg-clip-text text-transparent bg-surface-2'
+                        : 'text-xs font-bold text-zinc-500'
+                    }
+                  >
+                    {nextLockedModule ? 'A SEGUIR' : 'CERTIFICADO'}
+                  </span>
+                </div>
+              )}
             <div className="flex items-center justify-between gap-2 flex-col w-full">
               {allLessons.length === 0 ? (
                 <>
@@ -547,7 +547,7 @@ export function LearnPageContent({
                   </p>
                   <PrimaryButton
                     variant="secondary"
-                    onClick={() => {}}
+                    onClick={() => { }}
                     className="h-[48px]"
                   >
                     Gerar certificado

@@ -27,7 +27,7 @@ export function BadgeCard({
     <Accordion type="single" collapsible>
       <AccordionItem
         value={badgeTitle?.toLowerCase().replace(/\s+/g, "-")}
-        className="w-full bg-gray-gradient border shadow-lg border-[#25252A] pb-4 pt-4 px-4 rounded-[20px] transition-colors duration-300 hover:bg-[#1A1A1E]/40 cursor-pointer"
+        className="w-full bg-gray-gradient border shadow-lg border-[#25252A] pb-4 pt-4 px-4 rounded-[20px] transition-colors duration-300 hover:bg-surface-2/40 cursor-pointer"
       >
         <AccordionTrigger className="flex items-center justify-between">
           <div>

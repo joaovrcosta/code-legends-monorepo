@@ -20,7 +20,7 @@ export function CartSummarySidebar({
 }: CartSummarySidebarProps) {
   return (
     <div className="lg:sticky lg:top-8 space-y-4">
-      <Card className="border-[#25252A] border-[#00C8FF]/30 bg-[#1a1a1e] rounded-[20px] overflow-hidden">
+      <Card className="border-[#25252A] border-[#00C8FF]/30 bg-surface-2 rounded-[20px] overflow-hidden">
         <CardHeader className="p-5 pb-3">
           <h3 className="flex items-center gap-2 text-base font-semibold text-white">
             <FileText size={20} className="text-[#00C8FF]" />
@@ -69,7 +69,7 @@ export function CartSummarySidebar({
         </CardContent>
       </Card>
 
-      <div className="flex gap-3 p-4 rounded-[12px] border border-[#25252A] bg-[#1a1a1e]">
+      <div className="flex gap-3 p-4 rounded-[12px] border border-[#25252A] bg-surface-2">
         <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#00C8FF]/20 flex items-center justify-center">
           <Check size={18} weight="bold" className="text-[#00C8FF]" />
         </span>

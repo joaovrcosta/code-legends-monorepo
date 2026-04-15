@@ -71,7 +71,7 @@ export default async function AccountPurchasesPage() {
               Assinatura
             </h2>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-[#25252a] bg-[#1A1A1E]/50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-[#25252a] bg-surface-2/50">
               <div className="flex items-center gap-4">
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#25252a]">
                   <Image
@@ -137,7 +137,7 @@ export default async function AccountPurchasesPage() {
             </h2>
 
             {paymentMethod ? (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-[#25252a] bg-[#1A1A1E]/50">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-[#25252a] bg-surface-2/50">
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#25252a]">
                     <CreditCard className="w-6 h-6 text-[#00c8ff]" />
@@ -167,7 +167,7 @@ export default async function AccountPurchasesPage() {
                 </Button>
               </div>
             ) : (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-dashed border-[#25252a] bg-[#1A1A1E]/30">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-dashed border-[#25252a] bg-surface-2/30">
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#25252a]">
                     <CreditCard className="w-6 h-6 text-muted-foreground" />

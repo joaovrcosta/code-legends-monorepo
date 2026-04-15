@@ -250,7 +250,7 @@ export function StrikeSection({
             className={`flex items-center space-x-3 border py-2 px-3 rounded-[20px] transition-colors ${isOpen
               ? 'bg-[#25252A] border-[#FFBF00]'
               : streak.current > 0
-                ? 'border-[#FFBF00] hover:bg-[#25252A] hover:border-[#FFBF00]'
+                ? 'border-[#25252A] hover:bg-[#25252A] hover:border-[#FFBF00]'
                 : 'border-[#25252A] hover:bg-[#25252A] hover:border-[#FFBF00]'
               }`}
           >
@@ -278,7 +278,7 @@ export function StrikeSection({
           right-0 
           rounded-none 
           border-none 
-          bg-[#1A1A1E] 
+          bg-surface-2 
           shadow-2xl 
           z-50
       

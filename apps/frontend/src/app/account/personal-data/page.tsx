@@ -151,26 +151,24 @@ export default function PersonalDataPage() {
             </h2>
 
             {/* Tabs Moro no Brasil / Moro no exterior */}
-            <div className="flex gap-1 p-1 rounded-lg bg-[#1A1A1E] border border-[#25252a] w-fit">
+            <div className="flex gap-1 p-1 rounded-lg bg-surface-2 border border-[#25252a] w-fit">
               <button
                 type="button"
                 onClick={() => setAddressInBrazil(true)}
-                className={`px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                  addressInBrazil
+                className={`px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${addressInBrazil
                     ? "bg-[#00c8ff] text-white"
                     : "text-muted-foreground hover:text-white"
-                }`}
+                  }`}
               >
                 Moro no Brasil
               </button>
               <button
                 type="button"
                 onClick={() => setAddressInBrazil(false)}
-                className={`px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                  !addressInBrazil
+                className={`px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${!addressInBrazil
                     ? "bg-[#00c8ff] text-white"
                     : "text-muted-foreground hover:text-white"
-                }`}
+                  }`}
               >
                 Moro no exterior
               </button>

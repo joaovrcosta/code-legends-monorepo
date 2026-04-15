@@ -55,10 +55,9 @@ export function AccountAsideMenu() {
                       h-[52px] lg:px-4 px-0 
                       transition-all duration-200
                       rounded-xl lg:rounded-[16px]
-                      ${
-                        active
-                          ? 'bg-blue-gradient-500 text-white font-semibold'
-                          : 'text-[#C4C4CC] hover:text-white hover:bg-[#1A1A1E]'
+                      ${active
+                        ? 'bg-blue-gradient-500 text-white font-semibold'
+                        : 'text-[#C4C4CC] hover:text-white hover:bg-surface-2'
                       }
                     `}
                   >

@@ -73,7 +73,7 @@ export const TaskPopover = ({
               onClick={() => togglePopover(task.id)}
             />
           </PopoverTrigger>
-          <PopoverContent className="w-[295px] bg-[#1a1a1e] rounded-[20px] border border-[#25252A] shadow-lg p-4">
+          <PopoverContent className="w-[295px] bg-surface-2 rounded-[20px] border border-[#25252A] shadow-lg p-4">
             <div className="mb-3">
               <div className="flex items-center space-x-2">
                 <span className="font-bold bg-blue-gradient-500 bg-clip-text text-transparent text-xs">

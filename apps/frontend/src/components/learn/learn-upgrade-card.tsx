@@ -15,7 +15,7 @@ const FEATURES = [
 export function LearnUpgradeCard() {
   return (
     <div
-      className="w-full min-w-0 overflow-hidden rounded-[20px] border border-[#25252A] border-[#00C8FF]/20 bg-[#1a1a1e] shadow-[0_0_32px_rgba(0,200,255,0.12),0_0_64px_rgba(0,200,255,0.06)]"
+      className="w-full min-w-0 overflow-hidden rounded-[20px] border border-[#25252A] border-[#00C8FF]/20 bg-surface-2 shadow-[0_0_32px_rgba(0,200,255,0.12),0_0_64px_rgba(0,200,255,0.06)]"
     >
       {/* Header com imagem do raio */}
       <div

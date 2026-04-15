@@ -127,11 +127,10 @@ export function NotificationsSection() {
       <DropdownMenuTrigger asChild>
         <div className="relative">
           <div
-            className={`flex items-center space-x-3 border py-2 px-3 rounded-[20px] transition-colors ${
-              isOpen
+            className={`flex items-center space-x-3 border py-2 px-3 rounded-[20px] transition-colors ${isOpen
                 ? 'bg-[#25252A] border-[#FFB733]'
                 : 'border-[#25252A] hover:bg-[#25252A] hover:border-[#FFB733]'
-            }`}
+              }`}
           >
             <Bell size={24} weight="fill" className="text-[#515155]" />
           </div>
@@ -153,7 +152,7 @@ export function NotificationsSection() {
           right-0 
           rounded-none 
           border-none 
-          bg-[#1A1A1E] 
+          bg-surface-2 
           shadow-2xl 
           z-50
           p-0
@@ -191,9 +190,8 @@ export function NotificationsSection() {
         <div className="flex border-b border-[#25252A]">
           <button
             onClick={() => setActiveTab('unread')}
-            className={`flex-1 py-3 text-center font-medium transition-colors relative ${
-              activeTab === 'unread' ? 'text-white' : 'text-[#8D8D93]'
-            }`}
+            className={`flex-1 py-3 text-center font-medium transition-colors relative ${activeTab === 'unread' ? 'text-white' : 'text-[#8D8D93]'
+              }`}
           >
             Não lidas
             {activeTab === 'unread' && (
@@ -202,9 +200,8 @@ export function NotificationsSection() {
           </button>
           <button
             onClick={() => setActiveTab('read')}
-            className={`flex-1 py-3 text-center font-medium transition-colors relative ${
-              activeTab === 'read' ? 'text-white' : 'text-[#8D8D93]'
-            }`}
+            className={`flex-1 py-3 text-center font-medium transition-colors relative ${activeTab === 'read' ? 'text-white' : 'text-[#8D8D93]'
+              }`}
           >
             Lidas
             {activeTab === 'read' && (
@@ -238,11 +235,10 @@ export function NotificationsSection() {
               {displayedNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 py-5 rounded-[16px] mb-2 cursor-pointer transition-colors border border-transparent ${
-                    !notification.read
+                  className={`p-3 py-5 rounded-[16px] mb-2 cursor-pointer transition-colors border border-transparent ${!notification.read
                       ? 'hover:bg-gray-gradient-first transition-all ease-in-out'
                       : 'hover:bg-gray-gradient-first transition-all ease-in-out hover:border-[#25252A]'
-                  }`}
+                    }`}
                   onClick={() => {
                     if (!notification.read) {
                       handleMarkAsRead(notification.id)

@@ -125,7 +125,7 @@ export function CartPaymentMethods({ planSlug, value = null, onChange }: CartPay
               selected === method.id && "border-[#00C8FF] ring-1 ring-[#00C8FF]/30"
             )}
           >
-            <span className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#1a1a1e] flex items-center justify-center">
+            <span className="flex-shrink-0 w-10 h-10 rounded-lg bg-surface-2 flex items-center justify-center">
               {method.icon}
             </span>
             <div className="flex-1 min-w-0">

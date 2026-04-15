@@ -114,7 +114,7 @@ export function UserDropdown() {
                    right-0 
                    rounded-none 
                    border-none 
-                   bg-[#1A1A1E] 
+                   bg-surface-2 
                    shadow-2xl 
                    z-50
                    mt-1

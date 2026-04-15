@@ -36,7 +36,13 @@ const navigation = [
   { name: "Configurações Globais", href: "/settings/gamification", icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({
+  isMobileOpen = false,
+  onMobileClose,
+}: {
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
+}) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -46,8 +52,29 @@ export function Sidebar() {
     router.refresh();
   };
 
+  const handleNavClick = () => {
+    onMobileClose?.();
+  };
+
   return (
-    <div className="flex h-screen w-64 flex-col bg-white dark:bg-[#1a1a1e] border-r border-gray-200 dark:border-[#25252a]">
+    <>
+      {/* Overlay mobile */}
+      {isMobileOpen ? (
+        <button
+          type="button"
+          aria-label="Fechar menu"
+          onClick={onMobileClose}
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+        />
+      ) : null}
+
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col border-r border-gray-200 bg-white transition-transform duration-200 ease-out dark:border-[#25252a] dark:bg-[#101013]",
+          "lg:static lg:translate-x-0 lg:z-auto",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+        )}
+      >
       <div className="flex h-16 items-center justify-between border-b border-gray-200 dark:border-[#25252a] px-6 py-4">
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Code Legends</h1>
         <ThemeToggle />
@@ -59,6 +86,7 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
+              onClick={handleNavClick}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 isActive
@@ -82,7 +110,8 @@ export function Sidebar() {
           Sair
         </Button>
       </div>
-    </div>
+      </aside>
+    </>
   );
 }
 

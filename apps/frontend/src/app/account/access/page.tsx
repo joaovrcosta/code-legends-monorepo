@@ -247,7 +247,7 @@ export default function AccountAccessPage() {
             )}
 
             {/* Email Atual */}
-            <div className="flex items-center gap-3 p-3 bg-[#1A1A1E] rounded-lg border border-[#25252A]">
+            <div className="flex items-center gap-3 p-3 bg-surface-2 rounded-lg border border-[#25252A]">
               <Mail className="w-5 h-5 text-[#00C8FF] flex-shrink-0" />
               <span className="text-sm text-zinc-300">{userData.email}</span>
             </div>

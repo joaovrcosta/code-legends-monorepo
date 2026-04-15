@@ -17,6 +17,7 @@ body {
   --header-height-mobile: 64px;
   --header-height-desktop: 78px;
   --color-surface: #0c0c0d;
+  --color-surface-2: rgb(16 16 19);
   /* Sala de aula: footer fixo em lesson/[lesson]/page.tsx (h-[60px] / lg:h-[84px]) */
   --classroom-footer-mobile: 60px;
   --classroom-footer-desktop: 84px;

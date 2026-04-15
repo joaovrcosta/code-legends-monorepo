@@ -31,7 +31,7 @@ export async function MySubscriptions() {
       </CardHeader>
       <CardContent className="px-4 pt-0">
         {hasPaidPlan ? (
-          <div className="space-y-2 bg-[#1a1a1e] rounded-[20px] p-4 flex items-center gap-4 mt-2">
+          <div className="space-y-2 bg-surface-2 rounded-[20px] p-4 flex items-center gap-4 mt-2">
             <div>
               <Image
                 src={planInfo.icon}

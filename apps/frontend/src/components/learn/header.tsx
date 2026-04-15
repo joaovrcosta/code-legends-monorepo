@@ -227,7 +227,7 @@ export default function LearnHeader({
                     href={`/learn/paths/${course.slug}`}
                     onClick={() => setIsSearchModalOpen(false)}
                   >
-                    <div className="flex items-center gap-4 p-4 mb-3 rounded-lg border border-[#25252A] hover:border-[#35BED5] hover:bg-[#1A1A1E] transition-colors cursor-pointer">
+                    <div className="flex items-center gap-4 p-4 mb-3 rounded-lg border border-[#25252A] hover:border-[#35BED5] hover:bg-surface-2 transition-colors cursor-pointer">
                       {course.icon && (
                         <Image
                           src={course.icon}

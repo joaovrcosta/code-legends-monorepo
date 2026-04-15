@@ -10,15 +10,13 @@ import { ShineBorder } from '../ui/border-beam'
 export async function CurrentCourseCard() {
   const activeCourse = await getActiveCourse()
 
-  // Se não houver curso ativo ou se o curso ativo já estiver concluído,
-  // mostra o estado vazio (sem formação ativa)
   if (!activeCourse || activeCourse.isCompleted) {
     return (
       <div className="w-full max-w-full overflow-hidden">
         <div className="flex h-fit bg-gray-gradient border-[#25252A] flex-col lg:flex-row justify-between items-center rounded-[20px] border border-[#25252A] p-4 sm:p-6 gap-6 relative overflow-hidden">
           <div className="flex flex-col items-center lg:items-start w-full lg:w-auto text-center lg:text-left z-10 relative">
             <div className="mb-4">
-              <span className="bg-transparent text-[#737373] border border-[#737373] text-[10px] sm:text-xs font-medium px-3 py-1 rounded-full uppercase tracking-wider bg-[#1a1a1e]/50 backdrop-blur-sm">
+              <span className="bg-transparent text-[#737373] border border-[#737373] text-[10px] sm:text-xs font-medium px-3 py-1 rounded-full uppercase tracking-wider bg-surface-2/50 backdrop-blur-sm">
                 Sem Formação Ativa
               </span>
             </div>

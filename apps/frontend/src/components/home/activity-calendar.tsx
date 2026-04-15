@@ -47,7 +47,7 @@ function ActivityCalendarSkeleton() {
                                     {days.map((dayIndex) => (
                                         <div
                                             key={`${weekIndex}-${dayIndex}`}
-                                            className="w-[13px] h-[13px] sm:w-[15px] sm:h-[14px] rounded-[4px] bg-[#1a1a1e]/70"
+                                            className="w-[13px] h-[13px] sm:w-[15px] sm:h-[14px] rounded-[4px] bg-surface-2/70"
                                         />
                                     ))}
                                 </div>
@@ -61,7 +61,7 @@ function ActivityCalendarSkeleton() {
                             {Array.from({ length: 5 }, (_, lvl) => (
                                 <div
                                     key={lvl}
-                                    className="w-[10px] h-[10px] rounded-[2px] bg-[#1a1a1e]/70"
+                                    className="w-[10px] h-[10px] rounded-[2px] bg-surface-2/70"
                                 />
                             ))}
                         </div>

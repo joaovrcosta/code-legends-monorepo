@@ -174,13 +174,13 @@ export default function LoginPage() {
                         setError("");
                         await signIn("google", { callbackUrl: "/" });
                       } catch (err) {
-                        const errorMessage = err instanceof Error 
-                          ? err.message 
+                        const errorMessage = err instanceof Error
+                          ? err.message
                           : "Erro ao fazer login com Google";
                         setError(errorMessage);
                       }
                     }}
-                    className="w-full h-[52px] gap-2 text-white bg-[#1a1a1e] border border-[#25252a] rounded-[32px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
+                    className="w-full h-[52px] gap-2 text-white bg-surface-2 border border-[#25252a] rounded-[32px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
                     aria-label="Login com Google"
                   >
                     <svg
@@ -211,7 +211,7 @@ export default function LoginPage() {
 
                   {/* <button
                     type="button"
-                    className="w-full gap-2 text-white h-[42px] bg-[#1a1a1e] border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
+                    className="w-full gap-2 text-white h-[42px] bg-surface-2 border border-[#25252a] rounded-[12px] flex items-center justify-center hover:bg-[#25252a] transition-colors"
                     aria-label="Login com Apple"
                   >
                     <GithubLogoIcon className="w-4 h-4 " weight="fill" />

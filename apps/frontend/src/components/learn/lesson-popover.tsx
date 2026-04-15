@@ -169,11 +169,11 @@ export const LessonPopover = ({
             </button>
           </PopoverTrigger>
           <PopoverContent
-            className="!bg-[#1a1a1e] !text-white rounded-[20px]"
+            className="!bg-surface-2 !text-white rounded-[20px]"
             asChild
           >
             <motion.div
-              className="w-[295px] bg-[#1a1a1e] rounded-[20px] border border-[#25252A] shadow-lg p-4 z-50 outline-none text-white"
+              className="w-[295px] bg-surface-2 rounded-[20px] border border-[#25252A] shadow-lg p-4 z-50 outline-none text-white"
               style={{
                 backgroundColor: '#1a1a1e',
                 transformOrigin: 'center center'

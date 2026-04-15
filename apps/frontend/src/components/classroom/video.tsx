@@ -411,7 +411,7 @@ export default function VideoComponent({
             </div>
           </>
         ) : src && isStreamableUrl(src) ? (
-          <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-[#1A1A1E] rounded-lg border border-[#25252A]">
+          <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-surface-2 rounded-lg border border-[#25252A]">
             <p className="text-white text-sm mb-4">Vídeo do Streamable</p>
             <a
               href={src}

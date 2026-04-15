@@ -46,7 +46,7 @@ export function CtaAssinarCursoCard({
   return (
     <div
       className={cn(
-        "w-full min-w-0 border border-[#25252A] rounded-[20px] bg-[#1a1a1e] p-6 flex flex-col gap-5",
+        "w-full min-w-0 border border-[#25252A] rounded-[20px] bg-surface-2 p-6 flex flex-col gap-5",
         className
       )}
     >

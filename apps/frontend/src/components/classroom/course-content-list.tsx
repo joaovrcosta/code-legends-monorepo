@@ -49,7 +49,7 @@ export function CourseContentList({ course, pathName }: CourseContentList) {
                       {submodule.tasks.map((task) => {
                         const isActive =
                           pathName ===
-                            `/classroom/react-js/lessons/${task.slug}` ||
+                          `/classroom/react-js/lessons/${task.slug}` ||
                           pathName === `${task.url}`;
 
                         return (
@@ -59,16 +59,15 @@ export function CourseContentList({ course, pathName }: CourseContentList) {
                                 task.locked
                                   ? "#"
                                   : task.type === "article"
-                                  ? task.url || "#"
-                                  : `/classroom/react-js/lessons/${task.slug}`
+                                    ? task.url || "#"
+                                    : `/classroom/react-js/lessons/${task.slug}`
                               }
-                              className={`flex items-center h-[52px] px-4 transition-colors hover:bg-zinc-900 ${
-                                isActive
+                              className={`flex items-center h-[52px] px-4 transition-colors hover:bg-zinc-900 ${isActive
                                   ? "bg-blue-gradient-500 text-white font-semibold"
                                   : task.locked
-                                  ? "text-gray-500 cursor-not-allowed"
-                                  : "text-[#C4C4CC] bg-[#1A1A1E] hover:bg-[#2E2E32]"
-                              }`}
+                                    ? "text-gray-500 cursor-not-allowed"
+                                    : "text-[#C4C4CC] bg-surface-2 hover:bg-[#2E2E32]"
+                                }`}
                             >
                               <span className="mr-2">
                                 {task.locked ? (

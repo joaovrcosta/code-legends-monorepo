@@ -29,7 +29,7 @@ export function SkillsTrackingCard({ skills }: SkillsTrackingCardProps) {
 
   if (visibleSkills.length === 0) {
     return (
-      <div className="rounded-[20px] border border-[#25252A] bg-[#1A1A1E] px-6 py-10 text-center">
+      <div className="rounded-[20px] border border-[#25252A] bg-surface-2 px-6 py-10 text-center">
         <p className="text-sm text-[#C4C4CC]">Ainda não há XP por skill.</p>
         <p className="mt-1 text-xs text-[#7e7e89]">
           Continue estudando para acumular XP e ver suas skills aqui.

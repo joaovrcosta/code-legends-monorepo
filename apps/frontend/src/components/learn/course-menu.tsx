@@ -110,7 +110,7 @@ export function CourseDropdownMenu({
         align="center"
         side="bottom"
         sideOffset={20}
-        className="w-screen max-w-none left-0 right-0 border-none bg-[#1A1A1E] shadow-2xl z-50 p-0 
+        className="w-screen max-w-none left-0 right-0 border-none bg-surface-2 shadow-2xl z-50 p-0 
                   sm:w-auto sm:max-w-sm sm:rounded-[20px] sm:border sm:border-[#25252A] sm:left-auto sm:right-auto"
       >
         <DropdownMenuLabel className="p-4 flex items-center justify-center">
@@ -166,8 +166,8 @@ export function CourseDropdownMenu({
                   <DropdownMenuItem
                     key={enrolledCourse.id}
                     className={`pl-2 pr-4 w-full min-w-[352px] text-white border-none rounded-[20px] ${isChanging
-                        ? 'opacity-50 cursor-not-allowed'
-                        : 'cursor-pointer'
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'cursor-pointer'
                       }`}
                     onClick={handleCourseClick}
                   >

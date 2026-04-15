@@ -69,7 +69,7 @@ export function WelcomePaidModal() {
     const p = useWelcomePaidStore.getState().payload;
     const pid = p?.paymentId;
     if (pid) {
-      await ackPostPurchaseWelcome(pid).catch(() => {});
+      await ackPostPurchaseWelcome(pid).catch(() => { });
     }
     useWelcomePaidStore.getState().close();
   };
@@ -138,7 +138,7 @@ export function WelcomePaidModal() {
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && void ackAndClose()}>
-        <DialogContent className="bg-[#1A1A1E] border border-[#25252A] text-white p-0 max-w-[520px] sm:rounded-[28px] overflow-hidden">
+        <DialogContent className="bg-surface-2 border border-[#25252A] text-white p-0 max-w-[520px] sm:rounded-[28px] overflow-hidden">
           <DialogTitle className="sr-only">Boas-vindas</DialogTitle>
           {Content}
         </DialogContent>
@@ -148,7 +148,7 @@ export function WelcomePaidModal() {
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && void ackAndClose()}>
-      <DrawerContent className="bg-[#1A1A1E] border border-[#25252A] text-white p-0 rounded-t-[28px]">
+      <DrawerContent className="bg-surface-2 border border-[#25252A] text-white p-0 rounded-t-[28px]">
         <DrawerTitle className="sr-only">Boas-vindas</DrawerTitle>
         {Content}
       </DrawerContent>

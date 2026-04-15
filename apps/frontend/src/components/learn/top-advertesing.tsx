@@ -8,7 +8,7 @@ export function TopAdvertesing() {
 
     return (
         <div
-            className="fixed top-0 left-0 right-0 z-[60] w-full bg-[#1a1a1e] text-white"
+            className="fixed top-0 left-0 right-0 z-[60] w-full bg-surface-2 text-white"
             style={{ height: "var(--top-banner-height)" }}
         >
             <div className="flex h-full flex-wrap items-center justify-between gap-3 px-4 sm:px-6">

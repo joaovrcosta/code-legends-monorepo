@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 import { appendCourseIdToClassroomHref } from '@/utils/lesson-url'
 
@@ -37,9 +38,6 @@ import {
   CaretLeftIcon,
 } from '@phosphor-icons/react/dist/ssr'
 import {
-  ArrowLeft,
-  BookOpen,
-  ChartNoAxesColumnIncreasingIcon,
   Loader2,
 } from 'lucide-react'
 
@@ -78,6 +76,12 @@ const getLevelColor = (level: string): string => {
 
 export function CourseBanner({ course, userProgress }: CourseBannerProps) {
   const router = useRouter()
+  const { data: session } = useSession()
+  const userPlan =
+    (session?.user as { plan?: 'FREE' | 'PRO' | 'PREMIUM' } | undefined)?.plan ??
+    'FREE'
+  const isSubscriber = userPlan === 'PRO' || userPlan === 'PREMIUM'
+  const shouldShowAccessBadge = course.isFree || !isSubscriber
   const refreshEnrolledCourses = useEnrolledCoursesStore(
     (state) => state.refreshEnrolledCourses,
   )
@@ -323,16 +327,18 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
             </div>
 
             <div className="flex flex-col items-center lg:items-start">
-              <span
-                className={cn(
-                  'shrink-0 rounded-full border mb-4 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider',
-                  course.isFree
-                    ? 'bg-lime-500/10 border border-lime-500/20 rounded-full px-2 py-1 text-lime-500'
-                    : 'shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-1 rounded-full bg-gradient-to-r from-purple-500/10 to-orange-400/20 text-purple-400 border border-purple-500/20',
-                )}
-              >
-                {course.isFree ? 'Gratuito' : 'Para assinantes'}
-              </span>
+              {shouldShowAccessBadge ? (
+                <span
+                  className={cn(
+                    'shrink-0 rounded-full border mb-4 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider',
+                    course.isFree
+                      ? 'bg-lime-500/10 border border-lime-500/20 rounded-full px-2 py-1 text-lime-500'
+                      : 'shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-1 rounded-full bg-gradient-to-r from-purple-500/10 to-orange-400/20 text-purple-400 border border-purple-500/20',
+                  )}
+                >
+                  {course.isFree ? 'Gratuito' : 'Para assinantes'}
+                </span>
+              ) : null}
               <h1
                 className={cn(
                   'font-bold lg:text-[44px] text-2xl lg:text-left leading-tight text-center mb-4',
@@ -358,7 +364,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                     </div>
                     <Progress
                       value={userProgress?.course.progress ?? 0}
-                      className="h-[2px] bg-[#1a1a1e]"
+                      className="h-[2px] bg-surface-2"
                     >
                       <div className="h-full bg-blue-500 shadow-[0_0_15px_rgba(0,200,255,0.4)]" />
                     </Progress>
