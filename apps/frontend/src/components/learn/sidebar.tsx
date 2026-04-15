@@ -57,7 +57,7 @@ const Sidebar = () => {
                   <Link
                     href={link.path}
                     className={`relative flex text-[14px] items-center h-[52px] px-4 space-x-3 transition-colors overflow-hidden ${isActive
-                      ? "bg-blue-gradient-500 text-white font-semibold"
+                      ? "bg-blue-gradient-500 text-white font-semibold rounded-tr-full rounded-br-full"
                       : "text-[#C4C4CC] hover:bg-[#2E2E32]"
                       }`}
                   >
