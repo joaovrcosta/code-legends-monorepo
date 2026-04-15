@@ -175,14 +175,40 @@ function CareersPageContent() {
     };
   }, [selectedCareer]);
 
-  useEffect(() => {
-    if (!selectedCareer || !botMessageVisible || coursesLoadState !== "done")
-      return;
-    chatAnchorRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
+  const scrollChatToLatest = useCallback(() => {
+    const el = chatAnchorRef.current;
+    if (!el) return;
+    // 2 RAFs ajuda quando o DOM ainda está “entrando” com animação
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
     });
-  }, [selectedCareer, coursesLoadState, botMessageVisible]);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCareer) return;
+    // Quando o usuário “envia” (mensagem do aluno), já desce pro chat
+    scrollChatToLatest();
+  }, [selectedCareer, scrollChatToLatest]);
+
+  useEffect(() => {
+    if (!selectedCareer || !botMessageVisible) return;
+    // Quando a resposta da Code Legends aparece (digitando...), desce até ela
+    scrollChatToLatest();
+  }, [selectedCareer, botMessageVisible, scrollChatToLatest]);
+
+  useEffect(() => {
+    if (!selectedCareer || !botMessageVisible) return;
+    if (coursesLoadState !== "done" && coursesLoadState !== "error") return;
+    // Quando termina (cursos ou erro), garante que a mensagem final esteja visível
+    scrollChatToLatest();
+  }, [
+    selectedCareer,
+    botMessageVisible,
+    coursesLoadState,
+    scrollChatToLatest,
+  ]);
 
   const selectedCategoryName =
     categories.find((c) => c.slug === selectedCareer)?.name ?? "";
@@ -193,6 +219,10 @@ function CareersPageContent() {
     (session?.user as { image?: string | null; avatar?: string | null } | undefined)
       ?.avatar ??
     null;
+
+  const userDisplayName =
+    (session?.user as { name?: string | null } | undefined)?.name?.trim() ||
+    "Você";
 
   const syncCareerToUrl = useCallback(
     (slug: string) => {
@@ -377,32 +407,41 @@ function CareersPageContent() {
 
             {selectedCareer ? (
               <div ref={chatAnchorRef} className="flex flex-col gap-5">
-                <div className="flex items-end justify-end gap-3">
-                  <div
-                    className="max-w-[min(100%,22rem)] rounded-full h-[52px] flex items-center justify-center  bg-[#1b1b26] px-4 py-3"
-                    role="status"
-                  >
-                    <p className="text-sm font-semibold leading-snug text-white">
-                      Quero me especializar em {selectedCategoryName}
-                    </p>
-                  </div>
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#1b1b26]">
-                    {userAvatarSrc ? (
-                      <Image
-                        src={userAvatarSrc}
-                        alt="Seu avatar"
-                        width={40}
-                        height={40}
-                        className="h-9 w-9 object-cover"
-                      />
-                    ) : (
-                      <span
-                        className="text-sm font-semibold text-white/80"
-                        aria-hidden
+                <div key={selectedCareer} className="flex flex-col items-end">
+                  <div className="flex items-end justify-end gap-3 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-300 fill-mode-both">
+                    <div>
+                      <div className="flex items-center justify-end">
+                        <p className="mb-1.5 text-xs font-medium text-white/50">
+                          {userDisplayName}
+                        </p>
+                      </div>
+                      <div
+                        className="max-w-[min(100%,22rem)] rounded-full h-[52px] flex items-center justify-center bg-[#1b1b26] px-4 py-3"
+                        role="status"
                       >
-                        Você
-                      </span>
-                    )}
+                        <p className="text-sm font-semibold leading-snug text-white">
+                          Quero me especializar em {selectedCategoryName}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#1b1b26]">
+                      {userAvatarSrc ? (
+                        <Image
+                          src={userAvatarSrc}
+                          alt="Seu avatar"
+                          width={40}
+                          height={40}
+                          className="h-9 w-9 object-cover"
+                        />
+                      ) : (
+                        <span
+                          className="text-sm font-semibold text-white/80"
+                          aria-hidden
+                        >
+                          Você
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
