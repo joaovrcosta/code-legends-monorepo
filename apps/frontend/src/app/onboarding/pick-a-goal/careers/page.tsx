@@ -409,55 +409,57 @@ function CareersPageContent() {
                   aria-hidden
                 />
               </div>
-              <div className="flex flex-col gap-3">
-                <p className="mb-1.5 text-xs font-medium text-white/50">
+              <div>
+                <p className="text-xs font-medium text-white/50 mb-3">
                   Code Legends
                 </p>
-                {categories.length === 0 && !error ? (
-                  <div
-                    className="py-6 flex items-center justify-center"
-                    role="status"
-                    aria-label="Code Legends está digitando"
-                  >
-                    <span className="inline-flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-white/30 animate-bounce [animation-delay:-0.2s]" />
-                      <span className="h-2 w-2 rounded-full bg-white/30 animate-bounce [animation-delay:-0.1s]" />
-                      <span className="h-2 w-2 rounded-full bg-white/30 animate-bounce" />
-                    </span>
-                  </div>
-                ) : null}
-
-                {categories.slice(0, visibleCategoryCount).map((category) => {
-                  const isSelected = selectedCareer === category.slug;
-                  return (
-                    <button
-                      key={category.id}
-                      type="button"
-                      role="option"
-                      aria-selected={isSelected}
-                      onClick={() => handleCareerClick(category.slug)}
-                      disabled={isLoading}
-                      className={[
-                        "flex h-[56px] w-fit animate-in fade-in-0 slide-in-from-bottom-2 items-center justify-center gap-2 self-start rounded-[24px] px-4 py-3.5 text-left text-base duration-300 fill-mode-both motion-reduce:animate-none",
-                        isSelected
-                          ? "border-[#00C8FF] bg-blue-gradient-500 shadow-[0_0_20px_rgba(0,200,255,0.12)]"
-                          : "border-[#32323a] bg-[#1b1b26] hover:border-[#3d3d46] hover:bg-[#2a2a32]",
-                        isLoading ? "pointer-events-none opacity-50" : "",
-                      ].join(" ")}
+                <div className="flex flex-col gap-3">
+                  {categories.length === 0 && !error ? (
+                    <div
+                      className="py-6 flex items-center justify-center"
+                      role="status"
+                      aria-label="Code Legends está digitando"
                     >
-                      <span
+                      <span className="inline-flex items-center gap-1">
+                        <span className="h-2 w-2 rounded-full bg-white/30 animate-bounce [animation-delay:-0.2s]" />
+                        <span className="h-2 w-2 rounded-full bg-white/30 animate-bounce [animation-delay:-0.1s]" />
+                        <span className="h-2 w-2 rounded-full bg-white/30 animate-bounce" />
+                      </span>
+                    </div>
+                  ) : null}
+
+                  {categories.slice(0, visibleCategoryCount).map((category) => {
+                    const isSelected = selectedCareer === category.slug;
+                    return (
+                      <button
+                        key={category.id}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => handleCareerClick(category.slug)}
+                        disabled={isLoading}
                         className={[
-                          "min-w-0 text-sm leading-snug",
+                          "flex h-[56px] w-fit animate-in fade-in-0 slide-in-from-bottom-2 items-center justify-center gap-2 self-start rounded-[24px] px-4 py-3.5 text-left text-base duration-300 fill-mode-both motion-reduce:animate-none",
                           isSelected
-                            ? "font-semibold text-white"
-                            : "font-medium text-white/90",
+                            ? "border-[#00C8FF] bg-blue-gradient-500 shadow-[0_0_20px_rgba(0,200,255,0.12)]"
+                            : "border-[#32323a] bg-[#1b1b26] hover:border-[#3d3d46] hover:bg-[#2a2a32]",
+                          isLoading ? "pointer-events-none opacity-50" : "",
                         ].join(" ")}
                       >
-                        {category.name}
-                      </span>
-                    </button>
-                  );
-                })}
+                        <span
+                          className={[
+                            "min-w-0 text-sm leading-snug",
+                            isSelected
+                              ? "font-semibold text-white"
+                              : "font-medium text-white/90",
+                          ].join(" ")}
+                        >
+                          {category.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -514,7 +516,7 @@ function CareersPageContent() {
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="mb-1.5 text-xs font-medium text-white/50">
+                      <p className="mb-3 text-xs font-medium text-white/50">
                         Code Legends
                       </p>
 
@@ -550,13 +552,13 @@ function CareersPageContent() {
                                     className={[
                                       "flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition-all duration-200",
                                       isSelected
-                                        ? "border-transparent bg-gradient-to-br from-[#2a1040] via-[#4a1f6e] to-[#8234E9] shadow-[0_12px_40px_rgba(130,52,233,0.25)] ring-1 ring-white/10"
+                                        ? "bg-blue-gradient-500 border-none"
                                         : "border-[#2a2a31] bg-[#121218] hover:border-[#3d3d46] hover:bg-[#1a1a22]",
                                       isLoading ? "pointer-events-none opacity-50" : "",
                                     ].join(" ")}
                                   >
                                     {course.icon ? (
-                                      <span className="relative block h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-[#25252a]">
+                                      <span className="relative block h-12 w-12 shrink-0 overflow-hidden">
                                         <Image
                                           src={course.icon}
                                           alt=""
