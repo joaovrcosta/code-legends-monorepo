@@ -395,47 +395,62 @@ function CareersPageContent() {
             aria-label="Áreas de especialização e trilhas"
           >
             <div
-              className="flex w-full flex-col gap-3"
+              className="flex gap-3"
               role="listbox"
               aria-label="Áreas de especialização"
             >
-              {categories.length === 0 && !error ? (
-                <p className="py-6 text-center text-sm text-white/45">
-                  Carregando trilhas…
+              <div className="flex h-10 w-10 shrink-0 items-start justify-center overflow-hidden rounded-xl bg-[#1b1b26] pt-0.5">
+                <Image
+                  src={codeLegendsLogo}
+                  alt=""
+                  width={40}
+                  height={40}
+                  className="h-9 w-9"
+                  aria-hidden
+                />
+              </div>
+              <div className="flex flex-col gap-3">
+                <p className="mb-1.5 text-xs font-medium text-white/50">
+                  Code Legends
                 </p>
-              ) : null}
+                {categories.length === 0 && !error ? (
+                  <p className="py-6 text-center text-sm text-white/45">
+                    Carregando trilhas…
+                  </p>
+                ) : null}
 
-              {categories.slice(0, visibleCategoryCount).map((category) => {
-                const isSelected = selectedCareer === category.slug;
-                return (
-                  <button
-                    key={category.id}
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => handleCareerClick(category.slug)}
-                    disabled={isLoading}
-                    className={[
-                      "flex h-[56px] w-fit animate-in fade-in-0 slide-in-from-bottom-2 items-center justify-center gap-2 self-start rounded-full px-4 py-3.5 text-left text-base duration-300 fill-mode-both motion-reduce:animate-none",
-                      isSelected
-                        ? "border-[#00C8FF] bg-blue-gradient-500 shadow-[0_0_20px_rgba(0,200,255,0.12)]"
-                        : "border-[#32323a] bg-[#1b1b26] hover:border-[#3d3d46] hover:bg-[#2a2a32]",
-                      isLoading ? "pointer-events-none opacity-50" : "",
-                    ].join(" ")}
-                  >
-                    <span
+                {categories.slice(0, visibleCategoryCount).map((category) => {
+                  const isSelected = selectedCareer === category.slug;
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => handleCareerClick(category.slug)}
+                      disabled={isLoading}
                       className={[
-                        "min-w-0 text-sm leading-snug",
+                        "flex h-[56px] w-fit animate-in fade-in-0 slide-in-from-bottom-2 items-center justify-center gap-2 self-start rounded-[24px] px-4 py-3.5 text-left text-base duration-300 fill-mode-both motion-reduce:animate-none",
                         isSelected
-                          ? "font-semibold text-white"
-                          : "font-medium text-white/90",
+                          ? "border-[#00C8FF] bg-blue-gradient-500 shadow-[0_0_20px_rgba(0,200,255,0.12)]"
+                          : "border-[#32323a] bg-[#1b1b26] hover:border-[#3d3d46] hover:bg-[#2a2a32]",
+                        isLoading ? "pointer-events-none opacity-50" : "",
                       ].join(" ")}
                     >
-                      {category.name}
-                    </span>
-                  </button>
-                );
-              })}
+                      <span
+                        className={[
+                          "min-w-0 text-sm leading-snug",
+                          isSelected
+                            ? "font-semibold text-white"
+                            : "font-medium text-white/90",
+                        ].join(" ")}
+                      >
+                        {category.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {selectedCareer ? (
@@ -569,8 +584,8 @@ function CareersPageContent() {
 
                       {/* Mensagem quando não há cursos */}
                       {coursesLoadState === "done" &&
-                      botRevealedCount >= 1 &&
-                      courses.length === 0 ? (
+                        botRevealedCount >= 1 &&
+                        courses.length === 0 ? (
                         <div className="mt-3 w-fit max-w-[min(100%,28rem)] rounded-[24px] bg-[#1b1b26] px-4 py-4 sm:px-5 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-300 fill-mode-both">
                           <p className="text-sm text-white/60">
                             Nenhuma trilha disponível nesta área no momento.
@@ -580,9 +595,9 @@ function CareersPageContent() {
 
                       {/* Digitando: enquanto carrega ou enquanto ainda está revelando cursos */}
                       {coursesLoadState === "loading" ||
-                      (coursesLoadState === "done" &&
-                        courses.length > 0 &&
-                        botRevealedCount < 1 + courses.length) ? (
+                        (coursesLoadState === "done" &&
+                          courses.length > 0 &&
+                          botRevealedCount < 1 + courses.length) ? (
                         <div className="mt-3 w-fit rounded-[24px] bg-[#1b1b26] px-4 py-3">
                           <div
                             className="flex items-center gap-2 text-sm text-white/60"
