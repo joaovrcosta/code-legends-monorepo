@@ -309,7 +309,10 @@ interface PlansGridProps {
 }
 
 export function PlansGrid({ apiPlans = [] }: PlansGridProps) {
-  const paidCards = apiPlans.map((p, i) => apiPlanToCardData(p, i))
+  // Já temos um card FREE fixo; evita duplicar caso a API também retorne "free".
+  const paidCards = apiPlans
+    .filter((p) => p.slug.toLowerCase() !== 'free')
+    .map((p, i) => apiPlanToCardData(p, i))
   const plansData: PlanCardData[] = [FREE_PLAN, ...paidCards]
 
   return (
