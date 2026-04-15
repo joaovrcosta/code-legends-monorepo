@@ -28,7 +28,7 @@ const CATEGORY_REVEAL_INITIAL_DELAY_MS = 100;
 const CAREERS_PAGE_TITLE = "Por qual área você quer se especializar?";
 const TITLE_TYPING_MS = 36;
 const COURSES_MIN_TYPING_MS = 1200;
-const BOT_RESPONSE_INITIAL_DELAY_MS = 600;
+const BOT_RESPONSE_INITIAL_DELAY_MS = 800;
 const BOT_MESSAGE_STAGGER_MS = 260;
 
 function sleep(ms: number) {
@@ -414,9 +414,17 @@ function CareersPageContent() {
                   Code Legends
                 </p>
                 {categories.length === 0 && !error ? (
-                  <p className="py-6 text-center text-sm text-white/45">
-                    Carregando trilhas…
-                  </p>
+                  <div
+                    className="py-6 flex items-center justify-center"
+                    role="status"
+                    aria-label="Code Legends está digitando"
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      <span className="h-2 w-2 rounded-full bg-white/30 animate-bounce [animation-delay:-0.2s]" />
+                      <span className="h-2 w-2 rounded-full bg-white/30 animate-bounce [animation-delay:-0.1s]" />
+                      <span className="h-2 w-2 rounded-full bg-white/30 animate-bounce" />
+                    </span>
+                  </div>
                 ) : null}
 
                 {categories.slice(0, visibleCategoryCount).map((category) => {
@@ -464,7 +472,7 @@ function CareersPageContent() {
                         </p>
                       </div>
                       <div
-                        className="max-w-[min(100%,22rem)] rounded-full h-[52px] flex items-center justify-center bg-[#1b1b26] px-4 py-3"
+                        className="max-w-[min(100%,22rem)] rounded-full h-[56px] flex items-center justify-center bg-[#1b1b26] px-4 py-3"
                         role="status"
                       >
                         <p className="text-sm font-semibold leading-snug text-white">
