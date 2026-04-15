@@ -10,7 +10,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { completeOnboarding, getCurrentUser, updateOnboarding } from "@/actions/user";
+import { completeOnboarding, updateOnboarding } from "@/actions/user";
 import { OnboardingTopBar } from "@/components/onboarding/onboarding-top-bar";
 import {
   ONBOARDING_STEP,
@@ -25,14 +25,73 @@ import codeLegendsLogo from "../../../../../public/loading-logo.svg";
 const CATEGORY_REVEAL_STAGGER_MS = 200;
 const CATEGORY_REVEAL_INITIAL_DELAY_MS = 100;
 
-const CAREERS_PAGE_TITLE = "Por qual área você quer se especializar?";
+function getCareersPageTitle(userName?: string | null) {
+  const safeName = userName?.trim();
+  if (!safeName || safeName.toLowerCase() === "você") {
+    return "Por qual área você quer se especializar?";
+  }
+
+  const firstName = safeName.split(/\s+/).filter(Boolean)[0] ?? safeName;
+  return `${firstName}, por qual área você quer se especializar?`;
+}
+
 const TITLE_TYPING_MS = 36;
 const COURSES_MIN_TYPING_MS = 1200;
 const BOT_RESPONSE_INITIAL_DELAY_MS = 800;
 const BOT_MESSAGE_STAGGER_MS = 260;
 
+const CAREER_MOTIVATIONAL_TITLES: Record<string, string[]> = {
+  frontend: [
+    "Crie experiências incríveis no Front-end.",
+    "Encante a cada clique.",
+    "Domine o Front-end.",
+  ],
+  "front-end": [
+    "Crie experiências incríveis no Front-end.",
+    "Encante a cada clique.",
+    "Domine o Front-end.",
+  ],
+  backend: [
+    "Construa a base do produto.",
+    "Escale com performance.",
+    "Crie APIs de impacto.",
+  ],
+  "back-end": [
+    "Construa a base do produto.",
+    "Escale com performance.",
+    "Crie APIs de impacto.",
+  ],
+  designer: [
+    "Design com propósito.",
+    "Crie boas experiências.",
+    "Visual que gera confiança.",
+  ],
+  ingles: [
+    "Inglês abre portas.",
+    "Destrave sua fluência.",
+    "Prepare-se para o global.",
+  ],
+  "inglês": [
+    "Inglês abre portas.",
+    "Destrave sua fluência.",
+    "Prepare-se para o global.",
+  ],
+  empreendedorismo: [
+    "Transforme ideias em ação.",
+    "Execute com visão.",
+    "Tire seu projeto do papel.",
+  ],
+};
+
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
+function pickRandom<T>(items: T[], avoid?: T) {
+  if (items.length <= 1) return items[0];
+  const filtered = avoid === undefined ? items : items.filter((x) => x !== avoid);
+  const pool = filtered.length > 0 ? filtered : items;
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function CareersPageContent() {
@@ -42,6 +101,20 @@ function CareersPageContent() {
   const { data: session, update } = useSession();
   const chatAnchorRef = useRef<HTMLDivElement>(null);
 
+  const userAvatarSrc =
+    (session?.user as
+      | { image?: string | null; avatar?: string | null }
+      | undefined)?.image ??
+    (session?.user as
+      | { image?: string | null; avatar?: string | null }
+      | undefined)?.avatar ??
+    null;
+
+  const userDisplayName =
+    (session?.user as { name?: string | null } | undefined)?.name?.trim() ||
+    "Você";
+
+  const baseTitle = getCareersPageTitle(userDisplayName);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCareer, setSelectedCareer] = useState<string | null>(null);
@@ -57,6 +130,7 @@ function CareersPageContent() {
     onboardingProgressPercent(ONBOARDING_STEP.career),
   );
   const [visibleCategoryCount, setVisibleCategoryCount] = useState(0);
+  const [titleTarget, setTitleTarget] = useState(() => baseTitle);
   const [typedTitle, setTypedTitle] = useState("");
   const [titleTypingDone, setTitleTypingDone] = useState(false);
   const [botMessageVisible, setBotMessageVisible] = useState(false);
@@ -71,17 +145,21 @@ function CareersPageContent() {
   }, [slugFromUrl]);
 
   useEffect(() => {
+    setTypedTitle("");
+    setTitleTypingDone(false);
+
     let i = 0;
     const id = window.setInterval(() => {
       i += 1;
-      setTypedTitle(CAREERS_PAGE_TITLE.slice(0, i));
-      if (i >= CAREERS_PAGE_TITLE.length) {
+      setTypedTitle(titleTarget.slice(0, i));
+      if (i >= titleTarget.length) {
         window.clearInterval(id);
         setTitleTypingDone(true);
       }
     }, TITLE_TYPING_MS);
+
     return () => window.clearInterval(id);
-  }, []);
+  }, [titleTarget]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -246,16 +324,28 @@ function CareersPageContent() {
   const selectedCategoryName =
     categories.find((c) => c.slug === selectedCareer)?.name ?? "";
 
-  const userAvatarSrc =
-    (session?.user as { image?: string | null; avatar?: string | null } | undefined)
-      ?.image ??
-    (session?.user as { image?: string | null; avatar?: string | null } | undefined)
-      ?.avatar ??
-    null;
+  useEffect(() => {
+    if (!selectedCareer) {
+      setTitleTarget(baseTitle);
+      return;
+    }
 
-  const userDisplayName =
-    (session?.user as { name?: string | null } | undefined)?.name?.trim() ||
-    "Você";
+    const slugKey = selectedCareer.toLowerCase();
+    const options = CAREER_MOTIVATIONAL_TITLES[slugKey];
+
+    if (options && options.length > 0) {
+      setTitleTarget((prev) => pickRandom(options, prev));
+      return;
+    }
+
+    // Fallback: usa o nome da categoria para manter contextual
+    const name = categories.find((c) => c.slug === selectedCareer)?.name?.trim();
+    setTitleTarget(
+      name
+        ? `Ótima escolha: ${name}. Vamos dar o próximo passo juntos?`
+        : "Ótima escolha. Vamos dar o próximo passo juntos?",
+    );
+  }, [selectedCareer, categories, baseTitle]);
 
   const syncCareerToUrl = useCallback(
     (slug: string) => {
@@ -369,7 +459,7 @@ function CareersPageContent() {
           <div className="flex min-h-12 min-w-0 flex-1 items-center">
             <h1
               className="flex flex-wrap items-center gap-1 text-xl font-semibold leading-snug tracking-tight text-white sm:text-2xl"
-              aria-label={CAREERS_PAGE_TITLE}
+              aria-label={titleTarget}
             >
               <span className="min-w-0">{typedTitle}</span>
               {!titleTypingDone ? (
@@ -390,7 +480,7 @@ function CareersPageContent() {
 
         <div className="mt-8 flex min-h-0 flex-1 flex-col">
           <div
-            className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pb-2"
+            className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto pb-2"
             role="region"
             aria-label="Áreas de especialização e trilhas"
           >
@@ -464,7 +554,7 @@ function CareersPageContent() {
             </div>
 
             {selectedCareer ? (
-              <div ref={chatAnchorRef} className="flex flex-col gap-5">
+              <div ref={chatAnchorRef} className="flex flex-col gap-8">
                 <div key={selectedCareer} className="flex flex-col items-end">
                   <div className="flex items-end justify-end gap-3 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-300 fill-mode-both">
                     <div>
@@ -592,7 +682,6 @@ function CareersPageContent() {
                         </div>
                       ) : null}
 
-                      {/* Mensagem quando não há cursos */}
                       {coursesLoadState === "done" &&
                         botRevealedCount >= 1 &&
                         courses.length === 0 ? (
@@ -603,7 +692,6 @@ function CareersPageContent() {
                         </div>
                       ) : null}
 
-                      {/* Digitando: enquanto carrega ou enquanto ainda está revelando cursos */}
                       {coursesLoadState === "loading" ||
                         (coursesLoadState === "done" &&
                           courses.length > 0 &&
