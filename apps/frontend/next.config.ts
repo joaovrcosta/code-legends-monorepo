@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
       "github.com",
       "raw.githubusercontent.com",
       "xesque.rocketseat.dev",
+      "lh3.googleusercontent.com",
     ],
   },
   webpack: (config, { isServer }) => {

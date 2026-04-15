@@ -27,7 +27,8 @@ const CATEGORY_REVEAL_INITIAL_DELAY_MS = 100;
 
 const CAREERS_PAGE_TITLE = "Por qual área você quer se especializar?";
 const TITLE_TYPING_MS = 36;
-const COURSES_MIN_TYPING_MS = 900;
+const COURSES_MIN_TYPING_MS = 1200;
+const BOT_RESPONSE_INITIAL_DELAY_MS = 600;
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -37,7 +38,7 @@ function CareersPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { update } = useSession();
+  const { data: session, update } = useSession();
   const chatAnchorRef = useRef<HTMLDivElement>(null);
 
 
@@ -57,6 +58,7 @@ function CareersPageContent() {
   const [visibleCategoryCount, setVisibleCategoryCount] = useState(0);
   const [typedTitle, setTypedTitle] = useState("");
   const [titleTypingDone, setTitleTypingDone] = useState(false);
+  const [botMessageVisible, setBotMessageVisible] = useState(false);
 
   const slugFromUrl = searchParams.get("categorySlug");
 
@@ -121,6 +123,7 @@ function CareersPageContent() {
       setCoursesLoadState("idle");
       setSelectedCourse(null);
       setBarFill(onboardingProgressPercent(ONBOARDING_STEP.career));
+      setBotMessageVisible(false);
       return;
     }
 
@@ -129,6 +132,11 @@ function CareersPageContent() {
     setCoursesError("");
     setCourses([]);
     setSelectedCourse(null);
+    setBotMessageVisible(false);
+
+    const botDelayId = window.setTimeout(() => {
+      if (!cancelled) setBotMessageVisible(true);
+    }, BOT_RESPONSE_INITIAL_DELAY_MS);
 
     (async () => {
       const startedAt = Date.now();
@@ -163,19 +171,28 @@ function CareersPageContent() {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(botDelayId);
     };
   }, [selectedCareer]);
 
   useEffect(() => {
-    if (!selectedCareer || coursesLoadState !== "done") return;
+    if (!selectedCareer || !botMessageVisible || coursesLoadState !== "done")
+      return;
     chatAnchorRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "nearest",
     });
-  }, [selectedCareer, coursesLoadState]);
+  }, [selectedCareer, coursesLoadState, botMessageVisible]);
 
   const selectedCategoryName =
     categories.find((c) => c.slug === selectedCareer)?.name ?? "";
+
+  const userAvatarSrc =
+    (session?.user as { image?: string | null; avatar?: string | null } | undefined)
+      ?.image ??
+    (session?.user as { image?: string | null; avatar?: string | null } | undefined)
+      ?.avatar ??
+    null;
 
   const syncCareerToUrl = useCallback(
     (slug: string) => {
@@ -360,7 +377,7 @@ function CareersPageContent() {
 
             {selectedCareer ? (
               <div ref={chatAnchorRef} className="flex flex-col gap-5">
-                <div className="flex justify-end">
+                <div className="flex items-end justify-end gap-3">
                   <div
                     className="max-w-[min(100%,22rem)] rounded-full h-[52px] flex items-center justify-center  bg-[#1b1b26] px-4 py-3"
                     role="status"
@@ -369,113 +386,134 @@ function CareersPageContent() {
                       Quero me especializar em {selectedCategoryName}
                     </p>
                   </div>
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#1b1b26]">
+                    {userAvatarSrc ? (
+                      <Image
+                        src={userAvatarSrc}
+                        alt="Seu avatar"
+                        width={40}
+                        height={40}
+                        className="h-9 w-9 object-cover"
+                      />
+                    ) : (
+                      <span
+                        className="text-sm font-semibold text-white/80"
+                        aria-hidden
+                      >
+                        Você
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#1b1b26]">
-                    <Image
-                      src={codeLegendsLogo}
-                      alt=""
-                      width={40}
-                      height={40}
-                      className="h-9 w-9"
-                      aria-hidden
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="mb-1.5 text-xs font-medium text-white/50">
-                      Code Legends
-                    </p>
-                    <div className="rounded-2xl border border-[#2a2a31] bg-[#16161c] px-4 py-4 sm:px-5">
-                      {coursesLoadState === "loading" ? (
-                        <div
-                          className="flex items-center gap-2 text-sm text-white/60"
-                          role="status"
-                          aria-label="Code Legends está digitando"
-                        >
-                          <span className="inline-flex items-center gap-1">
-                            <span className="h-2 w-2 rounded-full bg-white/40 animate-bounce [animation-delay:-0.2s]" />
-                            <span className="h-2 w-2 rounded-full bg-white/40 animate-bounce [animation-delay:-0.1s]" />
-                            <span className="h-2 w-2 rounded-full bg-white/40 animate-bounce" />
-                          </span>
-                        </div>
-                      ) : null}
-                      {coursesLoadState === "error" ? (
-                        <p className="text-sm text-red-400">{coursesError}</p>
-                      ) : null}
-                      {coursesLoadState === "done" ? (
-                        <>
-                          <p className="text-sm leading-relaxed text-white/90">
-                            Separamos estas trilhas em{" "}
-                            <span className="font-semibold text-[#00C8FF]">
-                              {selectedCategoryName}
-                            </span>{" "}
-                            para você começar. Escolha uma:
-                          </p>
-                          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-                            {courses.length === 0 ? (
-                              <p className="col-span-full text-center text-sm text-white/50">
-                                Nenhuma trilha disponível nesta área no momento.
-                              </p>
-                            ) : null}
-                            {courses.map((course) => {
-                              const isSelected =
-                                selectedCourse === course.slug;
-                              return (
-                                <button
-                                  key={course.id}
-                                  type="button"
-                                  onClick={() =>
-                                    setSelectedCourse(course.slug)
-                                  }
-                                  disabled={isLoading}
-                                  className={[
-                                    "flex min-h-[120px] flex-col items-center justify-center gap-3 rounded-2xl border px-4 py-4 text-center transition-all duration-200 sm:min-h-[140px]",
-                                    isSelected
-                                      ? "border-transparent bg-gradient-to-br from-[#2a1040] via-[#4a1f6e] to-[#8234E9] shadow-[0_12px_40px_rgba(130,52,233,0.25)] ring-1 ring-white/10"
-                                      : "border-[#2a2a31] bg-[#121218] hover:border-[#3d3d46] hover:bg-[#1a1a22]",
-                                    isLoading
-                                      ? "pointer-events-none opacity-50"
-                                      : "",
-                                  ].join(" ")}
-                                >
-                                  {course.icon ? (
-                                    <span className="relative block h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-[#25252a]">
-                                      <Image
-                                        src={course.icon}
-                                        alt=""
-                                        fill
-                                        className="object-cover"
-                                        sizes="48px"
-                                      />
-                                    </span>
-                                  ) : (
-                                    <span
-                                      className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#25252a] text-lg text-white/80"
-                                      aria-hidden
-                                    >
-                                      📘
-                                    </span>
-                                  )}
-                                  <span
+                {botMessageVisible ? (
+                  <div className="flex gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#1b1b26]">
+                      <Image
+                        src={codeLegendsLogo}
+                        alt=""
+                        width={40}
+                        height={40}
+                        className="h-9 w-9"
+                        aria-hidden
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="mb-1.5 text-xs font-medium text-white/50">
+                        Code Legends
+                      </p>
+                      <div className="rounded-[24px] bg-[#1b1b26] px-4 py-4 sm:px-5">
+                        {coursesLoadState === "loading" ? (
+                          <div
+                            className="flex items-center gap-2 text-sm text-white/60"
+                            role="status"
+                            aria-label="Code Legends está digitando"
+                          >
+                            <span className="inline-flex items-center gap-1">
+                              <span className="h-2 w-2 rounded-full bg-white/40 animate-bounce [animation-delay:-0.2s]" />
+                              <span className="h-2 w-2 rounded-full bg-white/40 animate-bounce [animation-delay:-0.1s]" />
+                              <span className="h-2 w-2 rounded-full bg-white/40 animate-bounce" />
+                            </span>
+                          </div>
+                        ) : null}
+                        {coursesLoadState === "error" ? (
+                          <p className="text-sm text-red-400">{coursesError}</p>
+                        ) : null}
+                        {coursesLoadState === "done" ? (
+                          <>
+                            <p className="text-sm leading-relaxed text-white/90">
+                              Separamos estas trilhas em{" "}
+                              <span className="font-semibold text-[#00C8FF]">
+                                {selectedCategoryName}
+                              </span>{" "}
+                              para você começar. Escolha uma:
+                            </p>
+                            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                              {courses.length === 0 ? (
+                                <p className="col-span-full text-center text-sm text-white/50">
+                                  Nenhuma trilha disponível nesta área no
+                                  momento.
+                                </p>
+                              ) : null}
+                              {courses.map((course) => {
+                                const isSelected =
+                                  selectedCourse === course.slug;
+                                return (
+                                  <button
+                                    key={course.id}
+                                    type="button"
+                                    onClick={() =>
+                                      setSelectedCourse(course.slug)
+                                    }
+                                    disabled={isLoading}
                                     className={[
-                                      "text-xs leading-snug sm:text-[13px]",
+                                      "flex min-h-[120px] flex-col items-center justify-center gap-3 rounded-2xl border px-4 py-4 text-center transition-all duration-200 sm:min-h-[140px]",
                                       isSelected
-                                        ? "font-semibold text-white"
-                                        : "font-medium text-white/90",
+                                        ? "border-transparent bg-gradient-to-br from-[#2a1040] via-[#4a1f6e] to-[#8234E9] shadow-[0_12px_40px_rgba(130,52,233,0.25)] ring-1 ring-white/10"
+                                        : "border-[#2a2a31] bg-[#121218] hover:border-[#3d3d46] hover:bg-[#1a1a22]",
+                                      isLoading
+                                        ? "pointer-events-none opacity-50"
+                                        : "",
                                     ].join(" ")}
                                   >
-                                    {course.title}
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </>
-                      ) : null}
+                                    {course.icon ? (
+                                      <span className="relative block h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-[#25252a]">
+                                        <Image
+                                          src={course.icon}
+                                          alt=""
+                                          fill
+                                          className="object-cover"
+                                          sizes="48px"
+                                        />
+                                      </span>
+                                    ) : (
+                                      <span
+                                        className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#25252a] text-lg text-white/80"
+                                        aria-hidden
+                                      >
+                                        📘
+                                      </span>
+                                    )}
+                                    <span
+                                      className={[
+                                        "text-xs leading-snug sm:text-[13px]",
+                                        isSelected
+                                          ? "font-semibold text-white"
+                                          : "font-medium text-white/90",
+                                      ].join(" ")}
+                                    >
+                                      {course.title}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : null}
               </div>
             ) : null}
           </div>
