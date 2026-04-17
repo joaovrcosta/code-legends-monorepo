@@ -28,6 +28,59 @@ const challengeTypeLabels: Record<ChallengeType, string> = {
   refactor: 'Refatoração',
   complete: 'Complete o Código',
   conceptual: 'Conceitual (sem código)',
+  block_slots: 'Encaixar comandos',
+}
+
+function blockSlotsTextareasFromChallenge(ch: Challenge): {
+  correct: string
+  distr: string
+} {
+  const pieces = ch.pieces ?? []
+  const sol = ch.solution ?? []
+  const byId: Record<string, string> = Object.fromEntries(
+    pieces.map((p) => [p.id, p.content]),
+  )
+  if (sol.length > 0) {
+    const correct = sol
+      .map((id) => byId[id])
+      .filter((c) => c !== undefined)
+      .join('\n')
+    const inSol = new Set(sol)
+    const distr = pieces
+      .filter((p) => !inSol.has(p.id))
+      .map((p) => p.content)
+      .join('\n')
+    return { correct, distr }
+  }
+  if (pieces.length > 0) {
+    return { correct: pieces.map((p) => p.content).join('\n'), distr: '' }
+  }
+  return { correct: '', distr: '' }
+}
+
+function buildBlockSlotsChallenge(
+  base: Challenge,
+  correct: string,
+  distr: string,
+): Challenge {
+  const correctLines = correct
+    .split('\n')
+    .map((l) => l.replace(/\r$/, ''))
+    .filter((l) => l.trim().length > 0)
+  const distrLines = distr
+    .split('\n')
+    .map((l) => l.replace(/\r$/, ''))
+    .filter((l) => l.trim().length > 0)
+  const cPieces = correctLines.map((content, i) => ({ id: `c${i}`, content }))
+  const dPieces = distrLines.map((content, i) => ({ id: `d${i}`, content }))
+  return {
+    ...base,
+    type: 'block_slots',
+    pieces: [...cPieces, ...dPieces],
+    solution: [...cPieces.map((p) => p.id), ...dPieces.map((p) => p.id)],
+    correctAnswer: undefined,
+    options: undefined,
+  }
 }
 
 function emptyChallenge(): Challenge {
@@ -84,6 +137,10 @@ function ChallengeItem({
     challenge.type === 'prediction' ||
     challenge.type === 'conceptual' ||
     challenge.type === 'bug'
+  const isBlockSlots = challenge.type === 'block_slots'
+  const blockSlotsText = isBlockSlots
+    ? blockSlotsTextareasFromChallenge(challenge)
+    : { correct: '', distr: '' }
 
   const setOption = (i: number, val: string) => {
     const opts = [...(challenge.options ?? [])]
@@ -242,7 +299,51 @@ function ChallengeItem({
             </div>
           )}
 
+          {isBlockSlots && (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>URL da imagem da missão (opcional)</Label>
+                <Input
+                  value={challenge.missionImageUrl ?? ''}
+                  onChange={(e) =>
+                    onChange({ ...challenge, missionImageUrl: e.target.value })
+                  }
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Comandos na ordem das ranhuras (um por linha)</Label>
+                <Textarea
+                  value={blockSlotsText.correct}
+                  onChange={(e) =>
+                    onChange(
+                      buildBlockSlotsChallenge(challenge, e.target.value, blockSlotsText.distr),
+                    )
+                  }
+                  rows={5}
+                  className="font-mono text-sm"
+                  placeholder={'turn left\ndrive forward'}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Comandos distratórios (opcional)</Label>
+                <Textarea
+                  value={blockSlotsText.distr}
+                  onChange={(e) =>
+                    onChange(
+                      buildBlockSlotsChallenge(challenge, blockSlotsText.correct, e.target.value),
+                    )
+                  }
+                  rows={3}
+                  className="font-mono text-sm"
+                  placeholder={'turn right'}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Correct answer */}
+          {!isBlockSlots && (
           <div className="space-y-1.5">
             <Label>Resposta correta</Label>
             {hasOptions ? (
@@ -277,6 +378,7 @@ function ChallengeItem({
               />
             )}
           </div>
+          )}
 
           {/* Explanation */}
           <div className="space-y-1.5">

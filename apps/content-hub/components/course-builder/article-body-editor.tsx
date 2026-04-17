@@ -95,6 +95,24 @@ const SNIPPETS = [
 }
 \`\`\``,
   },
+  {
+    label: 'Desafio Encaixar comandos (ranhuras)',
+    icon: Target,
+    text: `\`\`\`challenge
+{
+  "type": "block_slots",
+  "question": "Toque nos blocos para preencher o programa (2 passos).",
+  "missionImageUrl": "",
+  "pieces": [
+    { "id": "c0", "content": "turn left" },
+    { "id": "c1", "content": "drive forward" },
+    { "id": "d0", "content": "turn right" }
+  ],
+  "solution": ["c0", "c1", "d0"],
+  "explanation": "Primeiro vire à esquerda, depois avance; o outro comando é distrator."
+}
+\`\`\``,
+  },
 ] as const
 
 type CalloutVariant = 'note' | 'warning' | 'tip' | 'success' | null
@@ -183,6 +201,9 @@ interface PreviewChallenge {
   options?: string[]
   correctAnswer?: string
   explanation?: string
+  pieces?: { id: string; content: string }[]
+  solution?: string[]
+  missionImageUrl?: string
 }
 
 const challengeTypeLabels: Record<string, string> = {
@@ -191,6 +212,8 @@ const challengeTypeLabels: Record<string, string> = {
   refactor: 'Refatoração',
   complete: 'Complete o Código',
   conceptual: 'Conceitual',
+  block_slots: 'Encaixar comandos',
+  parsons: 'Encaixar comandos (legado)',
 }
 
 const CHALLENGE_TYPES: ChallengeType[] = [
@@ -199,6 +222,7 @@ const CHALLENGE_TYPES: ChallengeType[] = [
   'bug',
   'refactor',
   'complete',
+  'block_slots',
 ]
 
 const LANGUAGES = [
@@ -218,6 +242,15 @@ function PreviewChallengeBlock({ challenge }: { challenge: PreviewChallenge }) {
     challengeTypeLabels[challenge.type ?? ''] ?? challenge.type ?? 'Desafio'
   const hasOptions =
     Array.isArray(challenge.options) && challenge.options.length > 0
+  const isBlockSlots =
+    challenge.type === 'block_slots' || challenge.type === 'parsons'
+  const byId = Object.fromEntries(
+    (challenge.pieces ?? []).map((p) => [p.id, p.content]),
+  )
+  const orderedSlotLines =
+    isBlockSlots && Array.isArray(challenge.solution)
+      ? challenge.solution.map((id) => byId[id]).filter(Boolean)
+      : []
 
   return (
     <div className="my-3 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900/80 text-sm text-zinc-100">
@@ -229,6 +262,9 @@ function PreviewChallengeBlock({ challenge }: { challenge: PreviewChallenge }) {
       <div className="space-y-3 p-3">
         {challenge.question && (
           <p className="font-medium text-zinc-100">{challenge.question}</p>
+        )}
+        {isBlockSlots && challenge.missionImageUrl?.trim() && (
+          <p className="text-xs text-zinc-500">Imagem da missão: URL definida</p>
         )}
         {challenge.code && (
           <div className="rounded-md bg-zinc-950 text-xs">
@@ -248,6 +284,21 @@ function PreviewChallengeBlock({ challenge }: { challenge: PreviewChallenge }) {
               </span>
             ))}
           </p>
+        )}
+        {isBlockSlots && orderedSlotLines.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-xs text-zinc-400">Comandos (ordem das ranhuras):</p>
+            <div className="grid gap-1">
+              {orderedSlotLines.map((line, i) => (
+                <div
+                  key={i}
+                  className="rounded border border-zinc-800 bg-zinc-950 px-2 py-1 font-mono text-xs text-zinc-200"
+                >
+                  {line}
+                </div>
+              ))}
+            </div>
+          </div>
         )}
         {challenge.explanation && (
           <p className="border-t border-zinc-700 pt-2 text-xs text-zinc-500">
@@ -328,6 +379,20 @@ function buildChallengeBlock(challenge: Challenge): string {
   if (challenge.placeholder != null && String(challenge.placeholder).trim() !== '') {
     obj.placeholder = String(challenge.placeholder).trim()
   }
+  if (
+    challenge.type === 'block_slots' &&
+    Array.isArray(challenge.pieces) &&
+    challenge.pieces.length > 0
+  ) {
+    obj.pieces = challenge.pieces
+    obj.solution =
+      Array.isArray(challenge.solution) && challenge.solution.length > 0
+        ? challenge.solution
+        : challenge.pieces.map((p) => p.id)
+    if (challenge.missionImageUrl?.trim()) {
+      obj.missionImageUrl = challenge.missionImageUrl.trim()
+    }
+  }
   const json = JSON.stringify(obj, null, 2)
   return '```challenge\n' + json + '\n```'
 }
@@ -350,7 +415,11 @@ function InsertChallengeModal({
   const [options, setOptions] = useState<string[]>(['', ''])
   const [correctAnswer, setCorrectAnswer] = useState('')
   const [explanation, setExplanation] = useState('')
+  const [blockSlotsCorrect, setBlockSlotsCorrect] = useState('')
+  const [blockSlotsDistractors, setBlockSlotsDistractors] = useState('')
+  const [missionImageUrl, setMissionImageUrl] = useState('')
 
+  const isBlockSlots = challengeType === 'block_slots'
   const hasOptions =
     challengeType === 'prediction' ||
     challengeType === 'conceptual' ||
@@ -374,6 +443,30 @@ function InsertChallengeModal({
       question: question.trim(),
       explanation: explanation.trim() || undefined,
     }
+    if (isBlockSlots) {
+      const correctLines = blockSlotsCorrect
+        .split('\n')
+        .map((l) => l.replace(/\r$/, ''))
+        .filter((l) => l.trim().length > 0)
+      const distrLines = blockSlotsDistractors
+        .split('\n')
+        .map((l) => l.replace(/\r$/, ''))
+        .filter((l) => l.trim().length > 0)
+      if (correctLines.length < 1) return
+      const cPieces = correctLines.map((content, i) => ({
+        id: `c${i}`,
+        content,
+      }))
+      const dPieces = distrLines.map((content, i) => ({
+        id: `d${i}`,
+        content,
+      }))
+      challenge.pieces = [...cPieces, ...dPieces]
+      challenge.solution = [...cPieces.map((p) => p.id), ...dPieces.map((p) => p.id)]
+      if (missionImageUrl.trim()) {
+        challenge.missionImageUrl = missionImageUrl.trim()
+      }
+    }
     if (showCode && code.trim()) {
       challenge.code = code.trim()
       challenge.language = language
@@ -381,7 +474,7 @@ function InsertChallengeModal({
     if (hasOptions && options.some((o) => o.trim())) {
       challenge.options = options.map((o) => o.trim()).filter(Boolean)
       if (correctAnswer.trim()) challenge.correctAnswer = correctAnswer.trim()
-    } else if (correctAnswer.trim()) {
+    } else if (!isBlockSlots && correctAnswer.trim()) {
       challenge.correctAnswer = correctAnswer.trim()
     }
     const block = buildChallengeBlock(challenge)
@@ -392,6 +485,9 @@ function InsertChallengeModal({
     setOptions(['', ''])
     setCorrectAnswer('')
     setExplanation('')
+    setBlockSlotsCorrect('')
+    setBlockSlotsDistractors('')
+    setMissionImageUrl('')
   }
 
   if (!open) return null
@@ -502,6 +598,41 @@ function InsertChallengeModal({
               </div>
             )}
 
+            {isBlockSlots && (
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label>URL da imagem da missão (opcional)</Label>
+                  <Input
+                    value={missionImageUrl}
+                    onChange={(e) => setMissionImageUrl(e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Comandos na ordem das ranhuras (um por linha) *</Label>
+                  <Textarea
+                    value={blockSlotsCorrect}
+                    onChange={(e) => setBlockSlotsCorrect(e.target.value)}
+                    rows={5}
+                    required
+                    className="font-mono text-sm"
+                    placeholder={'turn left\ndrive forward'}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Comandos distratórios (opcional)</Label>
+                  <Textarea
+                    value={blockSlotsDistractors}
+                    onChange={(e) => setBlockSlotsDistractors(e.target.value)}
+                    rows={3}
+                    className="font-mono text-sm"
+                    placeholder={'turn right'}
+                  />
+                </div>
+              </div>
+            )}
+
+            {!isBlockSlots && (
             <div className="space-y-2">
               <Label>Resposta correta</Label>
               <Input
@@ -514,6 +645,7 @@ function InsertChallengeModal({
                 }
               />
             </div>
+            )}
 
             <div className="space-y-2">
               <Label>Explicação (Markdown)</Label>

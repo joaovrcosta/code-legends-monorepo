@@ -7,7 +7,13 @@ export type ChallengeType =
   | "bug"
   | "refactor"
   | "complete"
-  | "conceptual";
+  | "conceptual"
+  | "block_slots";
+
+export interface ParsonsPiece {
+  id: string;
+  content: string;
+}
 
 export interface Challenge {
   type: ChallengeType;
@@ -19,6 +25,12 @@ export interface Challenge {
   correctAnswers?: string[];
   explanation?: string;
   placeholder?: string;
+  /** Desafio ranhuras: comandos (texto curto por peça). */
+  pieces?: ParsonsPiece[];
+  /** Ordenação correta dos `id` nas ranhuras 1..N (distratores em `pieces` fora do núcleo). */
+  solution?: string[];
+  /** Imagem opcional (missão / contexto visual). */
+  missionImageUrl?: string;
 }
 
 /** Bloco de Code Playground no Markdown (```playground + JSON). */

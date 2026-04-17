@@ -275,11 +275,11 @@ export function LessonEditModal({
       <Card
         className={
           isFullScreen
-            ? 'h-full w-full max-w-none rounded-none overflow-y-auto'
-            : 'w-full max-w-2xl max-h-[90vh] overflow-y-auto'
+            ? 'flex h-full max-h-dvh w-full max-w-none flex-col overflow-hidden rounded-none border-0 shadow-none sm:border sm:shadow-sm'
+            : 'flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden'
         }
       >
-        <CardHeader>
+        <CardHeader className="shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle>Editar Aula</CardTitle>
             <Button variant="ghost" size="icon" onClick={onClose}>
@@ -287,8 +287,8 @@ export function LessonEditModal({
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-6 pt-0">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title">Título *</Label>
@@ -641,8 +641,16 @@ export function LessonEditModal({
                 </div>
               )}
             </div>
+          </div>
 
-            <div className="flex justify-end gap-4 pt-4">
+          <div className="mt-4 flex shrink-0 flex-col gap-2 border-t border-border bg-card pt-4">
+            {isFullScreen && (
+              <p className="text-center text-xs text-muted-foreground">
+                As alterações no editor só são gravadas no servidor ao clicar em{' '}
+                <strong>Salvar</strong> (ou Ctrl+Enter no modo texto).
+              </p>
+            )}
+            <div className="flex justify-end gap-4">
               <Button variant="outline" onClick={onClose} disabled={loading}>
                 Cancelar
               </Button>

@@ -43,6 +43,50 @@ interface RichTextEditorProps {
   className?: string;
 }
 
+function buildBlockSlotsFromEditorProps(p: any): {
+  pieces: { id: string; content: string }[];
+  solution: string[];
+} {
+  const correctLines = String(p.blockSlotsCorrect || p.parsonsCorrect || "")
+    .split("\n")
+    .map((l) => l.replace(/\r$/, ""))
+    .filter((l) => l.trim().length > 0);
+  const distrLines = String(p.blockSlotsDistractors || p.parsonsDistractors || "")
+    .split("\n")
+    .map((l) => l.replace(/\r$/, ""))
+    .filter((l) => l.trim().length > 0);
+  const cPieces = correctLines.map((content, i) => ({ id: `c${i}`, content }));
+  const dPieces = distrLines.map((content, i) => ({ id: `d${i}`, content }));
+  return {
+    pieces: [...cPieces, ...dPieces],
+    solution: [...cPieces.map((x) => x.id), ...dPieces.map((x) => x.id)],
+  };
+}
+
+function blockSlotsTextareasFromParsed(parsed: any): {
+  blockSlotsCorrect: string;
+  blockSlotsDistractors: string;
+} {
+  const pieces: { id: string; content: string }[] = Array.isArray(parsed.pieces)
+    ? parsed.pieces
+    : [];
+  const sol: string[] = Array.isArray(parsed.solution) ? parsed.solution : [];
+  const byId: Record<string, string> = Object.fromEntries(
+    pieces.map((p) => [p.id, p.content]),
+  );
+  let blockSlotsCorrect = "";
+  let blockSlotsDistractors = "";
+  if (sol.length > 0) {
+    blockSlotsCorrect = sol.map((id: string) => byId[id]).filter((c) => c !== undefined).join("\n");
+    const inSol = new Set(sol);
+    const extra = pieces.filter((p) => !inSol.has(p.id)).map((p) => p.content);
+    blockSlotsDistractors = extra.join("\n");
+  } else if (pieces.length > 0) {
+    blockSlotsCorrect = pieces.map((p) => p.content).join("\n");
+  }
+  return { blockSlotsCorrect, blockSlotsDistractors };
+}
+
 // Interceptamos a saída do BlockNote para converter nosso bloco customizado num bloco de código Markdown.
 function prepareBlocksForExport(blocks: any[]): void {
   for (let i = 0; i < blocks.length; i++) {
@@ -56,15 +100,30 @@ function prepareBlocksForExport(blocks: any[]): void {
         content: [
           {
             type: "text",
-            text: JSON.stringify({
-              type: p.challengeType || "prediction",
-              question: p.question || "",
-              code: p.code || "",
-              language: p.language || "javascript",
-              options: JSON.parse(p.options || "[]"),
-              correctAnswer: p.correctAnswer || "",
-              explanation: p.explanation || ""
-            }, null, 2),
+            text: JSON.stringify(
+              (() => {
+                const exportType = p.challengeType === "parsons" ? "block_slots" : (p.challengeType || "prediction");
+                const base: Record<string, unknown> = {
+                  type: exportType,
+                  question: p.question || "",
+                  code: p.code || "",
+                  language: p.language || "javascript",
+                  options: JSON.parse(p.options || "[]"),
+                  correctAnswer: p.correctAnswer || "",
+                  explanation: p.explanation || "",
+                };
+                if (exportType === "block_slots") {
+                  const { pieces, solution } = buildBlockSlotsFromEditorProps(p);
+                  base.pieces = pieces;
+                  base.solution = solution;
+                  const img = String(p.missionImageUrl || "").trim();
+                  if (img) base.missionImageUrl = img;
+                }
+                return base;
+              })(),
+              null,
+              2,
+            ),
             styles: {}
           }
         ],
@@ -107,19 +166,28 @@ function processImportedBlocks(blocks: any[]): void {
       try {
         const text = block.content.map((c: any) => c.text).join("");
         const parsed = JSON.parse(text);
+        const rawType = parsed.type || "prediction";
+        const challengeType = rawType === "parsons" ? "block_slots" : rawType;
+        const blockSlotsFields =
+          challengeType === "block_slots"
+            ? blockSlotsTextareasFromParsed(parsed)
+            : { blockSlotsCorrect: "", blockSlotsDistractors: "" };
         blocks[i] = {
           id: block.id,
           type: "challenge",
           props: {
             textAlignment: "left",
             textColor: "default",
-            challengeType: parsed.type || "prediction",
+            challengeType,
             question: parsed.question || "",
             code: parsed.code || "",
             language: parsed.language || "javascript",
             options: JSON.stringify(parsed.options || []),
             correctAnswer: parsed.correctAnswer || "",
-            explanation: parsed.explanation || ""
+            explanation: parsed.explanation || "",
+            blockSlotsCorrect: blockSlotsFields.blockSlotsCorrect,
+            blockSlotsDistractors: blockSlotsFields.blockSlotsDistractors,
+            missionImageUrl: String(parsed.missionImageUrl || "").trim(),
           },
           content: [],
           children: []

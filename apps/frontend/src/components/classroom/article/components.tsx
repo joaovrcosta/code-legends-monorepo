@@ -151,7 +151,10 @@ function ArticleCodeBlockPre({ children }: ComponentProps<'pre'>) {
   if (lang === 'challenge' || lang === 'playground') {
     const raw = isReactElement(codeEl) ? getCodeString(codeEl.props.children) : getCodeString(codeEl)
     try {
-      const data = JSON.parse(raw)
+      const data = JSON.parse(raw) as Challenge & { type?: string }
+      if ((data as { type?: string }).type === 'parsons') {
+        ;(data as { type: Challenge['type'] }).type = 'block_slots'
+      }
       return lang === 'challenge'
         ? <ChallengeBlock challenge={data as Challenge} />
         : <PlaygroundBlockWrapper block={data as PlaygroundBlock} />

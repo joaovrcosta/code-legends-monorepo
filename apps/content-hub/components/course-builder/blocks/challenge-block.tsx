@@ -18,7 +18,15 @@ const challengeTypeLabels: Record<string, string> = {
   refactor: "Refatoração",
   complete: "Complete o Código",
   conceptual: "Conceitual",
+  block_slots: "Encaixar comandos",
 };
+
+function nonEmptyLines(text: string): string[] {
+  return text
+    .split("\n")
+    .map((l) => l.replace(/\r$/, ""))
+    .filter((l) => l.trim().length > 0);
+}
 
 export const ChallengeBlock = createReactBlockSpec(
   {
@@ -34,6 +42,9 @@ export const ChallengeBlock = createReactBlockSpec(
       correctAnswer: { default: "" },
       explanation: { default: "" },
       isPreview: { default: "true" },
+      blockSlotsCorrect: { default: "" },
+      blockSlotsDistractors: { default: "" },
+      missionImageUrl: { default: "" },
     },
     content: "none",
   },
@@ -50,6 +61,8 @@ export const ChallengeBlock = createReactBlockSpec(
 
       const options = JSON.parse(block.props.options || "[]") as string[];
       const hasOptions = ["prediction", "conceptual", "bug"].includes(block.props.challengeType);
+      const isBlockSlots =
+        block.props.challengeType === "block_slots" || block.props.challengeType === "parsons";
       const showCode = block.props.challengeType !== "conceptual";
 
       const setOption = (index: number, val: string) => {
@@ -97,6 +110,14 @@ export const ChallengeBlock = createReactBlockSpec(
               </Button>
             </div>
           </div>
+          <div className="border-b border-zinc-800 bg-zinc-950/80 px-4 py-2">
+            <p className="text-[10px] leading-relaxed text-zinc-500">
+              O conteúdo deste bloco entra no artigo ao editar (Markdown atualizado em tempo real).
+              Para <strong className="text-zinc-400">gravar no servidor</strong>, use o botão{' '}
+              <strong className="text-zinc-400">Salvar</strong> no rodapé do modal &quot;Editar
+              Aula&quot; (barra fixa embaixo na edição de artigo/quiz).
+            </p>
+          </div>
 
           <div className="p-4">
             {isPreview ? (
@@ -124,6 +145,40 @@ export const ChallengeBlock = createReactBlockSpec(
                     </div>
                   </div>
                 )}
+                {isBlockSlots && (
+                  <div className="space-y-3">
+                    {block.props.missionImageUrl?.trim() && (
+                      <div className="overflow-hidden rounded-md border border-zinc-800 bg-zinc-950 p-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={block.props.missionImageUrl.trim()}
+                          alt=""
+                          className="mx-auto max-h-40 w-auto max-w-full object-contain"
+                        />
+                      </div>
+                    )}
+                    <p className="text-xs text-zinc-400">Comandos na ordem das ranhuras (export):</p>
+                    <div className="grid gap-2">
+                      {nonEmptyLines(block.props.blockSlotsCorrect || "").map((line, i) => (
+                        <div key={`c-${i}`} className="rounded border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-xs text-zinc-200">
+                          {line}
+                        </div>
+                      ))}
+                    </div>
+                    {nonEmptyLines(block.props.blockSlotsDistractors || "").length > 0 && (
+                      <>
+                        <p className="text-xs text-zinc-400">Distratores:</p>
+                        <div className="grid gap-2">
+                          {nonEmptyLines(block.props.blockSlotsDistractors || "").map((line, i) => (
+                            <div key={`d-${i}`} className="rounded border border-zinc-800 bg-zinc-900/50 px-3 py-2 font-mono text-xs text-zinc-400">
+                              {line}
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
                 {block.props.explanation && (
                   <div className="mt-4 border-t border-zinc-700 pt-3">
                     <p className="text-xs text-zinc-400 font-medium mb-1">Explicação:</p>
@@ -146,6 +201,7 @@ export const ChallengeBlock = createReactBlockSpec(
                       <option value="bug">Encontre o Bug</option>
                       <option value="refactor">Refatoração</option>
                       <option value="complete">Complete o Código</option>
+                      <option value="block_slots">Encaixar comandos</option>
                     </select>
                   </div>
 
@@ -219,6 +275,43 @@ export const ChallengeBlock = createReactBlockSpec(
                   </div>
                 )}
 
+                {isBlockSlots && (
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-zinc-400">URL da imagem da missão (opcional)</Label>
+                      <Input
+                        className="bg-zinc-900 border-zinc-700 text-sm"
+                        value={block.props.missionImageUrl}
+                        onChange={(e) => updateProp("missionImageUrl", e.target.value)}
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-zinc-400">
+                        Comandos na ordem (uma por linha = ranhura 1, 2, …)
+                      </Label>
+                      <Textarea
+                        className="min-h-28 resize-y font-mono text-sm bg-zinc-950 border-zinc-700 text-zinc-100"
+                        value={block.props.blockSlotsCorrect}
+                        onChange={(e) => updateProp("blockSlotsCorrect", e.target.value)}
+                        placeholder={"turn left\ndrive forward"}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-zinc-400">
+                        Comandos distratórios (opcional, uma por linha)
+                      </Label>
+                      <Textarea
+                        className="min-h-20 resize-y font-mono text-sm bg-zinc-950 border-zinc-700 text-zinc-300"
+                        value={block.props.blockSlotsDistractors}
+                        onChange={(e) => updateProp("blockSlotsDistractors", e.target.value)}
+                        placeholder={"turn right"}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {!isBlockSlots && (
                 <div className="space-y-1">
                   <Label className="text-xs text-zinc-400">Resposta Correta</Label>
                   <Input
@@ -228,6 +321,7 @@ export const ChallengeBlock = createReactBlockSpec(
                     placeholder="Resposta exata"
                   />
                 </div>
+                )}
 
                 <div className="space-y-1">
                   <Label className="text-xs text-zinc-400">Explicação</Label>

@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Challenge } from '@/types/roadmap'
+import { BlockSlotsChallenge } from '@/components/classroom/challenge/BlockSlotsChallenge'
 import { Check, X, ArrowRight, Eye } from '@phosphor-icons/react/dist/ssr'
 
 const CodeBlockHighlighter = dynamic(
@@ -73,6 +74,7 @@ export function ChallengeBlock({
     refactor: 'Refatoração',
     complete: 'Complete o Código',
     conceptual: 'Conceitual',
+    block_slots: 'Encaixar comandos',
   }
 
   const typeBadgeColors: Record<Challenge['type'], string> = {
@@ -81,6 +83,7 @@ export function ChallengeBlock({
     refactor: 'bg-[#1a2e1a] text-[#4ade80] border-[#166534]',
     complete: 'bg-[#2d1a3e] text-[#c084fc] border-[#6b21a8]',
     conceptual: 'bg-[#1e2e3b] text-[#93c5fd] border-[#1d4ed8]',
+    block_slots: 'bg-[#2d1a3e] text-[#c084fc] border-[#6b21a8]',
   }
 
   const handleSubmit = useCallback(() => {
@@ -99,6 +102,17 @@ export function ChallengeBlock({
     setIsCorrect(null)
     setShowExplanation(false)
   }, [])
+
+  if (challenge.type === 'block_slots') {
+    return (
+      <BlockSlotsChallenge
+        challenge={challenge}
+        index={index}
+        onAnswer={onAnswer}
+        onNext={onNext}
+      />
+    )
+  }
 
   return (
     <div className="my-6 rounded-[16px] border border-[#25252A] bg-[#0d0d0f] overflow-hidden">

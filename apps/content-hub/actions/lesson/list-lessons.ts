@@ -5,7 +5,13 @@ export type ChallengeType =
   | "bug"
   | "refactor"
   | "complete"
-  | "conceptual";
+  | "conceptual"
+  | "block_slots";
+
+export interface ParsonsPiece {
+  id: string;
+  content: string;
+}
 
 export interface Challenge {
   type: ChallengeType;
@@ -17,6 +23,9 @@ export interface Challenge {
   correctAnswers?: string[];
   explanation?: string;
   placeholder?: string;
+  pieces?: ParsonsPiece[];
+  solution?: string[];
+  missionImageUrl?: string;
 }
 
 export interface Lesson {
