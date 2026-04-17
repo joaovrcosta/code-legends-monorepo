@@ -40,7 +40,7 @@ export class GetCourseProgressUseCase {
     private courseRepository: ICourseRepository,
     private userCourseRepository: IUserCourseRepository,
     private userProgressRepository: IUserProgressRepository
-  ) {}
+  ) { }
 
   async execute({
     userId,
@@ -71,7 +71,6 @@ export class GetCourseProgressUseCase {
       finalCourseId = courseId;
     }
 
-    // Verificar se o curso existe (já verificado acima, mas mantendo para consistência)
     const course = await this.courseRepository.findById(finalCourseId);
     if (!course) {
       throw new CourseNotFoundError();
@@ -81,7 +80,6 @@ export class GetCourseProgressUseCase {
       throw new CourseNotFoundError();
     }
 
-    // Verificar se o usuário está inscrito
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,
       finalCourseId
@@ -91,7 +89,6 @@ export class GetCourseProgressUseCase {
       throw new Error("User is not enrolled in this course");
     }
 
-    // Buscar todos os módulos do curso com seus submodules e lessons
     const modules = await prisma.module.findMany({
       where: { courseId: finalCourseId },
       include: {
@@ -110,12 +107,10 @@ export class GetCourseProgressUseCase {
       },
     });
 
-    // Buscar todos os progressos do usuário neste curso
     const userProgresses = await this.userProgressRepository.findByUserCourse(
       userCourse.id
     );
 
-    // Calcular progresso por módulo
     const modulesProgress: ModuleProgress[] = await Promise.all(
       modules.map(async (module) => {
         // Contar total de lessons no módulo

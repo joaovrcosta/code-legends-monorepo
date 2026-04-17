@@ -102,13 +102,12 @@ export class GetRoadmapUseCase {
     private courseRepository: ICourseRepository,
     private userCourseRepository: IUserCourseRepository,
     private userProgressRepository: IUserProgressRepository,
-  ) {}
+  ) { }
 
   async execute({
     userId,
     courseId,
   }: GetRoadmapRequest): Promise<GetRoadmapResponse> {
-    // Verificar se o curso existe
     const course = await this.courseRepository.findById(courseId)
     if (!course) {
       throw new CourseNotFoundError()
@@ -118,13 +117,11 @@ export class GetRoadmapUseCase {
       throw new CourseNotFoundError()
     }
 
-    // Verificar se o usuário está inscrito
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,
       courseId,
     )
 
-    // Buscar todos os módulos com submodules e aulas
     const modules = await prisma.module.findMany({
       where: { courseId },
       include: {
@@ -152,7 +149,6 @@ export class GetRoadmapUseCase {
       },
     })
 
-    // Buscar todos os progressos do usuário neste curso
     const userProgresses = userCourse?.id
       ? await this.userProgressRepository.findByUserCourse(userCourse.id)
       : []
@@ -162,8 +158,6 @@ export class GetRoadmapUseCase {
       progressMap.set(progress.taskId, progress.isCompleted)
     })
 
-    // Construir todas as aulas em ordem para determinar desbloqueio
-    // Incluir order, moduleIndex e groupIndex para ordenação correta
     const allLessons: Array<{
       id: number
       order: number
@@ -183,7 +177,6 @@ export class GetRoadmapUseCase {
       })
     })
 
-    // Ordenar todas as lições por: módulo -> grupo -> order
     allLessons.sort((a, b) => {
       if (a.moduleIndex !== b.moduleIndex) {
         return a.moduleIndex - b.moduleIndex
@@ -196,23 +189,16 @@ export class GetRoadmapUseCase {
 
     const currentTaskId = userCourse?.currentTaskId ?? null
 
-    // Verificar se há progresso (lições completadas)
     const hasProgress = userProgresses.some((p) => p.isCompleted)
 
-    // Determinar qual será a lição atual
-    // Se não houver progresso, SEMPRE usar a primeira lição (curso resetado ou novo)
-    // Se houver progresso, usar o currentTaskId se ele existir na lista de lessons
     let validCurrentTaskId: number | null = null
 
     if (!hasProgress) {
-      // Sem progresso = curso resetado ou novo, sempre começar da primeira lesson
       validCurrentTaskId = allLessons[0]?.id ?? null
     } else {
-      // Com progresso, usar o currentTaskId se for válido
       if (currentTaskId && allLessons.some((l) => l.id === currentTaskId)) {
         validCurrentTaskId = currentTaskId
       } else {
-        // currentTaskId ausente ou órfão: não voltar para a primeira aula já concluída
         const firstIncomplete = allLessons.find(
           (l) => !(progressMap.get(l.id) ?? false),
         )
@@ -281,10 +267,6 @@ export class GetRoadmapUseCase {
           const isCompleted = progressMap.get(lesson.id) ?? false
           const manualLocked = lesson.locked
 
-          // Nova regra:
-          // - Se concluída: status "completed"
-          // - Se marcada como locked no conteúdo: "locked"
-          // - Caso contrário: "unlocked" (sem dependência de aulas anteriores)
           let status: 'locked' | 'unlocked' | 'completed'
           if (isCompleted) {
             status = 'completed'
@@ -295,8 +277,6 @@ export class GetRoadmapUseCase {
           }
 
           const isCurrent = lesson.id === validCurrentTaskId
-
-          // Pode revisar se a aula foi concluída
           const canReview = isCompleted
 
           const lessonWithContent = lesson as typeof lesson & {

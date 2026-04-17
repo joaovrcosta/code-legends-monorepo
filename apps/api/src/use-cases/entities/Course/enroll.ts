@@ -16,19 +16,17 @@ export class EnrollCourseUseCase {
   constructor(
     private userCourseRepository: IUserCourseRepository,
     private courseRepository: ICourseRepository
-  ) {}
+  ) { }
 
   async execute({
     userId,
     courseId,
   }: EnrollCourseRequest): Promise<EnrollCourseResponse> {
-    // Verificar se o curso existe
     const course = await this.courseRepository.findById(courseId);
     if (!course) {
       throw new CourseNotFoundError();
     }
 
-    // Verificar se o usuário já está inscrito
     const existingEnrollment =
       await this.userCourseRepository.findByUserAndCourse(userId, courseId);
 
@@ -38,7 +36,6 @@ export class EnrollCourseUseCase {
       };
     }
 
-    // Inscrever o usuário no curso
     const userCourse = await this.userCourseRepository.enroll(userId, courseId);
 
     return {

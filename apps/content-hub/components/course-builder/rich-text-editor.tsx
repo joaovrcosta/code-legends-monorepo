@@ -158,7 +158,6 @@ function prepareBlocksForExport(blocks: any[]): void {
   }
 }
 
-// Analisamos os blocos importados do Markdown, procurando blocos de código "challenge" para os transformar de volta.
 function processImportedBlocks(blocks: any[]): void {
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];

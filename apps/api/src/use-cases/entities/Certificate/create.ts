@@ -28,26 +28,23 @@ export class CreateCertificateUseCase {
     private usersRepository: IUsersRepository,
     private courseRepository: ICourseRepository,
     private userCourseRepository: IUserCourseRepository
-  ) {}
+  ) { }
 
   async execute({
     userId,
     courseId,
     templateId,
   }: CreateCertificateUseCaseRequest): Promise<CreateCertificateUseCaseResponse> {
-    // Verificar se o usuário existe
     const user = await this.usersRepository.findById(userId);
     if (!user) {
       throw new UserNotFoundError();
     }
 
-    // Verificar se o curso existe
     const course = await this.courseRepository.findById(courseId);
     if (!course) {
       throw new CourseNotFoundError();
     }
 
-    // Verificar se o curso foi completado pelo usuário
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,
       courseId
@@ -61,8 +58,6 @@ export class CreateCertificateUseCase {
       throw new CourseNotCompletedError();
     }
 
-    // Verificar se já existe um certificado para esse usuário e curso
-    // Se existir, retornar o existente ao invés de criar um novo
     const existingCertificate =
       await this.certificateRepository.findByUserIdAndCourseId(
         userId,
@@ -81,7 +76,6 @@ export class CreateCertificateUseCase {
       resolvedTemplateId = defaultTemplate?.id;
     }
 
-    // Criar o certificado
     const certificate = await this.certificateRepository.create({
       user: {
         connect: { id: userId },
@@ -96,7 +90,6 @@ export class CreateCertificateUseCase {
       }),
     });
 
-    // Criar notificação de certificado gerado
     try {
       const notificationData = NotificationBuilder.createCertificateNotification(
         userId,
@@ -109,7 +102,6 @@ export class CreateCertificateUseCase {
 
       await createNotification(notificationData);
     } catch (error) {
-      // Não quebra o fluxo se a notificação falhar
       console.error("Erro ao criar notificação de certificado:", error);
     }
 
