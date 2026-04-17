@@ -334,13 +334,13 @@ export function BlockSlotsChallenge({
         </div>
       )}
 
-      <div className="flex items-center justify-between px-5 pb-5">
+      <div className="flex w-full items-center justify-end px-5 pb-5">
         {!submitted ? (
           <button
             type="button"
             onClick={handleSubmit}
             disabled={!allFilled}
-            className="flex h-[52px] lg:mt-4 mt-8 w-full items-center justify-center gap-2 rounded-full bg-blue-gradient-500 px-5 py-2 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 lg:w-[115px]"
+            className="mt-8 flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-blue-gradient-500 px-5 py-2 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 lg:mt-4 lg:w-[220px]"
           >
             Verificar <ArrowRight weight="bold" size={14} />
           </button>
