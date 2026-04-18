@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 
-import { Flame } from '@phosphor-icons/react/dist/ssr'
+import { Lightning } from '@phosphor-icons/react/dist/ssr'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -248,16 +248,16 @@ export function StrikeSection({
         <DropdownMenuTrigger asChild>
           <div
             className={`flex items-center space-x-3 border py-2 px-3 rounded-[20px] transition-colors ${isOpen
-              ? 'bg-[#25252A] border-[#FFBF00]'
+              ? 'bg-[#25252A] border-lime-400/80'
               : streak.current > 0
-                ? 'border-[#25252A] hover:bg-[#25252A] hover:border-[#FFBF00]'
-                : 'border-[#25252A] hover:bg-[#25252A] hover:border-[#FFBF00]'
+                ? 'border-[#25252A] hover:bg-[#25252A] hover:border-lime-400/70'
+                : 'border-[#25252A] hover:bg-[#25252A] hover:border-lime-400/70'
               }`}
           >
-            <Flame
+            <Lightning
               size={24}
               weight="fill"
-              className={streak.current > 0 ? 'text-[#FFBF00]' : 'text-[#515155]'}
+              className={streak.current > 0 ? 'text-lime-400 drop-shadow-[0_0_10px_rgba(163,230,53,0.45)]' : 'text-[#515155]'}
             />
             <span
               className={`text-base ${streak.current > 0 ? 'text-white' : 'text-[#515155]'
@@ -294,11 +294,15 @@ export function StrikeSection({
           <div className="p-4 text-sm w-full">
             <div className="flex items-center gap-2 mb-1">
               <p>
-                <span className="font-bold bg-yellow-lightning-600 bg-clip-text text-lg text-transparent">
+                <span className="font-bold bg-lime-streak bg-clip-text text-lg text-transparent">
                   Streak
                 </span>
               </p>
-              <Flame size={24} weight="fill" className="text-[#FFBF00]" />
+              <Lightning
+                size={24}
+                weight="fill"
+                className="text-lime-300 drop-shadow-[0_0_12px_rgba(163,230,53,0.5)]"
+              />
             </div>
             <p className="text-sm text-[#C4C4CC]">
               Assista uma aula para aumentar seu streak
@@ -336,7 +340,7 @@ export function StrikeSection({
                     <div key={idx} className="flex flex-col items-center">
                       <span className="text-xs text-[#C4C4CC] mb-2">{label}</span>
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isActive ? 'bg-yellow-lightning-600' : 'bg-[#25252A]'
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isActive ? 'bg-lime-streak' : 'bg-[#25252A]'
                           }`}
                         title={
                           day.date
@@ -345,7 +349,11 @@ export function StrikeSection({
                         }
                       >
                         {isActive ? (
-                          <Flame size={20} weight="fill" className="text-white" />
+                          <Lightning
+                            size={20}
+                            weight="fill"
+                            className="text-[#0f1408] drop-shadow-[0_0_6px_rgba(190,242,100,0.65)]"
+                          />
                         ) : isToday ? (
                           <div className="w-6 h-6 rounded-full bg-white/20" />
                         ) : null}
@@ -356,7 +364,7 @@ export function StrikeSection({
               </div>
               <div className="relative h-4 bg-[#25252A] rounded-full overflow-hidden">
                 <div
-                  className="absolute h-full bg-yellow-lightning-600 rounded-full"
+                  className="absolute h-full bg-lime-streak-bar rounded-full"
                   style={{ width: `${weeklyView.percent}%` }}
                 />
               </div>

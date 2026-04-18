@@ -103,7 +103,12 @@ export default {
           "linear-gradient(267deg, rgba(153,41,0,1) 0%, #FF4500 100%)",
         "red-gradient-500": "linear-gradient(267deg, #570D0D 0%, #BD1C1C 100%)",
         "lime-gradient-500":
-          "linear-gradient(267deg, #6F8C0F 0%, #BFF21A 100%)",
+          "linear-gradient(267deg, #365314 0%, #4d7c0f 28%, #84cc16 58%, #bef264 82%, #ecfccb 100%)",
+        /** Streak / energia — lime denso → highlights claros */
+        "lime-streak":
+          "linear-gradient(267deg, #3f6212 0%, #65a30d 38%, #a3e635 72%, #d9f99d 100%)",
+        "lime-streak-bar":
+          "linear-gradient(90deg, #365314 0%, #65a30d 35%, #a3e635 62%, #ecfccb 100%)",
         "purple-gradient-500":
           "linear-gradient(267deg, #39007F 0%, #6547EB 100%)",
         "yellow-lightning-500":
