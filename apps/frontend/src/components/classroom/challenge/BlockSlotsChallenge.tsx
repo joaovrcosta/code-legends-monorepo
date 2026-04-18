@@ -7,9 +7,12 @@ import remarkGfm from 'remark-gfm'
 import type { Challenge } from '@/types/roadmap'
 import { playPieceClickSound } from '@/lib/play-piece-click'
 import { playCorrectChime, playWrongTamTamm } from '@/lib/play-correct-chime'
+import { awardChallengeXpFromBrowser } from '@/lib/award-challenge-xp-client'
+import { useActiveCourseStore } from '@/stores/active-course-store'
 import {
   ChallengeFeedbackPanel,
   useIsDesktopChallengeLayout,
+  type ChallengeFeedbackXpAward,
 } from '@/components/classroom/challenge/challenge-feedback-panel'
 import { ArrowRight, Eye } from '@phosphor-icons/react/dist/ssr'
 
@@ -76,6 +79,8 @@ function isSafeImageUrl(url: string): boolean {
 export interface BlockSlotsChallengeProps {
   challenge: Challenge
   index?: number
+  lessonId?: number
+  challengeXpSlotIndex?: number
   onAnswer?: (correct: boolean) => void
   onNext?: () => void
 }
@@ -83,6 +88,8 @@ export interface BlockSlotsChallengeProps {
 export function BlockSlotsChallenge({
   challenge,
   index,
+  lessonId,
+  challengeXpSlotIndex,
   onAnswer,
   onNext,
 }: BlockSlotsChallengeProps) {
@@ -113,6 +120,7 @@ export function BlockSlotsChallenge({
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
   const [feedbackDismissed, setFeedbackDismissed] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
+  const [xpAward, setXpAward] = useState<ChallengeFeedbackXpAward>({ state: 'idle' })
   const isDesktopLayout = useIsDesktopChallengeLayout()
 
   const usedIds = useMemo(
@@ -157,11 +165,44 @@ export function BlockSlotsChallenge({
     const correct = arraysEqual(targetSolution, slots as string[])
     if (correct) playCorrectChime()
     else playWrongTamTamm()
+    if (!correct) {
+      setXpAward({ state: 'idle' })
+    }
     setIsCorrect(correct)
     setSubmitted(true)
     setFeedbackDismissed(false)
     onAnswer?.(correct)
-  }, [submitted, targetSolution, slots, onAnswer])
+    const xpSlot =
+      lessonId != null
+        ? (challengeXpSlotIndex ?? index ?? null)
+        : null
+    if (correct && lessonId != null && xpSlot != null && xpSlot >= 0) {
+      setXpAward({ state: 'pending' })
+      const courseId = useActiveCourseStore.getState().activeCourse?.id ?? null
+      void awardChallengeXpFromBrowser(lessonId, xpSlot, {
+        courseId,
+      }).then(async (r) => {
+        if (r.applied && r.xpGained > 0) {
+          setXpAward({ state: 'earned', amount: r.xpGained })
+          await useActiveCourseStore.getState().fetchActiveCourse()
+        } else if (r.requestFailed) {
+          setXpAward({ state: 'error' })
+        } else {
+          setXpAward({ state: 'already_awarded' })
+        }
+      })
+    } else if (correct) {
+      setXpAward({ state: 'idle' })
+    }
+  }, [
+    submitted,
+    targetSolution,
+    slots,
+    onAnswer,
+    lessonId,
+    challengeXpSlotIndex,
+    index,
+  ])
 
   const handleReset = useCallback(() => {
     if (!targetSolution) return
@@ -171,6 +212,7 @@ export function BlockSlotsChallenge({
     setIsCorrect(null)
     setFeedbackDismissed(false)
     setShowExplanation(false)
+    setXpAward({ state: 'idle' })
   }, [targetSolution, challenge.pieces])
 
   const missionUrl = challenge.missionImageUrl?.trim() ?? ''
@@ -393,6 +435,7 @@ export function BlockSlotsChallenge({
         }}
         onContinue={() => setFeedbackDismissed(true)}
         onNext={onNext}
+        xpAward={xpAward}
       />
     </div>
   )

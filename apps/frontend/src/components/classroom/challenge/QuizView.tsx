@@ -184,12 +184,28 @@ export function QuizView({
               )}
             </>
           ) : !useMultiFlow ? (
-            /* Quiz comum: todas as questões, repetir à vontade; sem botão "Marcar como concluído" */
-            <div className="relative flex flex-col gap-2">
-              {challenges.map((challenge, i) => (
-                <ChallengeBlock key={i} challenge={challenge} index={i} />
-              ))}
-            </div>
+            /* Quiz comum: todas as questões; XP por desafio + concluir lição (XP de lição na 1.ª vez) */
+            <>
+              <div className="relative flex flex-col gap-2">
+                {challenges.map((challenge, i) => (
+                  <ChallengeBlock
+                    key={i}
+                    challenge={challenge}
+                    index={i}
+                    lessonId={lessonId}
+                    challengeXpSlotIndex={i}
+                  />
+                ))}
+              </div>
+              <div className="mt-10 pt-8 border-t border-[#25252A]">
+                <CompleteLessonButton
+                  onClick={handleMarkAsComplete}
+                  disabled={isMarking || isMarked || !currentLesson}
+                  isMarking={isMarking}
+                  isMarked={isMarked}
+                />
+              </div>
+            </>
           ) : quizFinished ? (
             /* Tela de resultado */
             <div className="rounded-[16px] border border-[#25252A] bg-[#0d0d0f] p-8 text-center">
@@ -237,6 +253,8 @@ export function QuizView({
                 key={currentIndex}
                 challenge={challenges[currentIndex]}
                 index={currentIndex}
+                lessonId={lessonId}
+                challengeXpSlotIndex={currentIndex}
                 onAnswer={handleAnswer}
                 onNext={handleNext}
               />

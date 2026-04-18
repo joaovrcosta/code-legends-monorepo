@@ -1,6 +1,14 @@
 'use client'
 
-import React, { useEffect, useLayoutEffect, useRef, useState, useMemo } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ComponentProps } from 'react'
@@ -22,6 +30,12 @@ import type { Lesson, Challenge, PlaygroundBlock } from '@/types/roadmap'
 import { HashIcon } from '@phosphor-icons/react/dist/ssr'
 
 type ImageAlign = 'left' | 'center' | 'right' | 'justify'
+
+/** Ordem dos blocos ```challenge no markdown (para XP por desafio). */
+const ArticleLessonChallengeXpContext = createContext<{
+  lessonId: number
+  takeChallengeSlot: () => number
+} | null>(null)
 
 const ALIGN_CLASSES: Record<ImageAlign, string> = {
   left: 'mr-auto',
@@ -144,6 +158,7 @@ function PlaygroundBlockWrapper({ block }: { block: PlaygroundBlock }) {
 }
 
 function ArticleCodeBlockPre({ children }: ComponentProps<'pre'>) {
+  const lessonChallengeXp = useContext(ArticleLessonChallengeXpContext)
   const codeEl = Array.isArray(children) ? children[0] : children
   const className = isReactElement(codeEl) ? codeEl.props.className : undefined
   const lang = typeof className === 'string' ? className.match(/language-(\w+)/)?.[1] : 'text'
@@ -156,7 +171,17 @@ function ArticleCodeBlockPre({ children }: ComponentProps<'pre'>) {
         ;(data as { type: Challenge['type'] }).type = 'block_slots'
       }
       return lang === 'challenge'
-        ? <ChallengeBlock challenge={data as Challenge} />
+        ? (
+            <ChallengeBlock
+              challenge={data as Challenge}
+              lessonId={lessonChallengeXp?.lessonId}
+              challengeXpSlotIndex={
+                lessonChallengeXp != null
+                  ? lessonChallengeXp.takeChallengeSlot()
+                  : undefined
+              }
+            />
+          )
         : <PlaygroundBlockWrapper block={data as PlaygroundBlock} />
     } catch {
       return (
@@ -209,6 +234,22 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
   const h2SerialRef = useRef(0)
   h2SerialRef.current = 0
 
+  const articleChallengeSlotRef = useRef(0)
+  if (body) {
+    articleChallengeSlotRef.current = 0
+  }
+  const articleLessonChallengeXp = useMemo(
+    () => ({
+      lessonId: lesson.id,
+      takeChallengeSlot: () => {
+        const i = articleChallengeSlotRef.current
+        articleChallengeSlotRef.current += 1
+        return i
+      },
+    }),
+    [lesson.id],
+  )
+
   useLayoutEffect(() => {
     if (!body) return
     const raw = window.location.hash.slice(1)
@@ -241,6 +282,7 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
         <main className="flex justify-center mt-4 px-4">
           <div className="max-w-5xl w-full">
             {body ? (
+              <ArticleLessonChallengeXpContext.Provider value={articleLessonChallengeXp}>
               <article className="article-body font-wotfard prose prose-invert prose-headings:font-wotfard prose-p:font-wotfard prose-li:font-wotfard prose-blockquote:font-wotfard prose-strong:font-wotfard prose-em:font-wotfard prose-p:leading-[1.8] max-w-[1024px] prose-p:text-[18px] mx-auto text-[#e3e6e8]">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkImageAlign]}
@@ -314,6 +356,7 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
                   {body}
                 </ReactMarkdown>
               </article>
+              </ArticleLessonChallengeXpContext.Provider>
             ) : (
               <div className="py-20 text-center border border-dashed border-white/10 rounded-2xl">
                 <p className="text-gray-500 italic">Conteúdo em produção. Disponível em breve.</p>

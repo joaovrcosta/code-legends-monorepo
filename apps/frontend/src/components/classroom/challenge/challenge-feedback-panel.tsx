@@ -8,11 +8,21 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer'
 import { ArrowRight, Flag } from '@phosphor-icons/react/dist/ssr'
+import { CompactNumber } from '@/components/ui/compact-number'
 
 export const CHALLENGE_FEEDBACK_WRONG_DEFAULT =
   'Não foi dessa vez. Confira sua resposta ou veja a explicação, se houver.'
 
 export const CHALLENGE_FEEDBACK_OK_DEFAULT = 'Correto! Boa resposta.'
+
+/** XP opcional no painel (count-up quando `earned`). */
+export type ChallengeFeedbackXpAward =
+  | { state: 'idle' }
+  | { state: 'pending' }
+  | { state: 'earned'; amount: number }
+  | { state: 'error' }
+  /** Resposta 200 mas XP idempotente já aplicado antes. */
+  | { state: 'already_awarded' }
 
 export function useIsDesktopChallengeLayout() {
   const [isDesktop, setIsDesktop] = useState(false)
@@ -51,6 +61,8 @@ export interface ChallengeFeedbackPanelProps {
   onSeeAnswer: () => void
   onContinue: () => void
   onNext?: () => void
+  /** Bónus de desafio (primeira resposta certa): loading + valor com count-up. */
+  xpAward?: ChallengeFeedbackXpAward
 }
 
 /**
@@ -68,9 +80,12 @@ export function ChallengeFeedbackPanel({
   onSeeAnswer,
   onContinue,
   onNext,
+  xpAward = { state: 'idle' },
 }: ChallengeFeedbackPanelProps) {
   const wrong = !isCorrect
   const msg = isCorrect ? okMessage : wrongMessage
+  const showXpRow =
+    isCorrect && xpAward.state !== 'idle' && open
 
   return (
     <>
@@ -90,6 +105,41 @@ export function ChallengeFeedbackPanel({
             <p className="pr-8 text-[15px] font-medium leading-relaxed text-white/95">
               {msg}
             </p>
+            {showXpRow ? (
+              <div
+                className="mt-4 border-t border-white/10 pt-4 pr-8"
+                role="status"
+                aria-live="polite"
+              >
+                {xpAward.state === 'pending' ? (
+                  <p className="text-sm font-medium text-white/70 motion-reduce:animate-none animate-pulse">
+                    A registrar bónus de XP…
+                  </p>
+                ) : xpAward.state === 'earned' ? (
+                  <p className="text-[17px] font-bold leading-tight tracking-tight text-white">
+                    <span className="font-semibold text-white/80">Ganhaste </span>
+                    <span className="text-orange-400">+</span>
+                    <CompactNumber
+                      key={xpAward.amount}
+                      value={xpAward.amount}
+                      enableCountUp
+                      flameGradient
+                      countUpDuration={1.35}
+                      suffix=" XP"
+                    />
+                  </p>
+                ) : xpAward.state === 'already_awarded' ? (
+                  <p className="text-sm font-medium text-white/65">
+                    O bónus de XP deste desafio já tinha sido contabilizado.
+                  </p>
+                ) : (
+                  <p className="text-sm font-medium leading-snug text-amber-100/90">
+                    Não foi possível registar o bónus de XP. Verifica a ligação ou tenta
+                    novamente ao fechar o painel.
+                  </p>
+                )}
+              </div>
+            ) : null}
             <div className="mt-5 flex flex-wrap gap-3">
               {wrong ? (
                 <>
@@ -152,6 +202,41 @@ export function ChallengeFeedbackPanel({
               <p className="text-[15px] font-medium leading-relaxed text-white/95">
                 {msg}
               </p>
+              {showXpRow ? (
+                <div
+                  className="mt-4 border-t border-white/10 pt-4"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {xpAward.state === 'pending' ? (
+                    <p className="text-sm font-medium text-white/70 motion-reduce:animate-none animate-pulse">
+                      A registrar bónus de XP…
+                    </p>
+                  ) : xpAward.state === 'earned' ? (
+                    <p className="text-[17px] font-bold leading-tight tracking-tight text-white">
+                      <span className="font-semibold text-white/80">Ganhaste </span>
+                      <span className="text-orange-400">+</span>
+                      <CompactNumber
+                        key={xpAward.amount}
+                        value={xpAward.amount}
+                        enableCountUp
+                        flameGradient
+                        countUpDuration={1.35}
+                        suffix=" XP"
+                      />
+                    </p>
+                  ) : xpAward.state === 'already_awarded' ? (
+                    <p className="text-sm font-medium text-white/65">
+                      O bónus de XP deste desafio já tinha sido contabilizado.
+                    </p>
+                  ) : (
+                    <p className="text-sm font-medium leading-snug text-amber-100/90">
+                      Não foi possível registar o bónus de XP. Verifica a ligação ou tenta
+                      novamente ao fechar o painel.
+                    </p>
+                  )}
+                </div>
+              ) : null}
               <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 {wrong ? (
                   <>

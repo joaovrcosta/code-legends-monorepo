@@ -23,7 +23,7 @@ export class UnenrollFromCourseUseCase {
     private usersRepository: IUsersRepository,
     private courseRepository: ICourseRepository,
     private userCourseRepository: IUserCourseRepository
-  ) {}
+  ) { }
 
   async execute({
     userId,
@@ -49,7 +49,6 @@ export class UnenrollFromCourseUseCase {
     }
 
     await prisma.$transaction(async (tx) => {
-      // 1) Coletar todas as lessons do curso
       const lessons = await tx.lesson.findMany({
         where: {
           submodule: {
@@ -66,7 +65,6 @@ export class UnenrollFromCourseUseCase {
       const lessonIds = lessons.map((l) => l.id);
 
       if (lessonIds.length > 0) {
-        // 2) Remover histórico global relacionado a essas lessons
         await tx.userXpHistory.deleteMany({
           where: {
             userId,
@@ -77,14 +75,26 @@ export class UnenrollFromCourseUseCase {
           },
         });
 
-        // 3) Remover XP de skills associado a essas lessons
-        const skillXpHistoryEntries = await tx.userSkillXpHistory.findMany({
+        await tx.userXpHistory.deleteMany({
           where: {
             userId,
-            source: "lesson_completed",
+            source: "challenge_first_correct",
             sourceId: {
               in: lessonIds,
             },
+          },
+        });
+
+        const skillXpHistoryEntries = await tx.userSkillXpHistory.findMany({
+          where: {
+            userId,
+            OR: [
+              { source: "lesson_completed", sourceId: { in: lessonIds } },
+              {
+                source: "challenge_first_correct",
+                sourceId: { in: lessonIds },
+              },
+            ],
           },
         });
 
@@ -126,10 +136,13 @@ export class UnenrollFromCourseUseCase {
           await tx.userSkillXpHistory.deleteMany({
             where: {
               userId,
-              source: "lesson_completed",
-              sourceId: {
-                in: lessonIds,
-              },
+              OR: [
+                { source: "lesson_completed", sourceId: { in: lessonIds } },
+                {
+                  source: "challenge_first_correct",
+                  sourceId: { in: lessonIds },
+                },
+              ],
             },
           });
         }
@@ -142,6 +155,15 @@ export class UnenrollFromCourseUseCase {
             sourceId: { in: lessonIds },
           },
         });
+
+        for (const lid of lessonIds) {
+          await tx.userXpEvent.deleteMany({
+            where: {
+              userId,
+              reasonId: { startsWith: `challenge_first_correct:${lid}:` },
+            },
+          });
+        }
 
         // 3.2) Recalcular cache do usuário a partir da soma de skills (fonte da verdade)
         const agg = await tx.userSkillXp.aggregate({

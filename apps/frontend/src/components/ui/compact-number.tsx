@@ -23,6 +23,8 @@ type CompactNumberProps = {
   suffix?: string
   tooltipOnlyWhenCompact?: boolean
   enableCountUp?: boolean
+  /** Segundos da animação quando `enableCountUp` (padrão 3). */
+  countUpDuration?: number
   flameGradient?: boolean
 }
 
@@ -32,6 +34,7 @@ export function CompactNumber({
   suffix = '',
   tooltipOnlyWhenCompact = true,
   enableCountUp = false,
+  countUpDuration = 3,
   flameGradient = false,
 }: CompactNumberProps) {
   const { full } = getCompactNumberDisplay(value)
@@ -44,7 +47,7 @@ export function CompactNumber({
       <CountUp
         start={0}
         end={value}
-        duration={3}
+        duration={countUpDuration}
         decimals={0}
         enableScrollSpy={false}
         formattingFn={formattingFn}

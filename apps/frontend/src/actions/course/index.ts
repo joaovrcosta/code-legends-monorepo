@@ -3,6 +3,8 @@ export { listCourses } from "./list-courses";
 export { getCourseRoadmap, getCourseRoadmapFresh } from "./roadmap";
 export { continueCourse } from "./continue";
 export type { ContinueCourseResult } from "./continue";
+export { awardChallengeXp } from "./award-challenge-xp";
+export type { AwardChallengeXpResult } from "./award-challenge-xp";
 export { startCourse } from "./start";
 export { listModulesProgress } from "./list-modules-progress";
 export { setCurrentModule } from "./set-current-module";

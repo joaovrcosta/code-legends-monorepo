@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { awardChallengeXpFromBrowser } from '@/lib/award-challenge-xp-client'
+import { useActiveCourseStore } from '@/stores/active-course-store'
 import dynamic from 'next/dynamic'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -9,6 +11,7 @@ import { BlockSlotsChallenge } from '@/components/classroom/challenge/BlockSlots
 import {
   ChallengeFeedbackPanel,
   useIsDesktopChallengeLayout,
+  type ChallengeFeedbackXpAward,
 } from '@/components/classroom/challenge/challenge-feedback-panel'
 import { playCorrectChime, playWrongTamTamm } from '@/lib/play-correct-chime'
 import { ArrowRight, Eye } from '@phosphor-icons/react/dist/ssr'
@@ -44,6 +47,10 @@ function checkAnswer(challenge: Challenge, answer: string): boolean {
 interface ChallengeBlockProps {
   challenge: Challenge
   index?: number
+  /** Lição atual (com `challengeXpSlotIndex`) para ganhar XP só na primeira vez que acerta o desafio. */
+  lessonId?: number
+  /** Índice do desafio na lição (0..N-1), alinhado ao quiz ou à ordem dos blocos `challenge` no artigo. */
+  challengeXpSlotIndex?: number
   /** Chamado ao submeter a resposta com o resultado (acertou/errou). Usado no fluxo de quiz multiperguntas. */
   onAnswer?: (correct: boolean) => void
   /** Se definido, após submeter mostra botão "Próxima" em vez de "Tentar novamente". */
@@ -53,6 +60,8 @@ interface ChallengeBlockProps {
 export function ChallengeBlock({
   challenge,
   index,
+  lessonId,
+  challengeXpSlotIndex,
   onAnswer,
   onNext,
 }: ChallengeBlockProps) {
@@ -62,6 +71,7 @@ export function ChallengeBlock({
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
   const [feedbackDismissed, setFeedbackDismissed] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
+  const [xpAward, setXpAward] = useState<ChallengeFeedbackXpAward>({ state: 'idle' })
   const isDesktopLayout = useIsDesktopChallengeLayout()
 
   const hasOptions = Array.isArray(challenge.options) && challenge.options.length > 0
@@ -99,11 +109,46 @@ export function ChallengeBlock({
     const correct = checkAnswer(challenge, answer)
     if (correct) playCorrectChime()
     else playWrongTamTamm()
+    if (!correct) {
+      setXpAward({ state: 'idle' })
+    }
     setIsCorrect(correct)
     setSubmitted(true)
     setFeedbackDismissed(false)
     onAnswer?.(correct)
-  }, [submitted, isChoiceType, selected, typed, challenge, onAnswer])
+    const xpSlot =
+      lessonId != null
+        ? (challengeXpSlotIndex ?? index ?? null)
+        : null
+    if (correct && lessonId != null && xpSlot != null && xpSlot >= 0) {
+      setXpAward({ state: 'pending' })
+      const courseId = useActiveCourseStore.getState().activeCourse?.id ?? null
+      void awardChallengeXpFromBrowser(lessonId, xpSlot, {
+        courseId,
+      }).then(async (r) => {
+        if (r.applied && r.xpGained > 0) {
+          setXpAward({ state: 'earned', amount: r.xpGained })
+          await useActiveCourseStore.getState().fetchActiveCourse()
+        } else if (r.requestFailed) {
+          setXpAward({ state: 'error' })
+        } else {
+          setXpAward({ state: 'already_awarded' })
+        }
+      })
+    } else if (correct) {
+      setXpAward({ state: 'idle' })
+    }
+  }, [
+    submitted,
+    isChoiceType,
+    selected,
+    typed,
+    challenge,
+    onAnswer,
+    lessonId,
+    challengeXpSlotIndex,
+    index,
+  ])
 
   const handleReset = useCallback(() => {
     setSelected(null)
@@ -112,6 +157,7 @@ export function ChallengeBlock({
     setIsCorrect(null)
     setFeedbackDismissed(false)
     setShowExplanation(false)
+    setXpAward({ state: 'idle' })
   }, [])
 
   if (challenge.type === 'block_slots') {
@@ -119,6 +165,8 @@ export function ChallengeBlock({
       <BlockSlotsChallenge
         challenge={challenge}
         index={index}
+        lessonId={lessonId}
+        challengeXpSlotIndex={challengeXpSlotIndex}
         onAnswer={onAnswer}
         onNext={onNext}
       />
@@ -306,6 +354,7 @@ export function ChallengeBlock({
         }}
         onContinue={() => setFeedbackDismissed(true)}
         onNext={onNext}
+        xpAward={xpAward}
       />
     </div>
   )

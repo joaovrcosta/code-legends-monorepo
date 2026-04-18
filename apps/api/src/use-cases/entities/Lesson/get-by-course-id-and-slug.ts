@@ -4,6 +4,7 @@ import { IUserCourseRepository } from '../../../repositories/user-course-reposit
 import { LessonNotFoundError } from '../../errors/lesson-not-found'
 import { prisma } from '../../../lib/prisma'
 import { LessonWithContentDTO } from '../../../domain/lesson'
+import { normalizeQuizContentToArray } from './challenge-first-correct-xp'
 
 interface GetLessonByCourseIdAndSlugRequest {
   courseId: string
@@ -227,7 +228,7 @@ export class GetLessonByCourseIdAndSlugUseCase {
       video: (lessonEntity as any).video ?? null,
       article: (lessonEntity as any).article ?? null,
       quiz: rawQuiz
-        ? { content: Array.isArray(rawQuiz.content) ? rawQuiz.content : [] }
+        ? { content: normalizeQuizContentToArray(rawQuiz.content) }
         : null,
       project: rawProject
         ? {

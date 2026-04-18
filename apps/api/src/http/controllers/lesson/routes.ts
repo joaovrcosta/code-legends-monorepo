@@ -5,6 +5,7 @@ import { getBySlug } from "./get-by-slug.controller";
 import { update } from "./update.controller";
 import { remove } from "./delete.controller";
 import { complete } from "./complete.controller";
+import { awardChallengeXp } from "./award-challenge-xp.controller";
 import { getLessonSkillsConfig } from "./get-skills-config.controller";
 import { updateLessonSkillsConfig } from "./update-skills-config.controller";
 import { verifyJWT } from "../../middlewares/verify-jwt";
@@ -54,5 +55,16 @@ export async function lessonRoutes(app: FastifyInstance) {
       ],
     },
     complete
+  );
+
+  app.post(
+    "/lessons/:id/challenge-xp",
+    {
+      onRequest: [
+        verifyJWT,
+        verifyLessonAccess({ lessonIdParam: "id", allowInstructors: false }),
+      ],
+    },
+    awardChallengeXp
   );
 }
