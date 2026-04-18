@@ -32,4 +32,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withBundleAnalyzer(nextConfig);
+/**
+ * O HOC do `@next/bundle-analyzer` pode resolver tipos de outra major do `next` no monorepo.
+ * Em runtime a config é válida; `never` evita falha de `tsc` na Vercel/pnpm.
+ */
+export default withBundleAnalyzer(nextConfig as never);

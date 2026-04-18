@@ -31,7 +31,7 @@ export default auth(
 
     const isLoggedIn = !!session?.user;
 
-    let onboardingCompleted =
+    const onboardingCompleted =
       (session as { onboardingCompleted?: boolean })?.onboardingCompleted ??
       false;
 
