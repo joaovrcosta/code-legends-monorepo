@@ -256,7 +256,7 @@ export function StreakCongratsModal() {
                     <Lightning
                       size={20}
                       weight="fill"
-                      className="text-[#0f1408] drop-shadow-[0_0_8px_rgba(190,242,100,0.75)]"
+                      className="text-[#0f1408] animate-lightning-electric motion-reduce:animate-none"
                     />
                   ) : null}
                 </div>

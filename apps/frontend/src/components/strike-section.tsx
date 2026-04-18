@@ -257,7 +257,11 @@ export function StrikeSection({
             <Lightning
               size={24}
               weight="fill"
-              className={streak.current > 0 ? 'text-lime-400 drop-shadow-[0_0_10px_rgba(163,230,53,0.45)]' : 'text-[#515155]'}
+              className={
+                streak.current > 0
+                  ? 'text-lime-400 drop-shadow-[0_0_10px_rgba(163,230,53,0.45)]'
+                  : 'text-[#515155]'
+              }
             />
             <span
               className={`text-base ${streak.current > 0 ? 'text-white' : 'text-[#515155]'
