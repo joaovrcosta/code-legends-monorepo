@@ -182,4 +182,38 @@ body {
   .scrollbar-classroom-none::-webkit-scrollbar {
     display: none;
   }
+
+  @keyframes streak-bolinha-kick {
+    0% {
+      transform: scale(0.72);
+      opacity: 0.9;
+    }
+
+    38% {
+      transform: scale(1.16) rotate(-7deg);
+    }
+
+    62% {
+      transform: scale(0.94) rotate(5deg);
+    }
+
+    82% {
+      transform: scale(1.05) rotate(-2deg);
+    }
+
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+  }
+
+  .animate-streak-bolinha-kick {
+    animation: streak-bolinha-kick 0.58s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-streak-bolinha-kick {
+      animation: none;
+    }
+  }
 }

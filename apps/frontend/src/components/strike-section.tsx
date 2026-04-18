@@ -344,7 +344,7 @@ export function StrikeSection({
                             : undefined
                         }
                       >
-                        {isToday && isActive ? (
+                        {isActive ? (
                           <Flame size={20} weight="fill" className="text-white" />
                         ) : isToday ? (
                           <div className="w-6 h-6 rounded-full bg-white/20" />
