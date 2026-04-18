@@ -128,16 +128,12 @@ export function ChallengeFeedbackPanel({
                       suffix=" XP"
                     />
                   </p>
-                ) : xpAward.state === 'already_awarded' ? (
+                ) : xpAward.state === 'already_awarded' ||
+                  xpAward.state === 'error' ? (
                   <p className="text-sm font-medium text-white/65">
-                    O bónus de XP deste desafio já tinha sido contabilizado.
+                    Bonus deste desafio já contabilizado.
                   </p>
-                ) : (
-                  <p className="text-sm font-medium leading-snug text-amber-100/90">
-                    Não foi possível registar o bónus de XP. Verifica a ligação ou tenta
-                    novamente ao fechar o painel.
-                  </p>
-                )}
+                ) : null}
               </div>
             ) : null}
             <div className="mt-5 flex flex-wrap gap-3">
@@ -225,16 +221,12 @@ export function ChallengeFeedbackPanel({
                         suffix=" XP"
                       />
                     </p>
-                  ) : xpAward.state === 'already_awarded' ? (
+                  ) : xpAward.state === 'already_awarded' ||
+                    xpAward.state === 'error' ? (
                     <p className="text-sm font-medium text-white/65">
                       O bónus de XP deste desafio já tinha sido contabilizado.
                     </p>
-                  ) : (
-                    <p className="text-sm font-medium leading-snug text-amber-100/90">
-                      Não foi possível registar o bónus de XP. Verifica a ligação ou tenta
-                      novamente ao fechar o painel.
-                    </p>
-                  )}
+                  ) : null}
                 </div>
               ) : null}
               <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
