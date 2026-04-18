@@ -247,11 +247,11 @@ export function StrikeSection({
       <DropdownMenu onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <div
-            className={`flex items-center space-x-3 border py-2 px-3 rounded-[20px] transition-colors ${isOpen
+            className={`flex items-center space-x-3 lg:border py-2 px-3 rounded-[20px] transition-colors ${isOpen
               ? 'bg-[#25252A] border-lime-400/80'
               : streak.current > 0
-                ? 'border-[#25252A] hover:bg-[#25252A] hover:border-lime-400/70'
-                : 'border-[#25252A] hover:bg-[#25252A] hover:border-lime-400/70'
+                ? 'lg:border-[#25252A] hover:bg-[#25252A] hover:border-lime-400/70'
+                : 'lg:border-[#25252A] hover:bg-[#25252A] hover:border-lime-400/70'
               }`}
           >
             <Lightning
