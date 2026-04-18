@@ -1,3 +1,5 @@
+import { extractChallengeFenceInnersFromArticleBody } from '@code-legends/shared-types'
+
 /** Idempotência em `UserXpEvent` ao ganhar XP por desafio (primeira resposta certa). */
 export function challengeFirstCorrectReasonId(
   lessonId: number,
@@ -7,15 +9,28 @@ export function challengeFirstCorrectReasonId(
 }
 
 export function countArticleChallengeBlocks(body: string | null | undefined): number {
-  if (!body) return 0
-  const matches = body.match(/```challenge\b/g)
-  return matches?.length ?? 0
+  return extractChallengeFenceInnersFromArticleBody(body).length
 }
 
-function isChallengeLike(x: unknown): boolean {
+/** Tipos de desafio persistidos no quiz / artigo (alinhado ao content-hub + classroom). */
+const CHALLENGE_TYPE_SLUGS = new Set([
+  'prediction',
+  'conceptual',
+  'bug',
+  'refactor',
+  'complete',
+  'block_slots',
+])
+
+function isQuizChallengeLike(x: unknown): boolean {
   if (!x || typeof x !== 'object') return false
   const o = x as Record<string, unknown>
-  return typeof o.question === 'string'
+  if (typeof o.question === 'string') return true
+  if (typeof o.type === 'string') {
+    const t = o.type.toLowerCase()
+    if (CHALLENGE_TYPE_SLUGS.has(t)) return true
+  }
+  return false
 }
 
 const QUIZ_JSON_KEYS = [
@@ -47,7 +62,8 @@ export function normalizeQuizContentToArray(
   }
 
   if (Array.isArray(content)) {
-    if (content.length > 0 && isChallengeLike(content[0])) return content
+    const flatChallenges = content.filter(isQuizChallengeLike)
+    if (flatChallenges.length > 0) return flatChallenges
     for (const el of content) {
       const inner = normalizeQuizContentToArray(el, depth + 1)
       if (inner.length > 0) return inner

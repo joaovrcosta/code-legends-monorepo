@@ -28,13 +28,17 @@ import { useCourseModalStore } from '@/stores/course-modal-store'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
 import type { Lesson, Challenge, PlaygroundBlock } from '@/types/roadmap'
 import { HashIcon } from '@phosphor-icons/react/dist/ssr'
+import {
+  extractChallengeFenceInnersFromArticleBody,
+  stableChallengeFencePayloadKey,
+} from '@code-legends/shared-types'
 
 type ImageAlign = 'left' | 'center' | 'right' | 'justify'
 
-/** Ordem dos blocos ```challenge no markdown (para XP por desafio). */
+/** Índices de XP alinhados ao corpo do artigo (evita contador que avança a cada re-render). */
 const ArticleLessonChallengeXpContext = createContext<{
   lessonId: number
-  takeChallengeSlot: () => number
+  challengeFenceInners: string[]
 } | null>(null)
 
 const ALIGN_CLASSES: Record<ImageAlign, string> = {
@@ -170,16 +174,29 @@ function ArticleCodeBlockPre({ children }: ComponentProps<'pre'>) {
       if ((data as { type?: string }).type === 'parsons') {
         ;(data as { type: Challenge['type'] }).type = 'block_slots'
       }
+      let challengeXpSlotIndex: number | undefined
+      if (
+        lang === 'challenge' &&
+        lessonChallengeXp != null &&
+        lessonChallengeXp.challengeFenceInners.length > 0
+      ) {
+        const key = stableChallengeFencePayloadKey(raw)
+        let idx = lessonChallengeXp.challengeFenceInners.findIndex(
+          (inner) => stableChallengeFencePayloadKey(inner) === key,
+        )
+        if (idx < 0) {
+          idx = lessonChallengeXp.challengeFenceInners.findIndex(
+            (inner) => inner.trim() === raw.trim(),
+          )
+        }
+        challengeXpSlotIndex = idx >= 0 ? idx : undefined
+      }
       return lang === 'challenge'
         ? (
             <ChallengeBlock
               challenge={data as Challenge}
               lessonId={lessonChallengeXp?.lessonId}
-              challengeXpSlotIndex={
-                lessonChallengeXp != null
-                  ? lessonChallengeXp.takeChallengeSlot()
-                  : undefined
-              }
+              challengeXpSlotIndex={challengeXpSlotIndex}
             />
           )
         : <PlaygroundBlockWrapper block={data as PlaygroundBlock} />
@@ -234,20 +251,16 @@ export function ComponentsArticle({ lesson, moduleTitle }: { lesson: Lesson; mod
   const h2SerialRef = useRef(0)
   h2SerialRef.current = 0
 
-  const articleChallengeSlotRef = useRef(0)
-  if (body) {
-    articleChallengeSlotRef.current = 0
-  }
+  const challengeFenceInners = useMemo(
+    () => extractChallengeFenceInnersFromArticleBody(body ?? ''),
+    [body],
+  )
   const articleLessonChallengeXp = useMemo(
     () => ({
       lessonId: lesson.id,
-      takeChallengeSlot: () => {
-        const i = articleChallengeSlotRef.current
-        articleChallengeSlotRef.current += 1
-        return i
-      },
+      challengeFenceInners,
     }),
-    [lesson.id],
+    [lesson.id, challengeFenceInners],
   )
 
   useLayoutEffect(() => {

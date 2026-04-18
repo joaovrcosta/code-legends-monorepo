@@ -117,7 +117,7 @@ export function ChallengeFeedbackPanel({
                   </p>
                 ) : xpAward.state === 'earned' ? (
                   <p className="text-[17px] font-bold leading-tight tracking-tight text-white">
-                    <span className="font-semibold text-white/80">Ganhaste </span>
+                    <span className="font-semibold text-white/80">Você ganhou! </span>
                     <span className="text-orange-400">+</span>
                     <CompactNumber
                       key={xpAward.amount}
@@ -214,7 +214,7 @@ export function ChallengeFeedbackPanel({
                     </p>
                   ) : xpAward.state === 'earned' ? (
                     <p className="text-[17px] font-bold leading-tight tracking-tight text-white">
-                      <span className="font-semibold text-white/80">Ganhaste </span>
+                      <span className="font-semibold text-white/80">Você ganhou! </span>
                       <span className="text-orange-400">+</span>
                       <CompactNumber
                         key={xpAward.amount}
