@@ -27,6 +27,7 @@
   "packageManager": "pnpm@9.15.9",
   "pnpm": {
     "overrides": {
+      "@next/bundle-analyzer>next": "15.2.8",
       "zod": "3.21.4",
       "glob": "^11.0.0",
       "inflight": "^1.0.6",
