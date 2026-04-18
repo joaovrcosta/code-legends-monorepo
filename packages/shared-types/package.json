@@ -2,11 +2,20 @@
     "name": "@code-legends/shared-types",
     "version": "1.0.0",
     "main": "./dist/index.js",
-    "types": "./src/index.ts",
+    "types": "./dist/index.d.ts",
     "exports": {
-        ".": "./src/index.ts"
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "require": "./dist/index.js",
+            "default": "./dist/index.js"
+        }
     },
+    "files": [
+        "dist"
+    ],
     "scripts": {
+        "build": "tsc",
         "type-check": "tsc --noEmit"
     },
     "dependencies": {

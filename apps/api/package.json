@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "prisma generate && tsx watch src/server.ts",
-    "build": "prisma generate && tsup src",
+    "build:shared-types": "pnpm --filter @code-legends/shared-types run build",
+    "build": "prisma generate && pnpm run build:shared-types && tsup src",
     "start": "node dist/server.js",
     "test": "vitest run --dir src/use-cases",
     "test:watch": "vitest --dir src/use-cases",
