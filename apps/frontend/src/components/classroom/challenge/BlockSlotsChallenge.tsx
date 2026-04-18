@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Challenge } from '@/types/roadmap'
+import { playPieceClickSound } from '@/lib/play-piece-click'
 import { Check, X, ArrowRight, Eye } from '@phosphor-icons/react/dist/ssr'
 
 const CodeBlockHighlighter = dynamic(
@@ -221,7 +222,10 @@ export function BlockSlotsChallenge({
               type="button"
               disabled={submitted}
               onClick={() => {
-                if (slotId != null) clearFromSlot(i)
+                if (slotId != null) {
+                  playPieceClickSound()
+                  clearFromSlot(i)
+                }
               }}
               className={`flex min-h-[44px] items-center gap-3 rounded-[10px] border px-3 py-2 text-left transition-colors ${slotId == null
                 ? 'border-dashed border-[#3f3f47] bg-[#0d0d0f]/80'
@@ -252,7 +256,12 @@ export function BlockSlotsChallenge({
               key={id}
               type="button"
               disabled={submitted}
-              onClick={() => placeFromBank(id)}
+              onClick={() => {
+                if (!submitted && slots.some((s) => s == null)) {
+                  playPieceClickSound()
+                }
+                placeFromBank(id)
+              }}
               className="
           relative rounded-full
           border-2 border-[#d9d9de]
