@@ -185,7 +185,7 @@ export function QuizView({
             </>
           ) : !useMultiFlow ? (
             /* Quiz comum: todas as questões, repetir à vontade; sem botão "Marcar como concluído" */
-            <div className="flex flex-col gap-2">
+            <div className="relative flex flex-col gap-2">
               {challenges.map((challenge, i) => (
                 <ChallengeBlock key={i} challenge={challenge} index={i} />
               ))}
@@ -227,7 +227,7 @@ export function QuizView({
             </div>
           ) : (
             /* Uma questão por vez */
-            <div className="flex flex-col gap-2">
+            <div className="relative flex flex-col gap-2">
               {total > 1 && (
                 <p className="text-xs text-[#71717a] mb-1">
                   Questão {currentIndex + 1} de {total}

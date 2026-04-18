@@ -6,7 +6,12 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Challenge } from '@/types/roadmap'
 import { playPieceClickSound } from '@/lib/play-piece-click'
-import { Check, X, ArrowRight, Eye } from '@phosphor-icons/react/dist/ssr'
+import { playCorrectChime, playWrongTamTamm } from '@/lib/play-correct-chime'
+import {
+  ChallengeFeedbackPanel,
+  useIsDesktopChallengeLayout,
+} from '@/components/classroom/challenge/challenge-feedback-panel'
+import { ArrowRight, Eye } from '@phosphor-icons/react/dist/ssr'
 
 const CodeBlockHighlighter = dynamic(
   () =>
@@ -106,7 +111,9 @@ export function BlockSlotsChallenge({
 
   const [submitted, setSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
+  const [feedbackDismissed, setFeedbackDismissed] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
+  const isDesktopLayout = useIsDesktopChallengeLayout()
 
   const usedIds = useMemo(
     () => new Set(slots.filter((s): s is string => s != null)),
@@ -148,8 +155,11 @@ export function BlockSlotsChallenge({
     if (submitted || !targetSolution) return
     if (slots.some((s) => s == null)) return
     const correct = arraysEqual(targetSolution, slots as string[])
+    if (correct) playCorrectChime()
+    else playWrongTamTamm()
     setIsCorrect(correct)
     setSubmitted(true)
+    setFeedbackDismissed(false)
     onAnswer?.(correct)
   }, [submitted, targetSolution, slots, onAnswer])
 
@@ -159,6 +169,7 @@ export function BlockSlotsChallenge({
     setBankOrder(shuffleIds([...new Set(challenge.pieces?.map((p) => p.id) ?? [])]))
     setSubmitted(false)
     setIsCorrect(null)
+    setFeedbackDismissed(false)
     setShowExplanation(false)
   }, [targetSolution, challenge.pieces])
 
@@ -176,8 +187,15 @@ export function BlockSlotsChallenge({
 
   const allFilled = !slots.some((s) => s == null)
 
+  const feedbackVisible =
+    submitted && (isCorrect === true || isCorrect === false) && !feedbackDismissed
+  const hasExplanation = Boolean(challenge.explanation?.trim())
+  const wrongMessage =
+    'A ordem dos blocos não corresponde à solução esperada. Ajuste as ranhuras ou veja a resposta.'
+  const okMessage = 'Perfeito! A sequência de comandos está correta.'
+
   return (
-    <div className="my-6 rounded-[16px] border border-[#25252A] bg-[#0d0d0f] overflow-hidden">
+    <div className="relative my-6 rounded-[16px] border border-[#25252A] bg-[#0d0d0f] overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-3 border-b border-[#25252A] bg-surface">
         <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[#2d1a3e] text-[#c084fc] border-[#6b21a8]">
           Encaixar comandos
@@ -284,32 +302,18 @@ export function BlockSlotsChallenge({
         </div>
       </div>
 
-      {submitted && isCorrect !== null && (
-        <div
-          className={`mx-5 mb-4 flex items-center gap-2 rounded-[10px] border px-4 py-3 text-sm font-medium ${isCorrect
-            ? 'border-[#4ade80] bg-[#1a2e1a] text-[#4ade80]'
-            : 'border-[#f87171] bg-[#3b1515] text-[#f87171]'
-            }`}
-        >
-          {isCorrect ? (
-            <Check weight="bold" size={16} />
-          ) : (
-            <X weight="bold" size={16} />
-          )}
-          {isCorrect ? 'Correto!' : 'Não foi dessa vez...'}
-        </div>
-      )}
-
       {submitted && challenge.explanation && (
         <div className="px-5 pb-5">
           {!showExplanation ? (
-            <button
-              type="button"
-              onClick={() => setShowExplanation(true)}
-              className="flex items-center gap-1.5 text-xs text-[#71717a] hover:text-[#a1a1aa] transition-colors"
-            >
-              <Eye size={14} /> Ver explicação
-            </button>
+            feedbackDismissed ? (
+              <button
+                type="button"
+                onClick={() => setShowExplanation(true)}
+                className="flex items-center gap-1.5 text-xs text-[#71717a] hover:text-[#a1a1aa] transition-colors"
+              >
+                <Eye size={14} /> Ver explicação
+              </button>
+            ) : null
           ) : (
             <div className="rounded-[10px] border border-[#25252A] bg-surface px-4 py-3 text-sm text-[#a1a1aa] leading-relaxed">
               <p className="text-xs font-semibold text-[#71717a] mb-1 uppercase tracking-wide">
@@ -349,28 +353,47 @@ export function BlockSlotsChallenge({
             type="button"
             onClick={handleSubmit}
             disabled={!allFilled}
-            className="mt-8 flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-blue-gradient-500 px-5 py-2 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 lg:mt-4 lg:w-[220px]"
+            className="font-wotfard mt-8 flex h-[38px] w-full items-center justify-center gap-2 rounded-full bg-[#00b3e4] px-5 py-2 text-base font-semibold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 lg:mt-4 lg:w-[115px]"
           >
-            Verificar <ArrowRight weight="bold" size={14} />
+            Verificar
           </button>
-        ) : onNext ? (
-          <button
-            type="button"
-            onClick={onNext}
-            className="flex items-center gap-2 rounded-full bg-[#00b3e4] px-5 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90"
-          >
-            Próxima <ArrowRight weight="bold" size={14} />
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handleReset}
-            className="flex items-center gap-2 rounded-full border border-[#25252A] px-5 py-2 text-sm font-medium text-[#a1a1aa] transition-colors hover:border-[#3f3f47] hover:text-white"
-          >
-            Tentar novamente
-          </button>
-        )}
+        ) : feedbackDismissed ? (
+          onNext ? (
+            <button
+              type="button"
+              onClick={onNext}
+              className="flex items-center gap-2 rounded-full bg-[#00b3e4] px-5 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90"
+            >
+              Próxima <ArrowRight weight="bold" size={14} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="flex items-center gap-2 rounded-full border border-[#25252A] px-5 py-2 text-sm font-medium text-[#a1a1aa] transition-colors hover:border-[#3f3f47] hover:text-white"
+            >
+              Tentar novamente
+            </button>
+          )
+        ) : null}
       </div>
+
+      <ChallengeFeedbackPanel
+        open={feedbackVisible}
+        isCorrect={isCorrect === true}
+        isDesktopLayout={isDesktopLayout}
+        hasExplanation={hasExplanation}
+        wrongMessage={wrongMessage}
+        okMessage={okMessage}
+        onDismiss={() => setFeedbackDismissed(true)}
+        onTryAgain={handleReset}
+        onSeeAnswer={() => {
+          setShowExplanation(true)
+          setFeedbackDismissed(true)
+        }}
+        onContinue={() => setFeedbackDismissed(true)}
+        onNext={onNext}
+      />
     </div>
   )
 }
