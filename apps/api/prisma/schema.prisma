@@ -79,36 +79,35 @@ model Plan {
 }
 
 model User {
-  id                  String        @id @default(cuid())
-  email               String        @unique
-  name                String
-  password            String?
-  googleId            String?       @unique
-  avatar              String?
-  slug                String?       @unique
-  bio                 String?
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-  birth_date          DateTime?
-  born_in             String?
-  document            String?
-  foreign_phone       String?
-  fullname            String?
-  gender              String?
-  marital_status      MaritalStatus @default(SINGLE)
-  role                Role          @default(STUDENT)
-  plan                UserPlan      @default(FREE)
-  occupation          String?
-  phone               String?
-  rg                  String?
-  onboardingCompleted Boolean       @default(false)
-  onboardingGoal      String?
-  onboardingCareer    String?
-  totalXp             Int           @default(0)
-  level               Int           @default(1)
-  xpToNextLevel       Int           @default(100)
-  lastLogin           DateTime?
-  /// Último Payment.id para o qual o modal pós-compra já foi confirmado (evita repetir entre dispositivos).
+  id                              String        @id @default(cuid())
+  email                           String        @unique
+  name                            String
+  password                        String?
+  googleId                        String?       @unique
+  avatar                          String?
+  slug                            String?       @unique
+  bio                             String?
+  createdAt                       DateTime      @default(now())
+  updatedAt                       DateTime      @updatedAt
+  birth_date                      DateTime?
+  born_in                         String?
+  document                        String?
+  foreign_phone                   String?
+  fullname                        String?
+  gender                          String?
+  marital_status                  MaritalStatus @default(SINGLE)
+  role                            Role          @default(STUDENT)
+  plan                            UserPlan      @default(FREE)
+  occupation                      String?
+  phone                           String?
+  rg                              String?
+  onboardingCompleted             Boolean       @default(false)
+  onboardingGoal                  String?
+  onboardingCareer                String?
+  totalXp                         Int           @default(0)
+  level                           Int           @default(1)
+  xpToNextLevel                   Int           @default(100)
+  lastLogin                       DateTime?
   postPurchaseWelcomeAckPaymentId String?
 
   expertise Expertise[] @relation("UserToExpertise")
@@ -592,6 +591,7 @@ model Payment {
   @@index([userId])
   @@index([status])
   @@index([gatewayPaymentId])
+  @@index([userId, status, createdAt(sort: Desc)])
 }
 
 model Subscription {

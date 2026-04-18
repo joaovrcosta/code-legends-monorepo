@@ -2,8 +2,12 @@
 
 import { getAuthToken } from "@/actions/auth/session";
 
+export type PostPurchaseWelcomeReason = "no_payment" | "already_acked";
+
 export type PostPurchaseWelcomeResponse = {
+  showModal?: boolean;
   showPostPurchaseWelcome: boolean;
+  reason: PostPurchaseWelcomeReason | null;
   paymentId: string | null;
   kind: "subscription" | "course" | "generic" | null;
   planSlug: string | null;

@@ -8,6 +8,7 @@ import { UserProfiler } from '@/components/home/user-profiler'
 import { CurrentCourses } from '@/components/home/current-courses'
 import { RecommendationsCarousel } from '@/components/home/recommendations-carousel'
 import { HomePageWrapper } from '@/components/home/home-page-wrapper'
+import { PostPaymentWelcomeGate } from '@/components/providers/post-payment-welcome-gate'
 import { Flame } from '@phosphor-icons/react/ssr'
 
 export const metadata: Metadata = {
@@ -21,7 +22,8 @@ export default async function Home() {
   const enrolledCoursesData = await getUserEnrolledList()
 
   return (
-    <HomePageWrapper initialUserCourses={enrolledCoursesData.userCourses || []}>
+    <>
+      <HomePageWrapper initialUserCourses={enrolledCoursesData.userCourses || []}>
       <div className="w-full lg:p-6 xl:pt-8 pt-6 pl-6 pr-0 pb-6">
         <div className="flex flex-col lg:flex-row max-w-[1420px] pb-10 gap-8 md:gap-10 mx-auto">
           <div className="flex-1 flex flex-col items-start min-w-0">
@@ -81,6 +83,8 @@ export default async function Home() {
           </div>
         </div>
       </div>
-    </HomePageWrapper>
+      </HomePageWrapper>
+      <PostPaymentWelcomeGate />
+    </>
   )
 }

@@ -6,12 +6,17 @@ import { UserNotFoundError } from "../../errors/user-not-found";
 
 export type PostPurchaseWelcomeKind = "subscription" | "course" | "generic";
 
+export type PostPurchaseWelcomeReason = "no_payment" | "already_acked";
+
 interface GetPostPurchaseWelcomeRequestDTO {
   userId: string;
 }
 
 export interface GetPostPurchaseWelcomeResponse {
+  /** Alias determinístico; igual a `showPostPurchaseWelcome`. */
+  showModal: boolean;
   showPostPurchaseWelcome: boolean;
+  reason: PostPurchaseWelcomeReason | null;
   paymentId: string | null;
   kind: PostPurchaseWelcomeKind | null;
   planSlug: string | null;
@@ -22,6 +27,26 @@ export interface GetPostPurchaseWelcomeResponse {
   endsAt: string | null;
   title: string | null;
   subtitle: string | null;
+}
+
+function emptyResponse(
+  reason: PostPurchaseWelcomeReason
+): GetPostPurchaseWelcomeResponse {
+  return {
+    showModal: false,
+    showPostPurchaseWelcome: false,
+    reason,
+    paymentId: null,
+    kind: null,
+    planSlug: null,
+    planName: null,
+    planImageUrl: null,
+    planColorHex: null,
+    subscriptionId: null,
+    endsAt: null,
+    title: null,
+    subtitle: null,
+  };
 }
 
 export class GetPostPurchaseWelcomeUseCase {
@@ -46,23 +71,13 @@ export class GetPostPurchaseWelcomeUseCase {
     );
 
     if (!latestPaid) {
-      return {
-        showPostPurchaseWelcome: false,
-        paymentId: null,
-        kind: null,
-        planSlug: null,
-        planName: null,
-        planImageUrl: null,
-        planColorHex: null,
-        subscriptionId: null,
-        endsAt: null,
-        title: null,
-        subtitle: null,
-      };
+      return emptyResponse("no_payment");
     }
 
-    const showPostPurchaseWelcome =
-      latestPaid.id !== (user.postPurchaseWelcomeAckPaymentId ?? null);
+    const ackId = user.postPurchaseWelcomeAckPaymentId ?? null;
+    if (latestPaid.id === ackId) {
+      return emptyResponse("already_acked");
+    }
 
     const metadata = (latestPaid.metadata ?? null) as Record<
       string,
@@ -108,7 +123,9 @@ export class GetPostPurchaseWelcomeUseCase {
     }
 
     return {
-      showPostPurchaseWelcome,
+      showModal: true,
+      showPostPurchaseWelcome: true,
+      reason: null,
       paymentId: latestPaid.id,
       kind,
       planSlug,

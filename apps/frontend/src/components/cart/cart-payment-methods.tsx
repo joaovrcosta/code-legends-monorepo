@@ -57,6 +57,7 @@ export function CartPayWithCardButton({ planSlug }: { planSlug: string }) {
         completionUrl: `${origin}/`,
       });
       if (result?.success && result.checkoutUrl) {
+        sessionStorage.setItem("cl_pending_welcome", "1");
         window.location.href = result.checkoutUrl;
         return;
       }

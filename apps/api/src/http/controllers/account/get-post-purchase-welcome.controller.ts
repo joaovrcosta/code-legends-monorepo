@@ -2,7 +2,10 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { makeGetPostPurchaseWelcomeUseCase } from "../../../utils/factories/make-get-post-purchase-welcome-use-case";
 import { UserNotFoundError } from "../../../use-cases/errors/user-not-found";
 
-export type { PostPurchaseWelcomeKind } from "../../../use-cases/entities/Account/get-post-purchase-welcome";
+export type {
+  PostPurchaseWelcomeKind,
+  PostPurchaseWelcomeReason,
+} from "../../../use-cases/entities/Account/get-post-purchase-welcome";
 
 export async function getPostPurchaseWelcome(
   request: FastifyRequest,

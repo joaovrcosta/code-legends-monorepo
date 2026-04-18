@@ -23,14 +23,6 @@ const WelcomePaidModal = dynamic(
   { ssr: false },
 );
 
-const PostPaymentWelcomeGate = dynamic(
-  () =>
-    import("@/components/providers/post-payment-welcome-gate").then(
-      (m) => m.PostPaymentWelcomeGate,
-    ),
-  { ssr: false },
-);
-
 interface ProvidersProps {
   children: React.ReactNode;
   session: ProvidersSession;
@@ -43,7 +35,6 @@ export function Providers({ children, session }: ProvidersProps) {
       <Toaster />
       <StreakCongratsModal />
       <WelcomePaidModal />
-      <PostPaymentWelcomeGate />
     </SessionProvider>
   );
 }
