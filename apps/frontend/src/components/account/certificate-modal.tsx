@@ -13,8 +13,9 @@ import { X, Copy, Download } from "lucide-react";
 import { getCurrentUser } from "@/actions/user/get-current-user";
 import type { User } from "@/types/user";
 import type { CompletedCourse } from "@/types/user-course.ts";
-import jsPDF from "jspdf";
 import NextImage from "next/image";
+
+type JsPDFDoc = InstanceType<(typeof import("jspdf"))["default"]>;
 import { Dancing_Script } from "next/font/google";
 import codeLegendsLogo from "../../../public/code-legends-logo.svg";
 
@@ -76,7 +77,7 @@ async function loadLogoPngDataUrlForPdf(): Promise<string | null> {
 }
 
 async function loadFontIntoPdf(
-  doc: InstanceType<typeof jsPDF>,
+  doc: JsPDFDoc,
   urls: string[],
   vfsName: string,
   family: string,
@@ -98,7 +99,7 @@ async function loadFontIntoPdf(
 }
 
 async function registerPoppinsFonts(
-  doc: InstanceType<typeof jsPDF>
+  doc: JsPDFDoc
 ): Promise<{ regular: boolean; bold: boolean }> {
   const regular = await loadFontIntoPdf(
     doc,
@@ -118,7 +119,7 @@ async function registerPoppinsFonts(
 }
 
 function setPdfFontPoppinsBoldOrFallback(
-  doc: InstanceType<typeof jsPDF>,
+  doc: JsPDFDoc,
   poppins: { regular: boolean; bold: boolean }
 ) {
   if (poppins.bold) {
@@ -131,7 +132,7 @@ function setPdfFontPoppinsBoldOrFallback(
 }
 
 async function registerSignatureCursiveFont(
-  doc: InstanceType<typeof jsPDF>
+  doc: JsPDFDoc
 ): Promise<boolean> {
   return loadFontIntoPdf(
     doc,
@@ -143,7 +144,7 @@ async function registerSignatureCursiveFont(
 }
 
 function setPdfFontSignatureCursive(
-  doc: InstanceType<typeof jsPDF>,
+  doc: JsPDFDoc,
   hasSignatureFont: boolean
 ) {
   if (hasSignatureFont) {
@@ -155,7 +156,7 @@ function setPdfFontSignatureCursive(
 
 
 function drawPdfGrayGradientBackground(
-  doc: InstanceType<typeof jsPDF>,
+  doc: JsPDFDoc,
   widthMm: number,
   heightMm: number,
   steps = 180 // 🔥 aumenta resolução do gradient
@@ -247,7 +248,8 @@ export function CertificateModal({
 
 
     try {
-      const doc = new jsPDF({
+      const { default: JsPDF } = await import("jspdf");
+      const doc = new JsPDF({
         orientation: "landscape",
         unit: "mm",
         format: "a4",

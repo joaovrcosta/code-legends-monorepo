@@ -1,22 +1,17 @@
 import './globals.css'
 import localFont from 'next/font/local'
-import { Poppins, Inter, Instrument_Sans } from 'next/font/google'
-import { Providers } from '@/components/providers/session-provider'
-import { ConditionalAppShell } from '@/components/layout/conditional-app-shell'
-import { getActiveCourse } from '@/actions/user/get-active-course'
-import { getUserEnrolledList } from '@/actions/progress'
+import { Poppins, Instrument_Sans } from 'next/font/google'
+import { Suspense } from 'react'
+import { Providers, type ProvidersSession } from '@/components/providers/session-provider'
+import { AppShellWithData } from '@/components/layout/app-shell-with-data'
+import { AppShellStreamingFallback } from '@/components/layout/app-shell-streaming-fallback'
+import { auth } from '@/auth/authSetup'
 import type { Metadata } from 'next'
 
 const poppins = Poppins({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '600', '700'],
   variable: '--font-poppins',
-})
-
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-inter',
 })
 
 const instrumentSans = Instrument_Sans({
@@ -46,25 +41,20 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  // Busca os dados necessários para o AppShell
-  const [enrolledCoursesData, activeCourse] = await Promise.all([
-    getUserEnrolledList(),
-    getActiveCourse(),
-  ])
+  const session = (await auth()) as ProvidersSession
 
   return (
     <html
       lang="pt-BR"
-      className={`${poppins.variable} ${inter.variable} ${instrumentSans.variable} ${wotfard.variable}`}
+      className={`${poppins.variable} ${instrumentSans.variable} ${wotfard.variable}`}
     >
       <body className="font-instrumentSans antialiased">
-        <Providers>
-          <ConditionalAppShell
-            initialUserCourses={enrolledCoursesData.userCourses || []}
-            initialActiveCourse={activeCourse}
+        <Providers session={session}>
+          <Suspense
+            fallback={<AppShellStreamingFallback>{children}</AppShellStreamingFallback>}
           >
-            {children}
-          </ConditionalAppShell>
+            <AppShellWithData>{children}</AppShellWithData>
+          </Suspense>
         </Providers>
       </body>
     </html>

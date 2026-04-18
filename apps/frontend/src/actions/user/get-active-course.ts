@@ -1,5 +1,6 @@
 "use server";
 
+import { cache } from "react";
 import { getAuthToken } from "../auth/session";
 import type {
   ActiveCourseResponse,
@@ -7,9 +8,10 @@ import type {
 } from "@/types/user-course.ts";
 
 /**
- * Busca o curso ativo do usuário logado
+ * Busca o curso ativo do usuário logado.
+ * Deduplicada por requisição via React.cache.
  */
-export async function getActiveCourse(): Promise<ActiveCourse | null> {
+export const getActiveCourse = cache(async function getActiveCourse(): Promise<ActiveCourse | null> {
   try {
     const token = await getAuthToken();
 
@@ -55,4 +57,4 @@ export async function getActiveCourse(): Promise<ActiveCourse | null> {
     console.error("Erro ao buscar curso ativo:", error);
     return null;
   }
-}
+});

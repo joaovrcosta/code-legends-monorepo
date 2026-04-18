@@ -10,8 +10,6 @@ import { RecommendationsCarousel } from '@/components/home/recommendations-carou
 import { HomePageWrapper } from '@/components/home/home-page-wrapper'
 import { Flame } from '@phosphor-icons/react/ssr'
 
-export const dynamic = 'force-dynamic'
-
 export const metadata: Metadata = {
   title: 'Início - Code Legends',
   description:
@@ -19,18 +17,14 @@ export const metadata: Metadata = {
 }
 
 export default async function Home() {
-  const [courses, enrolledCoursesData] = await Promise.all([
-    listCourses(),
-    getUserEnrolledList(),
-  ])
+  const courses = await listCourses()
+  const enrolledCoursesData = await getUserEnrolledList()
 
   return (
     <HomePageWrapper initialUserCourses={enrolledCoursesData.userCourses || []}>
       <div className="w-full lg:p-6 xl:pt-8 pt-6 pl-6 pr-0 pb-6">
         <div className="flex flex-col lg:flex-row max-w-[1420px] pb-10 gap-8 md:gap-10 mx-auto">
-          {/* Conteúdo principal - Esquerda */}
           <div className="flex-1 flex flex-col items-start min-w-0">
-            {/* Seus cursos e Catálogo */}
             <div className="w-full">
               <div className="flex items-center space-x-2 pb-4 pt-0">
                 <span className="text-muted-foreground text-[14px] font-semibold">
@@ -45,7 +39,6 @@ export default async function Home() {
                 <CurrentCourses />
               </div>
 
-              {/* UserProfiler - Mobile: aparece aqui, Desktop: hidden */}
               <div className="lg:hidden w-full pr-6 lg:mt-6 mt-12">
                 <UserProfiler />
               </div>
@@ -83,7 +76,6 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* UserProfiler - Desktop: aparece aqui, Mobile: hidden */}
           <div className="hidden lg:block flex-shrink-0">
             <UserProfiler />
           </div>

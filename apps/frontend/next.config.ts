@@ -1,14 +1,19 @@
 import type { NextConfig } from "next";
 import path from "path";
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@code-legends/shared-types"],
   images: {
-    domains: [
-      "github.com",
-      "raw.githubusercontent.com",
-      "xesque.rocketseat.dev",
-      "lh3.googleusercontent.com",
+    remotePatterns: [
+      { protocol: "https", hostname: "github.com", pathname: "/**" },
+      { protocol: "https", hostname: "raw.githubusercontent.com", pathname: "/**" },
+      { protocol: "https", hostname: "xesque.rocketseat.dev", pathname: "/**" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
     ],
   },
   webpack: (config, { isServer }) => {
@@ -27,4 +32,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

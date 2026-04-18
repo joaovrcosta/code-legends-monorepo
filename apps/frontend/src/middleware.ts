@@ -40,34 +40,6 @@ export default auth(
       pathname.startsWith(route)
     );
 
-    if (
-      isLoggedIn &&
-      (pathname === "/learn" || pathname === "/") &&
-      !onboardingCompleted
-    ) {
-      const accessToken = (session as { accessToken?: string })?.accessToken;
-      if (accessToken) {
-        try {
-          const userResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333"}/me`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-              cache: "no-store",
-            }
-          );
-
-          if (userResponse.ok) {
-            const userData = await userResponse.json();
-            onboardingCompleted = userData.user?.onboardingCompleted ?? false;
-          }
-        } catch (error) {
-          console.error("Erro ao verificar onboarding no middleware:", error);
-        }
-      }
-    }
-
     if (isLoggedIn && (pathname === "/login" || pathname === "/signup")) {
       if (!onboardingCompleted) {
         return NextResponse.redirect(new URL("/onboarding", req.url));

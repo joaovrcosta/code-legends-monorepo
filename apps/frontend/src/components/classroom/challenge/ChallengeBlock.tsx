@@ -44,7 +44,7 @@ function checkAnswer(challenge: Challenge, answer: string): boolean {
   return false
 }
 
-interface ChallengeBlockProps {
+export interface ChallengeBlockProps {
   challenge: Challenge
   index?: number
   /** Lição atual (com `challengeXpSlotIndex`) para ganhar XP só na primeira vez que acerta o desafio. */

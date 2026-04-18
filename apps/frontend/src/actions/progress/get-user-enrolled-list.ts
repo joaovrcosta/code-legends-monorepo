@@ -1,12 +1,14 @@
 "use server";
 
+import { cache } from "react";
 import { getAuthToken } from "../auth/session";
 import type { UserEnrolledListResponse } from "@/types/user-course.ts";
 
 /**
- * Busca a lista de cursos nos quais o usuário está inscrito (enrolled)
+ * Busca a lista de cursos nos quais o usuário está inscrito (enrolled).
+ * Deduplicada por requisição (layout + páginas + listCourses) via React.cache.
  */
-export async function getUserEnrolledList(): Promise<UserEnrolledListResponse> {
+export const getUserEnrolledList = cache(async function getUserEnrolledList(): Promise<UserEnrolledListResponse> {
   try {
     const token = await getAuthToken();
 
@@ -50,4 +52,4 @@ export async function getUserEnrolledList(): Promise<UserEnrolledListResponse> {
       ? error
       : new Error("Erro ao buscar cursos inscritos");
   }
-}
+});
