@@ -12,6 +12,12 @@ import {
 
 const SAO_PAULO_TZ = 'America/Sao_Paulo'
 
+/** Últimos N dias corridos (fim = hoje em SP), alinhado a GET /me/activity/lessons?days=N */
+const STRIKE_ACTIVITY_WINDOW_DAYS = 5
+
+/** Letras dos dias (Dom..Sáb) — mesma ordem que weekdayIdxInTZ */
+const WEEKDAY_LETTERS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'] as const
+
 function formatYYYYMMDDInTZ(date: Date, timeZone: string) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone,
@@ -119,10 +125,13 @@ export function StrikeSection({
         cache: 'no-store',
         headers: { Authorization: `Bearer ${token}` },
       }).then(async (r) => (r.ok ? ((await r.json()) as StreakState) : null)),
-      fetch(`${baseUrl}/me/activity/lessons?days=7`, {
-        cache: 'no-store',
-        headers: { Authorization: `Bearer ${token}` },
-      }).then(async (r) =>
+      fetch(
+        `${baseUrl}/me/activity/lessons?days=${STRIKE_ACTIVITY_WINDOW_DAYS}`,
+        {
+          cache: 'no-store',
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      ).then(async (r) =>
         r.ok ? ((await r.json()) as LessonActivityResponse) : null,
       ),
     ])
@@ -134,10 +143,6 @@ export function StrikeSection({
             best: streakData.best ?? 0,
             totalActiveDays: streakData.totalActiveDays ?? 0,
           })
-        }
-        if ((streakData?.current ?? 0) === 0) {
-          setWeekly([])
-          return
         }
         if (activityData?.days) {
           setWeekly(activityData.days)
@@ -153,7 +158,7 @@ export function StrikeSection({
     initialCurrent,
     initialBest,
     initialTotalActiveDays,
-    session,
+    (session as unknown as { accessToken?: string } | null)?.accessToken,
     status,
   ])
 
@@ -171,11 +176,6 @@ export function StrikeSection({
         best: custom.detail.best ?? 0,
         totalActiveDays: custom.detail.totalActiveDays ?? 0,
       })
-
-      if ((custom.detail.current ?? 0) === 0) {
-        setWeekly([])
-        return
-      }
 
       // Otimização: marca o dia de hoje como ativo sem precisar refetch.
       const todayKey = formatYYYYMMDDInTZ(new Date(), SAO_PAULO_TZ)
@@ -201,18 +201,23 @@ export function StrikeSection({
 
     const todayKey = formatYYYYMMDDInTZ(new Date(), SAO_PAULO_TZ)
     const todayNoonUTC = addDaysUTCNoon(new Date(), 0)
-    const todayWIdx = weekdayIdxInTZ(todayNoonUTC, SAO_PAULO_TZ) ?? 0
 
-    // Semana atual (Dom..Sáb) no fuso SP
-    const startOfWeekNoonUTC = addDaysUTCNoon(todayNoonUTC, -todayWIdx)
-    const days = Array.from({ length: 7 }, (_, i) => {
-      const date = addDaysUTCNoon(startOfWeekNoonUTC, i)
+    // Mesma janela que a API: últimos N dias (STRIKE_ACTIVITY_WINDOW_DAYS) terminando hoje (SP)
+    const days = Array.from({ length: STRIKE_ACTIVITY_WINDOW_DAYS }, (_, i) => {
+      const date = addDaysUTCNoon(
+        todayNoonUTC,
+        -(STRIKE_ACTIVITY_WINDOW_DAYS - 1 - i),
+      )
       const key = formatYYYYMMDDInTZ(date, SAO_PAULO_TZ) ?? ''
-      return { date: key, count: map.get(key) ?? 0 }
+      const wIdx = weekdayIdxInTZ(date, SAO_PAULO_TZ) ?? 0
+      const label = WEEKDAY_LETTERS[wIdx] ?? '?'
+      return { date: key, count: map.get(key) ?? 0, label }
     })
 
     const activeDays = days.reduce((acc, d) => acc + (d.count > 0 ? 1 : 0), 0)
-    const percent = Math.round((activeDays / 7) * 100)
+    const percent = Math.round(
+      (activeDays / STRIKE_ACTIVITY_WINDOW_DAYS) * 100,
+    )
     return { days, todayKey, percent }
   }, [weekly])
 
@@ -335,13 +340,13 @@ export function StrikeSection({
 
             <div className="mt-6 bg-[#25252A]/30 rounded-[20px] p-4">
               <div className="flex items-center justify-between mb-6">
-                {(['D', 'S', 'T', 'Q', 'Q', 'S', 'S'] as const).map((label, idx) => {
-                  const day = weeklyView.days[idx]
+                {weeklyView.days.map((day, idx) => {
+                  const label = day.label
                   const isToday =
                     weeklyView.todayKey != null && day.date === weeklyView.todayKey
                   const isActive = day.count > 0
                   return (
-                    <div key={idx} className="flex flex-col items-center">
+                    <div key={day.date || idx} className="flex flex-col items-center">
                       <span className="text-xs text-[#C4C4CC] mb-2">{label}</span>
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isActive ? 'bg-lime-streak' : 'bg-[#25252A]'
