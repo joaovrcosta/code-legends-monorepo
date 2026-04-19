@@ -283,30 +283,64 @@ export function SkillStatsOverview() {
     return (
       <TooltipProvider delayDuration={300}>
         <div className="font-wotfard rounded-2xl px-5 py-5 lg:px-6 lg:py-6 space-y-8">
-          <div className="space-y-6">
-            <Skeleton className="h-6 w-64" />
-            <div className="flex items-center gap-4 py-4">
-              <Skeleton className="h-16 w-16 rounded-full shrink-0" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-3 w-20" />
+          {/* Hero — alinhado ao Koji + frase de celebração */}
+          <div className="flex flex-col items-center space-y-6">
+            <Skeleton className="h-[240px] w-[240px] rounded-[28px] shrink-0" />
+            <Skeleton className="h-8 w-56 max-w-[90vw] rounded-md" />
+          </div>
+
+          {/* Bloco Total XP (tempo de estudo comentado no layout real) */}
+          <div className="flex flex-row items-center justify-center gap-4 rounded-2xl py-4 px-4">
+            <div className="flex flex-col items-center gap-2">
+              <Skeleton className="h-2.5 w-24 rounded-full" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-10 w-28 rounded-md" />
+                <Skeleton className="h-5 w-3 rounded-sm" />
               </div>
             </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full max-w-md" />
-              <Skeleton className="h-4 w-3/4 max-w-sm" />
-            </div>
           </div>
-          <div className="space-y-6 w-full pt-4 border-t border-[#1f2933]/50">
-            <div className="rounded-xl py-6 px-6 space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <Skeleton className="h-5 w-40 shrink-0" />
-                  <Skeleton className="h-[18px] flex-1 rounded-full" />
-                  <Skeleton className="h-5 w-24 shrink-0" />
+
+          <div className="flex justify-center px-2">
+            <Skeleton className="h-4 w-72 max-w-full rounded-full" />
+          </div>
+
+          {/* Skills — mesma grelha larga + colunas w-72 / barra / w-48 */}
+          <div className="w-full space-y-6 border-t border-[#1f2933]/50 pt-4">
+            <div className="overflow-hidden rounded-xl py-6">
+              <div className="w-full overflow-x-auto">
+                <div className="min-w-[720px]">
+                  <div className="flex px-6 pr-6">
+                    <div className="w-72 shrink-0" />
+                    <div className="relative flex flex-1 justify-between pb-2">
+                      <Skeleton className="h-4 w-6 rounded" />
+                      <Skeleton className="h-4 w-10 rounded" />
+                      <Skeleton className="h-4 w-10 rounded" />
+                    </div>
+                    <div className="w-48 shrink-0" />
+                  </div>
+                  <div className="mt-2 flex flex-col">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        className={`flex items-center px-6 py-4 ${i % 2 === 0 ? '' : 'bg-white/[0.02]'}`}
+                      >
+                        <div className="flex w-72 shrink-0 items-center gap-3 pr-3">
+                          <Skeleton className="h-9 w-9 shrink-0 rounded-md" />
+                          <Skeleton className="h-5 flex-1 max-w-[9rem] rounded-md" />
+                        </div>
+                        <div className="flex flex-1 items-center py-2 pr-4">
+                          <Skeleton className="h-[18px] w-full rounded-full" />
+                        </div>
+                        <div className="flex w-48 shrink-0 items-center justify-end gap-2">
+                          <Skeleton className="h-4 w-16 rounded" />
+                          <Skeleton className="h-4 w-4 rounded-sm" />
+                          <Skeleton className="h-4 w-20 rounded" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </div>
@@ -339,7 +373,7 @@ export function SkillStatsOverview() {
               <span className="text-[10px] uppercase tracking-[0.2em] text-[#7e7e89] whitespace-nowrap">Total XP</span>
               <div className="font-semibold mt-1 flex flex-row items-center gap-2 text-4xl">
                 <span className="text-white bg-clip-text text-transparent whitespace-nowrap">
-                  <CompactNumber value={xpTotalDisplay} enableCountUp />
+                  <CompactNumber value={xpTotalDisplay} enableCountUp countUpDuration={4.5} />
                 </span>
                 <Image src="/xp-icon.svg" alt="XP" width={11} height={20} />
               </div>
