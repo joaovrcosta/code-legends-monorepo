@@ -7,15 +7,13 @@ import { useCourseModalStore } from '@/stores/course-modal-store'
 import { getCourseSkillsProgress } from '@/actions/course'
 import type { CourseSkillsProgressResponse } from '@/actions/course/skills-progress'
 import { SkillModuleProgressBar } from '@/components/classroom/skill-module-progress-bar'
-import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { CompactNumber } from '@/components/ui/compact-number'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { SkillMark } from '@/components/classroom/skill-mark'
-import { TrendUp } from '@phosphor-icons/react/dist/ssr'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
-import medalIcon from '../../../public/medalha-3d-icon-png-download-10823670.webp'
+import koji from '../../../public/koji-code-legendss.svg'
 
 const CONFETTI_COLORS = [
   '#00C8FF',
@@ -26,6 +24,21 @@ const CONFETTI_COLORS = [
   '#66dfff',
   '#0077aa',
 ]
+
+const MODULE_CELEBRATION_PHRASES = [
+  'Módulo no bolso!',
+  'Missão cumprida!',
+  'Você avançou!',
+  'Você está indo bem!',
+  'Arrasou demais!',
+  'Checkpoint batido!',
+  'Trilha firme!',
+  'XP garantido!',
+  'Ritmo impecável!',
+  'Mais um passo!',
+  'Calculado!',
+  'Smart move!',
+] as const
 
 function XpIcon({ className }: { className?: string }) {
   return (
@@ -54,6 +67,14 @@ export function SkillStatsOverview() {
 
   const xpGained = lastModuleCompletion?.xpGained ?? 0
   const xpGainedInModuleBySkill = lastModuleCompletion?.xpGainedInModuleBySkill
+
+  const celebrationPhrase = useMemo(() => {
+    const i = Math.floor(Math.random() * MODULE_CELEBRATION_PHRASES.length)
+    return MODULE_CELEBRATION_PHRASES[i]!
+  }, [
+    lastModuleCompletion?.moduleCompleted,
+    lastModuleCompletion?.moduleId,
+  ])
 
   const hasEnrichedResponse =
     data != null &&
@@ -301,37 +322,30 @@ export function SkillStatsOverview() {
             className={`space-y-1 transition-all duration-500 ease-out ${showTitle ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
               }`}
           >
-            <p className="text-2xl font-semibold text-center uppercase text-yellow-500 font-wotfard mb-4">
-              Módulo concluído!
-            </p>
-            {/* <p className="text-sm text-[#e5e7eb] text-center">
-              Curso <span className="font-semibold text-[#00c8ff]">{courseProgressPercent}%</span> completo
-            </p> */}
-            <div className="flex items-center justify-center">
-              <Image src={medalIcon} alt="Medalha" width={240} height={240} />
+            <div className="flex items-center justify-center my-8">
+              <Image src={koji} alt="Medalha" width={240} height={240} />
             </div>
+            <p className="text-2xl mt-4 font-semibold text-center text-[#00C8FF] font-wotfard mb-4">
+              {celebrationPhrase}
+            </p>
           </div>
 
           <div
             className={`rounded-2xl items-center justify-center py-4 px-4 flex flex-row gap-4 transition-all duration-500 ease-out ${showStats ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
               }`}
           >
-            {/* Card Total XP */}
-            <div className="border border-white/10 rounded-[32px] px-8 py-5 flex items-center justify-center bg-gray-gradient min-w-[180px]">
-              <div className="flex flex-col items-center justify-center">
-                <span className="text-[10px] uppercase tracking-[0.2em] text-[#7e7e89] whitespace-nowrap">Total XP</span>
-                <div className="font-semibold italic mt-1 flex flex-row items-center gap-2 text-3xl">
-                  <XpIcon className="h-7 w-auto shrink-0" />
-                  <span className="bg-[linear-gradient(90deg,#ef4444_0%,#f97316_50%,#eab308_100%)] bg-clip-text text-transparent whitespace-nowrap">
-                    +<CompactNumber value={xpTotalDisplay} enableCountUp />
-                  </span>
-                  <span className="text-sm text-orange-500 font-bold not-italic self-end mb-1">XP</span>
-                </div>
+
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-[#7e7e89] whitespace-nowrap">Total XP</span>
+              <div className="font-semibold mt-1 flex flex-row items-center gap-2 text-4xl">
+                <span className="text-white bg-clip-text text-transparent whitespace-nowrap">
+                  <CompactNumber value={xpTotalDisplay} enableCountUp />
+                </span>
+                <Image src="/xp-icon.svg" alt="XP" width={11} height={20} />
               </div>
             </div>
 
-            {/* Card Tempo de Estudo */}
-            <div className="border border-white/10 rounded-[32px] px-8 py-5 flex items-center justify-center bg-gray-gradient min-w-[180px]">
+            {/* <div className="border border-white/10 rounded-[32px] px-8 py-5 flex items-center justify-center bg-gray-gradient min-w-[180px]">
               <div className="flex flex-col items-center justify-center">
                 <span className="text-[10px] uppercase tracking-[0.2em] text-[#7e7e89] whitespace-nowrap">Tempo de estudo</span>
                 <div className="font-semibold italic mt-1 flex flex-row items-center justify-center text-3xl">
@@ -341,7 +355,7 @@ export function SkillStatsOverview() {
                   <span className="text-sm text-blue-gradient-500 font-bold not-italic ml-2 self-end mb-1">MIN</span>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           <div

@@ -23,7 +23,6 @@ type CompactNumberProps = {
   suffix?: string
   tooltipOnlyWhenCompact?: boolean
   enableCountUp?: boolean
-  /** Segundos da animação quando `enableCountUp` (padrão 3). */
   countUpDuration?: number
   flameGradient?: boolean
 }
