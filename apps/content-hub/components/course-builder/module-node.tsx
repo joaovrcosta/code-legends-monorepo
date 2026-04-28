@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ModuleWithStructure, GroupWithStructure } from "@/actions/course/get-course-with-structure";
 import { GroupNode, type GroupNodeProps } from "./group-node";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 interface ModuleNodeProps {
     module: ModuleWithStructure;
     moduleNumber?: number;
+    collapseAllKey?: number;
     isExpanded: boolean;
     onToggle: () => void;
     onUpdate: (module: ModuleWithStructure) => void;
@@ -26,6 +27,7 @@ interface ModuleNodeProps {
 export function ModuleNode({
     module,
     moduleNumber,
+    collapseAllKey,
     isExpanded,
     onToggle,
     onUpdate,
@@ -33,12 +35,36 @@ export function ModuleNode({
     onReloadStructure,
     courseSkillIds,
 }: ModuleNodeProps) {
+    const storageKey = `cb:${module.courseId}:expandedGroups:${module.id}`;
     const [isEditing, setIsEditing] = useState(false);
     const [title, setTitle] = useState(module.title);
     const [loading, setLoading] = useState(false);
     const [expandedGroups, setExpandedGroups] = useState<Set<number>>(
-        new Set(module.groups.map((g) => g.id))
+        () => {
+            if (typeof window === "undefined") return new Set();
+            try {
+                const raw = window.localStorage.getItem(storageKey);
+                if (!raw) return new Set(module.groups.map((g) => g.id));
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed))
+                    return new Set(parsed.map((x) => Number(x)).filter((n) => Number.isFinite(n)));
+            } catch {}
+            return new Set(module.groups.map((g) => g.id));
+        }
     );
+
+    const lastCollapseKeyRef = useRef<number | undefined>(collapseAllKey);
+
+    useEffect(() => {
+        if (collapseAllKey == null) return;
+        // Evita colapsar na montagem inicial (senão fecha tudo no refresh).
+        if (lastCollapseKeyRef.current === collapseAllKey) return;
+        lastCollapseKeyRef.current = collapseAllKey;
+        setExpandedGroups(new Set());
+        try {
+            window.localStorage.setItem(storageKey, JSON.stringify([]));
+        } catch {}
+    }, [collapseAllKey]);
 
     const handleSave = async () => {
         try {
@@ -128,6 +154,9 @@ export function ModuleNode({
             newExpanded.add(groupId);
         }
         setExpandedGroups(newExpanded);
+        try {
+            window.localStorage.setItem(storageKey, JSON.stringify([...newExpanded]));
+        } catch {}
     };
 
     const handleGroupUpdate = (groupId: number, updatedGroup: GroupWithStructure) => {

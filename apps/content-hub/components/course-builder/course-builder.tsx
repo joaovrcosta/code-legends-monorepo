@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useMemo, useState, useRef } from "react";
 import { ModuleWithStructure } from "@/actions/course/get-course-with-structure";
 import { ModuleNode } from "./module-node";
 import { Button } from "@/components/ui/button";
@@ -35,9 +35,20 @@ export function CourseBuilder({
   onReloadStructure,
   courseSkillIds,
 }: CourseBuilderProps) {
+  const storageKey = `cb:${courseId}:expandedModules`;
   const [expandedModules, setExpandedModules] = useState<Set<string>>(
-    new Set(modules.map((m) => m.id)),
+    () => {
+      if (typeof window === "undefined") return new Set();
+      try {
+        const raw = window.localStorage.getItem(storageKey);
+        if (!raw) return new Set(modules.map((m) => m.id));
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return new Set(parsed.map(String));
+      } catch {}
+      return new Set(modules.map((m) => m.id));
+    },
   );
+  const [collapseAllKey, setCollapseAllKey] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const [showStructureModal, setShowStructureModal] = useState(false);
@@ -55,6 +66,9 @@ export function CourseBuilder({
       newExpanded.add(moduleId);
     }
     setExpandedModules(newExpanded);
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify([...newExpanded]));
+    } catch {}
   };
 
   const handleAddModule = async () => {
@@ -90,7 +104,7 @@ export function CourseBuilder({
       ];
 
       onModulesChange(updatedModules);
-      setExpandedModules((prev) => new Set([...prev, newModule.module.id]));
+      // Por padrão, a árvore começa colapsada.
     } catch (error: any) {
       console.error("Erro ao criar módulo:", error);
       const errorMessage = error?.message || "Erro ao criar módulo";
@@ -320,13 +334,83 @@ export function CourseBuilder({
 
   const exportJson = buildExportJson();
 
+  const typeCounts = useMemo(() => {
+    const counts = {
+      video: 0,
+      article: 0,
+      quiz: 0,
+      multi_quiz: 0,
+      project: 0,
+      text: 0,
+      other: 0,
+    };
+
+    for (const m of modules) {
+      for (const g of m.groups) {
+        for (const l of g.lessons) {
+          const t = (l.type ?? "").toString().trim().toLowerCase();
+          if (t === "video") counts.video += 1;
+          else if (t === "article") counts.article += 1;
+          else if (t === "quiz") counts.quiz += 1;
+          else if (t === "multi_quiz") counts.multi_quiz += 1;
+          else if (t === "project") counts.project += 1;
+          else if (t === "text") counts.text += 1;
+          else counts.other += 1;
+        }
+      }
+    }
+    return counts;
+  }, [modules]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Estrutura do Curso
-        </h3>
+        <div className="min-w-0">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Estrutura do Curso
+          </h3>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-gray-600 dark:text-gray-400">
+            <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-sky-700 dark:text-sky-300">
+              Vídeos: {typeCounts.video}
+            </span>
+            <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-amber-700 dark:text-amber-300">
+              Leituras: {typeCounts.article}
+            </span>
+            <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-violet-700 dark:text-violet-300">
+              Quiz: {typeCounts.quiz}
+            </span>
+            <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-violet-700 dark:text-violet-300">
+              Multi quiz: {typeCounts.multi_quiz}
+            </span>
+            <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-2 py-0.5 text-orange-700 dark:text-orange-300">
+              Projetos: {typeCounts.project}
+            </span>
+            {typeCounts.text > 0 && (
+              <span className="rounded-full border border-zinc-500/30 bg-zinc-500/10 px-2 py-0.5 text-zinc-700 dark:text-zinc-300">
+                Texto: {typeCounts.text}
+              </span>
+            )}
+            {typeCounts.other > 0 && (
+              <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-zinc-700 dark:text-zinc-300">
+                Outros: {typeCounts.other}
+              </span>
+            )}
+          </div>
+        </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setExpandedModules(new Set());
+              setCollapseAllKey((k) => k + 1);
+              try {
+                window.localStorage.setItem(storageKey, JSON.stringify([]));
+              } catch {}
+            }}
+          >
+            Fechar tudo
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -355,6 +439,7 @@ export function CourseBuilder({
                 key={module.id}
                 module={module}
                 moduleNumber={idx + 1}
+                collapseAllKey={collapseAllKey}
                 isExpanded={expandedModules.has(module.id)}
                 onToggle={() => toggleModule(module.id)}
                 onUpdate={(updated) => handleModuleUpdate(module.id, updated)}
