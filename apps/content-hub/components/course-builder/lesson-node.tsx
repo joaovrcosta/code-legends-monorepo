@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LessonWithStructure } from "@/actions/course/get-course-with-structure";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, GripVertical } from "lucide-react";
+import { Edit, Trash2, GripVertical, Save, X, SlidersHorizontal } from "lucide-react";
 import { deleteLesson } from "@/actions/lesson/delete-lesson";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { LessonEditModal } from "./lesson-edit-modal";
@@ -13,6 +13,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { updateLessonProduction } from "@/actions/lesson/update-lesson-production";
 import type { LessonProductionStatus } from "@/actions/lesson/get-lesson-production-by-course";
+import { Input } from "@/components/ui/input";
+import { updateLesson } from "@/actions/lesson/update-lesson";
 
 function lessonTypeLabel(type: string): string {
   const key = type.trim().toLowerCase();
@@ -86,8 +88,16 @@ export function LessonNode({
   courseSkillIds,
 }: LessonNodeProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [title, setTitle] = useState(lesson.title);
   const [loading, setLoading] = useState(false);
   const [productionLoading, setProductionLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isEditingTitle) {
+      setTitle(lesson.title);
+    }
+  }, [lesson.title, isEditingTitle]);
 
   const productionStatus: LessonProductionStatus =
     (lesson.production?.status as LessonProductionStatus | undefined) ?? "TODO";
@@ -151,6 +161,32 @@ export function LessonNode({
     }
   };
 
+  const handleSaveTitle = async () => {
+    const nextTitle = title.trim();
+    if (!nextTitle) {
+      toast.error("O título da aula não pode ficar vazio.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = getAuthTokenFromClient();
+      if (!token) {
+        toast.error("Token de autenticação não encontrado");
+        return;
+      }
+
+      await updateLesson(lesson.id.toString(), { title: nextTitle }, token);
+      onUpdate({ ...lesson, title: nextTitle });
+      setIsEditingTitle(false);
+    } catch (error: any) {
+      console.error("Erro ao atualizar título da aula:", error);
+      toast.error(error?.message ?? "Erro ao atualizar título da aula");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <div
@@ -166,9 +202,44 @@ export function LessonNode({
         >
           <GripVertical className="h-4 w-4 text-gray-400" />
         </button>
-        <span className="flex-1 min-w-0 text-sm text-gray-600 dark:text-gray-400">
-          {lesson.title}
-        </span>
+        <div className="flex-1 min-w-0">
+          {isEditingTitle ? (
+            <div className="flex items-center gap-2">
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="h-8 text-sm"
+                disabled={loading || productionLoading}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void handleSaveTitle();
+                  if (e.key === "Escape") {
+                    setIsEditingTitle(false);
+                    setTitle(lesson.title);
+                  }
+                }}
+              />
+              <Button size="sm" variant="ghost" onClick={handleSaveTitle} disabled={loading || productionLoading}>
+                <Save className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setIsEditingTitle(false);
+                  setTitle(lesson.title);
+                }}
+                disabled={loading || productionLoading}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <span className="block min-w-0 text-sm text-gray-600 dark:text-gray-400 truncate">
+              {lesson.title}
+            </span>
+          )}
+        </div>
         <div className="flex shrink-0 items-center gap-2">
           <Badge
             variant="outline"
@@ -205,10 +276,20 @@ export function LessonNode({
         <Button
           size="sm"
           variant="ghost"
-          onClick={() => setIsModalOpen(true)}
-          disabled={loading}
+          onClick={() => setIsEditingTitle((v) => !v)}
+          disabled={loading || productionLoading}
+          title="Editar nome"
         >
           <Edit className="h-4 w-4" />
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setIsModalOpen(true)}
+          disabled={loading}
+          title="Editar detalhes"
+        >
+          <SlidersHorizontal className="h-4 w-4" />
         </Button>
         <Button
           size="sm"
