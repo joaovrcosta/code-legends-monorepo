@@ -240,6 +240,15 @@ export function LessonNode({
             </span>
           )}
         </div>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setIsEditingTitle((v) => !v)}
+          disabled={loading || productionLoading}
+          title="Editar nome"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
         <div className="flex shrink-0 items-center gap-2">
           <Badge
             variant="outline"
@@ -273,15 +282,6 @@ export function LessonNode({
             </Badge>
           )}
         </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => setIsEditingTitle((v) => !v)}
-          disabled={loading || productionLoading}
-          title="Editar nome"
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
         <Button
           size="sm"
           variant="ghost"

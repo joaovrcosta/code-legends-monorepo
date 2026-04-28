@@ -263,20 +263,22 @@ export function LessonEditModal({
   if (!isOpen) return null
 
   const isArticle = formData.type === 'article'
-  const isFullScreen =
-    isArticle || formData.type === 'quiz' || formData.type === 'multi_quiz'
+  const isFullScreen = formData.type === 'quiz' || formData.type === 'multi_quiz'
 
   return (
     <div
-      className={`fixed inset-0 bg-black/50 z-50 ${
-        isFullScreen ? 'flex' : 'flex items-center justify-center'
-      }`}
+      className={[
+        'cb-modal-overlay',
+        isFullScreen ? 'items-stretch justify-stretch' : '',
+      ].join(' ')}
     >
       <Card
         className={
           isFullScreen
             ? 'flex h-full max-h-dvh w-full max-w-none flex-col overflow-hidden rounded-none border-0 shadow-none sm:border sm:shadow-sm'
-            : 'flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden'
+            : isArticle
+              ? 'cb-modal-card-lg'
+              : 'cb-modal-card'
         }
       >
         <CardHeader className="shrink-0">
@@ -287,8 +289,8 @@ export function LessonEditModal({
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-6 pt-0">
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+        <CardContent className={isFullScreen ? "flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-6 pt-0" : "cb-modal-body"}>
+          <div className={isFullScreen ? "min-h-0 flex-1 space-y-4 overflow-y-auto pr-1" : "cb-modal-scroll space-y-4"}>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title">Título *</Label>

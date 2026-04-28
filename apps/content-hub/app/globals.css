@@ -50,3 +50,50 @@ body {
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
+
+/* Padrão visual do Course Builder para modais. */
+.cb-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.5);
+}
+
+.cb-modal-card {
+  display: flex;
+  width: 100%;
+  max-width: 42rem; /* ~ max-w-2xl */
+  max-height: 90vh;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cb-modal-card-lg {
+  display: flex;
+  width: 100%;
+  max-width: 56rem; /* ~ max-w-4xl */
+  max-height: 90vh;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cb-modal-body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  padding: 1.5rem;
+  padding-top: 0;
+}
+
+.cb-modal-scroll {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
