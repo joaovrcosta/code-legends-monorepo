@@ -19,6 +19,7 @@ import {
   unpublishCourse,
   type ModuleWithStructure,
 } from "@/actions/course";
+import { getLessonProductionByCourse } from "@/actions/lesson/get-lesson-production-by-course";
 import { listCategories } from "@/actions/category";
 import { listInstructors } from "@/actions/user";
 import { listTags } from "@/actions/tag/list-tags";
@@ -218,10 +219,26 @@ export default function EditCoursePage() {
   const loadCourseStructure = async () => {
     try {
       setLoadingStructure(true);
-      const structure = await getCourseWithStructure(courseId);
-      if (structure) {
-        setModules(structure.modules);
-      }
+      const token = getAuthTokenFromClient();
+      const [structure, production] = await Promise.all([
+        getCourseWithStructure(courseId),
+        token ? getLessonProductionByCourse(courseId, token) : Promise.resolve({ items: [] }),
+      ]);
+      if (!structure) return;
+
+      const byLessonId = new Map(production.items.map((i) => [i.lessonId, i]));
+      const mergedModules = structure.modules.map((m) => ({
+        ...m,
+        groups: m.groups.map((g) => ({
+          ...g,
+          lessons: g.lessons.map((l) => ({
+            ...l,
+            production: byLessonId.get(l.id) ?? null,
+          })),
+        })),
+      }));
+
+      setModules(mergedModules);
     } catch (error) {
       console.error("Erro ao carregar estrutura do curso:", error);
     } finally {

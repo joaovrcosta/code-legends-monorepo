@@ -11,6 +11,8 @@ import { LessonEditModal } from "./lesson-edit-modal";
 import { toast } from "sonner";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { updateLessonProduction } from "@/actions/lesson/update-lesson-production";
+import type { LessonProductionStatus } from "@/actions/lesson/get-lesson-production-by-course";
 
 function lessonTypeLabel(type: string): string {
   const key = type.trim().toLowerCase();
@@ -37,6 +39,39 @@ function lessonTypeLabel(type: string): string {
   }
 }
 
+function productionStatusLabel(status: LessonProductionStatus): string {
+  switch (status) {
+    case "TODO":
+      return "A fazer";
+    case "IN_PROGRESS":
+      return "Em produção";
+    case "REVIEW":
+      return "Em revisão";
+    case "DONE":
+      return "Feita";
+    case "BLOCKED":
+      return "Bloqueada";
+    default:
+      return status;
+  }
+}
+
+function productionStatusBadgeClass(status: LessonProductionStatus): string {
+  switch (status) {
+    case "DONE":
+      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+    case "REVIEW":
+      return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400";
+    case "IN_PROGRESS":
+      return "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400";
+    case "BLOCKED":
+      return "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400";
+    case "TODO":
+    default:
+      return "border-gray-500/30 bg-gray-500/10 text-gray-700 dark:text-gray-300";
+  }
+}
+
 interface LessonNodeProps {
   lesson: LessonWithStructure;
   onUpdate: (lesson: LessonWithStructure) => void;
@@ -52,6 +87,10 @@ export function LessonNode({
 }: LessonNodeProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [productionLoading, setProductionLoading] = useState(false);
+
+  const productionStatus: LessonProductionStatus =
+    (lesson.production?.status as LessonProductionStatus | undefined) ?? "TODO";
 
   const {
     attributes,
@@ -91,6 +130,27 @@ export function LessonNode({
     }
   };
 
+  const handleProductionStatusChange = async (next: LessonProductionStatus) => {
+    try {
+      setProductionLoading(true);
+      const token = getAuthTokenFromClient();
+      if (!token) {
+        toast.error("Token de autenticação não encontrado");
+        return;
+      }
+      const result = await updateLessonProduction(lesson.id, { status: next }, token);
+      onUpdate({
+        ...lesson,
+        production: result.item,
+      });
+    } catch (error: any) {
+      console.error("Erro ao atualizar status editorial:", error);
+      toast.error(error?.message ?? "Erro ao atualizar status editorial");
+    } finally {
+      setProductionLoading(false);
+    }
+  };
+
   return (
     <>
       <div
@@ -110,6 +170,26 @@ export function LessonNode({
           {lesson.title}
         </span>
         <div className="flex shrink-0 items-center gap-2">
+          <Badge
+            variant="outline"
+            className={`${productionStatusBadgeClass(productionStatus)} font-normal`}
+            title="Status editorial"
+          >
+            {productionStatusLabel(productionStatus)}
+          </Badge>
+          <select
+            className="h-8 rounded-md border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+            value={productionStatus}
+            onChange={(e) => handleProductionStatusChange(e.target.value as LessonProductionStatus)}
+            disabled={productionLoading || loading}
+            aria-label="Alterar status editorial"
+          >
+            <option value="TODO">A fazer</option>
+            <option value="IN_PROGRESS">Em produção</option>
+            <option value="REVIEW">Em revisão</option>
+            <option value="DONE">Feita</option>
+            <option value="BLOCKED">Bloqueada</option>
+          </select>
           <Badge
             variant="outline"
             className="border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 font-normal"

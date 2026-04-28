@@ -43,6 +43,12 @@ export interface LessonWithStructure {
   createdAt: string;
   updatedAt: string;
   authorId: string;
+  production?: {
+    status: import("../lesson/get-lesson-production-by-course").LessonProductionStatus;
+    notes: string | null;
+    updatedAt: string;
+    updatedById: string;
+  } | null;
 }
 
 export interface CourseWithStructure {
@@ -100,6 +106,7 @@ export async function getCourseWithStructure(
                 createdAt: lesson.createdAt,
                 updatedAt: lesson.updatedAt,
                 authorId: lesson.authorId,
+                production: null,
               })),
             };
           })

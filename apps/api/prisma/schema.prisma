@@ -130,6 +130,7 @@ model User {
   notifications       Notification[]
   payments            Payment[]
   subscriptions       Subscription[]
+  lessonProductionsUpdated LessonProduction[] @relation("LessonProductionUpdatedBy")
 }
 
 model UserStreak {
@@ -208,8 +209,32 @@ model Lesson {
   quiz    Quiz?
   project Project?
   skills  LessonSkill[]
+  production LessonProduction?
 
   @@unique([slug, submoduleId])
+}
+
+enum LessonProductionStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+  BLOCKED
+}
+
+model LessonProduction {
+  id          String                @id @default(cuid())
+  lessonId    Int                   @unique
+  lesson      Lesson                @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  status      LessonProductionStatus @default(TODO)
+  notes       String?
+  updatedById String
+  updatedBy   User                  @relation("LessonProductionUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@index([status])
+  @@index([updatedAt])
 }
 
 enum LessonType {
