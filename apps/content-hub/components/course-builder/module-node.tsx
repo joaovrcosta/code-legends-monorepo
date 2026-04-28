@@ -183,9 +183,14 @@ export function ModuleNode({
                     </div>
                 ) : (
                     <>
-                        <span className="flex-1 font-medium text-gray-900 dark:text-gray-100">
-                            {module.title}
-                        </span>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                                Módulo {module.orderIndex + 1}
+                            </div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                {module.title}
+                            </div>
+                        </div>
                         <Button
                             size="sm"
                             variant="ghost"
