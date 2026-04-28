@@ -229,7 +229,7 @@ model LessonProduction {
   lessonId    Int                   @unique
   lesson      Lesson                @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   status      LessonProductionStatus @default(TODO)
-  notes       String?
+  notes       String?               @db.Text
   updatedById String
   updatedBy   User                  @relation("LessonProductionUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
   createdAt   DateTime              @default(now())

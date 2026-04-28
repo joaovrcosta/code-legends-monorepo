@@ -184,12 +184,24 @@ export function LessonEditModal({
           : []),
       ]
 
+      // Envia apenas o shape que a API espera (evita "Invalid body" por tipos inesperados).
+      const basePayload = {
+        title: formData.title,
+        description: formData.description,
+        type: formData.type,
+        slug: formData.slug,
+        url: formData.url,
+        isFree: formData.isFree,
+        locked: formData.locked,
+        order: formData.order,
+      }
+
       const payload =
         formData.type === 'quiz' || formData.type === 'multi_quiz'
-          ? { ...formData, quiz_content: quizContent }
+          ? { ...basePayload, quiz_content: quizContent }
           : formData.type === 'project'
             ? {
-                ...formData,
+                ...basePayload,
                 project_description: formData.project_description,
                 project_specs: (() => {
                   try {
@@ -199,7 +211,15 @@ export function LessonEditModal({
                   }
                 })(),
               }
-            : formData
+            : formData.type === 'video'
+              ? {
+                  ...basePayload,
+                  video_url: formData.video_url,
+                  video_duration: formData.video_duration,
+                }
+              : formData.type === 'article' || formData.type === 'text'
+                ? { ...basePayload, body: String(formData.body ?? '') }
+                : basePayload
 
       await updateLesson(lesson.id.toString(), payload, token)
       await updateLessonSkillsConfig(

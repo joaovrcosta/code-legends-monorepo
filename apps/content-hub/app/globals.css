@@ -80,6 +80,16 @@ body {
   overflow: hidden;
 }
 
+/* Modal extra largo (ex.: anotações longas no Kanban). */
+.cb-modal-card-xl {
+  display: flex;
+  width: 100%;
+  max-width: 80rem; /* ~ max-w-7xl */
+  max-height: 95vh;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .cb-modal-body {
   display: flex;
   min-height: 0;

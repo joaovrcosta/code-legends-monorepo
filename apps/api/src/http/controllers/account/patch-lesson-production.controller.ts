@@ -9,7 +9,7 @@ const paramsSchema = z.object({
 
 const bodySchema = z.object({
   status: z.nativeEnum(LessonProductionStatus),
-  notes: z.string().trim().max(2000).optional(),
+  notes: z.string().trim().max(4000).optional(),
 })
 
 export async function patchLessonProduction(

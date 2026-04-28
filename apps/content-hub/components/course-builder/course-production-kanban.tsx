@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { CourseProductionLogs } from "./course-production-logs";
 import { LessonEditModal } from "./lesson-edit-modal";
 import type { LessonWithStructure } from "@/actions/course/get-course-with-structure";
+import { StickyNote, X } from "lucide-react";
 
 type KanbanStatus = LessonProductionStatus;
 
@@ -68,6 +69,7 @@ type KanbanCard = {
   groupId: number;
   groupTitle: string;
   status: KanbanStatus;
+  notes: string | null;
 };
 
 function lessonTypePillClass(type: string) {
@@ -103,6 +105,10 @@ function getLessonStatus(lesson: { production?: { status?: string } | null }): K
   return STATUSES.includes(s) ? s : "TODO";
 }
 
+function normalizeNotes(value: unknown): string {
+  return (value ?? "").toString();
+}
+
 function DroppableColumn({
   status,
   children,
@@ -132,10 +138,12 @@ function SortableCard({
   card,
   disabled,
   onEdit,
+  onToggleNotes,
 }: {
   card: KanbanCard;
   disabled?: boolean;
   onEdit?: (lessonId: number) => void;
+  onToggleNotes: (lessonId: number) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: cardId(card),
@@ -179,17 +187,19 @@ function SortableCard({
             {card.moduleTitle} • {card.groupTitle}
           </div>
         </div>
-        <button
-          type="button"
-          className="shrink-0 cursor-grab active:cursor-grabbing rounded px-2 py-1 text-[11px] border border-white/10 text-zinc-300 bg-white/5 hover:bg-white/10 transition-colors"
-          disabled={disabled}
-          {...attributes}
-          {...listeners}
-          aria-label="Arrastar"
-          title="Arrastar"
-        >
-          ⋮⋮
-        </button>
+        <div className="shrink-0 flex items-center gap-1">
+          <button
+            type="button"
+            className="shrink-0 inline-flex h-8 w-8 cursor-grab active:cursor-grabbing items-center justify-center rounded-md border border-white/10 text-xs text-zinc-300 bg-white/5 hover:bg-white/10 transition-colors"
+            disabled={disabled}
+            {...attributes}
+            {...listeners}
+            aria-label="Arrastar"
+            title="Arrastar"
+          >
+            ⋮⋮
+          </button>
+        </div>
       </div>
       <div className="mt-2 flex items-center gap-2 text-[11px] text-zinc-300">
         <span
@@ -200,6 +210,21 @@ function SortableCard({
         >
           {card.type}
         </span>
+        <button
+          type="button"
+          onClick={() => onToggleNotes(card.lessonId)}
+          className={[
+            "relative inline-flex h-8 w-8 items-center justify-center rounded-md border",
+            "border-white/10 bg-white/5 hover:bg-white/10 transition-colors",
+          ].join(" ")}
+          title="Anotações"
+          aria-label="Anotações"
+        >
+          <StickyNote className="h-4 w-4 text-zinc-200" />
+          {(card.notes?.trim?.() ?? "") !== "" && (
+            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-lime-400 shadow-[0_0_0_2px_rgba(0,0,0,0.6)]" />
+          )}
+        </button>
       </div>
     </div>
   );
@@ -222,6 +247,10 @@ export function CourseProductionKanban({
   const [refreshLogsKey, setRefreshLogsKey] = useState(0);
   const [editingLesson, setEditingLesson] = useState<LessonWithStructure | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [notesModalLessonId, setNotesModalLessonId] = useState<number | null>(null);
+  const [notesDraftByLessonId, setNotesDraftByLessonId] = useState<Map<number, string>>(
+    new Map(),
+  );
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -246,6 +275,7 @@ export function CourseProductionKanban({
             groupId: g.id,
             groupTitle: g.title,
             status: getLessonStatus(l),
+            notes: l.production?.notes ?? null,
           });
         }
       }
@@ -307,6 +337,29 @@ export function CourseProductionKanban({
     onModulesChange(next);
   };
 
+  const setLessonNotesInModules = (lessonId: number, notes: string | null) => {
+    const next = modules.map((m) => ({
+      ...m,
+      groups: m.groups.map((g) => ({
+        ...g,
+        lessons: g.lessons.map((l) =>
+          l.id === lessonId
+            ? {
+              ...l,
+              production: {
+                status: (l.production?.status as KanbanStatus | undefined) ?? "TODO",
+                notes,
+                updatedAt: l.production?.updatedAt ?? new Date().toISOString(),
+                updatedById: l.production?.updatedById ?? "",
+              },
+            }
+            : l
+        ),
+      })),
+    }));
+    onModulesChange(next);
+  };
+
   const findLessonById = (lessonId: number): LessonWithStructure | null => {
     for (const m of modules) {
       for (const g of m.groups) {
@@ -338,6 +391,64 @@ export function CourseProductionKanban({
     setEditingLesson(lesson);
     setEditOpen(true);
   };
+
+  const openNotesModal = (lessonId: number) => {
+    if (!notesDraftByLessonId.has(lessonId)) {
+      const current = filteredCards.find((c) => c.lessonId === lessonId);
+      setNotesDraftByLessonId((prev) => {
+        const next = new Map(prev);
+        next.set(lessonId, normalizeNotes(current?.notes ?? ""));
+        return next;
+      });
+    }
+    setNotesModalLessonId(lessonId);
+  };
+
+  const changeNotes = (lessonId: number, nextValue: string) => {
+    setNotesDraftByLessonId((prev) => {
+      const next = new Map(prev);
+      next.set(lessonId, nextValue);
+      return next;
+    });
+  };
+
+  const saveNotes = async (lessonId: number) => {
+    if (busyLessonIds.has(lessonId)) return;
+
+    const currentCard = filteredCards.find((c) => c.lessonId === lessonId);
+    if (!currentCard) return;
+
+    const nextNotes = normalizeNotes(notesDraftByLessonId.get(lessonId));
+    const prevNotes = normalizeNotes(currentCard.notes ?? "");
+    if (nextNotes === prevNotes) return;
+
+    setLessonNotesInModules(lessonId, nextNotes.trim() ? nextNotes : null);
+    setBusyLessonIds((prev) => new Set(prev).add(lessonId));
+
+    try {
+      const token = getAuthTokenFromClient();
+      if (!token) throw new Error("Token não encontrado");
+      await updateLessonProduction(lessonId, { status: currentCard.status, notes: nextNotes }, token);
+      toast.success("Anotações salvas.");
+    } catch (err: any) {
+      setLessonNotesInModules(lessonId, currentCard.notes ?? null);
+      toast.error(err?.message ?? "Erro ao salvar anotações");
+    } finally {
+      setBusyLessonIds((prev) => {
+        const next = new Set(prev);
+        next.delete(lessonId);
+        return next;
+      });
+    }
+  };
+
+  const modalCard = notesModalLessonId
+    ? filteredCards.find((c) => c.lessonId === notesModalLessonId) ?? null
+    : null;
+
+  const modalNotesValue = notesModalLessonId
+    ? notesDraftByLessonId.get(notesModalLessonId) ?? normalizeNotes(modalCard?.notes ?? "")
+    : "";
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const activeId = String(event.active.id);
@@ -435,7 +546,7 @@ export function CourseProductionKanban({
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-5">
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-5 mt-8">
               {STATUSES.map((s) => {
                 const list = columns.get(s) ?? [];
                 return (
@@ -455,12 +566,13 @@ export function CourseProductionKanban({
                       <SortableContext items={list.map((c) => cardId(c))} strategy={verticalListSortingStrategy}>
                         <div className="space-y-2" data-status-column={`status-${s}`}>
                           {list.map((c) => (
-                              <SortableCard
-                                key={c.lessonId}
-                                card={c}
-                                disabled={busyLessonIds.has(c.lessonId)}
-                                onEdit={openLessonEditor}
-                              />
+                            <SortableCard
+                              key={c.lessonId}
+                              card={c}
+                              disabled={busyLessonIds.has(c.lessonId)}
+                              onEdit={openLessonEditor}
+                              onToggleNotes={openNotesModal}
+                            />
                           ))}
                         </div>
                       </SortableContext>
@@ -493,6 +605,71 @@ export function CourseProductionKanban({
             setEditOpen(false);
           }}
         />
+      )}
+
+      {notesModalLessonId != null && (
+        <div className="cb-modal-overlay" role="dialog" aria-modal="true">
+          <Card className="cb-modal-card-xl">
+            <CardHeader className="shrink-0">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <CardTitle className="flex items-center gap-2">
+                    <StickyNote className="h-5 w-5" />
+                    Anotações
+                  </CardTitle>
+                  {modalCard && (
+                    <div className="mt-1 text-xs text-zinc-400 truncate">
+                      {modalCard.moduleTitle} • {modalCard.groupTitle} •{" "}
+                      <span className="text-zinc-200">{modalCard.title}</span>
+                    </div>
+                  )}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setNotesModalLessonId(null)}
+                  title="Fechar"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="cb-modal-body">
+              <div className="cb-modal-scroll space-y-3">
+                <textarea
+                  value={modalNotesValue}
+                  onChange={(e) => {
+                    const id = notesModalLessonId;
+                    if (id == null) return;
+                    changeNotes(id, e.target.value);
+                  }}
+                  placeholder="Escreva suas anotações…"
+                  className="min-h-[min(60vh,520px)] w-full resize-y rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-lime-400/20"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setNotesModalLessonId(null)}
+                    disabled={notesModalLessonId != null && busyLessonIds.has(notesModalLessonId)}
+                  >
+                    Fechar
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      const id = notesModalLessonId;
+                      if (id == null) return;
+                      await saveNotes(id);
+                      setNotesModalLessonId(null);
+                    }}
+                    disabled={notesModalLessonId != null && busyLessonIds.has(notesModalLessonId)}
+                  >
+                    Salvar
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );
