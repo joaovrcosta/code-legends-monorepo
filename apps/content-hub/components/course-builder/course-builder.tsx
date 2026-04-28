@@ -350,10 +350,11 @@ export function CourseBuilder({
         ) : (
           modules
             .filter((module) => module.id) // Filtrar módulos sem ID válido
-            .map((module) => (
+            .map((module, idx) => (
               <ModuleNode
                 key={module.id}
                 module={module}
+                moduleNumber={idx + 1}
                 isExpanded={expandedModules.has(module.id)}
                 onToggle={() => toggleModule(module.id)}
                 onUpdate={(updated) => handleModuleUpdate(module.id, updated)}

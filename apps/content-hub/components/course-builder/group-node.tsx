@@ -43,6 +43,7 @@ import { toast } from 'sonner'
 
 export interface GroupNodeProps {
   group: GroupWithStructure
+  groupNumber?: number
   isExpanded: boolean
   onToggle: () => void
   onUpdate: (group: GroupWithStructure) => void
@@ -53,6 +54,7 @@ export interface GroupNodeProps {
 
 export function GroupNode({
   group,
+  groupNumber,
   isExpanded,
   onToggle,
   onUpdate,
@@ -309,9 +311,14 @@ export function GroupNode({
           </div>
         ) : (
           <>
-            <span className="flex-1 text-sm text-gray-700 dark:text-gray-300">
-              {group.title}
-            </span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                Submódulo {groupNumber ?? group.orderIndex + 1}
+              </div>
+              <div className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                {group.title}
+              </div>
+            </div>
             <Button
               size="sm"
               variant="ghost"

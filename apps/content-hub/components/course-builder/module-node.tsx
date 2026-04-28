@@ -14,6 +14,7 @@ import { toast } from "sonner";
 
 interface ModuleNodeProps {
     module: ModuleWithStructure;
+    moduleNumber?: number;
     isExpanded: boolean;
     onToggle: () => void;
     onUpdate: (module: ModuleWithStructure) => void;
@@ -24,6 +25,7 @@ interface ModuleNodeProps {
 
 export function ModuleNode({
     module,
+    moduleNumber,
     isExpanded,
     onToggle,
     onUpdate,
@@ -185,7 +187,7 @@ export function ModuleNode({
                     <>
                         <div className="flex-1 min-w-0">
                             <div className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
-                                Módulo {module.orderIndex + 1}
+                                Módulo {moduleNumber ?? module.orderIndex + 1}
                             </div>
                             <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
                                 {module.title}
@@ -226,10 +228,11 @@ export function ModuleNode({
                             Nenhum submódulo. Clique no botão + para adicionar.
                         </div>
                     ) : (
-                        module.groups.map((group) => (
+                        module.groups.map((group, idx) => (
                             <GroupNode
                                 key={group.id}
                                 group={group}
+                                groupNumber={idx + 1}
                                 isExpanded={expandedGroups.has(group.id)}
                                 onToggle={() => toggleGroup(group.id)}
                                 onUpdate={(updated) => handleGroupUpdate(group.id, updated)}
