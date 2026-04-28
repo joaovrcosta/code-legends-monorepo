@@ -70,6 +70,25 @@ type KanbanCard = {
   status: KanbanStatus;
 };
 
+function lessonTypePillClass(type: string) {
+  const key = (type ?? "").trim().toLowerCase();
+  switch (key) {
+    case "video":
+      return "border-sky-400/20 bg-sky-400/10 text-sky-200";
+    case "article":
+      return "border-amber-400/20 bg-amber-400/10 text-amber-200";
+    case "quiz":
+    case "multi_quiz":
+      return "border-violet-400/20 bg-violet-400/10 text-violet-200";
+    case "project":
+      return "border-orange-400/20 bg-orange-400/10 text-orange-200";
+    case "text":
+      return "border-white/10 bg-white/5 text-zinc-200";
+    default:
+      return "border-white/10 bg-white/5 text-zinc-200";
+  }
+}
+
 function cardId(card: KanbanCard) {
   return `lesson-${card.lessonId}`;
 }
@@ -173,7 +192,12 @@ function SortableCard({
         </button>
       </div>
       <div className="mt-2 flex items-center gap-2 text-[11px] text-zinc-300">
-        <span className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5">
+        <span
+          className={[
+            "rounded-md border px-2 py-0.5",
+            lessonTypePillClass(card.type),
+          ].join(" ")}
+        >
           {card.type}
         </span>
       </div>

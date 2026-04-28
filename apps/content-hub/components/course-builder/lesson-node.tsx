@@ -41,6 +41,25 @@ function lessonTypeLabel(type: string): string {
   }
 }
 
+function lessonTypeBadgeClass(type: string): string {
+  const key = type.trim().toLowerCase();
+  switch (key) {
+    case "video":
+      return "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300";
+    case "article":
+      return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300";
+    case "quiz":
+    case "multi_quiz":
+      return "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300";
+    case "project":
+      return "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300";
+    case "text":
+      return "border-zinc-500/30 bg-zinc-500/10 text-zinc-700 dark:text-zinc-300";
+    default:
+      return "border-white/10 bg-white/5 text-zinc-700 dark:text-zinc-300";
+  }
+}
+
 function productionStatusLabel(status: LessonProductionStatus): string {
   switch (status) {
     case "TODO":
@@ -272,7 +291,7 @@ export function LessonNode({
           </select>
           <Badge
             variant="outline"
-            className="border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 font-normal"
+            className={`${lessonTypeBadgeClass(lesson.type)} font-normal`}
           >
             {lessonTypeLabel(lesson.type)}
           </Badge>
