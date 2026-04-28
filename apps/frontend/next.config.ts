@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "raw.githubusercontent.com", pathname: "/**" },
       { protocol: "https", hostname: "xesque.rocketseat.dev", pathname: "/**" },
       { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
+      { protocol: "https", hostname: "ds055uzetaobb.cloudfront.net", pathname: "/**" },
     ],
   },
   webpack: (config, { isServer }) => {
@@ -32,8 +33,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-/**
- * O HOC do `@next/bundle-analyzer` pode resolver tipos de outra major do `next` no monorepo.
- * Em runtime a config é válida; `never` evita falha de `tsc` na Vercel/pnpm.
- */
 export default withBundleAnalyzer(nextConfig as never);

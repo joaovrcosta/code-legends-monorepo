@@ -1,10 +1,11 @@
 import { NewContentCaroussel } from '@/components/learn/catolog/new-content-caroussel'
-import { RecommendationsCarousel } from '@/components/learn/catolog/recommendations-carousel'
+import { CarouselSection } from '@/components/learn/catolog/carousel-section'
 import { CategoriesCarousel } from '@/components/learn/catolog/categories-carousel'
 import { MyCatalogWrapper } from '@/components/learn/catolog/my-catalog-wrapper'
 import { getUserEnrolledList } from '@/actions/progress'
 import { listCourses } from '@/actions/course'
 import type { Metadata } from 'next'
+import Image from 'next/image'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,18 +45,19 @@ export default async function CoursesPage() {
 
           {/* Catálogo */}
           <div>
-            <div className="flex items-center space-x-2 pt-8 pb-0">
-              <span className="text-muted-foreground text-[14px] font-semibold">
-                Recomendações
+            <div className="flex items-center gap-8 pt-6 pr-6 pb-6">
+              <Image src="https://ds055uzetaobb.cloudfront.net/brioche/chapter/how-llms-work-xk99Hz.png" alt="Recomendações" width={80} height={80} />
+              <span className="text-muted-foreground text-xl font-semibold">
+                Front-end
               </span>
             </div>
-            <RecommendationsCarousel courses={courses.courses} />
+            <CarouselSection courses={courses.courses} />
             <div className="flex items-center space-x-2 py-4 pt-4">
               <span className="text-muted-foreground text-[14px] font-semibold">
                 Acesse gratuitamente
               </span>
             </div>
-            <RecommendationsCarousel courses={courses.courses} />
+            <CarouselSection courses={courses.courses} />
           </div>
           <div className="flex items-center space-x-2 py-4 mt-4">
             <span className="text-muted-foreground text-[14px] font-semibold">

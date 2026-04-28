@@ -125,7 +125,7 @@ export function RecommendationsCarousel({
             </>
           )}
 
-          <CarouselContent className="-ml-4">
+          <CarouselContent>
             {courses.map((course, index) => {
               const position =
                 index === 0
@@ -137,7 +137,7 @@ export function RecommendationsCarousel({
               return (
                 <CarouselItem
                   key={course.id}
-                  className="basis-[85%] flex-shrink-0 pl-4 sm:basis-[316px]"
+                  className="basis-[85%] flex-shrink-0 sm:basis-[316px]"
                 >
                   <CatalogCard
                     name={course.title}

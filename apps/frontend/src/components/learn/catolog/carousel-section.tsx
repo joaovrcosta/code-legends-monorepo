@@ -32,7 +32,7 @@ const getColorByLevel = (level: string): string => {
   }
 }
 
-export function RecommendationsCarousel({
+export function CarouselSection({
   courses,
 }: {
   courses: CourseWithCount[]
