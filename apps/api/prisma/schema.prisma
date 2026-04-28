@@ -131,6 +131,7 @@ model User {
   payments            Payment[]
   subscriptions       Subscription[]
   lessonProductionsUpdated LessonProduction[] @relation("LessonProductionUpdatedBy")
+  lessonProductionLogs LessonProductionLog[] @relation("LessonProductionLogActor")
 }
 
 model UserStreak {
@@ -210,6 +211,7 @@ model Lesson {
   project Project?
   skills  LessonSkill[]
   production LessonProduction?
+  productionLogs LessonProductionLog[]
 
   @@unique([slug, submoduleId])
 }
@@ -235,6 +237,22 @@ model LessonProduction {
 
   @@index([status])
   @@index([updatedAt])
+}
+
+model LessonProductionLog {
+  id         String                @id @default(cuid())
+  lessonId   Int
+  lesson     Lesson                @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  courseId   String
+  fromStatus LessonProductionStatus
+  toStatus   LessonProductionStatus
+  actorId    String
+  actor      User                  @relation("LessonProductionLogActor", fields: [actorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime              @default(now())
+
+  @@index([courseId, createdAt(sort: Desc)])
+  @@index([lessonId, createdAt(sort: Desc)])
+  @@index([actorId, createdAt(sort: Desc)])
 }
 
 enum LessonType {

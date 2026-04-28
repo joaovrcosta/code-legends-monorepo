@@ -39,6 +39,7 @@ import { getUserStreak } from './get-user-streak.controller'
 import { resetUserStreak } from './reset-user-streak.controller'
 import { getLessonProductionByCourse } from './get-lesson-production-by-course.controller'
 import { patchLessonProduction } from './patch-lesson-production.controller'
+import { getLessonProductionLogsByCourse } from './get-lesson-production-logs-by-course.controller'
 
 export async function usersRoutes(app: FastifyInstance) {
   app.post('/users', create)
@@ -127,6 +128,11 @@ export async function usersRoutes(app: FastifyInstance) {
     '/lessons/production',
     { onRequest: [verifyInstructorOrAdmin] },
     getLessonProductionByCourse as RouteHandlerMethod,
+  )
+  app.get(
+    '/lessons/production/logs',
+    { onRequest: [verifyInstructorOrAdmin] },
+    getLessonProductionLogsByCourse as RouteHandlerMethod,
   )
   app.patch(
     '/lessons/:lessonId/production',

@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '../../../lib/prisma'
 import { LessonProductionStatus } from '@prisma/client'
+import { makeUpsertLessonProductionUseCase } from '../../../utils/factories/make-upsert-lesson-production-use-case'
 
 const paramsSchema = z.object({
   lessonId: z.coerce.number().int().positive(),
@@ -34,34 +34,12 @@ export async function patchLessonProduction(
       return reply.status(401).send({ message: 'Unauthorized' })
     }
 
-    const lesson = await prisma.lesson.findUnique({
-      where: { id: lessonId },
-      select: { id: true },
-    })
-    if (!lesson) {
-      return reply.status(404).send({ message: 'Lesson not found' })
-    }
-
-    const row = await prisma.lessonProduction.upsert({
-      where: { lessonId },
-      create: {
-        lessonId,
-        status,
-        notes: notes ?? null,
-        updatedById: actorId,
-      },
-      update: {
-        status,
-        notes: notes ?? null,
-        updatedById: actorId,
-      },
-      select: {
-        lessonId: true,
-        status: true,
-        notes: true,
-        updatedAt: true,
-        updatedById: true,
-      },
+    const useCase = makeUpsertLessonProductionUseCase()
+    const row = await useCase.execute({
+      lessonId,
+      status,
+      notes: notes ?? null,
+      actorId,
     })
 
     return reply.status(200).send({
@@ -69,7 +47,7 @@ export async function patchLessonProduction(
         lessonId: row.lessonId,
         status: row.status,
         notes: row.notes ?? null,
-        updatedAt: row.updatedAt.toISOString(),
+        updatedAt: row.updatedAt,
         updatedById: row.updatedById,
       },
     })

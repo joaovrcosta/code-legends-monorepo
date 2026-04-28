@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '../../../lib/prisma'
+import { makeGetLessonProductionByCourseUseCase } from '../../../utils/factories/make-get-lesson-production-by-course-use-case'
 
 const querySchema = z.object({
   courseId: z.string().min(1),
@@ -25,32 +25,8 @@ export async function getLessonProductionByCourse(
     }
 
     const { courseId } = parsed.data
-
-    const lessons = await prisma.lesson.findMany({
-      where: { submodule: { module: { courseId } } },
-      select: {
-        id: true,
-        production: {
-          select: {
-            status: true,
-            notes: true,
-            updatedAt: true,
-            updatedById: true,
-          },
-        },
-      },
-    })
-
-    const items: LessonProductionItem[] = lessons
-      .filter((l) => l.production != null)
-      .map((l) => ({
-        lessonId: l.id,
-        status: l.production!.status,
-        notes: l.production!.notes ?? null,
-        updatedAt: l.production!.updatedAt.toISOString(),
-        updatedById: l.production!.updatedById,
-      }))
-
+    const useCase = makeGetLessonProductionByCourseUseCase()
+    const items: LessonProductionItem[] = await useCase.execute(courseId)
     return reply.status(200).send({ items })
   } catch (error) {
     request.log.error(error, 'getLessonProductionByCourse error')

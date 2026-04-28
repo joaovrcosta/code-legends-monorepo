@@ -35,6 +35,7 @@ import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { CourseBuilder } from "@/components/course-builder/course-builder";
+import { CourseProductionKanban } from "@/components/course-builder/course-production-kanban";
 import { toast } from "sonner";
 import { verifyPassword } from "@/actions/user/verify-password";
 import { X } from "lucide-react";
@@ -54,6 +55,7 @@ export default function EditCoursePage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [courseStatus, setCourseStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT");
   const [modules, setModules] = useState<ModuleWithStructure[]>([]);
+  const [structureView, setStructureView] = useState<"tree" | "kanban">("tree");
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishPassword, setPublishPassword] = useState("");
   const [verifyingPassword, setVerifyingPassword] = useState(false);
@@ -883,24 +885,54 @@ export default function EditCoursePage() {
         {/* Seção 2: Estrutura do Curso */}
         <Card>
           <CardHeader>
-            <CardTitle>Estrutura do Curso</CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle>Estrutura do Curso</CardTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant={structureView === "tree" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setStructureView("tree")}
+                >
+                  Árvore
+                </Button>
+                <Button
+                  type="button"
+                  variant={structureView === "kanban" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setStructureView("kanban")}
+                >
+                  Kanban
+                </Button>
+              </div>
+            </div>
           </CardHeader>
             <CardContent>
               {loadingStructure ? (
                 <div className="text-center py-8">Carregando estrutura...</div>
               ) : (
-                <CourseBuilder
-                  courseId={courseId}
-                  courseTitle={formData.title || ""}
-                  modules={modules}
-                  courseSkillIds={courseSkills.map((s) => s.skillId)}
-                  onModulesChange={(updatedModules) => {
-                    setModules(updatedModules);
-                  }}
-                  onReloadStructure={() => {
-                    loadCourseStructure();
-                  }}
-                />
+                <>
+                  {structureView === "tree" ? (
+                    <CourseBuilder
+                      courseId={courseId}
+                      courseTitle={formData.title || ""}
+                      modules={modules}
+                      courseSkillIds={courseSkills.map((s) => s.skillId)}
+                      onModulesChange={(updatedModules) => {
+                        setModules(updatedModules);
+                      }}
+                      onReloadStructure={() => {
+                        loadCourseStructure();
+                      }}
+                    />
+                  ) : (
+                    <CourseProductionKanban
+                      courseId={courseId}
+                      modules={modules}
+                      onModulesChange={setModules}
+                    />
+                  )}
+                </>
               )}
             </CardContent>
         </Card>
