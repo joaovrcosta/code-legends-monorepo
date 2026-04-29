@@ -107,7 +107,7 @@ export function CourseProductionLogs({
   return (
     <Card className="border-white/10 bg-white/5 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle>Logs de edição</CardTitle>
+        <CardTitle>Atividades</CardTitle>
         <Button type="button" variant="outline" size="sm" onClick={() => load("reset")} disabled={loading}>
           Atualizar
         </Button>
