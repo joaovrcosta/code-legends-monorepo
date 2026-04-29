@@ -55,6 +55,9 @@ function statusPillClass(status: string) {
   }
 }
 
+/** Quantidade inicial e por página ao carregar mais. */
+const LOG_PAGE_SIZE = 10;
+
 function formatDateTime(iso: string) {
   const d = new Date(iso);
   return d.toLocaleString("pt-BR", {
@@ -86,7 +89,7 @@ export function CourseProductionLogs({
       if (!token) return;
       const res = await getLessonProductionLogsByCourse(
         courseId,
-        { limit: 30, cursor: mode === "more" ? cursor : null },
+        { limit: LOG_PAGE_SIZE, cursor: mode === "more" ? cursor : null },
         token
       );
       setItems((prev) => (mode === "more" ? [...prev, ...res.items] : res.items));
@@ -178,16 +181,22 @@ export function CourseProductionLogs({
           </div>
         )}
 
-        <div className="mt-4 flex justify-center">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => load("more")}
-            disabled={loading || !cursor}
-          >
-            {cursor ? "Carregar mais" : "Sem mais itens"}
-          </Button>
-        </div>
+        {items.length > 0 && (
+          <div className="mt-4 flex justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => load("more")}
+              disabled={loading || !cursor}
+            >
+              {loading
+                ? "Carregando…"
+                : cursor
+                  ? "Listar mais"
+                  : "Sem mais registros"}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -2,7 +2,11 @@
 
 import { useMemo, useState } from "react";
 import type { ModuleWithStructure } from "@/actions/course";
-import type { LessonProductionStatus } from "@/actions/lesson/get-lesson-production-by-course";
+import type {
+  LessonProductionItem,
+  LessonProductionPriority,
+  LessonProductionStatus,
+} from "@/actions/lesson/get-lesson-production-by-course";
 import { updateLessonProduction } from "@/actions/lesson/update-lesson-production";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { toast } from "sonner";
@@ -29,6 +33,44 @@ import { StickyNote, X } from "lucide-react";
 type KanbanStatus = LessonProductionStatus;
 
 const STATUSES: KanbanStatus[] = ["TODO", "IN_PROGRESS", "REVIEW", "DONE", "BLOCKED"];
+
+const PRIORITIES: LessonProductionPriority[] = [
+  "NONE",
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "URGENT",
+];
+
+function priorityLabel(p: LessonProductionPriority): string {
+  switch (p) {
+    case "NONE":
+      return "Sem prioridade";
+    case "LOW":
+      return "Baixa prioridade";
+    case "MEDIUM":
+      return "Média prioridade";
+    case "HIGH":
+      return "Alta prioridade";
+    case "URGENT":
+      return "Urgente";
+  }
+}
+
+function priorityBadgeClass(p: LessonProductionPriority): string {
+  switch (p) {
+    case "NONE":
+      return "";
+    case "LOW":
+      return "bg-emerald-600 text-white border-emerald-500/40";
+    case "MEDIUM":
+      return "bg-amber-500 text-zinc-950 border-amber-400/50";
+    case "HIGH":
+      return "bg-rose-600 text-white border-rose-500/40";
+    case "URGENT":
+      return "bg-red-700 text-white border-red-600/50";
+  }
+}
 
 function statusLabel(s: KanbanStatus) {
   switch (s) {
@@ -69,6 +111,7 @@ type KanbanCard = {
   groupId: number;
   groupTitle: string;
   status: KanbanStatus;
+  priority: LessonProductionPriority;
   notes: string | null;
 };
 
@@ -103,6 +146,13 @@ function parseCardId(id: string): number | null {
 function getLessonStatus(lesson: { production?: { status?: string } | null }): KanbanStatus {
   const s = (lesson.production?.status as KanbanStatus | undefined) ?? "TODO";
   return STATUSES.includes(s) ? s : "TODO";
+}
+
+function getLessonPriority(lesson: {
+  production?: { priority?: string } | null;
+}): LessonProductionPriority {
+  const p = lesson.production?.priority as LessonProductionPriority | undefined;
+  return p && PRIORITIES.includes(p) ? p : "NONE";
 }
 
 function normalizeNotes(value: unknown): string {
@@ -164,6 +214,16 @@ function SortableCard({
         "border-white/10 bg-zinc-950/40 hover:bg-zinc-950/55 transition-colors",
       ].join(" ")}
     >
+      {card.priority !== "NONE" && (
+        <div
+          className={[
+            "mb-2 inline-flex h-4 max-w-full items-center rounded-full border px-2.5 py-0 text-[10px] font-bold leading-none uppercase tracking-wide",
+            priorityBadgeClass(card.priority),
+          ].join(" ")}
+        >
+          <span className="truncate leading-none">{priorityLabel(card.priority)}</span>
+        </div>
+      )}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           {onEdit ? (
@@ -201,7 +261,7 @@ function SortableCard({
           </button>
         </div>
       </div>
-      <div className="mt-2 flex items-center gap-2 text-[11px] text-zinc-300">
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-zinc-300">
         <span
           className={[
             "rounded-md border px-2 py-0.5",
@@ -275,6 +335,7 @@ export function CourseProductionKanban({
             groupId: g.id,
             groupTitle: g.title,
             status: getLessonStatus(l),
+            priority: getLessonPriority(l),
             notes: l.production?.notes ?? null,
           });
         }
@@ -314,6 +375,30 @@ export function CourseProductionKanban({
     return (groupsByModule.get(moduleFilter) ?? []).slice().sort((a, b) => a.title.localeCompare(b.title));
   }, [groupsByModule, moduleFilter]);
 
+  const applyLessonProductionItem = (lessonId: number, item: LessonProductionItem) => {
+    const next = modules.map((m) => ({
+      ...m,
+      groups: m.groups.map((g) => ({
+        ...g,
+        lessons: g.lessons.map((l) =>
+          l.id === lessonId
+            ? {
+              ...l,
+              production: {
+                status: item.status,
+                priority: item.priority,
+                notes: item.notes ?? null,
+                updatedAt: item.updatedAt,
+                updatedById: item.updatedById,
+              },
+            }
+            : l
+        ),
+      })),
+    }));
+    onModulesChange(next);
+  };
+
   const setLessonStatusInModules = (lessonId: number, status: KanbanStatus) => {
     const next = modules.map((m) => ({
       ...m,
@@ -325,6 +410,7 @@ export function CourseProductionKanban({
               ...l,
               production: {
                 status,
+                priority: getLessonPriority(l),
                 notes: l.production?.notes ?? null,
                 updatedAt: l.production?.updatedAt ?? new Date().toISOString(),
                 updatedById: l.production?.updatedById ?? "",
@@ -348,6 +434,7 @@ export function CourseProductionKanban({
               ...l,
               production: {
                 status: (l.production?.status as KanbanStatus | undefined) ?? "TODO",
+                priority: getLessonPriority(l),
                 notes,
                 updatedAt: l.production?.updatedAt ?? new Date().toISOString(),
                 updatedById: l.production?.updatedById ?? "",
@@ -428,7 +515,12 @@ export function CourseProductionKanban({
     try {
       const token = getAuthTokenFromClient();
       if (!token) throw new Error("Token não encontrado");
-      await updateLessonProduction(lessonId, { status: currentCard.status, notes: nextNotes }, token);
+      const result = await updateLessonProduction(
+        lessonId,
+        { status: currentCard.status, notes: nextNotes },
+        token,
+      );
+      applyLessonProductionItem(lessonId, result.item);
       toast.success("Anotações salvas.");
     } catch (err: any) {
       setLessonNotesInModules(lessonId, currentCard.notes ?? null);
@@ -479,7 +571,8 @@ export function CourseProductionKanban({
     try {
       const token = getAuthTokenFromClient();
       if (!token) throw new Error("Token não encontrado");
-      await updateLessonProduction(lessonId, { status: nextStatus }, token);
+      const result = await updateLessonProduction(lessonId, { status: nextStatus }, token);
+      applyLessonProductionItem(lessonId, result.item);
       setRefreshLogsKey((k) => k + 1);
     } catch (err: any) {
       // reverte

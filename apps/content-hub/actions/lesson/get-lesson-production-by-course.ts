@@ -9,9 +9,17 @@ export type LessonProductionStatus =
   | "DONE"
   | "BLOCKED";
 
+export type LessonProductionPriority =
+  | "NONE"
+  | "LOW"
+  | "MEDIUM"
+  | "HIGH"
+  | "URGENT";
+
 export type LessonProductionItem = {
   lessonId: number;
   status: LessonProductionStatus;
+  priority: LessonProductionPriority;
   notes: string | null;
   updatedAt: string;
   updatedById: string;
@@ -38,4 +46,3 @@ export async function getLessonProductionByCourse(
   const data = (await response.json()) as { items: LessonProductionItem[] };
   return { items: Array.isArray(data.items) ? data.items : [] };
 }
-

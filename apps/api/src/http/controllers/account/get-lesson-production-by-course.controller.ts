@@ -9,6 +9,7 @@ const querySchema = z.object({
 export type LessonProductionItem = {
   lessonId: number
   status: string
+  priority: string
   notes: string | null
   updatedAt: string
   updatedById: string

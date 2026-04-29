@@ -45,6 +45,7 @@ export interface LessonWithStructure {
   authorId: string;
   production?: {
     status: import("../lesson/get-lesson-production-by-course").LessonProductionStatus;
+    priority: import("../lesson/get-lesson-production-by-course").LessonProductionPriority;
     notes: string | null;
     updatedAt: string;
     updatedById: string;

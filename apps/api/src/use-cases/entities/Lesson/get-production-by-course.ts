@@ -3,6 +3,7 @@ import { prisma } from '../../../lib/prisma'
 export type LessonProductionItem = {
   lessonId: number
   status: string
+  priority: string
   notes: string | null
   updatedAt: string
   updatedById: string
@@ -17,6 +18,7 @@ export class GetLessonProductionByCourseUseCase {
         production: {
           select: {
             status: true,
+            priority: true,
             notes: true,
             updatedAt: true,
             updatedById: true,
@@ -30,10 +32,10 @@ export class GetLessonProductionByCourseUseCase {
       .map((l) => ({
         lessonId: l.id,
         status: l.production!.status,
+        priority: l.production!.priority,
         notes: l.production!.notes ?? null,
         updatedAt: l.production!.updatedAt.toISOString(),
         updatedById: l.production!.updatedById,
       }))
   }
 }
-

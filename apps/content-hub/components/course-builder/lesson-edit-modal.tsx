@@ -13,6 +13,8 @@ import { Select } from '@/components/ui/select'
 import type { Challenge } from '@/actions/lesson/list-lessons'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { updateLesson } from '@/actions/lesson/update-lesson'
+import { updateLessonProduction } from '@/actions/lesson/update-lesson-production'
+import type { LessonProductionPriority } from '@/actions/lesson/get-lesson-production-by-course'
 import {
   getLessonSkillsConfig,
   updateLessonSkillsConfig,
@@ -24,6 +26,36 @@ import { generateSlug } from '@/lib/utils'
 import { parseSkillWeightInput } from '@/lib/parse-skill-weight'
 import { X, ChevronDown, ChevronUp } from 'lucide-react'
 import { toast } from 'sonner'
+
+const PRIORITIES: LessonProductionPriority[] = [
+  'NONE',
+  'LOW',
+  'MEDIUM',
+  'HIGH',
+  'URGENT',
+]
+
+function priorityLabel(p: LessonProductionPriority): string {
+  switch (p) {
+    case 'NONE':
+      return 'Sem prioridade'
+    case 'LOW':
+      return 'Baixa prioridade'
+    case 'MEDIUM':
+      return 'Média prioridade'
+    case 'HIGH':
+      return 'Alta prioridade'
+    case 'URGENT':
+      return 'Urgente'
+  }
+}
+
+function normalizeLessonPriority(
+  raw: string | null | undefined,
+): LessonProductionPriority {
+  const p = raw as LessonProductionPriority | undefined
+  return p && PRIORITIES.includes(p) ? p : 'NONE'
+}
 
 interface LessonEditModalProps {
   lesson: LessonWithStructure
@@ -48,6 +80,8 @@ export function LessonEditModal({
   >([])
   const [lessonSkills, setLessonSkills] = useState<LessonSkillConfigItem[]>([])
   const [selectedSkillId, setSelectedSkillId] = useState('')
+  const [productionPriority, setProductionPriority] =
+    useState<LessonProductionPriority>('NONE')
 
   const normalizeType = (type: string | null | undefined) => {
     const allowed = [
@@ -111,6 +145,9 @@ export function LessonEditModal({
       })
       setQuizContent(lesson.quiz?.content ?? [])
       setSlugManuallyEdited(false)
+      setProductionPriority(
+        normalizeLessonPriority(lesson.production?.priority),
+      )
     }
   }, [lesson, isOpen])
 
@@ -231,6 +268,32 @@ export function LessonEditModal({
         token,
       )
 
+      const prevP = normalizeLessonPriority(lesson.production?.priority)
+      const nextP = normalizeLessonPriority(productionPriority)
+      let nextProduction = lesson.production ?? null
+      if (prevP !== nextP) {
+        try {
+          const { item } = await updateLessonProduction(
+            lesson.id,
+            { priority: nextP },
+            token,
+          )
+          nextProduction = {
+            status: item.status,
+            priority: item.priority,
+            notes: item.notes ?? null,
+            updatedAt: item.updatedAt,
+            updatedById: item.updatedById,
+          }
+        } catch (prodErr) {
+          console.error(prodErr)
+          toast.error(
+            'Aula salva, mas não foi possível atualizar a prioridade no Kanban.',
+          )
+          nextProduction = lesson.production ?? null
+        }
+      }
+
       if (pendingSkill) {
         setLessonSkills(lessonSkillsToPersist)
         setSelectedSkillId('')
@@ -270,6 +333,7 @@ export function LessonEditModal({
                 })(),
               }
             : null,
+        production: nextProduction,
       })
       onClose()
     } catch (error) {
@@ -629,6 +693,29 @@ export function LessonEditModal({
                         })
                       }
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lesson-production-priority">
+                      Prioridade no Kanban
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Etiqueta no quadro editorial; salve a aula para aplicar.
+                    </p>
+                    <Select
+                      id="lesson-production-priority"
+                      value={productionPriority}
+                      onChange={(e) =>
+                        setProductionPriority(
+                          e.target.value as LessonProductionPriority,
+                        )
+                      }
+                    >
+                      {PRIORITIES.map((p) => (
+                        <option key={p} value={p}>
+                          {priorityLabel(p)}
+                        </option>
+                      ))}
+                    </Select>
                   </div>
                   <div className="flex flex-wrap items-center gap-4">
                     <label className="flex items-center gap-2">

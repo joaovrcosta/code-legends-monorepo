@@ -1,16 +1,33 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { LessonProductionStatus } from '@prisma/client'
+import {
+  LessonProductionPriority,
+  LessonProductionStatus,
+} from '@prisma/client'
 import { makeUpsertLessonProductionUseCase } from '../../../utils/factories/make-upsert-lesson-production-use-case'
 
 const paramsSchema = z.object({
   lessonId: z.coerce.number().int().positive(),
 })
 
-const bodySchema = z.object({
-  status: z.nativeEnum(LessonProductionStatus),
-  notes: z.string().trim().max(4000).optional(),
-})
+const bodySchema = z
+  .object({
+    status: z.nativeEnum(LessonProductionStatus).optional(),
+    notes: z.union([z.string().trim().max(4000), z.null()]).optional(),
+    priority: z.nativeEnum(LessonProductionPriority).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      data.status === undefined &&
+      data.notes === undefined &&
+      data.priority === undefined
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Informe ao menos status, anotações ou prioridade',
+      })
+    }
+  })
 
 export async function patchLessonProduction(
   request: FastifyRequest,
@@ -27,7 +44,7 @@ export async function patchLessonProduction(
     }
 
     const lessonId = paramsParsed.data.lessonId
-    const { status, notes } = bodyParsed.data
+    const { status, notes, priority } = bodyParsed.data
 
     const actorId = (request.user as { id: string } | undefined)?.id
     if (!actorId) {
@@ -37,8 +54,9 @@ export async function patchLessonProduction(
     const useCase = makeUpsertLessonProductionUseCase()
     const row = await useCase.execute({
       lessonId,
-      status,
-      notes: notes ?? null,
+      ...(status !== undefined ? { status } : {}),
+      ...(notes !== undefined ? { notes } : {}),
+      ...(priority !== undefined ? { priority } : {}),
       actorId,
     })
 
@@ -46,6 +64,7 @@ export async function patchLessonProduction(
       item: {
         lessonId: row.lessonId,
         status: row.status,
+        priority: row.priority,
         notes: row.notes ?? null,
         updatedAt: row.updatedAt,
         updatedById: row.updatedById,
@@ -56,4 +75,3 @@ export async function patchLessonProduction(
     return reply.status(500).send({ message: 'Internal server error' })
   }
 }
-

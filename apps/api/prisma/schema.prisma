@@ -224,11 +224,20 @@ enum LessonProductionStatus {
   BLOCKED
 }
 
+enum LessonProductionPriority {
+  NONE
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
 model LessonProduction {
   id          String                @id @default(cuid())
   lessonId    Int                   @unique
   lesson      Lesson                @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   status      LessonProductionStatus @default(TODO)
+  priority    LessonProductionPriority @default(NONE)
   notes       String?               @db.Text
   updatedById String
   updatedBy   User                  @relation("LessonProductionUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
