@@ -1,9 +1,13 @@
 import { NewContentCaroussel } from '@/components/learn/catolog/new-content-caroussel'
 import { CarouselSection } from '@/components/learn/catolog/carousel-section'
 import { CategoriesCarousel } from '@/components/learn/catolog/categories-carousel'
-import { CareerTracksSection } from '@/components/learn/catolog/career-tracks-section'
+import {
+  CareerTracksSection,
+  type CareerTrack,
+} from '@/components/learn/catolog/career-tracks-section'
 import { getUserEnrolledList } from '@/actions/progress'
 import { listCourses } from '@/actions/course'
+import { listCareers } from '@/actions/career/list-careers'
 import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
@@ -17,6 +21,15 @@ export const metadata: Metadata = {
 export default async function CoursesPage() {
   const courses = await listCourses()
   const { userCourses } = await getUserEnrolledList()
+  const careers = await listCareers()
+
+  const tracks: CareerTrack[] = careers.careers.map((c) => ({
+    id: c.id,
+    title: c.title,
+    href: `/learn/careers/${c.slug}`,
+    badge: 'Carreira',
+    pills: [`${c.modulesCount} módulos`],
+  }))
 
   return (
     <div className="w-full">
@@ -54,7 +67,7 @@ export default async function CoursesPage() {
                 </span>
               </div>
               <div className="relative w-full min-w-0 overflow-hidden px-0 pb-2">
-                <CareerTracksSection />
+                <CareerTracksSection tracks={tracks} />
               </div>
             </div>
 

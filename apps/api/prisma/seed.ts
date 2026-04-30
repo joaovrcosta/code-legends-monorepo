@@ -184,35 +184,37 @@ async function main() {
 
   if (existingCourse) {
     console.log('⏭️  Course already exists, skipping course seed.')
-    return
+    // continua o seed para criar entidades novas (ex.: carreiras)
   }
 
-  const course = await prisma.course.create({
-    data: {
-      title: 'Full Stack',
-      slug: COURSE_SLUG,
-      description:
-        'Aprenda HTML, CSS, JavaScript e React em um curso completo e prático. Do primeiro tag à sua primeira aplicação publicada na web. Inclui projetos reais e boas práticas do mercado.',
-      level: 'Iniciante',
-      instructorId: instructor.id,
-      categoryId: frontEndCategory.id,
-      status: 'PUBLISHED',
-      publishedAt: new Date(),
-      isFree: false,
-      active: true,
-      releaseAt: new Date(),
-      colorHex: '#3B82F6',
-      icon: 'https://xesque.rocketseat.dev/platform/1760965821149.svg',
-      tags: {
-        connectOrCreate: [
-          { where: { name: 'HTML' }, create: { name: 'HTML' } },
-          { where: { name: 'CSS' }, create: { name: 'CSS' } },
-          { where: { name: 'JavaScript' }, create: { name: 'JavaScript' } },
-          { where: { name: 'React' }, create: { name: 'React' } },
-        ],
+  const course =
+    existingCourse ??
+    (await prisma.course.create({
+      data: {
+        title: 'Full Stack',
+        slug: COURSE_SLUG,
+        description:
+          'Aprenda HTML, CSS, JavaScript e React em um curso completo e prático. Do primeiro tag à sua primeira aplicação publicada na web. Inclui projetos reais e boas práticas do mercado.',
+        level: 'Iniciante',
+        instructorId: instructor.id,
+        categoryId: frontEndCategory.id,
+        status: 'PUBLISHED',
+        publishedAt: new Date(),
+        isFree: false,
+        active: true,
+        releaseAt: new Date(),
+        colorHex: '#3B82F6',
+        icon: 'https://xesque.rocketseat.dev/platform/1760965821149.svg',
+        tags: {
+          connectOrCreate: [
+            { where: { name: 'HTML' }, create: { name: 'HTML' } },
+            { where: { name: 'CSS' }, create: { name: 'CSS' } },
+            { where: { name: 'JavaScript' }, create: { name: 'JavaScript' } },
+            { where: { name: 'React' }, create: { name: 'React' } },
+          ],
+        },
       },
-    },
-  })
+    }))
 
   // 3.1 Skills e vínculo com o curso (para XP por skill)
   for (const skill of SKILLS) {
@@ -543,8 +545,18 @@ async function main() {
   ]
 
   for (const mod of modulesData) {
-    const createdModule = await prisma.module.create({
-      data: {
+    const createdModule = await prisma.module.upsert({
+      where: {
+        slug_courseId: {
+          slug: mod.slug,
+          courseId: course.id,
+        },
+      },
+      update: {
+        title: mod.title,
+        orderIndex: mod.orderIndex,
+      },
+      create: {
         title: mod.title,
         slug: mod.slug,
         courseId: course.id,
@@ -553,29 +565,39 @@ async function main() {
     })
 
     for (const grp of mod.groups) {
-      const createdGroup = await prisma.submodule.create({
-        data: {
-          title: grp.title,
-          moduleId: createdModule.id,
-          orderIndex: grp.orderIndex,
-        },
+      const existingGroup = await prisma.submodule.findFirst({
+        where: { moduleId: createdModule.id, title: grp.title },
       })
+      const createdGroup =
+        existingGroup ??
+        (await prisma.submodule.create({
+          data: {
+            title: grp.title,
+            moduleId: createdModule.id,
+            orderIndex: grp.orderIndex,
+          },
+        }))
 
       for (const les of grp.lessons) {
-        await prisma.lesson.create({
-          data: {
-            title: les.title,
-            description: les.description,
-            type: LESSON_TYPE_MAP[les.type] ?? LessonType.VIDEO,
-            slug: les.slug,
-            submoduleId: createdGroup.id,
-            order: les.order,
-            authorId: instructor.id,
-            video_duration: les.video_duration ?? null,
-            isFree: false,
-            locked: false,
-          },
+        const existingLesson = await prisma.lesson.findFirst({
+          where: { slug: les.slug, submoduleId: createdGroup.id },
         })
+        if (!existingLesson) {
+          await prisma.lesson.create({
+            data: {
+              title: les.title,
+              description: les.description,
+              type: LESSON_TYPE_MAP[les.type] ?? LessonType.VIDEO,
+              slug: les.slug,
+              submoduleId: createdGroup.id,
+              order: les.order,
+              authorId: instructor.id,
+              video_duration: les.video_duration ?? null,
+              isFree: false,
+              locked: false,
+            },
+          })
+        }
       }
     }
   }
@@ -583,6 +605,153 @@ async function main() {
   console.log(
     "✅ Course 'Fundamentos de Front-end' created with 4 modules and 24 lessons!",
   )
+
+  // 5. Carreira exemplo (Fullstack) com 1 módulo e 2 exames
+  const career = await prisma.career.upsert({
+    where: { slug: 'fullstack' },
+    update: {},
+    create: {
+      slug: 'fullstack',
+      title: 'Fullstack',
+      description:
+        'Trilha completa para dominar Front-end e Back-end com certificações por módulo.',
+      colorHex: '#00C8FF',
+      active: true,
+    },
+  })
+
+  const careerModule = await prisma.careerModule.upsert({
+    where: {
+      // não temos unique por (careerId, orderIndex), então fazemos find + create
+      id: (await prisma.careerModule.findFirst({
+        where: { careerId: career.id, orderIndex: 0 },
+        select: { id: true },
+      }))?.id ?? '___missing___',
+    },
+    update: {},
+    create: {
+      careerId: career.id,
+      title: 'Web Development Foundations',
+      description:
+        'Fundamentos para iniciar sua jornada Fullstack (com exames de certificação).',
+      orderIndex: 0,
+    },
+  }).catch(async () => {
+    // fallback quando o upsert acima falhar por id placeholder
+    const existing = await prisma.careerModule.findFirst({
+      where: { careerId: career.id, orderIndex: 0 },
+    })
+    if (existing) return existing
+    return prisma.careerModule.create({
+      data: {
+        careerId: career.id,
+        title: 'Web Development Foundations',
+        description:
+          'Fundamentos para iniciar sua jornada Fullstack (com exames de certificação).',
+        orderIndex: 0,
+      },
+    })
+  })
+
+  // Vincula o curso seedado ao módulo da carreira
+  await prisma.careerModuleCourse.upsert({
+    where: {
+      careerModuleId_courseId: {
+        careerModuleId: careerModule.id,
+        courseId: course.id,
+      },
+    },
+    update: { orderIndex: 0 },
+    create: {
+      careerModuleId: careerModule.id,
+      courseId: course.id,
+      orderIndex: 0,
+    },
+  })
+
+  const exam1 = await prisma.careerExam.upsert({
+    where: { careerId_slug: { careerId: career.id, slug: 'objective-assessment-1' } },
+    update: {},
+    create: {
+      careerId: career.id,
+      slug: 'objective-assessment-1',
+      title: 'Objective assessment – Part 1',
+      description: 'Exame de certificação do módulo – Parte 1.',
+      passingScore: 70,
+      content: {
+        challenges: [
+          {
+            type: 'conceptual',
+            question: 'Qual tag HTML define o título principal da página?',
+            options: ['<title>', '<h1>', '<header>', '<strong>'],
+            correctAnswer: '<h1>',
+            explanation:
+              '`<h1>` representa o heading de maior importância no conteúdo da página.',
+          },
+          {
+            type: 'conceptual',
+            question: 'Qual propriedade CSS define a cor do texto?',
+            options: ['background', 'color', 'font-style', 'border-color'],
+            correctAnswer: 'color',
+          },
+        ],
+      },
+    },
+  })
+
+  const exam2 = await prisma.careerExam.upsert({
+    where: { careerId_slug: { careerId: career.id, slug: 'objective-assessment-2' } },
+    update: {},
+    create: {
+      careerId: career.id,
+      slug: 'objective-assessment-2',
+      title: 'Objective assessment – Part 2',
+      description: 'Exame de certificação do módulo – Parte 2.',
+      passingScore: 70,
+      content: {
+        challenges: [
+          {
+            type: 'conceptual',
+            question: 'Qual método adiciona um evento de clique em um elemento?',
+            options: ['addEventListener', 'querySelector', 'appendChild', 'setTimeout'],
+            correctAnswer: 'addEventListener',
+          },
+          {
+            type: 'conceptual',
+            question: 'No React, qual hook controla estado local?',
+            options: ['useMemo', 'useState', 'useEffect', 'useRef'],
+            correctAnswer: 'useState',
+          },
+        ],
+      },
+    },
+  })
+
+  await prisma.careerModuleExam.upsert({
+    where: {
+      careerModuleId_examIndex: { careerModuleId: careerModule.id, examIndex: 1 },
+    },
+    update: { careerExamId: exam1.id },
+    create: {
+      careerModuleId: careerModule.id,
+      careerExamId: exam1.id,
+      examIndex: 1,
+    },
+  })
+
+  await prisma.careerModuleExam.upsert({
+    where: {
+      careerModuleId_examIndex: { careerModuleId: careerModule.id, examIndex: 2 },
+    },
+    update: { careerExamId: exam2.id },
+    create: {
+      careerModuleId: careerModule.id,
+      careerExamId: exam2.id,
+      examIndex: 2,
+    },
+  })
+
+  console.log('✅ Career (Fullstack) seeded with 1 module + 2 exams!')
 }
 
 main()

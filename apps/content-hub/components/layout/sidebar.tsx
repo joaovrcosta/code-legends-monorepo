@@ -13,6 +13,7 @@ import {
   LogOut,
   Tag,
   Brain,
+  Briefcase,
   MessageSquare,
   CreditCard,
   Crown,
@@ -24,6 +25,7 @@ import {
 const navigation = [
   { name: "Dashboard", href: "/", icon: GraduationCap },
   { name: "Cursos", href: "/courses", icon: BookOpen },
+  { name: "Carreiras", href: "/careers", icon: Briefcase },
   { name: "Usuários", href: "/users", icon: Users },
   { name: "Pagamentos", href: "/payments", icon: CreditCard },
   { name: "Planos", href: "/plans", icon: Crown },

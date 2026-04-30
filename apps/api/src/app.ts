@@ -21,6 +21,8 @@ import { planRoutes } from './http/controllers/plan/routes'
 import { dashboardRoutes } from './http/controllers/dashboard/routes'
 import { certificateTemplateRoutes } from './http/controllers/certificate-template/routes'
 import { systemSettingsRoutes } from './http/controllers/system-settings/routes'
+import { careerRoutes } from './http/controllers/career/routes'
+import { careerAdminRoutes } from './http/controllers/career/admin-routes'
 import { verifyCertificate } from './http/controllers/certificate/verify.controller'
 import { abacatePayWebhook } from './http/controllers/webhooks/abacatepay-webhook.controller'
 import { env } from './env/index'
@@ -65,7 +67,6 @@ app.register(fastifyCors, {
       return callback(null, true)
     }
 
-    // Em desenvolvimento, permitir qualquer origem localhost
     if (env.NODE_ENV === 'development' && origin.includes('localhost')) {
       return callback(null, true)
     }
@@ -108,7 +109,7 @@ app.register(fastifyRateLimit, {
       if (request.user?.id) {
         return `user:${request.user.id}`
       }
-    } catch {}
+    } catch { }
 
     return `ip:${request.ip}`
   },
@@ -161,6 +162,8 @@ app.register(planRoutes)
 app.register(dashboardRoutes)
 app.register(certificateTemplateRoutes)
 app.register(systemSettingsRoutes)
+app.register(careerRoutes)
+app.register(careerAdminRoutes)
 
 app.setErrorHandler((error, _, reply) => {
   if (error instanceof ZodError) {
