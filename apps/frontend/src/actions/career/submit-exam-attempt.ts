@@ -9,19 +9,24 @@ export async function submitCareerExamAttempt(args: {
   score: number;
   answers?: unknown;
 }): Promise<SubmitCareerExamAttemptResponse> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!baseUrl) {
-    throw new Error("NEXT_PUBLIC_API_URL não configurado");
-  }
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!baseUrl) {
+      throw new Error("NEXT_PUBLIC_API_URL não configurado");
+    }
+    if (/^https?:\/\/localhost:3000\b/i.test(baseUrl)) {
+      throw new Error(
+        `NEXT_PUBLIC_API_URL parece apontar para o FRONT (${baseUrl}). Configure para a API (ex.: http://localhost:3333).`,
+      );
+    }
 
-  const token = await getAuthToken();
-  if (!token) {
-    throw new Error("Token de autenticação não encontrado");
-  }
+    const token = await getAuthToken();
+    if (!token) {
+      throw new Error("Token de autenticação não encontrado");
+    }
 
-  const res = await fetch(
-    `${baseUrl}/careers/${encodeURIComponent(args.careerIdentifier)}/exams/${args.examId}/attempts`,
-    {
+    const url = `${baseUrl}/careers/${encodeURIComponent(args.careerIdentifier)}/exams/${args.examId}/attempts`;
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -29,14 +34,40 @@ export async function submitCareerExamAttempt(args: {
       },
       body: JSON.stringify({ score: args.score, answers: args.answers }),
       cache: "no-store",
+    });
+
+    const contentType = res.headers.get("content-type") || "";
+    const payload = contentType.includes("application/json")
+      ? await res.json().catch(() => null)
+      : await res.text().catch(() => "");
+
+    if (!res.ok) {
+      const message =
+        (payload && typeof payload === "object" && "message" in payload
+          ? String((payload as any).message)
+          : "") || "Erro ao enviar tentativa do exame";
+
+      const issues =
+        payload && typeof payload === "object" && "issues" in payload
+          ? (payload as any).issues
+          : null;
+
+      const issuesText = Array.isArray(issues)
+        ? `\n${issues.map((i: any) => `- ${i.path?.join(".")}: ${i.message}`).join("\n")}`
+        : "";
+
+      throw new Error(`[${res.status}] ${message}${issuesText}`);
     }
-  );
 
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || "Erro ao enviar tentativa do exame");
+    return payload as SubmitCareerExamAttemptResponse;
+  } catch (e) {
+    const msg =
+      e instanceof Error
+        ? e.message
+        : typeof e === "string"
+          ? e
+          : "Erro ao enviar tentativa do exame";
+    throw new Error(msg);
   }
-
-  return (await res.json()) as SubmitCareerExamAttemptResponse;
 }
 

@@ -71,7 +71,14 @@ export function CareerExamView({
       }
       window.location.href = onBackHref;
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Erro ao enviar";
+      const msg =
+        e instanceof Error
+          ? e.message
+          : (e as any)?.message
+            ? String((e as any).message)
+            : (e as any)?.digest
+              ? "Erro ao enviar (Server Action). Verifique o console do servidor."
+              : "Erro ao enviar";
       alert(msg);
     } finally {
       setIsSubmitting(false);

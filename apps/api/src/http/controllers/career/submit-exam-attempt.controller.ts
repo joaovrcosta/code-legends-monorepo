@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
+import { prisma } from '../../../lib/prisma'
 import { makeSubmitCareerExamAttemptUseCase } from '../../../utils/factories/make-submit-career-exam-attempt-use-case'
 import { CareerNotFoundError } from '../../../use-cases/errors/career-not-found'
 
@@ -17,20 +18,33 @@ export async function submitExamAttempt(
     answers: z.unknown().optional(),
   })
 
-  const { careerIdentifier, examId } = paramsSchema.parse(request.params)
-  const { score, answers } = bodySchema.parse(request.body || {})
-
   try {
+    const parsedParams = paramsSchema.safeParse(request.params)
+    if (!parsedParams.success) {
+      return reply.status(400).send({
+        message: 'Invalid params',
+        issues: parsedParams.error.issues,
+      })
+    }
+    const { careerIdentifier, examId } = parsedParams.data
+
+    const parsedBody = bodySchema.safeParse(request.body || {})
+    if (!parsedBody.success) {
+      return reply.status(400).send({
+        message: 'Invalid body',
+        issues: parsedBody.error.issues,
+      })
+    }
+    const { score, answers } = parsedBody.data
+
     const isUUID =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
         careerIdentifier,
       )
-    const career = await import('../../../lib/prisma').then(({ prisma }) =>
-      prisma.career.findUnique({
-        where: isUUID ? { id: careerIdentifier } : { slug: careerIdentifier },
-        select: { id: true, active: true },
-      }),
-    )
+    const career = await prisma.career.findUnique({
+      where: isUUID ? { id: careerIdentifier } : { slug: careerIdentifier },
+      select: { id: true, active: true },
+    })
     if (!career || !career.active) {
       throw new CareerNotFoundError()
     }
@@ -48,8 +62,17 @@ export async function submitExamAttempt(
     if (error instanceof CareerNotFoundError) {
       return reply.status(404).send({ message: error.message })
     }
-    if (error instanceof Error && error.message === 'User is not enrolled in this career') {
+    if (
+      error instanceof Error &&
+      error.message === 'User is not enrolled in this career'
+    ) {
       return reply.status(403).send({ message: error.message })
+    }
+    if (error instanceof Error && error.message === 'Exam not found') {
+      return reply.status(404).send({ message: error.message })
+    }
+    if (error instanceof Error && error.message === 'Max attempts reached') {
+      return reply.status(429).send({ message: error.message })
     }
     return reply.status(500).send({ message: 'Internal server error' })
   }
