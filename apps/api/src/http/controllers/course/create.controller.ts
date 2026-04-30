@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { makeCreateCourseUseCase } from "../../../utils/factories/make-create-course-use-case";
 import { CourseAlreadyExistsError } from "../../../use-cases/errors/course-already-exists";
 import { InstructorNotFoundError } from "../../../use-cases/errors/instructor-not-found";
@@ -7,15 +8,27 @@ import { CategoryNotFoundError } from "../../../use-cases/errors/category-not-fo
 
 export async function create(request: FastifyRequest, reply: FastifyReply) {
   const createCourseBodySchema = z.object({
-    title: z.string(),
-    slug: z.string(),
-    description: z.string(),
-    level: z.string(),
-    instructorId: z.string(),
-    categoryId: z.string().optional(),
-    thumbnail: z.string().optional(),
-    icon: z.string().optional(),
-    colorHex: z.string().optional(),
+    title: z.string().min(1, "Título é obrigatório"),
+    slug: z.string().min(1, "Slug é obrigatório"),
+    description: z.string().min(1, "Descrição é obrigatória"),
+    level: z.string().min(1, "Nível é obrigatório"),
+    instructorId: z.string().min(1, "Instrutor é obrigatório"),
+    categoryId: z
+      .string()
+      .optional()
+      .transform((v) => (v != null && v.trim() === "" ? undefined : v)),
+    thumbnail: z
+      .string()
+      .optional()
+      .transform((v) => (v != null && v.trim() === "" ? undefined : v)),
+    icon: z
+      .string()
+      .optional()
+      .transform((v) => (v != null && v.trim() === "" ? undefined : v)),
+    colorHex: z
+      .string()
+      .optional()
+      .transform((v) => (v != null && v.trim() === "" ? undefined : v)),
     tags: z.array(z.string()).optional(),
     isFree: z.boolean().optional(),
     active: z.boolean().optional(),
@@ -61,6 +74,17 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
       course,
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const issues = error.issues.map((i) => ({
+        path: i.path.join("."),
+        message: i.message,
+      }));
+      return reply.status(400).send({
+        message: "Dados inválidos para criar curso",
+        issues,
+      });
+    }
+
     if (error instanceof CourseAlreadyExistsError) {
       return reply.status(409).send({ message: error.message });
     }
@@ -79,6 +103,22 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
         error.message === "User is not an instructor")
     ) {
       return reply.status(403).send({ message: error.message });
+    }
+
+    // Prisma FK / constraint errors -> mensagem amigável
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2003") {
+        // FK violation (ex.: categoryId inválido)
+        return reply.status(400).send({
+          message:
+            "Dados inválidos: verifique Instrutor/Categoria (IDs) e tente novamente.",
+        });
+      }
+      if (error.code === "P2002") {
+        return reply.status(409).send({
+          message: "Já existe um curso com esse slug.",
+        });
+      }
     }
 
     // Log do erro para debug

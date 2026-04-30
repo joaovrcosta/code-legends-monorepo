@@ -114,6 +114,16 @@ export default function NewCoursePage() {
         toast.error("Token de autenticação não encontrado");
         return;
       }
+      const missing: string[] = [];
+      if (!formData.title.trim()) missing.push("Título");
+      if (!formData.slug.trim()) missing.push("Slug");
+      if (!formData.description.trim()) missing.push("Descrição");
+      if (!formData.level?.trim()) missing.push("Nível");
+      if (!formData.instructorId?.trim()) missing.push("Instrutor");
+      if (missing.length > 0) {
+        toast.error(`Preencha os campos obrigatórios:\n${missing.map((m) => `- ${m}`).join("\n")}`);
+        return;
+      }
       await createCourse(formData, token);
       router.push("/courses");
     } catch (error: any) {
