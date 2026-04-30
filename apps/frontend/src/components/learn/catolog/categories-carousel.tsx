@@ -21,7 +21,7 @@ type CategorySlide = {
 
 const CATEGORIES: CategorySlide[] = [
   { id: 'front-end', title: 'JavaScript', icon: "https://xesque.rocketseat.dev/platform/1724859112038.svg" },
-  { id: 'back-end', title: 'ReactJS', icon: "https://xesque.rocketseat.dev/platform/1724859367235.svg" },
+  { id: 'reactjs', title: 'ReactJS', icon: "https://xesque.rocketseat.dev/platform/1724859367235.svg" },
   { id: 'design', title: 'Angular', icon: "https://xesque.rocketseat.dev/platform/1757013792759.svg" },
   { id: 'csharp', title: 'C#', icon: "https://xesque.rocketseat.dev/platform/1724859337625.svg" },
   { id: 'python', title: 'Python', icon: "https://xesque.rocketseat.dev/platform/1724859580254.svg" },

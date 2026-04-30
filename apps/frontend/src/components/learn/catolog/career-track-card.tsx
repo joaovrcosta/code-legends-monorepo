@@ -78,7 +78,12 @@ export function CareerTrackCard({
             <div className="ml-4 flex items-center gap-2 text-xs text-[#a5a5a6]">
               Formação • 181h • 2026
             </div>
-            <div className="font-semibold text-amber-300">JS</div>
+            <div>
+              <div className="font-semibold text-amber-300 flex items-center">
+                <Image src="https://xesque.rocketseat.dev/platform/1724859305154.svg" width={24} height={24} alt="" />
+                <Image src="https://xesque.rocketseat.dev/platform/1724859367235.svg" width={24} height={24} alt="" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
