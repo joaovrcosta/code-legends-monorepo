@@ -39,6 +39,17 @@ export default async function CoursesPage() {
             <div>
               <div className="flex items-center space-x-2 py-4 mt-4">
                 <span className="text-muted-foreground text-[14px] font-semibold">
+                  Categorias
+                </span>
+              </div>
+              <div className="relative w-full min-w-0 overflow-hidden px-0 pb-4">
+                <CategoriesCarousel />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center space-x-2 py-4 mt-4">
+                <span className="text-muted-foreground text-[14px] font-semibold">
                   Trilhas de carreira
                 </span>
               </div>
@@ -60,14 +71,6 @@ export default async function CoursesPage() {
               </span>
             </div>
             <CarouselSection courses={courses.courses} />
-          </div>
-          <div className="flex items-center space-x-2 py-4 mt-4">
-            <span className="text-muted-foreground text-[14px] font-semibold">
-              Categorias
-            </span>
-          </div>
-          <div className="relative w-full min-w-0 overflow-hidden px-0 pb-4">
-            <CategoriesCarousel />
           </div>
         </div>
       </div>

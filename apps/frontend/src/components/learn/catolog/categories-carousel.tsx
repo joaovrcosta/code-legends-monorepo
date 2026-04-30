@@ -11,27 +11,27 @@ import {
   carouselHeaderNavButtonClassName,
 } from '@/components/ui/carousel'
 import { CarouselSectionHeader } from '@/components/ui/carousel-section-header'
-import Image, { type StaticImageData } from 'next/image'
-
-import patternsIcon from '../../../../public/patterns-course-icon.svg'
-import reactIcon from '../../../../public/react-course-icon.svg'
-import tailwindIcon from '../../../../public/tailwind-course-icon.svg'
+import Image from 'next/image'
 
 type CategorySlide = {
   id: string
   title: string
-  icon: StaticImageData
+  icon: string
 }
 
 const CATEGORIES: CategorySlide[] = [
-  { id: 'front-end', title: 'Front-end', icon: reactIcon },
-  { id: 'back-end', title: 'Back-end', icon: patternsIcon },
-  { id: 'design', title: 'Design', icon: tailwindIcon },
-  { id: 'full-stack', title: 'Full-stack', icon: tailwindIcon },
+  { id: 'front-end', title: 'JavaScript', icon: "https://xesque.rocketseat.dev/platform/1724859112038.svg" },
+  { id: 'back-end', title: 'ReactJS', icon: "https://xesque.rocketseat.dev/platform/1724859367235.svg" },
+  { id: 'design', title: 'Angular', icon: "https://xesque.rocketseat.dev/platform/1757013792759.svg" },
+  { id: 'csharp', title: 'C#', icon: "https://xesque.rocketseat.dev/platform/1724859337625.svg" },
+  { id: 'python', title: 'Python', icon: "https://xesque.rocketseat.dev/platform/1724859580254.svg" },
+  { id: 'nodejs', title: 'NodeJS', icon: "https://xesque.rocketseat.dev/platform/1724859305154.svg" },
+  { id: 'vue', title: 'VueJS', icon: "https://xesque.rocketseat.dev/platform/1765389099642.svg" },
+  { id: 'native', title: 'React Native', icon: "https://xesque.rocketseat.dev/platform/1724859380835.svg" },
+  { id: 'nodejs2', title: 'NodeJS', icon: "https://xesque.rocketseat.dev/platform/1724859305154.svg" },
 ]
 
 export type CategoriesCarouselProps = {
-  /** Na home: cabeçalho "Carreiras" + botões ◀ ▶ à direita. */
   variant?: 'default' | 'carreiras'
 }
 
@@ -85,20 +85,20 @@ export function CategoriesCarousel({
             {CATEGORIES.map((category) => (
               <CarouselItem
                 key={category.id}
-                className={
-                  'pl-4 flex-[0_0_82%] min-w-0 sm:flex-[0_0_46%] md:min-w-[214px] md:max-w-[214px] md:flex-[0_0_214px]'
-                }
+                className="basis-auto shrink-0"
               >
-                <Card className="flex w-full max-w-full flex-col items-center justify-center rounded-[20px] bg-gray-gradient md:max-w-[214px]">
-                  <div className="p-4">
-                    <span className="text-[20px] font-semibold text-white">
-                      {category.title}
-                    </span>
-                  </div>
+                <Card className="flex w-full max-w-[200px] min-w-[200px] flex-col items-center justify-center rounded-[16px] bg-gray-gradient p-4 hover:bg-gray-gradient-first hover:border-[#3f3f48] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06),inset_0_-24px_24px_rgba(255,255,255,0.03)] transition-all duration-300 cursor-pointer">
                   <Image
                     src={category.icon}
                     alt={`Ilustração da categoria ${category.title}`}
+                    width={28}
+                    height={28}
                   />
+                  <div className="">
+                    <span className="text-[14px] font-normal text-white">
+                      {category.title}
+                    </span>
+                  </div>
                 </Card>
               </CarouselItem>
             ))}
