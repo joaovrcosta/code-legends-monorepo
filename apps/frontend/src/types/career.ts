@@ -28,6 +28,7 @@ export type CareerExam = {
   title: string
   slug: string
   passingScore: number
+  passed?: boolean
 }
 
 export type CareerModule = {

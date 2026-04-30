@@ -3,8 +3,9 @@ import { EnrollCareerButton } from "@/components/career/enroll-career-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ProgressRing } from "@/components/classroom/module-progress-ring";
 import { getAuroraBackground } from "@/utils/hexToRgb";
-import { CaretLeftIcon, Lock, Play } from "@phosphor-icons/react/dist/ssr";
+import { CaretLeftIcon, Check, FlaskIcon, Lock, Play } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -100,10 +101,8 @@ export default async function CareerDetailPage({
         </div>
       </section>
 
-      {/* Conteúdo limitado */}
       <div className="mx-auto flex w-full max-w-[1420px] flex-col items-start mt-6">
-        <div className="grid w-full grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:px-0 px-4">
-          {/* Coluna esquerda: módulos */}
+        <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:px-0 px-4">
           <div id="modulos" className="min-w-0 space-y-4">
             {data.modules.map((m) => (
               <div
@@ -164,11 +163,20 @@ export default async function CareerDetailPage({
                               </span>
                             )}
                             <div className="min-w-0">
-                              <div className="truncate text-sm font-medium text-white/90">
-                                {c.title}
-                              </div>
-                              <div className="text-xs text-white/50">
-                                Progresso no curso: {c.progress}%
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="truncate text-sm font-medium text-white/90">
+                                  {c.title}
+                                </div>
+                                <ProgressRing
+                                  progress={Math.max(0, Math.min(1, c.progress / 100))}
+                                  moduleNumber={0}
+                                  size={34}
+                                  strokeWidth={2.5}
+                                  progressColor="stroke-[#00C8FF]"
+                                  trackColor="stroke-[#25252A]"
+                                  padModuleNumber={false}
+                                  centerLabel={`${Math.round(c.progress)}%`}
+                                />
                               </div>
                             </div>
                           </div>
@@ -195,24 +203,39 @@ export default async function CareerDetailPage({
                       {m.exams.map((e) => (
                         <div
                           key={e.id}
-                          className="flex items-center justify-between gap-4 p-4 bg-gray-gradient rounded-[16px] border border-[#25252A] transition-opacity"
+                          className="flex flex-col gap-4 px-4 py-5 rounded-[16px] bg-[#101013] border border-[#25252A] transition-opacity sm:flex-row sm:items-center sm:justify-between"
                         >
-                          <div className="min-w-0">
-                            <div className="truncate text-sm font-semibold text-white">
-                              {e.title}
+                          <div className="flex items-center gap-4">
+                            <div>
+                              <FlaskIcon
+                                size={20}
+                                className="text-white"
+                              />
                             </div>
-                            <div className="text-xs text-white/50">
-                              Nota mínima: {e.passingScore}%
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-white leading-snug line-clamp-2 sm:line-clamp-1">
+                                {e.title}
+                                {e.passed ? (
+                                  <span className="ml-2 inline-flex align-middle opacity-70">
+                                    <Check size={14} weight="bold" className="text-emerald-200" />
+                                  </span>
+                                ) : null}
+                              </div>
+                              <div className="text-xs text-white/50">
+                                Nota mínima: {e.passingScore}%
+                              </div>
                             </div>
                           </div>
-                          <Button
-                            asChild
-                            className="h-10 rounded-full bg-transparent transition-all"
-                          >
-                            <Link href={`/learn/careers/${data.career.slug}/exams/${e.id}`}>
-                              Fazer teste
-                            </Link>
-                          </Button>
+                          <div className="w-full sm:w-auto sm:shrink-0">
+                            <Button
+                              asChild
+                              className="h-10 w-full sm:w-auto rounded-full px-5 text-sm font-semibold bg-transparent hover:bg-white/5 text-white/80 transition-all"
+                            >
+                              <Link href={`/learn/careers/${data.career.slug}/exams/${e.id}`}>
+                                {e.passed ? "Refazer prova" : "Fazer teste"}
+                              </Link>
+                            </Button>
+                          </div>
                         </div>
                       ))}
                       {m.exams.length === 0 ? (
@@ -227,7 +250,6 @@ export default async function CareerDetailPage({
             ))}
           </div>
 
-          {/* Coluna direita (sidebar) */}
           <div className="lg:sticky lg:top-6">
             <div className="space-y-4">
               <Card className="">

@@ -13,6 +13,8 @@ interface ProgressRingProps {
   isCurrent?: boolean
   /** Se true, exibe "01", "02"…; se false, "1", "2"… */
   padModuleNumber?: boolean
+  /** Texto opcional no centro (ex.: "42%"). Se definido, substitui número/check. */
+  centerLabel?: string
 }
 
 const DEFAULT_SIZE = 42
@@ -27,6 +29,7 @@ export const ProgressRing = memo(function ModuleProgressRing({
   trackColor = 'stroke-zinc-700',
   isCurrent = false,
   padModuleNumber = true,
+  centerLabel,
 }: ProgressRingProps) {
   const clampedProgress = Math.max(0, Math.min(1, progress))
   const isComplete = clampedProgress >= 1
@@ -63,7 +66,11 @@ export const ProgressRing = memo(function ModuleProgressRing({
         className="absolute inset-0 flex items-center justify-center"
         aria-hidden
       >
-        {isComplete ? (
+        {centerLabel != null ? (
+          <span className="text-xs font-bold tabular-nums text-zinc-200">
+            {centerLabel}
+          </span>
+        ) : isComplete ? (
           <Check
             size={20}
             className="text-cyan-400 animate-check-in origin-center"

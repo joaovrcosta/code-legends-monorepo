@@ -35,6 +35,7 @@ export interface GetCareerBySlugResponse {
       title: string
       slug: string
       passingScore: number
+      passed: boolean
     }>
     status: {
       isCompleted: boolean
@@ -165,11 +166,12 @@ export class GetCareerBySlugUseCase {
             isEnrolled: uc != null,
           }
         }),
-        exams: exams.map((e) => ({
-          id: e.id,
-          title: e.title,
-          slug: e.slug,
-          passingScore: e.passingScore,
+        exams: m.exams.map((row) => ({
+          id: row.exam.id,
+          title: row.exam.title,
+          slug: row.exam.slug,
+          passingScore: row.exam.passingScore,
+          passed: examPassedMap.get(row.careerExamId) === true,
         })),
         status: {
           isCompleted: statusRow?.isCompleted ?? false,
