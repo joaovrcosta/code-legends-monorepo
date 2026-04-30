@@ -1,6 +1,6 @@
 'use client'
 
-import { CatalogCard } from '@/components/home/catalog-card'
+
 import {
   Carousel,
   CarouselContent,
@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/carousel'
 import type { CourseWithCount } from '@/types/user-course.ts'
 import { useSession } from 'next-auth/react'
+import { CatalogCard } from './catalog-card'
 
 const getColorByLevel = (level: string): string => {
   const normalized = (level ?? '')
@@ -53,7 +54,7 @@ export function CarouselSection({
       <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-surface to-transparent z-10" />
 
       <Carousel>
-        <CarouselContent className="w-full">
+        <CarouselContent className="w-full ml-0 gap-4">
           {courses.map((course, index) => {
             const position =
               index === 0
@@ -65,7 +66,7 @@ export function CarouselSection({
             return (
               <CarouselItem
                 key={course.id}
-                className="md:basis-[48%] basis-[85%] lg:basis-[28%]"
+                className="pl-0 basis-[85%] md:basis-[314px] lg:basis-[314px]"
               >
                 <CatalogCard
                   name={course.title}

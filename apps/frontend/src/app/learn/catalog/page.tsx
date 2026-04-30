@@ -1,11 +1,10 @@
 import { NewContentCaroussel } from '@/components/learn/catolog/new-content-caroussel'
 import { CarouselSection } from '@/components/learn/catolog/carousel-section'
 import { CategoriesCarousel } from '@/components/learn/catolog/categories-carousel'
-import { MyCatalogWrapper } from '@/components/learn/catolog/my-catalog-wrapper'
+import { CareerTracksSection } from '@/components/learn/catolog/career-tracks-section'
 import { getUserEnrolledList } from '@/actions/progress'
 import { listCourses } from '@/actions/course'
 import type { Metadata } from 'next'
-import Image from 'next/image'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,23 +35,26 @@ export default async function CoursesPage() {
 
         {/* Seus cursos e Catálogo */}
         <div className="lg:pl-20 pl-4 w-full">
-          <div className="flex items-center space-x-2 py-4">
-            <span className="text-muted-foreground text-[14px] font-semibold">
-              Seus cursos
-            </span>
-          </div>
-          <MyCatalogWrapper initialUserCourses={userCourses} />
-
-          {/* Catálogo */}
           <div>
+            <div>
+              <div className="flex items-center space-x-2 py-4 mt-4">
+                <span className="text-muted-foreground text-[14px] font-semibold">
+                  Trilhas de carreira
+                </span>
+              </div>
+              <div className="relative w-full min-w-0 overflow-hidden px-0 pb-2">
+                <CareerTracksSection />
+              </div>
+            </div>
+
             <div className="flex items-center gap-8 pt-6 pr-6 pb-6">
-              <Image src="https://ds055uzetaobb.cloudfront.net/brioche/chapter/how-llms-work-xk99Hz.png" alt="Recomendações" width={80} height={80} />
-              <span className="text-muted-foreground text-xl font-semibold">
-                Front-end
+              {/* <Image src="https://ds055uzetaobb.cloudfront.net/brioche/chapter/how-llms-work-xk99Hz.png" alt="Recomendações" width={80} height={80} /> */}
+              <span className="text-muted-foreground text-[14px] font-semibold">
+                Em alta
               </span>
             </div>
             <CarouselSection courses={courses.courses} />
-            <div className="flex items-center space-x-2 py-4 pt-4">
+            <div className="flex items-center space-x-2 py-6 pt-6">
               <span className="text-muted-foreground text-[14px] font-semibold">
                 Acesse gratuitamente
               </span>
