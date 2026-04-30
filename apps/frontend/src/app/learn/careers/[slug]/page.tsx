@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { getAuroraBackground } from "@/utils/hexToRgb";
-import { Play } from "@phosphor-icons/react/dist/ssr";
+import { CaretLeftIcon, Lock, Play } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -17,6 +17,10 @@ export default async function CareerDetailPage({
 }) {
   const { slug } = await params;
   const data = await getCareerBySlug(slug);
+  const firstExamId = data.modules.find((m) => m.exams.length > 0)?.exams[0]?.id ?? null;
+  const firstExamHref = firstExamId
+    ? `/learn/careers/${data.career.slug}/exams/${firstExamId}`
+    : null;
 
   return (
     <div className="w-full">
@@ -29,6 +33,18 @@ export default async function CareerDetailPage({
 
         <div className="mx-auto w-full max-w-[1420px]">
           <div className="relative z-10 flex w-full flex-col items-center lg:items-start">
+            <Link
+              href="/learn/careers"
+              className="group p-2 lg:bg-transparent relative lg:top-0 top-[12px] bg-white/5 rounded-lg flex items-center gap-2 mb-4 text-[#7e7e89] transition-colors duration-200 hover:bg-black/20 hover:text-[#e0e0e8] self-start mr-auto"
+            >
+              <span className="inline-flex shrink-0 transition-transform duration-200 ease-out group-hover:-translate-x-1 group-active:-translate-x-0.5">
+                <CaretLeftIcon size={24} weight="bold" />
+              </span>
+              <span className="text-xs lg:block hidden uppercase tracking-wider">
+                Voltar
+              </span>
+            </Link>
+
             {data.career.thumbnail ? (
               <div className="mb-4 flex items-center justify-center lg:justify-start">
                 <Image
@@ -69,6 +85,15 @@ export default async function CareerDetailPage({
                     className="h-[2px] bg-surface-2"
                   />
                 </div>
+                <div className="mb-2 mt-6">
+                  <EnrollCareerButton
+                    careerId={data.career.id}
+                    isEnrolled={data.enrollment.isEnrolled}
+                    notEnrolledLabel="Iniciar"
+                    enrolledLabel="Inscrito"
+                    className="h-12 w-full lg:max-w-[142px] rounded-full px-4 text-xs font-semibold bg-white/10 text-white/70 hover:bg-white/10"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -77,7 +102,7 @@ export default async function CareerDetailPage({
 
       {/* Conteúdo limitado */}
       <div className="mx-auto flex w-full max-w-[1420px] flex-col items-start mt-6">
-        <div className="grid w-full grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+        <div className="grid w-full grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:px-0 px-4">
           {/* Coluna esquerda: módulos */}
           <div id="modulos" className="min-w-0 space-y-4">
             {data.modules.map((m) => (
@@ -182,7 +207,7 @@ export default async function CareerDetailPage({
                           </div>
                           <Button
                             asChild
-                            className="h-10 rounded-full bg-blue-gradient-500 px-5 text-sm font-semibold hover:shadow-[0_0_12px_#00C8FF] transition-all"
+                            className="h-10 rounded-full bg-transparent transition-all"
                           >
                             <Link href={`/learn/careers/${data.career.slug}/exams/${e.id}`}>
                               Fazer teste
@@ -204,27 +229,60 @@ export default async function CareerDetailPage({
 
           {/* Coluna direita (sidebar) */}
           <div className="lg:sticky lg:top-6">
-            <Card className="">
-              <CardContent className="p-5 space-y-4">
-                <div className="space-y-2 pt-2">
-                  <EnrollCareerButton
-                    careerId={data.career.id}
-                    isEnrolled={data.enrollment.isEnrolled}
-                    notEnrolledLabel="Iniciar"
-                    enrolledLabel="Inscrito"
-                    className="w-full bg-blue-gradient-500 h-[54px] rounded-full hover:shadow-[0_0_12px_#00C8FF] transition-all"
-                  />
+            <div className="space-y-4">
+              <Card className="">
+                <CardContent className="p-5 space-y-4">
+                  <div className="space-y-2 pt-2">
+                    <Button
+                      variant="secondary"
+                      className="w-full rounded-md h-[54px] bg-transparent hover:bg-white/10 text-white"
+                      asChild
+                    >
+                      <Link href="#modulos">Ver conteúdos</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
-                  <Button
-                    variant="secondary"
-                    className="w-full rounded-md h-[54px] bg-transparent hover:bg-white/10 text-white"
-                    asChild
-                  >
-                    <Link href="#modulos">Ver conteúdos</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              <Card className="">
+                <CardContent className="p-5">
+                  <div className="text-sm font-semibold text-white/80">
+                    Certificado
+                  </div>
+                  <div className="mt-3 relative overflow-hidden rounded-[20px] border border-[#25252A]">
+                    <Image
+                      src="/certificate-image.png"
+                      alt="Certificado"
+                      width={500}
+                      height={120}
+                      className="h-[120px] w-full object-cover opacity-80"
+                    />
+
+                    {data.enrollment.isCompleted ? (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Button
+                          asChild
+                          className="h-10 rounded-full bg-[#00C8FF] hover:bg-[#00a8d4] text-black font-semibold"
+                        >
+                          <Link href="/account/certificates">Ver certificado</Link>
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 bg-black/35 backdrop-blur-sm flex items-center justify-center gap-2">
+                        <Lock size={20} className="text-white" />
+                        <span className="text-white text-sm font-semibold">
+                          Bloqueado
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="mt-3 text-xs text-white/55">
+                    Conclua 100% da carreira para liberar o certificado.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
