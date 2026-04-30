@@ -3,6 +3,7 @@ import { EnrollCareerButton } from "@/components/career/enroll-career-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { getAuroraBackground } from "@/utils/hexToRgb";
 import { Play } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,34 +17,67 @@ export default async function CareerDetailPage({
 }) {
   const { slug } = await params;
   const data = await getCareerBySlug(slug);
-  const firstExam = data.modules.find((m) => m.exams.length > 0)?.exams[0] ?? null;
-  const firstExamHref = firstExam
-    ? `/learn/careers/${data.career.slug}/exams/${firstExam.id}`
-    : null;
 
   return (
     <div className="w-full">
-      <div className="mx-auto flex w-full max-w-[1420px] flex-col items-start xl:mt-10 mt-6 px-4">
-        {/* Header (full-width) */}
-        <div className="flex w-full flex-col gap-3 rounded-2xl py-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <h1 className="font-bold lg:text-[44px] text-2xl lg:text-left leading-tight text-center mb-4">
-                {data.career.title}
-              </h1>
-              {data.career.description ? (
-                <p className="mt-1 text-sm text-white/70">{data.career.description}</p>
-              ) : null}
+      {/* Banner full-width */}
+      <section
+        className="relative w-full border-b border-[#25252A] px-4 pb-8 pt-6 lg:px-12 lg:py-12"
+        style={getAuroraBackground(data.career.colorHex)}
+      >
+        <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
+
+        <div className="mx-auto w-full max-w-[1420px]">
+          <div className="relative z-10 flex w-full flex-col items-center lg:items-start">
+            {data.career.thumbnail ? (
+              <div className="mb-4 flex items-center justify-center lg:justify-start">
+                <Image
+                  src={data.career.thumbnail}
+                  alt={data.career.title}
+                  width={120}
+                  height={120}
+                  className="relative lg:right-[12px] right-0"
+                />
+              </div>
+            ) : null}
+
+            <span className="mb-4 shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/70">
+              Carreira
+            </span>
+
+            <h1 className="font-bold lg:text-[44px] text-2xl lg:text-left leading-tight text-center mb-3 text-white">
+              {data.career.title}
+            </h1>
+
+            {data.career.description ? (
+              <p className="lg:text-base text-sm mt-1 text-center lg:text-left max-w-[620px] text-[#a5a5a6]">
+                {data.career.description}
+              </p>
+            ) : null}
+
+            <div className="mt-6 flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="w-full max-w-[500px]">
+                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-[#7e7e89]">
+                  <span>Seu Progresso</span>
+                  <span className="text-white text-sm">
+                    {Math.round(data.enrollment.progress)}%
+                  </span>
+                </div>
+                <div className="mt-2">
+                  <Progress
+                    value={data.enrollment.progress}
+                    className="h-[2px] bg-surface-2"
+                  />
+                </div>
+              </div>
             </div>
-            <EnrollCareerButton
-              careerId={data.career.id}
-              isEnrolled={data.enrollment.isEnrolled}
-            />
           </div>
         </div>
+      </section>
 
-        {/* Conteúdo em 2 colunas */}
-        <div className="mt-2 grid w-full grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+      {/* Conteúdo limitado */}
+      <div className="mx-auto flex w-full max-w-[1420px] flex-col items-start mt-6">
+        <div className="grid w-full grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
           {/* Coluna esquerda: módulos */}
           <div id="modulos" className="min-w-0 space-y-4">
             {data.modules.map((m) => (
@@ -134,10 +168,9 @@ export default async function CareerDetailPage({
                   <div className="">
                     <div className="mt-3 space-y-2">
                       {m.exams.map((e) => (
-                        <Link
+                        <div
                           key={e.id}
-                          href={`/learn/careers/${data.career.slug}/exams/${e.id}`}
-                          className="flex items-center gap-4 px-4 py-2 bg-[#151517] rounded-[20px] border border-[#25252A] transition-opacity "
+                          className="flex items-center justify-between gap-4 p-4 bg-gray-gradient rounded-[16px] border border-[#25252A] transition-opacity"
                         >
                           <div className="min-w-0">
                             <div className="truncate text-sm font-semibold text-white">
@@ -147,10 +180,15 @@ export default async function CareerDetailPage({
                               Nota mínima: {e.passingScore}%
                             </div>
                           </div>
-                          <span className="text-xs font-semibold text-[#00C8FF]">
-                            Fazer
-                          </span>
-                        </Link>
+                          <Button
+                            asChild
+                            className="h-10 rounded-full bg-blue-gradient-500 px-5 text-sm font-semibold hover:shadow-[0_0_12px_#00C8FF] transition-all"
+                          >
+                            <Link href={`/learn/careers/${data.career.slug}/exams/${e.id}`}>
+                              Fazer teste
+                            </Link>
+                          </Button>
+                        </div>
                       ))}
                       {m.exams.length === 0 ? (
                         <div className="text-sm text-white/40">
@@ -168,29 +206,14 @@ export default async function CareerDetailPage({
           <div className="lg:sticky lg:top-6">
             <Card className="">
               <CardContent className="p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold text-white/80">
-                    Progresso geral
-                  </div>
-                  <div className="text-xs font-semibold text-white/60">
-                    {data.enrollment.progress}%
-                  </div>
-                </div>
-
-                <Progress value={data.enrollment.progress} />
-
                 <div className="space-y-2 pt-2">
-                  <Button
-                    className="w-full bg-blue-gradient-500 h-[54px] rounded-full"
-                    disabled={!data.enrollment.isEnrolled || !firstExamHref}
-                    asChild={Boolean(firstExamHref && data.enrollment.isEnrolled)}
-                  >
-                    {firstExamHref && data.enrollment.isEnrolled ? (
-                      <Link href={firstExamHref}>Iniciar</Link>
-                    ) : (
-                      <span>Iniciar</span>
-                    )}
-                  </Button>
+                  <EnrollCareerButton
+                    careerId={data.career.id}
+                    isEnrolled={data.enrollment.isEnrolled}
+                    notEnrolledLabel="Iniciar"
+                    enrolledLabel="Inscrito"
+                    className="w-full bg-blue-gradient-500 h-[54px] rounded-full hover:shadow-[0_0_12px_#00C8FF] transition-all"
+                  />
 
                   <Button
                     variant="secondary"

@@ -123,6 +123,7 @@ export function CareerExamView({
               Questão {currentIndex + 1} de {total}
             </div>
             <ChallengeBlock
+              key={currentIndex}
               challenge={challenges[currentIndex]}
               index={currentIndex}
               onAnswer={handleAnswer}

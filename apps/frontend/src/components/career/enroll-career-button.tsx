@@ -7,9 +7,17 @@ import { Button } from "@/components/ui/button";
 export function EnrollCareerButton({
   careerId,
   isEnrolled,
+  notEnrolledLabel = "Inscrever-se",
+  enrolledLabel = "Já inscrito",
+  loadingLabel = "Inscrevendo...",
+  className,
 }: {
   careerId: string;
   isEnrolled: boolean;
+  notEnrolledLabel?: string;
+  enrolledLabel?: string;
+  loadingLabel?: string;
+  className?: string;
 }) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -30,9 +38,13 @@ export function EnrollCareerButton({
     <Button
       onClick={handleEnroll}
       disabled={isEnrolled || isLoading}
-      className="rounded-full"
+      className={["rounded-full", className].filter(Boolean).join(" ")}
     >
-      {isEnrolled ? "Inscrito" : isLoading ? "Inscrevendo..." : "Inscrever-se"}
+      {isEnrolled
+        ? enrolledLabel
+        : isLoading
+          ? loadingLabel
+          : notEnrolledLabel}
     </Button>
   );
 }
