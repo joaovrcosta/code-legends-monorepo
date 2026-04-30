@@ -3,6 +3,7 @@ import { EnrollCareerButton } from "@/components/career/enroll-career-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Play } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -52,7 +53,9 @@ export default async function CareerDetailPage({
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <h2 className="text-lg font-semibold text-white">{m.title}</h2>
+                    <span className="font-bold bg-blue-gradient-500 bg-clip-text text-transparent text-lg">
+                      {m.title}
+                    </span>
                     {m.description ? (
                       <p className="mt-1 text-sm text-white/60">{m.description}</p>
                     ) : null}
@@ -112,9 +115,11 @@ export default async function CareerDetailPage({
                           </div>
                           <Link
                             href={`/learn/paths/${c.slug}`}
-                            className="text-xs font-semibold text-[#00C8FF]"
+                            className="text-xs font-semibold text-[#00C8FF] mr-2"
                           >
-                            Abrir
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#25252A] hover:bg-[#2E2E32] flex items-center justify-center transition-colors">
+                              <Play size={20} className="text-white ml-0.5" fill="white" weight="fill" />
+                            </div>
                           </Link>
                         </li>
                       ))}
@@ -132,7 +137,7 @@ export default async function CareerDetailPage({
                         <Link
                           key={e.id}
                           href={`/learn/careers/${data.career.slug}/exams/${e.id}`}
-                          className="flex items-center justify-between rounded-xl px-3 py-3 hover:border-[#3f3f48]"
+                          className="flex items-center gap-4 px-4 py-2 bg-[#151517] rounded-[20px] border border-[#25252A] transition-opacity "
                         >
                           <div className="min-w-0">
                             <div className="truncate text-sm font-semibold text-white">
