@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import type { Challenge } from '@/types/roadmap'
 import { ChallengeBlock } from './ChallengeBlock'
 import { continueCourse } from '@/actions/course'
@@ -40,6 +40,7 @@ export function QuizView({
   const [answers, setAnswers] = useState<boolean[]>([])
   const [quizFinished, setQuizFinished] = useState(false)
   const [isMarking, setIsMarking] = useState(false)
+  const [autoFinishTriggered, setAutoFinishTriggered] = useState(false)
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
   const {
     currentLesson,
@@ -146,28 +147,31 @@ export function QuizView({
   const passed = score >= PASSING_SCORE
   const stepPct = total > 0 ? Math.round(((currentIndex + 1) / total) * 100) : 0
 
+  useEffect(() => {
+    if (!useMultiFlow) return
+    if (!quizFinished) return
+    if (!passed) return
+    if (autoFinishTriggered) return
+    if (!currentLesson?.id || currentLesson.id !== lessonId) return
+    if (isMarking) return
+
+    setAutoFinishTriggered(true)
+    void handleFinishQuiz()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    useMultiFlow,
+    quizFinished,
+    passed,
+    autoFinishTriggered,
+    currentLesson?.id,
+    lessonId,
+    isMarking,
+  ])
+
   return (
     <div className="flex flex-col min-h-0">
-      {/* Hero */}
-      <div className="bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.25)] px-6 py-5 lg:h-56 h-48 flex flex-col justify-center items-center lg:rounded-[20px] rounded-none">
-        <div className="text-start space-y-1 max-w-5xl w-full p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <ListChecks size={20} className="text-[#00b3e4]" weight="bold" />
-            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9ca3af]">
-              Desafios
-            </span>
-          </div>
-          <h1 className="text-3xl font-semibold text-white">{title}</h1>
-          {description && (
-            <p className="text-muted-foreground mt-1 text-sm max-w-xl">
-              {description}
-            </p>
-          )}
-        </div>
-      </div>
-
       {/* Content */}
-      <div className="flex justify-center items-start mt-6">
+      <div className="flex justify-center items-start">
         <div className="max-w-5xl w-full p-4">
           {challenges.length === 0 ? (
             <>
@@ -232,15 +236,16 @@ export function QuizView({
                 </p>
               )}
               <Button
-                onClick={passed ? handleFinishQuiz : () => {
+                onClick={passed ? undefined : () => {
                   setCurrentIndex(0)
                   setAnswers([])
                   setQuizFinished(false)
+                  setAutoFinishTriggered(false)
                 }}
-                disabled={isMarking || !currentLesson}
+                disabled={passed || isMarking || !currentLesson}
                 className="gap-2 rounded-full bg-[#00b3e4] mt-4 px-6 text-black hover:opacity-90 h-[52px]"
               >
-                {isMarking ? 'Salvando...' : passed ? 'Concluir' : 'Tentar novamente'}
+                {isMarking ? 'Salvando...' : passed ? 'Concluído' : 'Tentar novamente'}
               </Button>
             </div>
           ) : (
