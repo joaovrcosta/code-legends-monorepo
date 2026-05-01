@@ -211,17 +211,10 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
   const handleCourseAction = useCallback(async () => {
     if (isCheckingEnrollment || isLoadingAction) return
 
-    if (!isEnrolled) {
-      await handleEnrollOnly()
-      return
-    }
-
     await handleAccessCourse()
   }, [
     handleAccessCourse,
-    handleEnrollOnly,
     isCheckingEnrollment,
-    isEnrolled,
     isLoadingAction,
   ])
 
@@ -250,13 +243,14 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
   const renderButtonContent = () => {
     if (!mounted || isCheckingEnrollment) return 'Verificando...'
     if (isLoadingAction) return <Loader2 className="animate-spin" size={24} />
+    const progress = userProgress?.course.progress ?? 0
     return isEnrolled ? (
       <>
         <PlayIcon weight="fill" className="mr-2" /> Acessar
       </>
     ) : (
       <>
-        <PlusIcon className="mr-2" /> Inscrever-se
+        {progress > 0 ? 'Continuar' : 'Começar'}
       </>
     )
   }

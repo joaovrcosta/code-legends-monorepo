@@ -64,16 +64,16 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         const whereBySlug =
           courseIdFromRoute
             ? {
-                slug: lessonSlug,
-                submodule: {
-                  module: {
-                    courseId: courseIdFromRoute,
-                    ...(moduleSlugFromQuery
-                      ? { slug: moduleSlugFromQuery }
-                      : {}),
-                  },
+              slug: lessonSlug,
+              submodule: {
+                module: {
+                  courseId: courseIdFromRoute,
+                  ...(moduleSlugFromQuery
+                    ? { slug: moduleSlugFromQuery }
+                    : {}),
                 },
-              }
+              },
+            }
             : { slug: lessonSlug };
         lesson = await prisma.lesson.findFirst({
           where: whereBySlug,
@@ -121,17 +121,18 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         });
       }
 
-      // Verificar se o usuário está inscrito no curso
-      const userCourseRepository = new PrismaUserCourseRepository();
-      const userCourse = await userCourseRepository.findByUserAndCourse(
-        userId,
-        courseId
-      );
+      if (!lessonIsFree) {
+        const userCourseRepository = new PrismaUserCourseRepository();
+        const userCourse = await userCourseRepository.findByUserAndCourse(
+          userId,
+          courseId
+        );
 
-      if (!userCourse) {
-        return reply.status(403).send({
-          message: "You must be enrolled in this course to access this lesson",
-        });
+        if (!userCourse) {
+          return reply.status(403).send({
+            message: "You must be enrolled in this course to access this lesson",
+          });
+        }
       }
 
       // Verificar se a aula foi concluída (permitir revisão)

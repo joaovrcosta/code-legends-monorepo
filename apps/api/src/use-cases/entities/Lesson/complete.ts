@@ -108,13 +108,11 @@ export class CompleteLessonUseCase {
       throw new CourseNotFoundError()
     }
 
-    const userCourse = await this.userCourseRepository.findByUserAndCourse(
-      userId,
-      courseId,
-    )
-    if (!userCourse) {
-      throw new Error('User is not enrolled in this course')
-    }
+    // Regra nova: não dependemos mais de inscrição explícita.
+    // Se o usuário ainda não tem UserCourse, criamos automaticamente ao concluir a primeira lição.
+    const userCourse =
+      (await this.userCourseRepository.findByUserAndCourse(userId, courseId)) ??
+      (await this.userCourseRepository.enroll(userId, courseId))
 
     const existingProgress =
       await this.userProgressRepository.findByUserAndTask(userId, lessonId)

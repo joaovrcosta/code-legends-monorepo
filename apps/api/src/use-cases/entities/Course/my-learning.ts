@@ -132,10 +132,9 @@ export class MyLearningUseCase {
           progress: courseProgress,
         };
 
-        // Separar em progresso ou completo
         if (isCompleted) {
           completed.push(courseItem);
-        } else {
+        } else if (completedLessons > 0) {
           inProgress.push(courseItem);
         }
       }

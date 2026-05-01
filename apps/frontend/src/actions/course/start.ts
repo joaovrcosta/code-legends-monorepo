@@ -19,21 +19,40 @@ export async function startCourse(courseId: string) {
     const previousActiveCourse = await getActiveCourse();
     const previousCourseId = previousActiveCourse?.id;
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/start`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        cache: "no-store",
+    const doStart = async () => {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/courses/${courseId}/start`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          cache: "no-store",
+        }
+      );
+      return response;
+    };
+
+    let response = await doStart();
+
+    // Regra nova: inscrição pode ser implícita (primeira ação).
+    // Se a API ainda exigir inscrição para /start, fazemos enroll e tentamos de novo.
+    if (!response.ok && response.status === 403) {
+      const errorData = await response.json().catch(() => ({} as any));
+      const message = String(errorData?.message ?? "");
+      if (message === "User is not enrolled in this course") {
+        const { enrollInCourse } = await import("./enroll");
+        await enrollInCourse(courseId);
+        response = await doStart();
+      } else {
+        throw new Error(message || "Erro ao iniciar curso");
       }
-    );
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Erro ao iniciar curso");
+      throw new Error((errorData as any).message || "Erro ao iniciar curso");
     }
 
     const data = await response.json();
