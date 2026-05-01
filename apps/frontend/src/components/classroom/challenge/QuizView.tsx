@@ -169,10 +169,10 @@ export function QuizView({
   ])
 
   return (
-    <div className="flex flex-col min-h-0">
+    <div className="flex flex-col min-h-0 flex-1">
       {/* Content */}
-      <div className="flex justify-center items-start">
-        <div className="max-w-5xl w-full p-4">
+      <div className="flex flex-1 justify-center items-center min-h-0">
+        <div className="max-w-5xl w-full p-4 min-h-0">
           {challenges.length === 0 ? (
             <>
               <p className="text-[#a1a1aa] italic text-center py-12">
