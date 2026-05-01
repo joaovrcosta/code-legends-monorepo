@@ -214,6 +214,7 @@ const challengeTypeLabels: Record<string, string> = {
   conceptual: 'Conceitual',
   block_slots: 'Encaixar comandos',
   parsons: 'Encaixar comandos (legado)',
+  exam_mcq: 'Exame (múltipla escolha)',
 }
 
 const CHALLENGE_TYPES: ChallengeType[] = [
@@ -223,6 +224,7 @@ const CHALLENGE_TYPES: ChallengeType[] = [
   'refactor',
   'complete',
   'block_slots',
+  'exam_mcq',
 ]
 
 const LANGUAGES = [

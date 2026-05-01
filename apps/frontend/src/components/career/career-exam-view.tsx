@@ -5,6 +5,11 @@ import { Button } from "@/components/ui/button";
 import type { CareerExam, SubmitCareerExamAttemptResponse } from "@/types/career";
 import { submitCareerExamAttempt } from "@/actions/career";
 import { ChallengeBlock } from "@/components/classroom/challenge/ChallengeBlock";
+import {
+  ExamMcqChallenge,
+  isCareerExamMultipleChoice,
+} from "@/components/career/exam-mcq-challenge";
+import { OnboardingTopBar } from "@/components/onboarding/onboarding-top-bar";
 import type { Challenge } from "@/types/roadmap";
 
 const DEFAULT_PASSING_SCORE = 70;
@@ -21,11 +26,13 @@ export function CareerExamView({
   exam,
   onBackHref,
   onSubmitted,
+  showHeader = true,
 }: {
   careerSlug: string;
   exam: CareerExam & { content?: any };
   onBackHref: string;
   onSubmitted?: (r: SubmitCareerExamAttemptResponse) => void;
+  showHeader?: boolean;
 }) {
   const challenges = useMemo(() => extractChallenges(exam), [exam]);
   const [answers, setAnswers] = useState<boolean[]>([]);
@@ -41,6 +48,9 @@ export function CareerExamView({
       ? (exam as any).passingScore
       : DEFAULT_PASSING_SCORE;
   const passed = score >= passingScore;
+
+  const currentChallenge =
+    challenges.length > 0 ? challenges[currentIndex] : undefined;
 
   const handleAnswer = (correct: boolean) => {
     setAnswers((prev) => [...prev, correct]);
@@ -87,16 +97,18 @@ export function CareerExamView({
 
   return (
     <div className="flex flex-col min-h-0">
-      <div className="rounded-2xl border border-[#25252A] bg-gray-gradient px-6 py-5">
-        <div className="space-y-1">
-          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-white/50">
-            Certification exam
+      {showHeader ? (
+        <div className="rounded-2xl border border-[#25252A] bg-gray-gradient px-6 py-5">
+          <div className="space-y-1">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-white/50">
+              Certification exam
+            </div>
+            <h1 className="text-2xl font-semibold text-white">{exam.title}</h1>
           </div>
-          <h1 className="text-2xl font-semibold text-white">{exam.title}</h1>
         </div>
-      </div>
+      ) : null}
 
-      <div className="mt-6">
+      <div className={showHeader ? "mt-6" : "mt-0"}>
         {challenges.length === 0 ? (
           <div className="rounded-2xl border border-[#25252A] bg-[#0D0D12] p-6 text-center text-white/60">
             Nenhuma questão cadastrada para este exame.
@@ -125,17 +137,36 @@ export function CareerExamView({
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-[#25252A] bg-[#0D0D12] p-4">
-            <div className="mb-2 text-xs text-white/50">
-              Questão {currentIndex + 1} de {total}
-            </div>
-            <ChallengeBlock
-              key={currentIndex}
-              challenge={challenges[currentIndex]}
-              index={currentIndex}
-              onAnswer={handleAnswer}
-              onNext={handleNext}
+          <div className="flex flex-col gap-4">
+            <OnboardingTopBar
+              currentStep={currentIndex + 1}
+              totalSteps={total}
+              backHref={onBackHref}
             />
+            <p className="text-center text-xs font-medium uppercase tracking-wider text-[#7e7e89]">
+              Questão {currentIndex + 1} de {total}
+            </p>
+            {currentChallenge &&
+            isCareerExamMultipleChoice(currentChallenge) ? (
+              <div key={currentIndex} className="min-h-[200px]">
+                <ExamMcqChallenge
+                  challenge={currentChallenge}
+                  onAnswer={handleAnswer}
+                  onNext={handleNext}
+                />
+              </div>
+            ) : currentChallenge ? (
+              <div className="rounded-2xl border border-[#25252A] bg-[#0D0D12] p-4">
+                <ChallengeBlock
+                  key={currentIndex}
+                  challenge={currentChallenge}
+                  index={currentIndex}
+                  onAnswer={handleAnswer}
+                  onNext={handleNext}
+                  allowRetry={false}
+                />
+              </div>
+            ) : null}
           </div>
         )}
       </div>

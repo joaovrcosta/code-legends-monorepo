@@ -13,6 +13,8 @@ export type GetCareerExamResponse = {
     passingScore: number;
     maxAttempts: number | null;
   };
+  career: { title: string; slug: string } | null;
+  module: { title: string } | null;
 };
 
 export async function getCareerExam(args: {

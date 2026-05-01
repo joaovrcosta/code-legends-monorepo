@@ -19,6 +19,7 @@ const challengeTypeLabels: Record<string, string> = {
   complete: "Complete o Código",
   conceptual: "Conceitual",
   block_slots: "Encaixar comandos",
+  exam_mcq: "Exame (múltipla escolha)",
 };
 
 function nonEmptyLines(text: string): string[] {
@@ -60,10 +61,14 @@ export const ChallengeBlock = createReactBlockSpec(
       };
 
       const options = JSON.parse(block.props.options || "[]") as string[];
-      const hasOptions = ["prediction", "conceptual", "bug"].includes(block.props.challengeType);
+      const hasOptions = ["prediction", "conceptual", "bug", "exam_mcq"].includes(
+        block.props.challengeType,
+      );
       const isBlockSlots =
         block.props.challengeType === "block_slots" || block.props.challengeType === "parsons";
-      const showCode = block.props.challengeType !== "conceptual";
+      const showCode =
+        block.props.challengeType !== "conceptual" &&
+        block.props.challengeType !== "exam_mcq";
 
       const setOption = (index: number, val: string) => {
         const next = [...options];
@@ -202,6 +207,7 @@ export const ChallengeBlock = createReactBlockSpec(
                       <option value="refactor">Refatoração</option>
                       <option value="complete">Complete o Código</option>
                       <option value="block_slots">Encaixar comandos</option>
+                      <option value="exam_mcq">Exame (múltipla escolha)</option>
                     </select>
                   </div>
 

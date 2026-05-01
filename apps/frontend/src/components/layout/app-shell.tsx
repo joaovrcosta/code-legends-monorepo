@@ -37,6 +37,7 @@ export function AppShell({
       <LearnHeader
         initialUserCourses={initialUserCourses}
         initialActiveCourse={initialActiveCourse}
+        showDesktopSidebarToggle={showSidebar}
       />
 
       <div

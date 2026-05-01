@@ -63,6 +63,8 @@ export interface ChallengeFeedbackPanelProps {
   onNext?: () => void
   /** Bónus de desafio (primeira resposta certa): loading + valor com count-up. */
   xpAward?: ChallengeFeedbackXpAward
+  /** Se false (ex.: exame de carreira), não exibe “Tentar de novo” no erro — só seguir. */
+  allowRetry?: boolean
 }
 
 /**
@@ -81,6 +83,7 @@ export function ChallengeFeedbackPanel({
   onContinue,
   onNext,
   xpAward = { state: 'idle' },
+  allowRetry = true,
 }: ChallengeFeedbackPanelProps) {
   const wrong = !isCorrect
   const msg = isCorrect ? okMessage : wrongMessage
@@ -138,16 +141,29 @@ export function ChallengeFeedbackPanel({
             ) : null}
             <div className="mt-5 flex flex-wrap gap-3">
               {wrong ? (
-                <>
-                  <button type="button" className={PILL_LIGHT} onClick={onTryAgain}>
-                    Tentar de novo
-                  </button>
-                  {hasExplanation ? (
-                    <button type="button" className={PILL_MUTED} onClick={onSeeAnswer}>
-                      Ver resposta
+                allowRetry ? (
+                  <>
+                    <button type="button" className={PILL_LIGHT} onClick={onTryAgain}>
+                      Tentar de novo
                     </button>
-                  ) : null}
-                </>
+                    {hasExplanation ? (
+                      <button type="button" className={PILL_MUTED} onClick={onSeeAnswer}>
+                        Ver resposta
+                      </button>
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    <button type="button" className={PILL_SUCCESS} onClick={onContinue}>
+                      Continuar
+                    </button>
+                    {hasExplanation ? (
+                      <button type="button" className={PILL_MUTED} onClick={onSeeAnswer}>
+                        Ver resposta
+                      </button>
+                    ) : null}
+                  </>
+                )
               ) : (
                 <>
                   <button type="button" className={PILL_SUCCESS} onClick={onContinue}>
@@ -231,24 +247,45 @@ export function ChallengeFeedbackPanel({
               ) : null}
               <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 {wrong ? (
-                  <>
-                    <button
-                      type="button"
-                      className={cn(PILL_LIGHT, 'w-full sm:w-auto')}
-                      onClick={onTryAgain}
-                    >
-                      Tentar de novo
-                    </button>
-                    {hasExplanation ? (
+                  allowRetry ? (
+                    <>
                       <button
                         type="button"
-                        className={cn(PILL_MUTED, 'w-full sm:w-auto')}
-                        onClick={onSeeAnswer}
+                        className={cn(PILL_LIGHT, 'w-full sm:w-auto')}
+                        onClick={onTryAgain}
                       >
-                        Ver resposta
+                        Tentar de novo
                       </button>
-                    ) : null}
-                  </>
+                      {hasExplanation ? (
+                        <button
+                          type="button"
+                          className={cn(PILL_MUTED, 'w-full sm:w-auto')}
+                          onClick={onSeeAnswer}
+                        >
+                          Ver resposta
+                        </button>
+                      ) : null}
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className={cn(PILL_SUCCESS, 'w-full sm:w-auto')}
+                        onClick={onContinue}
+                      >
+                        Continuar
+                      </button>
+                      {hasExplanation ? (
+                        <button
+                          type="button"
+                          className={cn(PILL_MUTED, 'w-full sm:w-auto')}
+                          onClick={onSeeAnswer}
+                        >
+                          Ver resposta
+                        </button>
+                      ) : null}
+                    </>
+                  )
                 ) : (
                   <>
                     <button

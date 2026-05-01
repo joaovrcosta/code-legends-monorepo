@@ -6,7 +6,8 @@ export type ChallengeType =
   | "refactor"
   | "complete"
   | "conceptual"
-  | "block_slots";
+  | "block_slots"
+  | "exam_mcq";
 
 export interface ParsonsPiece {
   id: string;

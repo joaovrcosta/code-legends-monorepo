@@ -29,6 +29,7 @@ const challengeTypeLabels: Record<ChallengeType, string> = {
   complete: 'Complete o Código',
   conceptual: 'Conceitual (sem código)',
   block_slots: 'Encaixar comandos',
+  exam_mcq: 'Exame — múltipla escolha (one-shot, só na carreira)',
 }
 
 function blockSlotsTextareasFromChallenge(ch: Challenge): {
@@ -136,7 +137,8 @@ function ChallengeItem({
   const hasOptions =
     challenge.type === 'prediction' ||
     challenge.type === 'conceptual' ||
-    challenge.type === 'bug'
+    challenge.type === 'bug' ||
+    challenge.type === 'exam_mcq'
   const isBlockSlots = challenge.type === 'block_slots'
   const blockSlotsText = isBlockSlots
     ? blockSlotsTextareasFromChallenge(challenge)
@@ -218,7 +220,7 @@ function ChallengeItem({
           </div>
 
           {/* Code */}
-          {challenge.type !== 'conceptual' && (
+          {challenge.type !== 'conceptual' && challenge.type !== 'exam_mcq' && (
             <div className="space-y-1.5">
               <Label>Código (opcional)</Label>
               <div className="flex gap-2">

@@ -23,11 +23,14 @@ import { NotificationsSection } from '../notifications-section'
 interface LearnHeaderProps {
   initialUserCourses: EnrolledCourse[]
   initialActiveCourse: ActiveCourse | null
+  /** Quando false, oculta o botão que expande/recolhe a sidebar (ex.: tela de exame focada). */
+  showDesktopSidebarToggle?: boolean
 }
 
 export default function LearnHeader({
   initialUserCourses,
   initialActiveCourse,
+  showDesktopSidebarToggle = true,
 }: LearnHeaderProps) {
   const { toggleSidebar, isOpen } = useSidebarStore()
   const openMobileNav = useMobileNavStore((s) => s.open)
@@ -88,7 +91,7 @@ export default function LearnHeader({
     >
       <ul className="flex justify-between items-center gap-2 lg:gap-0 lg:pt-4 pt-0 lg:pb-4 pb-0 w-full mx-auto px-4 sm:px-5">
         <li className="flex min-w-0 shrink-0 items-center lg:space-x-3">
-          {showSidebarButton && (
+          {showSidebarButton && showDesktopSidebarToggle && (
             <button
               onClick={toggleSidebar}
               className="text-white p-1 border border-[#25252a] rounded-lg lg:block hidden hover:bg-[#25252a] transition-all duration-150 ease-in-out"

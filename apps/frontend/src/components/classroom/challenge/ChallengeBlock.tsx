@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Challenge } from '@/types/roadmap'
 import { BlockSlotsChallenge } from '@/components/classroom/challenge/BlockSlotsChallenge'
+import { ExamMcqChallenge } from '@/components/career/exam-mcq-challenge'
 import {
   ChallengeFeedbackPanel,
   useIsDesktopChallengeLayout,
@@ -55,6 +56,8 @@ export interface ChallengeBlockProps {
   onAnswer?: (correct: boolean) => void
   /** Se definido, após submeter mostra botão "Próxima" em vez de "Tentar novamente". */
   onNext?: () => void
+  /** Se false (ex.: exame de carreira), não permite nova tentativa após erro. */
+  allowRetry?: boolean
 }
 
 export function ChallengeBlock({
@@ -64,6 +67,7 @@ export function ChallengeBlock({
   challengeXpSlotIndex,
   onAnswer,
   onNext,
+  allowRetry = true,
 }: ChallengeBlockProps) {
   const [selected, setSelected] = useState<string | null>(null)
   const [typed, setTyped] = useState('')
@@ -92,6 +96,7 @@ export function ChallengeBlock({
     complete: 'Complete o Código',
     conceptual: 'Conceitual',
     block_slots: 'Encaixar comandos',
+    exam_mcq: 'Exame (múltipla escolha)',
   }
 
   const typeBadgeColors: Record<Challenge['type'], string> = {
@@ -101,6 +106,7 @@ export function ChallengeBlock({
     complete: 'bg-[#2d1a3e] text-[#c084fc] border-[#6b21a8]',
     conceptual: 'bg-[#1e2e3b] text-[#93c5fd] border-[#1d4ed8]',
     block_slots: 'bg-[#2d1a3e] text-[#c084fc] border-[#6b21a8]',
+    exam_mcq: 'bg-[#1a2530] text-[#7ee9ff] border-[#00C8FF]/40',
   }
 
   const handleSubmit = useCallback(() => {
@@ -108,7 +114,7 @@ export function ChallengeBlock({
     const answer = isChoiceType ? (selected ?? '') : typed
     const correct = checkAnswer(challenge, answer)
     if (correct) playCorrectChime()
-    else playWrongTamTamm()
+    else if (allowRetry) playWrongTamTamm()
     if (!correct) {
       setXpAward({ state: 'idle' })
     }
@@ -148,6 +154,7 @@ export function ChallengeBlock({
     lessonId,
     challengeXpSlotIndex,
     index,
+    allowRetry,
   ])
 
   const handleReset = useCallback(() => {
@@ -167,6 +174,17 @@ export function ChallengeBlock({
         index={index}
         lessonId={lessonId}
         challengeXpSlotIndex={challengeXpSlotIndex}
+        onAnswer={onAnswer}
+        onNext={onNext}
+        allowRetry={allowRetry}
+      />
+    )
+  }
+
+  if (challenge.type === 'exam_mcq') {
+    return (
+      <ExamMcqChallenge
+        challenge={challenge}
         onAnswer={onAnswer}
         onNext={onNext}
       />
@@ -329,7 +347,7 @@ export function ChallengeBlock({
             >
               Próxima <ArrowRight weight="bold" size={14} />
             </button>
-          ) : (
+          ) : allowRetry ? (
             <button
               type="button"
               onClick={handleReset}
@@ -337,7 +355,7 @@ export function ChallengeBlock({
             >
               Tentar novamente
             </button>
-          )
+          ) : null
         ) : null}
       </div>
 
@@ -355,6 +373,7 @@ export function ChallengeBlock({
         onContinue={() => setFeedbackDismissed(true)}
         onNext={onNext}
         xpAward={xpAward}
+        allowRetry={allowRetry}
       />
     </div>
   )

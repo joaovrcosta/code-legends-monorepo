@@ -8,12 +8,11 @@ import {
 } from './onboarding-constants'
 
 type OnboardingTopBarProps = {
-  /** Etapa atual (1 = primeira, até `totalSteps`). */
   currentStep: number
   totalSteps?: number
-  /** Quando definido, sobrescreve a largura da barra (ex.: animação ao avançar). */
   progressFillPercent?: number
   className?: string
+  backHref?: string
 }
 
 export function OnboardingTopBar({
@@ -21,18 +20,27 @@ export function OnboardingTopBar({
   totalSteps = ONBOARDING_TOTAL_STEPS,
   progressFillPercent,
   className = '',
+  backHref,
 }: OnboardingTopBarProps) {
   const router = useRouter()
   const pct =
     progressFillPercent ??
     onboardingProgressPercent(currentStep, totalSteps)
 
+  const handleBack = () => {
+    if (backHref) {
+      router.push(backHref)
+      return
+    }
+    router.back()
+  }
+
   return (
     <div className={`w-full shrink-0 ${className}`}>
       <div className="flex items-center gap-3 sm:gap-4">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={handleBack}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
           aria-label="Voltar"
         >

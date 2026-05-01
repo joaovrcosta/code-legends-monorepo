@@ -47,7 +47,23 @@ export async function getExam(request: FastifyRequest, reply: FastifyReply) {
       return reply.status(404).send({ message: 'Exam not found' })
     }
 
-    return reply.status(200).send({ exam })
+    const careerMeta = await prisma.career.findUnique({
+      where: { id: career.id },
+      select: { title: true, slug: true },
+    })
+
+    const moduleLink = await prisma.careerModuleExam.findFirst({
+      where: { careerExamId: examId },
+      select: {
+        careerModule: { select: { title: true } },
+      },
+    })
+
+    return reply.status(200).send({
+      exam,
+      career: careerMeta,
+      module: moduleLink?.careerModule ?? null,
+    })
   } catch (error) {
     if (error instanceof CareerNotFoundError) {
       return reply.status(404).send({ message: error.message })

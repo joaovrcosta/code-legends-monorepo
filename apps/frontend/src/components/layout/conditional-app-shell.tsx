@@ -20,6 +20,10 @@ const excludedRoutes = [
   "/certificates",
 ];
 
+/** `/learn/careers/:slug/exams/:examId` — tela focada, sem sidebar de navegação. */
+const CAREER_EXAM_PATH =
+  /^\/learn\/careers\/[^/]+\/exams\/[^/]+(?:\/|$)/;
+
 export function ConditionalAppShell({
   children,
   initialUserCourses,
@@ -36,8 +40,11 @@ export function ConditionalAppShell({
     return <>{children}</>;
   }
 
+  const showSidebar = !CAREER_EXAM_PATH.test(pathname);
+
   return (
     <AppShell
+      showSidebar={showSidebar}
       initialUserCourses={initialUserCourses}
       initialActiveCourse={initialActiveCourse}
     >

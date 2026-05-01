@@ -83,6 +83,7 @@ export interface BlockSlotsChallengeProps {
   challengeXpSlotIndex?: number
   onAnswer?: (correct: boolean) => void
   onNext?: () => void
+  allowRetry?: boolean
 }
 
 export function BlockSlotsChallenge({
@@ -92,6 +93,7 @@ export function BlockSlotsChallenge({
   challengeXpSlotIndex,
   onAnswer,
   onNext,
+  allowRetry = true,
 }: BlockSlotsChallengeProps) {
   const targetSolution = useMemo(
     () => normalizeBlockSlotsSolution(challenge),
@@ -164,7 +166,7 @@ export function BlockSlotsChallenge({
     if (slots.some((s) => s == null)) return
     const correct = arraysEqual(targetSolution, slots as string[])
     if (correct) playCorrectChime()
-    else playWrongTamTamm()
+    else if (allowRetry) playWrongTamTamm()
     if (!correct) {
       setXpAward({ state: 'idle' })
     }
@@ -202,6 +204,7 @@ export function BlockSlotsChallenge({
     lessonId,
     challengeXpSlotIndex,
     index,
+    allowRetry,
   ])
 
   const handleReset = useCallback(() => {
@@ -408,7 +411,7 @@ export function BlockSlotsChallenge({
             >
               Próxima <ArrowRight weight="bold" size={14} />
             </button>
-          ) : (
+          ) : allowRetry ? (
             <button
               type="button"
               onClick={handleReset}
@@ -416,7 +419,7 @@ export function BlockSlotsChallenge({
             >
               Tentar novamente
             </button>
-          )
+          ) : null
         ) : null}
       </div>
 
@@ -436,6 +439,7 @@ export function BlockSlotsChallenge({
         onContinue={() => setFeedbackDismissed(true)}
         onNext={onNext}
         xpAward={xpAward}
+        allowRetry={allowRetry}
       />
     </div>
   )
