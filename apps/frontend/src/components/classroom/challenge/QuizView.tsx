@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import type { Challenge } from '@/types/roadmap'
 import { ChallengeBlock } from './ChallengeBlock'
 import { continueCourse } from '@/actions/course'
+import { awardChallengeXpFromBrowser } from '@/lib/award-challenge-xp-client'
 import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
@@ -142,6 +143,30 @@ export function QuizView({
       // XP de conclusão (quiz aprovado): só o ganho nesta tentativa.
       if (passed && typeof result.xpGained === 'number' && result.xpGained > 0) {
         setLessonXpGained(result.xpGained)
+      }
+      // XP por questão (multi_quiz): só depois de aprovar (≥70%), para cada acerto.
+      if (passed) {
+        const courseId = activeCourse?.id ?? null
+        let challengeXpSum = 0
+        const slotsAwarded = new Set<number>()
+        for (let i = 0; i < answers.length; i++) {
+          if (!answers[i]) continue
+          const r = await awardChallengeXpFromBrowser(lessonId, i, {
+            courseId,
+          })
+          if (r.applied && r.xpGained > 0) {
+            challengeXpSum += r.xpGained
+            slotsAwarded.add(i)
+          }
+        }
+        if (challengeXpSum > 0) {
+          setChallengeXpGained((p) => p + challengeXpSum)
+          setAwardedSlots((prev) => {
+            const next = new Set(prev)
+            for (const s of slotsAwarded) next.add(s)
+            return next
+          })
+        }
       }
       if (passed) maybeShowStreakCongrats(result)
       if (result.moduleCompleted) {
@@ -332,7 +357,7 @@ export function QuizView({
                 challengeXpSlotIndex={currentIndex}
                 onAnswer={handleAnswer}
                 onNext={handleNext}
-                onXpAwarded={handleXpAwarded}
+                awardChallengeXpOnCorrect={false}
               />
             </div>
           )}

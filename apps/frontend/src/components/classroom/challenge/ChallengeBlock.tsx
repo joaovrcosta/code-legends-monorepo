@@ -66,6 +66,11 @@ export interface ChallengeBlockProps {
   allowRetry?: boolean
   /** Notifica quando XP do desafio foi aplicado (primeira vez). */
   onXpAwarded?: (info: { slot: number; amount: number }) => void
+  /**
+   * Se false, não chama a API de XP ao acertar (ex.: multi_quiz — XP por questão só após aprovar ≥70%).
+   * @default true
+   */
+  awardChallengeXpOnCorrect?: boolean
 }
 
 export function ChallengeBlock({
@@ -77,6 +82,7 @@ export function ChallengeBlock({
   onNext,
   allowRetry = true,
   onXpAwarded,
+  awardChallengeXpOnCorrect = true,
 }: ChallengeBlockProps) {
   const [selected, setSelected] = useState<string | null>(null)
   const [typed, setTyped] = useState('')
@@ -122,7 +128,13 @@ export function ChallengeBlock({
       lessonId != null
         ? (challengeXpSlotIndex ?? index ?? null)
         : null
-    if (correct && lessonId != null && xpSlot != null && xpSlot >= 0) {
+    if (
+      correct &&
+      awardChallengeXpOnCorrect &&
+      lessonId != null &&
+      xpSlot != null &&
+      xpSlot >= 0
+    ) {
       setXpAward({ state: 'pending' })
       const courseId = useActiveCourseStore.getState().activeCourse?.id ?? null
       void awardChallengeXpFromBrowser(lessonId, xpSlot, {
@@ -153,6 +165,7 @@ export function ChallengeBlock({
     index,
     allowRetry,
     onXpAwarded,
+    awardChallengeXpOnCorrect,
   ])
 
   const handleReset = useCallback(() => {
@@ -178,6 +191,7 @@ export function ChallengeBlock({
         onNext={onNext}
         allowRetry={allowRetry}
         onXpAwarded={onXpAwarded}
+        awardChallengeXpOnCorrect={awardChallengeXpOnCorrect}
       />
     )
   }
