@@ -88,6 +88,7 @@ export interface BlockSlotsChallengeProps {
   onAnswer?: (correct: boolean) => void
   onNext?: () => void
   allowRetry?: boolean
+  onXpAwarded?: (info: { slot: number; amount: number }) => void
 }
 
 export function BlockSlotsChallenge({
@@ -98,6 +99,7 @@ export function BlockSlotsChallenge({
   onAnswer,
   onNext,
   allowRetry = true,
+  onXpAwarded,
 }: BlockSlotsChallengeProps) {
   const targetSolution = useMemo(
     () => normalizeBlockSlotsSolution(challenge),
@@ -242,6 +244,7 @@ export function BlockSlotsChallenge({
       }).then(async (r) => {
         if (r.applied && r.xpGained > 0) {
           setXpAward({ state: 'earned', amount: r.xpGained })
+          onXpAwarded?.({ slot: xpSlot, amount: r.xpGained })
           await useActiveCourseStore.getState().fetchActiveCourse()
         } else if (r.requestFailed) {
           setXpAward({ state: 'error' })
@@ -261,6 +264,7 @@ export function BlockSlotsChallenge({
     challengeXpSlotIndex,
     index,
     allowRetry,
+    onXpAwarded,
   ])
 
   const handleReset = useCallback(() => {

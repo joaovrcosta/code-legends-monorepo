@@ -38,6 +38,8 @@ export function QuizView({
   const [isMarking, setIsMarking] = useState(false)
   const [autoFinishTriggered, setAutoFinishTriggered] = useState(false)
   const [lessonXpGained, setLessonXpGained] = useState<number | null>(null)
+  const [challengeXpGained, setChallengeXpGained] = useState(0)
+  const [awardedSlots, setAwardedSlots] = useState<Set<number>>(() => new Set())
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
   const {
     currentLesson,
@@ -53,6 +55,20 @@ export function QuizView({
   const handleAnswer = useCallback((correct: boolean) => {
     setAnswers((prev) => [...prev, correct])
   }, [])
+
+  const handleXpAwarded = useCallback(
+    (info: { slot: number; amount: number }) => {
+      if (info.amount <= 0) return
+      setAwardedSlots((prev) => {
+        if (prev.has(info.slot)) return prev
+        const next = new Set(prev)
+        next.add(info.slot)
+        return next
+      })
+      setChallengeXpGained((prev) => prev + info.amount)
+    },
+    [],
+  )
 
   const handleNext = useCallback(() => {
     if (currentIndex + 1 >= challenges.length) {
@@ -123,16 +139,9 @@ export function QuizView({
       const result = await continueCourse(lessonId, activeCourse?.id, score)
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao salvar o resultado')
-      const xpFromResult =
-        typeof result.xpGained === 'number'
-          ? result.xpGained
-          : typeof result.xpGainedInModule === 'number'
-            ? result.xpGainedInModule
-            : typeof result.totalXp === 'number'
-              ? result.totalXp
-              : null
-      if (passed && typeof xpFromResult === 'number' && xpFromResult > 0) {
-        setLessonXpGained(xpFromResult)
+      // XP de conclusão (quiz aprovado): só o ganho nesta tentativa.
+      if (passed && typeof result.xpGained === 'number' && result.xpGained > 0) {
+        setLessonXpGained(result.xpGained)
       }
       if (passed) maybeShowStreakCongrats(result)
       if (result.moduleCompleted) {
@@ -165,6 +174,8 @@ export function QuizView({
   const stepPct = total > 0 ? Math.round(((currentIndex + 1) / total) * 100) : 0
   const showLessonXpInline =
     passed && typeof lessonXpGained === 'number' && lessonXpGained > 0
+  const totalXpInline =
+    (showLessonXpInline ? (lessonXpGained ?? 0) : 0) + (passed ? challengeXpGained : 0)
 
   useEffect(() => {
     if (!useMultiFlow) return
@@ -219,6 +230,7 @@ export function QuizView({
                     index={i}
                     lessonId={lessonId}
                     challengeXpSlotIndex={i}
+                    onXpAwarded={handleXpAwarded}
                   />
                 ))}
               </div>
@@ -251,7 +263,13 @@ export function QuizView({
               </p>
               {showLessonXpInline ? (
                 <div className="mt-4 flex items-center justify-center gap-2 text-[15px] font-semibold text-white">
-                  <CompactNumber className='text-4xl text-white' value={lessonXpGained} enableCountUp flameGradient />
+                  <span className="text-orange-400">+</span>
+                  <CompactNumber
+                    className="text-4xl text-white"
+                    value={totalXpInline}
+                    enableCountUp
+                    flameGradient
+                  />
                   <span className="inline-flex items-center gap-2">
                     <img
                       src="/xp-icon.svg"
@@ -275,6 +293,9 @@ export function QuizView({
                   setAnswers([])
                   setQuizFinished(false)
                   setAutoFinishTriggered(false)
+                  setLessonXpGained(null)
+                  setChallengeXpGained(0)
+                  setAwardedSlots(new Set())
                 }}
                 disabled={passed || isMarking || !currentLesson}
                 className="gap-2 rounded-full bg-[#00b3e4] mt-4 px-6 text-black hover:opacity-90 h-[52px]"
@@ -311,6 +332,7 @@ export function QuizView({
                 challengeXpSlotIndex={currentIndex}
                 onAnswer={handleAnswer}
                 onNext={handleNext}
+                onXpAwarded={handleXpAwarded}
               />
             </div>
           )}

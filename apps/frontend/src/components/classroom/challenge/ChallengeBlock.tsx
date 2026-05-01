@@ -58,6 +58,8 @@ export interface ChallengeBlockProps {
   onNext?: () => void
   /** Se false (ex.: exame de carreira), não permite nova tentativa após erro. */
   allowRetry?: boolean
+  /** Notifica quando XP do desafio foi aplicado (primeira vez). */
+  onXpAwarded?: (info: { slot: number; amount: number }) => void
 }
 
 export function ChallengeBlock({
@@ -68,6 +70,7 @@ export function ChallengeBlock({
   onAnswer,
   onNext,
   allowRetry = true,
+  onXpAwarded,
 }: ChallengeBlockProps) {
   const [selected, setSelected] = useState<string | null>(null)
   const [typed, setTyped] = useState('')
@@ -134,6 +137,7 @@ export function ChallengeBlock({
       }).then(async (r) => {
         if (r.applied && r.xpGained > 0) {
           setXpAward({ state: 'earned', amount: r.xpGained })
+          onXpAwarded?.({ slot: xpSlot, amount: r.xpGained })
           await useActiveCourseStore.getState().fetchActiveCourse()
         } else if (r.requestFailed) {
           setXpAward({ state: 'error' })
@@ -155,6 +159,7 @@ export function ChallengeBlock({
     challengeXpSlotIndex,
     index,
     allowRetry,
+    onXpAwarded,
   ])
 
   const handleReset = useCallback(() => {
@@ -177,6 +182,7 @@ export function ChallengeBlock({
         onAnswer={onAnswer}
         onNext={onNext}
         allowRetry={allowRetry}
+        onXpAwarded={onXpAwarded}
       />
     )
   }
