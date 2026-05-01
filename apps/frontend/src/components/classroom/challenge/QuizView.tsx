@@ -37,6 +37,21 @@ interface QuizViewProps {
 
 const PASSING_SCORE = 70
 
+const QUIZ_VICTORY_SOUND_SRC = '/sounds/quiz-victory.mp3'
+
+function playQuizVictorySound() {
+  if (typeof window === 'undefined') return
+  try {
+    const audio = new Audio(QUIZ_VICTORY_SOUND_SRC)
+    audio.volume = 0.45
+    void audio.play().catch(() => {
+      /* autoplay bloqueado ou falha de decodificação */
+    })
+  } catch {
+    /* ignore */
+  }
+}
+
 type QuizResultPanelProps = {
   passed: boolean
   correctCount: number
@@ -212,12 +227,13 @@ export function QuizView({
       const pct = t > 0 ? Math.round((correct / t) * 100) : 0
       if (pct >= PASSING_SCORE) {
         setIsMarking(true)
+        if (useMultiFlow) playQuizVictorySound()
       }
       setQuizFinished(true)
     } else {
       setCurrentIndex((i) => i + 1)
     }
-  }, [currentIndex, challenges.length, answers])
+  }, [currentIndex, challenges.length, answers, useMultiFlow])
 
   const handleQuizRetry = useCallback(() => {
     setCurrentIndex(0)
