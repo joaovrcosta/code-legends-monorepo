@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/drawer'
 import { ArrowRight, Flag } from '@phosphor-icons/react/dist/ssr'
 import { CompactNumber } from '@/components/ui/compact-number'
+import Image from 'next/image'
 
 export const CHALLENGE_FEEDBACK_WRONG_DEFAULT =
   'Não foi dessa vez. Confira sua resposta ou veja a explicação, se houver.'
@@ -46,7 +47,7 @@ const PILL_SUCCESS =
   'rounded-full bg-[#d8f5e4] px-5 py-2.5 text-sm font-bold text-[#0f2918] shadow-[0_4px_0_0_#7eb89a] transition-transform active:translate-y-[2px] active:shadow-[0_2px_0_0_#7eb89a]'
 
 const PILL_NEXT =
-  'rounded-full bg-[#00b3e4] px-5 py-2.5 text-sm font-bold text-black shadow-[0_4px_0_0_#0088b0] transition-transform active:translate-y-[2px] active:shadow-[0_2px_0_0_#0088b0]'
+  'rounded-full bg-[#29cc57] px-5 py-2.5 text-sm font-bold text-black shadow-[0_4px_0_0_#1e9640] transition-transform active:translate-y-[2px] active:shadow-[0_2px_0_0_#0088b0]'
 
 export interface ChallengeFeedbackPanelProps {
   /** Painel ativo (ex.: resposta enviada e ainda não dispensou) */
@@ -172,7 +173,7 @@ export function ChallengeFeedbackPanel({
                         onNext()
                       }}
                     >
-                      Próxima <ArrowRight weight="bold" size={14} className="inline" />
+                      Continuar <ArrowRight weight="bold" size={14} className="inline" />
                     </button>
                   ) : (
                     <button type="button" className={PILL_SUCCESS} onClick={onContinue}>
@@ -207,11 +208,14 @@ export function ChallengeFeedbackPanel({
           <DrawerTitle className="sr-only">
             {isCorrect ? 'Resposta correta' : 'Resposta incorreta'}
           </DrawerTitle>
-          <div className="px-5 pb-8 pt-1">
+          <div className="px-5 pt-1">
             <div className="relative rounded-[18px] p-1 pb-12 text-white">
-              <p className="text-[15px] font-medium leading-relaxed text-white/95">
-                {msg}
-              </p>
+              <div className="flex items-center gap-2">
+                <Image src="/icons/congratulations-hat.svg" alt="Parabéns" width={32} height={32} />
+                <p className="text-[20px] font-medium leading-relaxed text-white/95">
+                  {msg}
+                </p>
+              </div>
               {showXpRow ? (
                 <div
                   className="mt-4 border-t border-white/10 pt-4"
@@ -295,7 +299,7 @@ export function ChallengeFeedbackPanel({
                           onNext()
                         }}
                       >
-                        Próxima <ArrowRight weight="bold" size={14} className="inline" />
+                        Continuar <ArrowRight weight="bold" size={14} className="inline" />
                       </button>
                     ) : (
                       <button

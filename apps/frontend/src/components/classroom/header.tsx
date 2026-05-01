@@ -9,7 +9,6 @@ import { SkipBack, SkipForward } from '@phosphor-icons/react/dist/ssr'
 import codeLegendsLogoMobile from '../../../public/logo-mobile.png'
 import { UserDropdown } from '../user-dropdown'
 import { StrikeSection } from '../strike-section'
-import { NotificationsSection } from '../notifications-section'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import type { EnrolledCourse, ActiveCourse } from '@/types/user-course.ts'
@@ -161,7 +160,6 @@ export default function ClassroomHeader({
           <li className="flex lg:space-x-2 space-x-1 items-center ">
             <div className="flex items-center lg:space-x-4 space-x-4">
               <StrikeSection />
-              <NotificationsSection />
               <UserDropdown />
             </div>
           </li>
