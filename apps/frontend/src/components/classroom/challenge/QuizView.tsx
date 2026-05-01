@@ -127,13 +127,15 @@ const QuizResultPanel = memo(function QuizResultPanel({
           É necessário {PASSING_SCORE}% para passar. Tente novamente!
         </p>
       )}
-      <Button
-        onClick={passed ? undefined : onRetry}
-        disabled={passed || isMarking || !hasCurrentLesson}
-        className="gap-2 rounded-full bg-[#00b3e4] mt-4 px-6 text-black hover:opacity-90 h-[52px]"
-      >
-        {isMarking ? 'Salvando...' : passed ? 'Concluído' : 'Tentar novamente'}
-      </Button>
+      {!passed ? (
+        <Button
+          onClick={onRetry}
+          disabled={isMarking || !hasCurrentLesson}
+          className="gap-2 rounded-full bg-[#00b3e4] mt-4 px-6 text-black hover:opacity-90 h-[52px]"
+        >
+          Tentar novamente
+        </Button>
+      ) : null}
     </div>
   )
 })
@@ -181,6 +183,10 @@ export function QuizView({
     })),
   )
 
+  const setMultiQuizBlocksNextLesson = useCourseModalStore(
+    (s) => s.setMultiQuizBlocksNextLesson,
+  )
+
   const isMarked =
     modalLessonId === lessonId && modalLessonStatus === 'completed'
   const hasCurrentLesson = modalLessonId != null
@@ -202,6 +208,28 @@ export function QuizView({
     [passed, lessonXpGained, challengeXpGained],
   )
   const showXpInline = passed && totalXpInline > 0 && !isMarking
+
+  useEffect(() => {
+    if (!useMultiFlow) {
+      setMultiQuizBlocksNextLesson(false)
+      return
+    }
+    const readyToLeave =
+      !isMarking && (showXpInline || totalXpInline === 0)
+    const shouldBlock = quizFinished && passed && !readyToLeave
+    setMultiQuizBlocksNextLesson(shouldBlock)
+    return () => {
+      setMultiQuizBlocksNextLesson(false)
+    }
+  }, [
+    useMultiFlow,
+    quizFinished,
+    passed,
+    isMarking,
+    showXpInline,
+    totalXpInline,
+    setMultiQuizBlocksNextLesson,
+  ])
 
   useEffect(() => {
     if (!useMultiFlow) return

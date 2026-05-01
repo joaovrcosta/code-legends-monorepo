@@ -51,6 +51,7 @@ export default function DynamicLessonPage() {
     lessonCompletedTimestamp,
     currentLesson,
     setShowModuleStatsOnce,
+    multiQuizBlocksNextLesson,
   } = useCourseModalStore()
   const { isOpen: isSidebarOpen } = useClassroomSidebarStore()
 
@@ -642,7 +643,7 @@ export default function DynamicLessonPage() {
                           navigation.next.groupSlug,
                         )
                       }}
-                      disabled={!navigation?.next}
+                      disabled={!navigation?.next || multiQuizBlocksNextLesson}
                       className="group h-full w-full max-w-[320px] min-w-0 rounded-none lg:rounded-br-[20px] border-l border-r border-[#25252A] border-y-0 bg-transparent text-base text-white shadow-none hover:bg-[#00C8FF]/10 disabled:pointer-events-none disabled:text-zinc-600 transition-all"
                     >
                       Próxima

@@ -35,6 +35,9 @@ interface CourseModalStore {
   setLastModuleCompletion: (info: ModuleCompletionInfo | null) => void
   showModuleStatsOnce: boolean
   setShowModuleStatsOnce: (value: boolean) => void
+  /** Multi quiz: bloqueia “Próxima” até XP carregar (ou 0 XP após salvar). */
+  multiQuizBlocksNextLesson: boolean
+  setMultiQuizBlocksNextLesson: (blocked: boolean) => void
 }
 
 export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
@@ -46,6 +49,9 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
   moduleUnlockedTimestamp: null,
   lastModuleCompletion: null,
   showModuleStatsOnce: false,
+  multiQuizBlocksNextLesson: false,
+  setMultiQuizBlocksNextLesson: (blocked) =>
+    set({ multiQuizBlocksNextLesson: blocked }),
   setModuleUnlockedTimestamp: () =>
     set({ moduleUnlockedTimestamp: Date.now() }),
   setLastModuleCompletion: (info) => set({ lastModuleCompletion: info }),
@@ -65,6 +71,7 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
       lessons: [],
       currentIndex: 0,
       currentLesson: null,
+      multiQuizBlocksNextLesson: false,
     }),
 
   goToNextLesson: () => {
