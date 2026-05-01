@@ -154,6 +154,7 @@ export function QuizView({
   const [challengeXpGained, setChallengeXpGained] = useState(0)
   const [awardedSlots, setAwardedSlots] = useState<Set<number>>(() => new Set())
   const finishQuizInFlightRef = useRef(false)
+  const multiQuizVictorySoundPlayedRef = useRef(false)
   const answersRef = useRef(answers)
   answersRef.current = answers
 
@@ -202,6 +203,14 @@ export function QuizView({
   )
   const showXpInline = passed && totalXpInline > 0 && !isMarking
 
+  useEffect(() => {
+    if (!useMultiFlow) return
+    if (!showXpInline) return
+    if (multiQuizVictorySoundPlayedRef.current) return
+    multiQuizVictorySoundPlayedRef.current = true
+    playQuizVictorySound()
+  }, [useMultiFlow, showXpInline])
+
   const handleAnswer = useCallback((correct: boolean) => {
     setAnswers((prev) => [...prev, correct])
   }, [])
@@ -227,13 +236,12 @@ export function QuizView({
       const pct = t > 0 ? Math.round((correct / t) * 100) : 0
       if (pct >= PASSING_SCORE) {
         setIsMarking(true)
-        if (useMultiFlow) playQuizVictorySound()
       }
       setQuizFinished(true)
     } else {
       setCurrentIndex((i) => i + 1)
     }
-  }, [currentIndex, challenges.length, answers, useMultiFlow])
+  }, [currentIndex, challenges.length, answers])
 
   const handleQuizRetry = useCallback(() => {
     setCurrentIndex(0)
@@ -243,6 +251,7 @@ export function QuizView({
     setLessonXpGained(null)
     setChallengeXpGained(0)
     setAwardedSlots(new Set())
+    multiQuizVictorySoundPlayedRef.current = false
   }, [])
 
   const handleMarkAsComplete = useCallback(async () => {
