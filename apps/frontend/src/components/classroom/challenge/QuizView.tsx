@@ -21,6 +21,7 @@ import { useCourseModalStore } from '@/stores/course-modal-store'
 import { Button } from '@/components/ui/button'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
 import { CompactNumber } from '@/components/ui/compact-number'
+import { Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import happyRai from '../../../../public/rai/happy-rai.svg'
 import embarassedRai from '../../../../public/rai/embarassed-rai.svg'
@@ -77,9 +78,13 @@ const QuizResultPanel = memo(function QuizResultPanel({
         Você acertou {correctCount} de {total} questões ({score}%).
       </p>
       {passed && isMarking ? (
-        <p className="mt-4 text-sm font-medium text-[#a1a1aa] motion-reduce:animate-none animate-pulse">
-          A guardar resultado…
-        </p>
+        <div className="mt-4 flex flex-col items-center gap-3">
+          <Loader2
+            className="h-8 w-8 animate-spin text-[#00b3e4] motion-reduce:animate-none"
+            aria-hidden
+          />
+          <p className="text-sm font-medium text-[#a1a1aa]">calculando…</p>
+        </div>
       ) : null}
       {showXpInline ? (
         <div className="mt-4 flex items-center justify-center gap-2 text-[15px] font-semibold text-white">
