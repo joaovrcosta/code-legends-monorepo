@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import type { Challenge } from '@/types/roadmap'
 import { ChallengeBlock } from './ChallengeBlock'
 import { continueCourse } from '@/actions/course'
@@ -41,6 +41,7 @@ export function QuizView({
   const [lessonXpGained, setLessonXpGained] = useState<number | null>(null)
   const [challengeXpGained, setChallengeXpGained] = useState(0)
   const [awardedSlots, setAwardedSlots] = useState<Set<number>>(() => new Set())
+  const finishQuizInFlightRef = useRef(false)
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
   const {
     currentLesson,
@@ -73,11 +74,18 @@ export function QuizView({
 
   const handleNext = useCallback(() => {
     if (currentIndex + 1 >= challenges.length) {
+      const t = challenges.length
+      const correct = answers.filter(Boolean).length
+      const pct = t > 0 ? Math.round((correct / t) * 100) : 0
+      // Mostra “a guardar…” no mesmo frame que o resultado (evita um piscar resultado → loading).
+      if (pct >= PASSING_SCORE) {
+        setIsMarking(true)
+      }
       setQuizFinished(true)
     } else {
       setCurrentIndex((i) => i + 1)
     }
-  }, [currentIndex, challenges.length])
+  }, [currentIndex, challenges.length, answers])
 
   const handleMarkAsComplete = async () => {
     if (!currentLesson?.id || currentLesson.id !== lessonId) return
@@ -134,40 +142,46 @@ export function QuizView({
     const score = total > 0 ? Math.round((correctCount / total) * 100) : 0
     const passed = score >= PASSING_SCORE
     if (!currentLesson?.id || currentLesson.id !== lessonId) return
-    if (isMarking) return
+    if (finishQuizInFlightRef.current) return
+    finishQuizInFlightRef.current = true
     try {
       setIsMarking(true)
       const result = await continueCourse(lessonId, activeCourse?.id, score)
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao salvar o resultado')
-      // XP de conclusão (quiz aprovado): só o ganho nesta tentativa.
+
+      let nextLessonXp: number | null = null
       if (passed && typeof result.xpGained === 'number' && result.xpGained > 0) {
-        setLessonXpGained(result.xpGained)
+        nextLessonXp = result.xpGained
       }
-      // XP por questão (multi_quiz): só depois de aprovar (≥70%), para cada acerto.
+
+      let nextChallengeXp = 0
+      const slotsAwarded = new Set<number>()
       if (passed) {
         const courseId = activeCourse?.id ?? null
-        let challengeXpSum = 0
-        const slotsAwarded = new Set<number>()
         for (let i = 0; i < answers.length; i++) {
           if (!answers[i]) continue
           const r = await awardChallengeXpFromBrowser(lessonId, i, {
             courseId,
           })
           if (r.applied && r.xpGained > 0) {
-            challengeXpSum += r.xpGained
+            nextChallengeXp += r.xpGained
             slotsAwarded.add(i)
           }
         }
-        if (challengeXpSum > 0) {
-          setChallengeXpGained((p) => p + challengeXpSum)
-          setAwardedSlots((prev) => {
-            const next = new Set(prev)
-            for (const s of slotsAwarded) next.add(s)
-            return next
-          })
-        }
       }
+
+      // Um único “lote” de updates de XP evita re-render / count-up duplo.
+      setLessonXpGained(nextLessonXp)
+      if (passed) {
+        setChallengeXpGained(nextChallengeXp)
+        setAwardedSlots((prev) => {
+          const next = new Set(prev)
+          for (const s of slotsAwarded) next.add(s)
+          return next
+        })
+      }
+
       if (passed) maybeShowStreakCongrats(result)
       if (result.moduleCompleted) {
         setLastModuleCompletion({
@@ -188,6 +202,7 @@ export function QuizView({
       const msg = error instanceof Error ? error.message : 'Erro desconhecido'
       alert(`Erro ao salvar resultado: ${msg}. Tente novamente.`)
     } finally {
+      finishQuizInFlightRef.current = false
       setIsMarking(false)
     }
   }
@@ -197,10 +212,9 @@ export function QuizView({
   const score = total > 0 ? Math.round((correctCount / total) * 100) : 0
   const passed = score >= PASSING_SCORE
   const stepPct = total > 0 ? Math.round(((currentIndex + 1) / total) * 100) : 0
-  const showLessonXpInline =
-    passed && typeof lessonXpGained === 'number' && lessonXpGained > 0
   const totalXpInline =
-    (showLessonXpInline ? (lessonXpGained ?? 0) : 0) + (passed ? challengeXpGained : 0)
+    (passed ? (lessonXpGained ?? 0) : 0) + (passed ? challengeXpGained : 0)
+  const showXpInline = passed && totalXpInline > 0 && !isMarking
 
   useEffect(() => {
     if (!useMultiFlow) return
@@ -208,7 +222,6 @@ export function QuizView({
     if (!passed) return
     if (autoFinishTriggered) return
     if (!currentLesson?.id || currentLesson.id !== lessonId) return
-    if (isMarking) return
 
     setAutoFinishTriggered(true)
     void handleFinishQuiz()
@@ -220,7 +233,6 @@ export function QuizView({
     autoFinishTriggered,
     currentLesson?.id,
     lessonId,
-    isMarking,
   ])
 
   return (
@@ -286,7 +298,12 @@ export function QuizView({
               <p className="text-[#a1a1aa] mb-1">
                 Você acertou {correctCount} de {total} questões ({score}%).
               </p>
-              {showLessonXpInline ? (
+              {passed && isMarking ? (
+                <p className="mt-4 text-sm font-medium text-[#a1a1aa] motion-reduce:animate-none animate-pulse">
+                  A guardar resultado…
+                </p>
+              ) : null}
+              {showXpInline ? (
                 <div className="mt-4 flex items-center justify-center gap-2 text-[15px] font-semibold text-white">
                   <span className="text-orange-400">+</span>
                   <CompactNumber
