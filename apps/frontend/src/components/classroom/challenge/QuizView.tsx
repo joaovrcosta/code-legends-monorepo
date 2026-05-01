@@ -11,10 +11,6 @@ import { useCourseModalStore } from '@/stores/course-modal-store'
 import { Button } from '@/components/ui/button'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
 import Image from 'next/image'
-import {
-  Check,
-  ListChecks,
-} from '@phosphor-icons/react/dist/ssr'
 import happyRai from '../../../../public/rai/happy-rai.svg'
 import embarassedRai from '../../../../public/rai/embarassed-rai.svg'
 

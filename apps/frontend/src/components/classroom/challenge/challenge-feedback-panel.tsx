@@ -50,7 +50,6 @@ const PILL_NEXT =
   'rounded-full bg-[#29cc57] px-5 py-2.5 text-sm font-bold text-black shadow-[0_4px_0_0_#1e9640] transition-transform active:translate-y-[2px] active:shadow-[0_2px_0_0_#0088b0]'
 
 export interface ChallengeFeedbackPanelProps {
-  /** Painel ativo (ex.: resposta enviada e ainda não dispensou) */
   open: boolean
   isCorrect: boolean
   isDesktopLayout: boolean
@@ -62,9 +61,7 @@ export interface ChallengeFeedbackPanelProps {
   onSeeAnswer: () => void
   onContinue: () => void
   onNext?: () => void
-  /** Bónus de desafio (primeira resposta certa): loading + valor com count-up. */
   xpAward?: ChallengeFeedbackXpAward
-  /** Se false (ex.: exame de carreira), não exibe “Tentar de novo” no erro — só seguir. */
   allowRetry?: boolean
 }
 
