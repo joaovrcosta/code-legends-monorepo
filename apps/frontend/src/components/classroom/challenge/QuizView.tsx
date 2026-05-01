@@ -10,12 +10,13 @@ import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { Button } from '@/components/ui/button'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
+import Image from 'next/image'
 import {
   Check,
   ListChecks,
-  Trophy,
-  XCircle,
 } from '@phosphor-icons/react/dist/ssr'
+import happyRai from '../../../../public/rai/happy-rai.svg'
+import embarassedRai from '../../../../public/rai/embarassed-rai.svg'
 
 interface QuizViewProps {
   lessonId: number
@@ -143,6 +144,7 @@ export function QuizView({
   const correctCount = answers.filter(Boolean).length
   const score = total > 0 ? Math.round((correctCount / total) * 100) : 0
   const passed = score >= PASSING_SCORE
+  const stepPct = total > 0 ? Math.round(((currentIndex + 1) / total) * 100) : 0
 
   return (
     <div className="flex flex-col min-h-0">
@@ -173,7 +175,7 @@ export function QuizView({
                 Nenhum desafio cadastrado ainda.
               </p>
               {isMultiQuiz && (
-                <div className="mt-10 pt-8 border-t border-[#25252A]">
+                <div className="mt-10 pt-8">
                   <CompleteLessonButton
                     onClick={handleMarkAsComplete}
                     disabled={isMarking || isMarked || !currentLesson}
@@ -208,21 +210,18 @@ export function QuizView({
             </>
           ) : quizFinished ? (
             /* Tela de resultado */
-            <div className="rounded-[16px] border border-[#25252A] bg-[#0d0d0f] p-8 text-center">
-              <div
-                className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${passed
-                  ? 'bg-[#1a2e1a] text-[#4ade80]'
-                  : 'bg-[#3b1515] text-[#f87171]'
-                  }`}
-              >
-                {passed ? (
-                  <Trophy weight="bold" size={28} />
-                ) : (
-                  <XCircle weight="bold" size={28} />
-                )}
+            <div className="rounded-[16px] p-8 text-center">
+              <div className="mx-auto mb-4 flex items-center justify-center">
+                <Image
+                  src={passed ? happyRai : embarassedRai}
+                  alt={passed ? 'Rai feliz' : 'Rai envergonhado'}
+                  width={92}
+                  height={92}
+                  priority
+                />
               </div>
-              <h2 className="text-xl font-semibold text-white mb-2">
-                {passed ? 'Aprovado!' : 'Reprovado'}
+              <h2 className="text-2xl font-semibold text-white mb-2">
+                {passed ? 'Aprovado!' : 'Que tal tentar novamente?'}
               </h2>
               <p className="text-[#a1a1aa] mb-1">
                 Você acertou {correctCount} de {total} questões ({score}%).
@@ -233,21 +232,37 @@ export function QuizView({
                 </p>
               )}
               <Button
-                onClick={handleFinishQuiz}
+                onClick={passed ? handleFinishQuiz : () => {
+                  setCurrentIndex(0)
+                  setAnswers([])
+                  setQuizFinished(false)
+                }}
                 disabled={isMarking || !currentLesson}
-                className="gap-2 rounded-full bg-[#00b3e4] px-6 text-black hover:opacity-90"
+                className="gap-2 rounded-full bg-[#00b3e4] mt-4 px-6 text-black hover:opacity-90 h-[52px]"
               >
-                <Check weight="bold" size={20} />
-                {isMarking ? 'Salvando...' : 'Concluir'}
+                {isMarking ? 'Salvando...' : passed ? 'Concluir' : 'Tentar novamente'}
               </Button>
             </div>
           ) : (
             /* Uma questão por vez */
             <div className="relative flex flex-col gap-2">
               {total > 1 && (
-                <p className="text-xs text-[#71717a] mb-1">
-                  Questão {currentIndex + 1} de {total}
-                </p>
+                <div className="mb-2">
+                  <p className="text-xs text-[#71717a] mb-2">
+                    Questão {currentIndex + 1} de {total}
+                  </p>
+                  <div className="h-[5px] w-full overflow-hidden rounded-full bg-[#2a2a31]">
+                    <div
+                      className="h-full rounded-full bg-blue-gradient-500 shadow-[0_0_12px_rgba(184,230,46,0.35)] transition-[width] duration-500 ease-out motion-reduce:transition-none"
+                      style={{ width: `${stepPct}%` }}
+                      role="progressbar"
+                      aria-valuenow={currentIndex + 1}
+                      aria-valuemin={1}
+                      aria-valuemax={total}
+                      aria-label={`Questão ${currentIndex + 1} de ${total}`}
+                    />
+                  </div>
+                </div>
               )}
               <ChallengeBlock
                 key={currentIndex}

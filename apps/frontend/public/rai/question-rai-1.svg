@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW 2020 (64 Bit) -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="50.3427mm" height="79.832mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 1744.81 2766.86"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .fil5 {fill:none}
+    .fil4 {fill:#FEFEFE}
+    .fil2 {fill:#00566D}
+    .fil3 {fill:#00C1F6}
+    .fil1 {fill:#101013}
+    .fil0 {fill:url(#id1)}
+   ]]>
+  </style>
+   <clipPath id="id0">
+    <path d="M607.14 1539.91l819 0 0 -346.84c-119.4,33.89 -259.57,53.41 -409.5,53.41 -149.94,0 -290.11,-19.52 -409.5,-53.41l0 346.84z"/>
+   </clipPath>
+  <linearGradient id="id1" gradientUnits="userSpaceOnUse" x1="1108.47" y1="1910.6" x2="536.61" y2="1293.43">
+   <stop offset="0" style="stop-opacity:1; stop-color:#F9262A"/>
+   <stop offset="1" style="stop-opacity:1; stop-color:#FF6A00"/>
+  </linearGradient>
+ </defs>
+ <g id="Camada_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <path class="fil0" d="M312.68 1502.36c0,24.42 22.41,51.71 43.15,59.65 78.65,30.11 249.84,-37.99 249.84,63.71l-32.9 147.01c-73.07,291.73 -138.36,596.79 -211.79,883.09 -6.9,26.9 -14.89,47.53 -4.81,72.32 7.05,17.32 33.04,38.71 54.17,38.71 41.12,0 73.48,-44.76 96.48,-68.01l79.57 -84.92c325.18,-335.91 651.19,-687.63 976.64,-1022.91 140.25,-139.78 232.63,-344.32 151.39,-539.28 -9.87,-23.7 -104.4,-45.96 -110.85,13.18 -1.72,15.82 -9.23,391.84 -166.25,263.72 -38.54,-31.45 -11.82,-91.09 -3.01,-128.49l272.4 -1120.61c39.86,-159.26 -43.46,-37.85 -89.7,7.97 -330.22,339.94 -672.99,726.56 -1007.6,1074.2 -80.48,83.61 -175.5,194.75 -262.03,282.84 -13.86,13.47 -34.72,32.85 -34.72,57.81z"/>
+  <rect class="fil1" transform="matrix(0.97662 -0.563852 0.5 0.866025 933.089 1773.17)" width="156.08" height="29.35"/>
+  <g id="_1684080143504">
+   <path class="fil2" d="M-0 1624.25l744.18 0 0 562.62c0,204.63 -167.45,372.08 -372.08,372.08l-0.01 0c-204.64,0 -372.08,-167.43 -372.08,-372.08l0 -562.62z"/>
+   <path class="fil3" d="M89.87 1737.14l564.43 0 0 426.73c0,155.21 -127,282.21 -282.21,282.21l-0.01 0c-155.21,0 -282.21,-126.99 -282.21,-282.21l0 -426.73z"/>
+   <polygon class="fil2" points="443.11,1814.76 493.66,1922.39 601.29,1972.94 493.66,2023.49 443.11,2131.11 392.56,2023.49 284.94,1972.94 392.56,1922.39 "/>
+   <polygon class="fil2" points="242.02,2131.11 270.97,2192.75 332.61,2221.71 270.97,2250.66 242.02,2312.3 213.07,2250.66 151.43,2221.71 213.07,2192.75 "/>
+  </g>
+  <g>
+  </g>
+  <g style="clip-path:url(#id0)">
+   <g>
+    <rect class="fil1" x="919.02" y="1151.46" width="195.24" height="195.24"/>
+    <circle class="fil4" cx="1016.64" cy="1204.09" r="335.82"/>
+    <circle class="fil2" cx="1016.64" cy="1249.08" r="107.53"/>
+   </g>
+  </g>
+  <path class="fil5" d="M607.14 1539.91l819 0 0 -346.84c-119.4,33.89 -259.57,53.41 -409.5,53.41 -149.94,0 -290.11,-19.52 -409.5,-53.41l0 346.84z"/>
+ </g>
+</svg>

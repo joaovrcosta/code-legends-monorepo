@@ -166,9 +166,6 @@ export function ChallengeFeedbackPanel({
                 )
               ) : (
                 <>
-                  <button type="button" className={PILL_SUCCESS} onClick={onContinue}>
-                    Continuar
-                  </button>
                   {onNext ? (
                     <button
                       type="button"
@@ -180,7 +177,11 @@ export function ChallengeFeedbackPanel({
                     >
                       Próxima <ArrowRight weight="bold" size={14} className="inline" />
                     </button>
-                  ) : null}
+                  ) : (
+                    <button type="button" className={PILL_SUCCESS} onClick={onContinue}>
+                      Continuar
+                    </button>
+                  )}
                 </>
               )}
             </div>
@@ -288,13 +289,6 @@ export function ChallengeFeedbackPanel({
                   )
                 ) : (
                   <>
-                    <button
-                      type="button"
-                      className={cn(PILL_SUCCESS, 'w-full sm:w-auto')}
-                      onClick={onContinue}
-                    >
-                      Continuar
-                    </button>
                     {onNext ? (
                       <button
                         type="button"
@@ -306,7 +300,15 @@ export function ChallengeFeedbackPanel({
                       >
                         Próxima <ArrowRight weight="bold" size={14} className="inline" />
                       </button>
-                    ) : null}
+                    ) : (
+                      <button
+                        type="button"
+                        className={cn(PILL_SUCCESS, 'w-full sm:w-auto')}
+                        onClick={onContinue}
+                      >
+                        Continuar
+                      </button>
+                    )}
                   </>
                 )}
               </div>

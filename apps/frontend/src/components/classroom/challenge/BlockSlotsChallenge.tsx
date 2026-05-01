@@ -240,14 +240,8 @@ export function BlockSlotsChallenge({
   const okMessage = 'Perfeito! A sequência de comandos está correta.'
 
   return (
-    <div className="relative my-6 rounded-[16px] border border-[#25252A] bg-[#0d0d0f] overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3 border-b border-[#25252A] bg-surface">
-        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[#2d1a3e] text-[#c084fc] border-[#6b21a8]">
-          Encaixar comandos
-        </span>
-        {index !== undefined && (
-          <span className="text-xs text-[#71717a]">Desafio {index + 1}</span>
-        )}
+    <div className="relative my-6 rounded-[16px] overflow-hidden">
+      <div className="flex items-center justify-between">
       </div>
 
       <div className="px-5 pt-5 pb-4">
@@ -277,7 +271,7 @@ export function BlockSlotsChallenge({
       )}
 
       <div className="mx-5 mb-3 rounded-[12px] pb-4">
-        <p className="mb-3 text-xs font-medium text-[#a1a1aa]">Programa</p>
+        <p className="mb-3 text-xs font-medium text-[#a1a1aa]">Sequência</p>
         <div className="flex flex-col gap-2">
           {slots.map((slotId, i) => (
             <button
@@ -291,8 +285,8 @@ export function BlockSlotsChallenge({
                 }
               }}
               className={`flex min-h-[44px] items-center gap-3 rounded-[10px] border px-3 py-2 text-left transition-colors ${slotId == null
-                ? 'border-dashed border-[#3f3f47] bg-[#0d0d0f]/80'
-                : 'border-[#25252A] bg-[#1a1a1e] hover:border-[#00b3e4]/50'
+                ? 'border-dashed border-[#2a2a31] bg-transparent'
+                : 'border-[#25252A] bg-transparent hover:border-[#3f3f47]'
                 } disabled:cursor-default`}
             >
               <span className="w-6 shrink-0 text-center text-xs font-semibold text-[#71717a]">
@@ -301,7 +295,7 @@ export function BlockSlotsChallenge({
               {slotId == null ? (
                 <span className="text-sm text-[#52525b]">Coloque um bloco aqui</span>
               ) : (
-                <span className="font-mono text-sm text-white">
+                <span className="font-mono text-sm text-white/90">
                   {pieceMap.get(slotId) ?? slotId}
                 </span>
               )}
@@ -313,7 +307,7 @@ export function BlockSlotsChallenge({
       <div className="px-5 pb-2">
         <p className="mb-2 text-xs text-[#71717a]">Blocos disponíveis</p>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           {bankVisible.map((id) => (
             <button
               key={id}
@@ -325,21 +319,7 @@ export function BlockSlotsChallenge({
                 }
                 placeFromBank(id)
               }}
-              className="
-          relative rounded-full
-          border-2 border-[#d9d9de]
-          bg-white px-4 py-2.5
-          text-sm font-bold text-[#18181b]
-          shadow-[0_4px_0_0_#d4d4d8,0_6px_14px_rgba(0,0,0,0.08)]
-          transition-all duration-150
-          hover:-translate-y-[1px]
-          hover:bg-[#f9f9fb]
-          hover:shadow-[0_6px_0_0_#d4d4d8,0_10px_18px_rgba(0,0,0,0.10)]
-          active:translate-y-[2px]
-          active:shadow-[0_2px_0_0_#d4d4d8,0_4px_8px_rgba(0,0,0,0.08)]
-          disabled:cursor-not-allowed
-          disabled:opacity-40
-        "
+              className="rounded-full border border-[#3f3f47] bg-transparent px-3 py-2 text-sm font-semibold text-white/90 transition-colors hover:border-[#00b3e4]/50 hover:bg-white/5 active:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {pieceMap.get(id) ?? id}
             </button>
