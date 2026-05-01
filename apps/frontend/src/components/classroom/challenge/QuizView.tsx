@@ -1,9 +1,19 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+  memo,
+} from 'react'
+import { getSession } from 'next-auth/react'
+import { useShallow } from 'zustand/react/shallow'
 import type { Challenge } from '@/types/roadmap'
 import { ChallengeBlock } from './ChallengeBlock'
 import { continueCourse } from '@/actions/course'
+import { revalidateRoadmapCache } from '@/actions/course/revalidate-roadmap'
 import { awardChallengeXpFromBrowser } from '@/lib/award-challenge-xp-client'
 import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
 import { useActiveCourseStore } from '@/stores/active-course-store'
@@ -26,6 +36,88 @@ interface QuizViewProps {
 
 const PASSING_SCORE = 70
 
+type QuizResultPanelProps = {
+  passed: boolean
+  correctCount: number
+  total: number
+  score: number
+  isMarking: boolean
+  showXpInline: boolean
+  totalXpInline: number
+  hasCurrentLesson: boolean
+  onRetry: () => void
+}
+
+const QuizResultPanel = memo(function QuizResultPanel({
+  passed,
+  correctCount,
+  total,
+  score,
+  isMarking,
+  showXpInline,
+  totalXpInline,
+  hasCurrentLesson,
+  onRetry,
+}: QuizResultPanelProps) {
+  return (
+    <div className="rounded-[16px] p-8 text-center">
+      <div className="mx-auto mb-4 flex items-center justify-center">
+        <Image
+          src={passed ? happyRai : embarassedRai}
+          alt={passed ? 'Rai feliz' : 'Rai envergonhado'}
+          width={92}
+          height={92}
+          priority
+        />
+      </div>
+      <h2 className="text-2xl font-semibold text-white mb-2">
+        {passed ? 'Mandou bem!' : 'Que tal tentar novamente?'}
+      </h2>
+      <p className="text-[#a1a1aa] mb-1">
+        Você acertou {correctCount} de {total} questões ({score}%).
+      </p>
+      {passed && isMarking ? (
+        <p className="mt-4 text-sm font-medium text-[#a1a1aa] motion-reduce:animate-none animate-pulse">
+          A guardar resultado…
+        </p>
+      ) : null}
+      {showXpInline ? (
+        <div className="mt-4 flex items-center justify-center gap-2 text-[15px] font-semibold text-white">
+          <span className="text-orange-400">+</span>
+          <CompactNumber
+            className="text-4xl text-white"
+            value={totalXpInline}
+            enableCountUp
+            flameGradient
+          />
+          <span className="inline-flex items-center gap-2">
+            <img
+              src="/xp-icon.svg"
+              alt=""
+              width={11}
+              height={20}
+              className="h-4 w-auto object-contain"
+              aria-hidden
+            />
+          </span>
+        </div>
+      ) : null}
+      {!passed && (
+        <p className="text-sm text-[#71717a] mb-6">
+          É necessário {PASSING_SCORE}% para passar. Tente novamente!
+        </p>
+      )}
+      <Button
+        onClick={passed ? undefined : onRetry}
+        disabled={passed || isMarking || !hasCurrentLesson}
+        className="gap-2 rounded-full bg-[#00b3e4] mt-4 px-6 text-black hover:opacity-90 h-[52px]"
+      >
+        {isMarking ? 'Salvando...' : passed ? 'Concluído' : 'Tentar novamente'}
+      </Button>
+    </div>
+  )
+})
+
 export function QuizView({
   lessonId,
   title,
@@ -42,17 +134,53 @@ export function QuizView({
   const [challengeXpGained, setChallengeXpGained] = useState(0)
   const [awardedSlots, setAwardedSlots] = useState<Set<number>>(() => new Set())
   const finishQuizInFlightRef = useRef(false)
-  const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
+  const answersRef = useRef(answers)
+  answersRef.current = answers
+
+  const { activeCourseId, fetchActiveCourse } = useActiveCourseStore(
+    useShallow((s) => ({
+      activeCourseId: s.activeCourse?.id ?? null,
+      fetchActiveCourse: s.fetchActiveCourse,
+    })),
+  )
+
   const {
-    currentLesson,
+    modalLessonId,
+    modalLessonStatus,
     updateCurrentLessonStatus,
     setLastModuleCompletion,
     setShowModuleStatsOnce,
-  } = useCourseModalStore()
+  } = useCourseModalStore(
+    useShallow((s) => ({
+      modalLessonId: s.currentLesson?.id ?? null,
+      modalLessonStatus: s.currentLesson?.status ?? null,
+      updateCurrentLessonStatus: s.updateCurrentLessonStatus,
+      setLastModuleCompletion: s.setLastModuleCompletion,
+      setShowModuleStatsOnce: s.setShowModuleStatsOnce,
+    })),
+  )
+
   const isMarked =
-    currentLesson?.id === lessonId && currentLesson?.status === 'completed'
+    modalLessonId === lessonId && modalLessonStatus === 'completed'
+  const hasCurrentLesson = modalLessonId != null
 
   const useMultiFlow = isMultiQuiz
+
+  const total = challenges.length
+  const { correctCount, score, passed, stepPct } = useMemo(() => {
+    const cc = answers.filter(Boolean).length
+    const sc = total > 0 ? Math.round((cc / total) * 100) : 0
+    const ps = sc >= PASSING_SCORE
+    const sp = total > 0 ? Math.round(((currentIndex + 1) / total) * 100) : 0
+    return { correctCount: cc, score: sc, passed: ps, stepPct: sp }
+  }, [answers, total, currentIndex])
+
+  const totalXpInline = useMemo(
+    () =>
+      (passed ? (lessonXpGained ?? 0) : 0) + (passed ? challengeXpGained : 0),
+    [passed, lessonXpGained, challengeXpGained],
+  )
+  const showXpInline = passed && totalXpInline > 0 && !isMarking
 
   const handleAnswer = useCallback((correct: boolean) => {
     setAnswers((prev) => [...prev, correct])
@@ -77,7 +205,6 @@ export function QuizView({
       const t = challenges.length
       const correct = answers.filter(Boolean).length
       const pct = t > 0 ? Math.round((correct / t) * 100) : 0
-      // Mostra “a guardar…” no mesmo frame que o resultado (evita um piscar resultado → loading).
       if (pct >= PASSING_SCORE) {
         setIsMarking(true)
       }
@@ -87,12 +214,22 @@ export function QuizView({
     }
   }, [currentIndex, challenges.length, answers])
 
-  const handleMarkAsComplete = async () => {
-    if (!currentLesson?.id || currentLesson.id !== lessonId) return
+  const handleQuizRetry = useCallback(() => {
+    setCurrentIndex(0)
+    setAnswers([])
+    setQuizFinished(false)
+    setAutoFinishTriggered(false)
+    setLessonXpGained(null)
+    setChallengeXpGained(0)
+    setAwardedSlots(new Set())
+  }, [])
+
+  const handleMarkAsComplete = useCallback(async () => {
+    if (!modalLessonId || modalLessonId !== lessonId) return
     if (isMarking || isMarked) return
     try {
       setIsMarking(true)
-      const result = await continueCourse(currentLesson.id, activeCourse?.id)
+      const result = await continueCourse(modalLessonId, activeCourseId ?? undefined)
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao completar a lição')
       const xpFromResult =
@@ -134,46 +271,91 @@ export function QuizView({
     } finally {
       setIsMarking(false)
     }
-  }
+  }, [
+    modalLessonId,
+    lessonId,
+    isMarking,
+    isMarked,
+    activeCourseId,
+    fetchActiveCourse,
+    updateCurrentLessonStatus,
+    setLastModuleCompletion,
+    setShowModuleStatsOnce,
+  ])
 
-  const handleFinishQuiz = async () => {
-    const total = challenges.length
-    const correctCount = answers.filter(Boolean).length
-    const score = total > 0 ? Math.round((correctCount / total) * 100) : 0
-    const passed = score >= PASSING_SCORE
-    if (!currentLesson?.id || currentLesson.id !== lessonId) return
+  const handleFinishQuiz = useCallback(async () => {
+    const answersSnapshot = answersRef.current
+    const totalCh = challenges.length
+    const correctCountSnap = answersSnapshot.filter(Boolean).length
+    const scoreSnap =
+      totalCh > 0 ? Math.round((correctCountSnap / totalCh) * 100) : 0
+    const passedSnap = scoreSnap >= PASSING_SCORE
+    if (!modalLessonId || modalLessonId !== lessonId) return
     if (finishQuizInFlightRef.current) return
     finishQuizInFlightRef.current = true
     try {
       setIsMarking(true)
-      const result = await continueCourse(lessonId, activeCourse?.id, score)
+      const result = await continueCourse(
+        lessonId,
+        activeCourseId ?? undefined,
+        scoreSnap,
+      )
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao salvar o resultado')
 
       let nextLessonXp: number | null = null
-      if (passed && typeof result.xpGained === 'number' && result.xpGained > 0) {
+      if (
+        passedSnap &&
+        typeof result.xpGained === 'number' &&
+        result.xpGained > 0
+      ) {
         nextLessonXp = result.xpGained
       }
 
       let nextChallengeXp = 0
       const slotsAwarded = new Set<number>()
-      if (passed) {
-        const courseId = activeCourse?.id ?? null
-        for (let i = 0; i < answers.length; i++) {
-          if (!answers[i]) continue
-          const r = await awardChallengeXpFromBrowser(lessonId, i, {
-            courseId,
-          })
-          if (r.applied && r.xpGained > 0) {
-            nextChallengeXp += r.xpGained
-            slotsAwarded.add(i)
+      if (passedSnap) {
+        const courseId = activeCourseId
+        const indices: number[] = []
+        for (let i = 0; i < answersSnapshot.length; i++) {
+          if (answersSnapshot[i]) indices.push(i)
+        }
+        if (indices.length > 0) {
+          const session = await getSession()
+          const accessToken = (session as { accessToken?: string } | null)
+            ?.accessToken
+          if (accessToken) {
+            const results = await Promise.all(
+              indices.map((i) =>
+                awardChallengeXpFromBrowser(lessonId, i, {
+                  courseId,
+                  skipRevalidate: true,
+                  accessToken,
+                }),
+              ),
+            )
+            for (let j = 0; j < results.length; j++) {
+              const r = results[j]
+              const i = indices[j]
+              if (r.applied && r.xpGained > 0) {
+                nextChallengeXp += r.xpGained
+                slotsAwarded.add(i)
+              }
+            }
+            const trimmed = courseId?.trim()
+            if (trimmed) {
+              try {
+                await revalidateRoadmapCache(trimmed)
+              } catch {
+                /* opcional */
+              }
+            }
           }
         }
       }
 
-      // Um único “lote” de updates de XP evita re-render / count-up duplo.
       setLessonXpGained(nextLessonXp)
-      if (passed) {
+      if (passedSnap) {
         setChallengeXpGained(nextChallengeXp)
         setAwardedSlots((prev) => {
           const next = new Set(prev)
@@ -182,7 +364,7 @@ export function QuizView({
         })
       }
 
-      if (passed) maybeShowStreakCongrats(result)
+      if (passedSnap) maybeShowStreakCongrats(result)
       if (result.moduleCompleted) {
         setLastModuleCompletion({
           moduleCompleted: true,
@@ -195,7 +377,7 @@ export function QuizView({
         })
         setShowModuleStatsOnce(true)
       }
-      updateCurrentLessonStatus(passed ? 'completed' : 'unlocked')
+      updateCurrentLessonStatus(passedSnap ? 'completed' : 'unlocked')
       await fetchActiveCourse()
     } catch (error) {
       console.error('Erro ao salvar resultado do quiz:', error)
@@ -205,34 +387,34 @@ export function QuizView({
       finishQuizInFlightRef.current = false
       setIsMarking(false)
     }
-  }
-
-  const total = challenges.length
-  const correctCount = answers.filter(Boolean).length
-  const score = total > 0 ? Math.round((correctCount / total) * 100) : 0
-  const passed = score >= PASSING_SCORE
-  const stepPct = total > 0 ? Math.round(((currentIndex + 1) / total) * 100) : 0
-  const totalXpInline =
-    (passed ? (lessonXpGained ?? 0) : 0) + (passed ? challengeXpGained : 0)
-  const showXpInline = passed && totalXpInline > 0 && !isMarking
+  }, [
+    lessonId,
+    challenges.length,
+    activeCourseId,
+    modalLessonId,
+    fetchActiveCourse,
+    updateCurrentLessonStatus,
+    setLastModuleCompletion,
+    setShowModuleStatsOnce,
+  ])
 
   useEffect(() => {
     if (!useMultiFlow) return
     if (!quizFinished) return
     if (!passed) return
     if (autoFinishTriggered) return
-    if (!currentLesson?.id || currentLesson.id !== lessonId) return
+    if (!modalLessonId || modalLessonId !== lessonId) return
 
     setAutoFinishTriggered(true)
     void handleFinishQuiz()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     useMultiFlow,
     quizFinished,
     passed,
     autoFinishTriggered,
-    currentLesson?.id,
+    modalLessonId,
     lessonId,
+    handleFinishQuiz,
   ])
 
   return (
@@ -249,7 +431,7 @@ export function QuizView({
                 <div className="mt-10 pt-8">
                   <CompleteLessonButton
                     onClick={handleMarkAsComplete}
-                    disabled={isMarking || isMarked || !currentLesson}
+                    disabled={isMarking || isMarked || !hasCurrentLesson}
                     isMarking={isMarking}
                     isMarked={isMarked}
                   />
@@ -274,77 +456,24 @@ export function QuizView({
               <div className="mt-10 pt-8 border-t border-[#25252A]">
                 <CompleteLessonButton
                   onClick={handleMarkAsComplete}
-                  disabled={isMarking || isMarked || !currentLesson}
+                  disabled={isMarking || isMarked || !hasCurrentLesson}
                   isMarking={isMarking}
                   isMarked={isMarked}
                 />
               </div>
             </>
           ) : quizFinished ? (
-            /* Tela de resultado */
-            <div className="rounded-[16px] p-8 text-center">
-              <div className="mx-auto mb-4 flex items-center justify-center">
-                <Image
-                  src={passed ? happyRai : embarassedRai}
-                  alt={passed ? 'Rai feliz' : 'Rai envergonhado'}
-                  width={92}
-                  height={92}
-                  priority
-                />
-              </div>
-              <h2 className="text-2xl font-semibold text-white mb-2">
-                {passed ? 'Mandou bem!' : 'Que tal tentar novamente?'}
-              </h2>
-              <p className="text-[#a1a1aa] mb-1">
-                Você acertou {correctCount} de {total} questões ({score}%).
-              </p>
-              {passed && isMarking ? (
-                <p className="mt-4 text-sm font-medium text-[#a1a1aa] motion-reduce:animate-none animate-pulse">
-                  A guardar resultado…
-                </p>
-              ) : null}
-              {showXpInline ? (
-                <div className="mt-4 flex items-center justify-center gap-2 text-[15px] font-semibold text-white">
-                  <span className="text-orange-400">+</span>
-                  <CompactNumber
-                    className="text-4xl text-white"
-                    value={totalXpInline}
-                    enableCountUp
-                    flameGradient
-                  />
-                  <span className="inline-flex items-center gap-2">
-                    <img
-                      src="/xp-icon.svg"
-                      alt=""
-                      width={11}
-                      height={20}
-                      className="h-4 w-auto object-contain"
-                      aria-hidden
-                    />
-                  </span>
-                </div>
-              ) : null}
-              {!passed && (
-                <p className="text-sm text-[#71717a] mb-6">
-                  É necessário {PASSING_SCORE}% para passar. Tente novamente!
-                </p>
-              )}
-              <Button
-                onClick={passed ? undefined : () => {
-                  setCurrentIndex(0)
-                  setAnswers([])
-                  setQuizFinished(false)
-                  setAutoFinishTriggered(false)
-                  setLessonXpGained(null)
-                  setChallengeXpGained(0)
-                  setAwardedSlots(new Set())
-                }}
-                disabled={passed || isMarking || !currentLesson}
-                className="gap-2 rounded-full bg-[#00b3e4] mt-4 px-6 text-black hover:opacity-90 h-[52px]"
-              >
-                {isMarking ? 'Salvando...' : passed ? 'Concluído' : 'Tentar novamente'}
-              </Button>
-            </div>
+            <QuizResultPanel
+              passed={passed}
+              correctCount={correctCount}
+              total={total}
+              score={score}
+              isMarking={isMarking}
+              showXpInline={showXpInline}
+              totalXpInline={totalXpInline}
+              hasCurrentLesson={hasCurrentLesson}
+              onRetry={handleQuizRetry}
+            />
           ) : (
             /* Uma questão por vez */
             <div className="relative flex flex-col gap-2">
