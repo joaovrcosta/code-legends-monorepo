@@ -14,6 +14,12 @@ import {
   useIsDesktopChallengeLayout,
   type ChallengeFeedbackXpAward,
 } from '@/components/classroom/challenge/challenge-feedback-panel'
+import {
+  RaiQuestionBubble,
+  pickRandomCheerMessage,
+  pickRandomCheerVariant,
+  type CheerVariant,
+} from '@/components/classroom/challenge/challenge-rai-question-bubble'
 import { playCorrectChime, playWrongTamTamm } from '@/lib/play-correct-chime'
 import { ArrowRight, Eye } from '@phosphor-icons/react/dist/ssr'
 
@@ -79,6 +85,8 @@ export function ChallengeBlock({
   const [feedbackDismissed, setFeedbackDismissed] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
   const [xpAward, setXpAward] = useState<ChallengeFeedbackXpAward>({ state: 'idle' })
+  const [cheerMessage, setCheerMessage] = useState<string | null>(null)
+  const [cheerVariant, setCheerVariant] = useState<CheerVariant>('happy1')
   const isDesktopLayout = useIsDesktopChallengeLayout()
 
   const hasOptions = Array.isArray(challenge.options) && challenge.options.length > 0
@@ -92,26 +100,6 @@ export function ChallengeBlock({
     challenge.type === 'complete' ||
     (!hasOptions && (challenge.type === 'bug' || challenge.type === 'conceptual'))
 
-  const typeLabels: Record<Challenge['type'], string> = {
-    prediction: 'Previsão',
-    bug: 'Encontre o Bug',
-    refactor: 'Refatoração',
-    complete: 'Complete o Código',
-    conceptual: 'Conceitual',
-    block_slots: 'Encaixar comandos',
-    exam_mcq: 'Exame (múltipla escolha)',
-  }
-
-  const typeBadgeColors: Record<Challenge['type'], string> = {
-    prediction: 'bg-[#1e3a5f] text-[#7dd3fc] border-[#2d5a8e]',
-    bug: 'bg-[#3b1515] text-[#f87171] border-[#7f1d1d]',
-    refactor: 'bg-[#1a2e1a] text-[#4ade80] border-[#166534]',
-    complete: 'bg-[#2d1a3e] text-[#c084fc] border-[#6b21a8]',
-    conceptual: 'bg-[#1e2e3b] text-[#93c5fd] border-[#1d4ed8]',
-    block_slots: 'bg-[#2d1a3e] text-[#c084fc] border-[#6b21a8]',
-    exam_mcq: 'bg-[#1a2530] text-[#7ee9ff] border-[#00C8FF]/40',
-  }
-
   const handleSubmit = useCallback(() => {
     if (submitted) return
     const answer = isChoiceType ? (selected ?? '') : typed
@@ -120,6 +108,11 @@ export function ChallengeBlock({
     else if (allowRetry) playWrongTamTamm()
     if (!correct) {
       setXpAward({ state: 'idle' })
+      setCheerMessage(null)
+    }
+    if (correct) {
+      setCheerMessage(pickRandomCheerMessage())
+      setCheerVariant(pickRandomCheerVariant())
     }
     setIsCorrect(correct)
     setSubmitted(true)
@@ -170,6 +163,8 @@ export function ChallengeBlock({
     setFeedbackDismissed(false)
     setShowExplanation(false)
     setXpAward({ state: 'idle' })
+    setCheerMessage(null)
+    setCheerVariant('happy1')
   }, [])
 
   if (challenge.type === 'block_slots') {
@@ -202,25 +197,14 @@ export function ChallengeBlock({
   const hasExplanation = Boolean(challenge.explanation?.trim())
 
   return (
-    <div className="relative my-6 rounded-[16px] border border-[#25252A] bg-[#0d0d0f] overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-3 border-b border-[#25252A] bg-surface">
-        <span
-          className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${typeBadgeColors[challenge.type]}`}
-        >
-          {typeLabels[challenge.type]}
-        </span>
-        {index !== undefined && (
-          <span className="text-xs text-[#71717a]">Desafio {index + 1}</span>
-        )}
-      </div>
-
-      {/* Question */}
-      <div className="px-5 pt-5 pb-4">
-        <p className="text-base font-medium text-white leading-relaxed">
-          {challenge.question}
-        </p>
-      </div>
+    <div className="relative my-6 rounded-[16px] overflow-hidden">
+      <RaiQuestionBubble
+        question={challenge.question}
+        submitted={submitted}
+        isCorrect={isCorrect}
+        cheerMessage={cheerMessage}
+        cheerVariant={cheerVariant}
+      />
 
       {/* Code block */}
       {challenge.code && (
@@ -250,22 +234,22 @@ export function ChallengeBlock({
                 type="button"
                 disabled={submitted}
                 onClick={() => setSelected(option)}
-                className={`w-full text-left rounded-[10px] border px-4 py-3 text-sm transition-all
+                className={`w-full text-left rounded-full border px-4 py-3 text-sm font-semibold transition-colors
                   ${isThisCorrect
-                    ? 'border-[#4ade80] bg-[#1a2e1a] text-[#4ade80]'
+                    ? 'border-[#4ade80] bg-[#1a2e1a]/80 text-[#4ade80]'
                     : isThisWrong
-                      ? 'border-[#f87171] bg-[#3b1515] text-[#f87171]'
+                      ? 'border-[#f87171] bg-[#3b1515]/80 text-[#f87171]'
                       : isSelected
-                        ? 'border-[#00b3e4] bg-[#0d2a38] text-white'
-                        : 'border-[#25252A] bg-surface text-[#c4c4cc] hover:border-[#3f3f47] hover:text-white'
+                        ? 'border-[#00b3e4]/70 bg-white/5 text-white'
+                        : 'border-[#3f3f47] bg-transparent text-white/90 hover:border-[#00b3e4]/50 hover:bg-white/5'
                   }
                   disabled:cursor-not-allowed`}
               >
                 <span className="flex items-center gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-current text-xs font-bold">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-current text-xs font-bold">
                     {String.fromCharCode(65 + i)}
                   </span>
-                  {option}
+                  <span className="min-w-0 flex-1 leading-snug">{option}</span>
                 </span>
               </button>
             )
@@ -334,7 +318,7 @@ export function ChallengeBlock({
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-end px-5 pb-5">
+      <div className="flex w-full items-center justify-end px-5 pb-5">
         {!submitted ? (
           <button
             type="button"
