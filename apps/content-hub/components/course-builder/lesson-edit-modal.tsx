@@ -75,6 +75,8 @@ export function LessonEditModal({
   const [loading, setLoading] = useState(false)
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
   const [metadadosOpen, setMetadadosOpen] = useState(false)
+  const [quizMode, setQuizMode] = useState<'editor' | 'json'>('editor')
+  const [quizJson, setQuizJson] = useState('')
   const [availableSkills, setAvailableSkills] = useState<
     Array<{ id: string; name: string; slug: string }>
   >([])
@@ -144,12 +146,38 @@ export function LessonEditModal({
         order: lesson.order,
       })
       setQuizContent(lesson.quiz?.content ?? [])
+      setQuizMode('editor')
+      setQuizJson(JSON.stringify(lesson.quiz?.content ?? [], null, 2))
       setSlugManuallyEdited(false)
       setProductionPriority(
         normalizeLessonPriority(lesson.production?.priority),
       )
     }
   }, [lesson, isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+    // Mantém o JSON em sync quando o usuário edita pelo editor visual.
+    setQuizJson(JSON.stringify(quizContent ?? [], null, 2))
+  }, [quizContent, isOpen])
+
+  function tryApplyQuizJson(raw: string): boolean {
+    try {
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) {
+        toast.error('JSON inválido: esperado um array de challenges ([])')
+        return false
+      }
+      setQuizContent(parsed as Challenge[])
+      toast.success('Challenges atualizados via JSON')
+      return true
+    } catch (e) {
+      toast.error(
+        `JSON inválido: ${e instanceof Error ? e.message : 'não foi possível parsear'}`,
+      )
+      return false
+    }
+  }
 
   useEffect(() => {
     const loadLessonSkills = async () => {
@@ -471,10 +499,69 @@ export function LessonEditModal({
             {(formData.type === 'quiz' || formData.type === 'multi_quiz') && (
               <div className="space-y-2">
                 <Label>Desafios do Quiz</Label>
-                <QuizEditor
-                  challenges={quizContent}
-                  onChange={setQuizContent}
-                />
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-muted-foreground">
+                    Você pode cadastrar pelo editor visual ou colar um JSON (array de challenges).
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant={quizMode === 'editor' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setQuizMode('editor')}
+                    >
+                      Editor
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={quizMode === 'json' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setQuizMode('json')}
+                    >
+                      JSON
+                    </Button>
+                  </div>
+                </div>
+
+                {quizMode === 'editor' ? (
+                  <QuizEditor
+                    challenges={quizContent}
+                    onChange={setQuizContent}
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={quizJson}
+                      onChange={(e) => setQuizJson(e.target.value)}
+                      rows={14}
+                      className="font-mono text-xs"
+                      placeholder='[{"type":"block_slots","question":"...","pieces":[{"id":"p0","content":"..."}],"solution":["p0"]}]'
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="default"
+                        onClick={() => {
+                          const ok = tryApplyQuizJson(quizJson)
+                          if (ok) setQuizMode('editor')
+                        }}
+                      >
+                        Aplicar JSON
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          setQuizJson(JSON.stringify(quizContent ?? [], null, 2))
+                        }
+                      >
+                        Recarregar do editor
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
