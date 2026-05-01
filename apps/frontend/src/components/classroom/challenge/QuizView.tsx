@@ -4,12 +4,12 @@ import { useEffect, useState, useCallback } from 'react'
 import type { Challenge } from '@/types/roadmap'
 import { ChallengeBlock } from './ChallengeBlock'
 import { continueCourse } from '@/actions/course'
-import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
 import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { Button } from '@/components/ui/button'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
+import { CompactNumber } from '@/components/ui/compact-number'
 import Image from 'next/image'
 import happyRai from '../../../../public/rai/happy-rai.svg'
 import embarassedRai from '../../../../public/rai/embarassed-rai.svg'
@@ -37,6 +37,7 @@ export function QuizView({
   const [quizFinished, setQuizFinished] = useState(false)
   const [isMarking, setIsMarking] = useState(false)
   const [autoFinishTriggered, setAutoFinishTriggered] = useState(false)
+  const [lessonXpGained, setLessonXpGained] = useState<number | null>(null)
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
   const {
     currentLesson,
@@ -69,7 +70,17 @@ export function QuizView({
       const result = await continueCourse(currentLesson.id, activeCourse?.id)
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao completar a lição')
-      showLessonXpToast(result)
+      const xpFromResult =
+        typeof result.xpGained === 'number'
+          ? result.xpGained
+          : typeof result.xpGainedInModule === 'number'
+            ? result.xpGainedInModule
+            : typeof result.totalXp === 'number'
+              ? result.totalXp
+              : null
+      if (typeof xpFromResult === 'number' && xpFromResult > 0) {
+        setLessonXpGained(xpFromResult)
+      }
       maybeShowStreakCongrats(result)
       if (result.moduleCompleted) {
         setLastModuleCompletion({
@@ -112,7 +123,17 @@ export function QuizView({
       const result = await continueCourse(lessonId, activeCourse?.id, score)
       if (!result?.success)
         throw new Error('A API não retornou sucesso ao salvar o resultado')
-      if (passed) showLessonXpToast(result)
+      const xpFromResult =
+        typeof result.xpGained === 'number'
+          ? result.xpGained
+          : typeof result.xpGainedInModule === 'number'
+            ? result.xpGainedInModule
+            : typeof result.totalXp === 'number'
+              ? result.totalXp
+              : null
+      if (passed && typeof xpFromResult === 'number' && xpFromResult > 0) {
+        setLessonXpGained(xpFromResult)
+      }
       if (passed) maybeShowStreakCongrats(result)
       if (result.moduleCompleted) {
         setLastModuleCompletion({
@@ -142,6 +163,8 @@ export function QuizView({
   const score = total > 0 ? Math.round((correctCount / total) * 100) : 0
   const passed = score >= PASSING_SCORE
   const stepPct = total > 0 ? Math.round(((currentIndex + 1) / total) * 100) : 0
+  const showLessonXpInline =
+    passed && typeof lessonXpGained === 'number' && lessonXpGained > 0
 
   useEffect(() => {
     if (!useMultiFlow) return
@@ -221,11 +244,26 @@ export function QuizView({
                 />
               </div>
               <h2 className="text-2xl font-semibold text-white mb-2">
-                {passed ? 'Aprovado!' : 'Que tal tentar novamente?'}
+                {passed ? 'Mandou bem!' : 'Que tal tentar novamente?'}
               </h2>
               <p className="text-[#a1a1aa] mb-1">
                 Você acertou {correctCount} de {total} questões ({score}%).
               </p>
+              {showLessonXpInline ? (
+                <div className="mt-4 flex items-center justify-center gap-2 text-[15px] font-semibold text-white">
+                  <CompactNumber className='text-4xl text-white' value={lessonXpGained} enableCountUp flameGradient />
+                  <span className="inline-flex items-center gap-2">
+                    <img
+                      src="/xp-icon.svg"
+                      alt=""
+                      width={11}
+                      height={20}
+                      className="h-4 w-auto object-contain"
+                      aria-hidden
+                    />
+                  </span>
+                </div>
+              ) : null}
               {!passed && (
                 <p className="text-sm text-[#71717a] mb-6">
                   É necessário {PASSING_SCORE}% para passar. Tente novamente!
