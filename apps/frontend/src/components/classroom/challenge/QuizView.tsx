@@ -103,7 +103,7 @@ const QuizResultPanel = memo(function QuizResultPanel({
       ) : null}
       {showXpInline ? (
         <div className="mt-4 flex items-center flex-col justify-center gap-2 text-[15px] font-semibold text-white">
-          <span className="text-xs uppercase text-[#71717a]">Total de XP: </span>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-[#7e7e89] whitespace-nowrap">Total XP</span>
           <div className="flex items-center gap-2">
             <CompactNumber
               className="text-5xl text-white"

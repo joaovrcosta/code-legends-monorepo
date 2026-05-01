@@ -289,7 +289,6 @@ export function SkillStatsOverview() {
             <Skeleton className="h-8 w-56 max-w-[90vw] rounded-md" />
           </div>
 
-          {/* Bloco Total XP (tempo de estudo comentado no layout real) */}
           <div className="flex flex-row items-center justify-center gap-4 rounded-2xl py-4 px-4">
             <div className="flex flex-col items-center gap-2">
               <Skeleton className="h-2.5 w-24 rounded-full" />
