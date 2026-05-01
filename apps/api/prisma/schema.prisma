@@ -55,9 +55,10 @@ model Career {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  modules     CareerModule[]
-  exams       CareerExam[]
-  userCareers UserCareer[]
+  modules      CareerModule[]
+  exams        CareerExam[]
+  userCareers  UserCareer[]
+  certificates Certificate[]
 }
 
 model CareerModule {
@@ -69,7 +70,7 @@ model CareerModule {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  career   Career              @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  career   Career                   @relation(fields: [careerId], references: [id], onDelete: Cascade)
   courses  CareerModuleCourse[]
   exams    CareerModuleExam[]
   statuses UserCareerModuleStatus[]
@@ -103,7 +104,7 @@ model CareerExam {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  career   Career                 @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  career   Career                  @relation(fields: [careerId], references: [id], onDelete: Cascade)
   modules  CareerModuleExam[]
   attempts UserCareerExamAttempt[]
 
@@ -116,7 +117,7 @@ model CareerModuleExam {
   careerModuleId String
   careerExamId   String
   /// 1 ou 2: posição do exame dentro do módulo
-  examIndex Int
+  examIndex      Int
 
   careerModule CareerModule @relation(fields: [careerModuleId], references: [id], onDelete: Cascade)
   exam         CareerExam   @relation(fields: [careerExamId], references: [id], onDelete: Cascade)
@@ -127,17 +128,17 @@ model CareerModuleExam {
 }
 
 model UserCareer {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   userId         String
   careerId       String
-  enrolledAt     DateTime @default(now())
-  lastAccessedAt DateTime @default(now())
-  isCompleted    Boolean  @default(false)
+  enrolledAt     DateTime  @default(now())
+  lastAccessedAt DateTime  @default(now())
+  isCompleted    Boolean   @default(false)
   completedAt    DateTime?
-  progress       Float    @default(0.0)
+  progress       Float     @default(0.0)
 
-  user     User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  career   Career                  @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  user     User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  career   Career                   @relation(fields: [careerId], references: [id], onDelete: Cascade)
   attempts UserCareerExamAttempt[]
   statuses UserCareerModuleStatus[]
 
@@ -156,7 +157,7 @@ model UserCareerExamAttempt {
   answers      Json?
   createdAt    DateTime @default(now())
 
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userCareer UserCareer @relation(fields: [userCareerId], references: [id], onDelete: Cascade)
   exam       CareerExam @relation(fields: [careerExamId], references: [id], onDelete: Cascade)
 
@@ -165,14 +166,14 @@ model UserCareerExamAttempt {
 }
 
 model UserCareerModuleStatus {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   userId         String
   userCareerId   String
   careerModuleId String
-  isCompleted    Boolean  @default(false)
+  isCompleted    Boolean   @default(false)
   completedAt    DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   userCareer   UserCareer   @relation(fields: [userCareerId], references: [id], onDelete: Cascade)
@@ -253,30 +254,30 @@ model User {
 
   expertise Expertise[] @relation("UserToExpertise")
 
-  Address             Address?
-  userCourses         UserCourse[]
-  userProgress        UserProgress[]
-  Certificate         Certificate[]
-  favoriteCourses     FavoriteCourse[]
-  activeCourseId      String?
-  activeCourse        Course?              @relation("ActiveCourse", fields: [activeCourseId], references: [id])
-  coursesAsInstructor Course[]             @relation("CourseInstructor")
-  lessonsAsAuthor     Lesson[]             @relation("LessonAuthor")
-  xpHistory           UserXpHistory[]
-  skillXp             UserSkillXp[]
-  skillXpHistory      UserSkillXpHistory[]
-  xpEvents            UserXpEvent[]
-  streak              UserStreak?
-  requests            Request[]
-  notifications       Notification[]
-  payments            Payment[]
-  subscriptions       Subscription[]
-  lessonProductionsUpdated LessonProduction[] @relation("LessonProductionUpdatedBy")
-  lessonProductionLogs LessonProductionLog[] @relation("LessonProductionLogActor")
+  Address                  Address?
+  userCourses              UserCourse[]
+  userProgress             UserProgress[]
+  Certificate              Certificate[]
+  favoriteCourses          FavoriteCourse[]
+  activeCourseId           String?
+  activeCourse             Course?               @relation("ActiveCourse", fields: [activeCourseId], references: [id])
+  coursesAsInstructor      Course[]              @relation("CourseInstructor")
+  lessonsAsAuthor          Lesson[]              @relation("LessonAuthor")
+  xpHistory                UserXpHistory[]
+  skillXp                  UserSkillXp[]
+  skillXpHistory           UserSkillXpHistory[]
+  xpEvents                 UserXpEvent[]
+  streak                   UserStreak?
+  requests                 Request[]
+  notifications            Notification[]
+  payments                 Payment[]
+  subscriptions            Subscription[]
+  lessonProductionsUpdated LessonProduction[]    @relation("LessonProductionUpdatedBy")
+  lessonProductionLogs     LessonProductionLog[] @relation("LessonProductionLogActor")
 
-  userCareers         UserCareer[]
-  careerExamAttempts  UserCareerExamAttempt[]
-  careerModuleStatus  UserCareerModuleStatus[]
+  userCareers        UserCareer[]
+  careerExamAttempts UserCareerExamAttempt[]
+  careerModuleStatus UserCareerModuleStatus[]
 }
 
 model UserStreak {
@@ -350,12 +351,12 @@ model Lesson {
   userCourses    UserCourse[]
   userProgress   UserProgress[]
 
-  video   Video?
-  article Article?
-  quiz    Quiz?
-  project Project?
-  skills  LessonSkill[]
-  production LessonProduction?
+  video          Video?
+  article        Article?
+  quiz           Quiz?
+  project        Project?
+  skills         LessonSkill[]
+  production     LessonProduction?
   productionLogs LessonProductionLog[]
 
   @@unique([slug, submoduleId])
@@ -378,31 +379,31 @@ enum LessonProductionPriority {
 }
 
 model LessonProduction {
-  id          String                @id @default(cuid())
-  lessonId    Int                   @unique
-  lesson      Lesson                @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  status      LessonProductionStatus @default(TODO)
+  id          String                   @id @default(cuid())
+  lessonId    Int                      @unique
+  lesson      Lesson                   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  status      LessonProductionStatus   @default(TODO)
   priority    LessonProductionPriority @default(NONE)
-  notes       String?               @db.Text
+  notes       String?                  @db.Text
   updatedById String
-  updatedBy   User                  @relation("LessonProductionUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
+  updatedBy   User                     @relation("LessonProductionUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
 
   @@index([status])
   @@index([updatedAt])
 }
 
 model LessonProductionLog {
-  id         String                @id @default(cuid())
+  id         String                 @id @default(cuid())
   lessonId   Int
-  lesson     Lesson                @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lesson     Lesson                 @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   courseId   String
   fromStatus LessonProductionStatus
   toStatus   LessonProductionStatus
   actorId    String
-  actor      User                  @relation("LessonProductionLogActor", fields: [actorId], references: [id], onDelete: Cascade)
-  createdAt  DateTime              @default(now())
+  actor      User                   @relation("LessonProductionLogActor", fields: [actorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime               @default(now())
 
   @@index([courseId, createdAt(sort: Desc)])
   @@index([lessonId, createdAt(sort: Desc)])
@@ -631,12 +632,16 @@ model Certificate {
   id         String               @id @default(cuid())
   userId     String
   user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId   String
-  course     Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId   String?
+  course     Course?              @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  careerId   String?
+  career     Career?              @relation(fields: [careerId], references: [id], onDelete: Cascade)
   templateId String?
   template   CertificateTemplate? @relation(fields: [templateId], references: [id])
   createdAt  DateTime             @default(now())
   updatedAt  DateTime             @updatedAt
+
+  @@index([userId, careerId])
 }
 
 model CertificateTemplate {

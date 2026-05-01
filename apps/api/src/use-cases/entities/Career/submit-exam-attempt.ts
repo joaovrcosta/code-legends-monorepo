@@ -1,5 +1,6 @@
 import { prisma } from '../../../lib/prisma'
 import { CareerNotFoundError } from '../../errors/career-not-found'
+import { makeCreateCareerCertificateUseCase } from '../../../utils/factories/make-create-career-certificate-use-case'
 
 interface SubmitCareerExamAttemptRequest {
   userId: string
@@ -153,6 +154,18 @@ export class SubmitCareerExamAttemptUseCase {
         completedAt: careerCompleted ? new Date() : null,
       },
     })
+
+    if (careerCompleted) {
+      try {
+        const createCareerCert = makeCreateCareerCertificateUseCase()
+        await createCareerCert.execute({ userId, careerId })
+      } catch (err) {
+        console.error(
+          '[SubmitCareerExamAttempt] Falha ao emitir certificado de carreira:',
+          err,
+        )
+      }
+    }
 
     return {
       success: true,

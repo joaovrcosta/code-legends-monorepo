@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "ds055uzetaobb.cloudfront.net", pathname: "/**" },
     ],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       "@": path.resolve(__dirname, "./src"),
@@ -27,6 +27,10 @@ const nextConfig: NextConfig = {
       config.resolve.fallback = {
         ...config.resolve.fallback,
       };
+    }
+
+    if (dev) {
+      config.cache = false;
     }
 
     return config;

@@ -2,29 +2,48 @@ import { Certificate, Prisma } from "@prisma/client";
 import { CertificateRepository } from "../certificate-repository";
 import { prisma } from "../../lib/prisma";
 
+const careerListSelect = {
+  id: true,
+  title: true,
+  slug: true,
+} as const;
+
+const certificateInclude = {
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      avatar: true,
+    },
+  },
+  course: {
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      thumbnail: true,
+      instructorId: true,
+      instructor: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+      },
+    },
+  },
+  career: {
+    select: careerListSelect,
+  },
+  template: true,
+} as const;
+
 export class PrismaCertificateRepository implements CertificateRepository {
   async create(data: Prisma.CertificateCreateInput): Promise<Certificate> {
     const certificate = await prisma.certificate.create({
       data,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
-          },
-        },
-        course: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            thumbnail: true,
-          },
-        },
-        template: true,
-      },
+      include: certificateInclude,
     });
 
     return certificate;
@@ -33,33 +52,7 @@ export class PrismaCertificateRepository implements CertificateRepository {
   async findById(id: string): Promise<Certificate | null> {
     const certificate = await prisma.certificate.findUnique({
       where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
-          },
-        },
-        course: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            thumbnail: true,
-            instructorId: true,
-            instructor: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
-              },
-            },
-          },
-        },
-        template: true,
-      },
+      include: certificateInclude,
     });
 
     return certificate;
@@ -68,24 +61,7 @@ export class PrismaCertificateRepository implements CertificateRepository {
   async findByUserId(userId: string): Promise<Certificate[]> {
     const certificates = await prisma.certificate.findMany({
       where: { userId },
-      include: {
-        course: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            thumbnail: true,
-            instructor: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
-              },
-            },
-          },
-        },
-        template: true,
-      },
+      include: certificateInclude,
       orderBy: {
         createdAt: "desc",
       },
@@ -103,32 +79,22 @@ export class PrismaCertificateRepository implements CertificateRepository {
         userId,
         courseId,
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
-          },
-        },
-        course: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            thumbnail: true,
-            instructor: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
-              },
-            },
-          },
-        },
-        template: true,
+      include: certificateInclude,
+    });
+
+    return certificate;
+  }
+
+  async findByUserIdAndCareerId(
+    userId: string,
+    careerId: string
+  ): Promise<Certificate | null> {
+    const certificate = await prisma.certificate.findFirst({
+      where: {
+        userId,
+        careerId,
       },
+      include: certificateInclude,
     });
 
     return certificate;
@@ -144,6 +110,7 @@ export class PrismaCertificateRepository implements CertificateRepository {
         include: {
           user: { select: { id: true, name: true, email: true, avatar: true } },
           course: { select: { id: true, title: true, slug: true } },
+          career: { select: careerListSelect },
           template: true,
         },
         orderBy: { createdAt: "desc" },
@@ -158,4 +125,3 @@ export class PrismaCertificateRepository implements CertificateRepository {
     });
   }
 }
-

@@ -6,6 +6,12 @@ interface CertificateData {
   courseTitle: string;
 }
 
+interface CareerCertificateData {
+  certificateId: string;
+  careerId: string;
+  careerTitle: string;
+}
+
 interface LevelUpData {
   level: number;
   totalXp: number;
@@ -46,6 +52,23 @@ export class NotificationBuilder {
         certificateId: certificate.certificateId,
         courseId: certificate.courseId,
         courseTitle: certificate.courseTitle,
+      },
+    };
+  }
+
+  static createCareerCertificateNotification(
+    userId: string,
+    data: CareerCertificateData
+  ) {
+    return {
+      userId,
+      type: NotificationType.CERTIFICATE_GENERATED,
+      title: "Certificado de carreira! 🎓",
+      message: `Parabéns! Você concluiu a carreira "${data.careerTitle}" e seu certificado foi gerado.`,
+      data: {
+        certificateId: data.certificateId,
+        careerId: data.careerId,
+        careerTitle: data.careerTitle,
       },
     };
   }

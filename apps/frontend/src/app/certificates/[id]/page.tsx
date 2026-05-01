@@ -23,6 +23,9 @@ export default async function CertificatePage({
 
   const { certificate } = certificateData;
   const createdAt = new Date(certificate.createdAt);
+  const isCareerCert = Boolean(certificate.career && !certificate.course);
+  const programTitle =
+    certificate.course?.title ?? certificate.career?.title ?? "—";
 
   return (
     <div className="min-h-screen bg-surface py-12 px-4">
@@ -97,7 +100,9 @@ export default async function CertificatePage({
 
                 <div className="rounded-lg px-4 py-3">
                   <div className="text-[#c4c4cc] text-sm">
-                    concluiu com sucesso o curso de {certificate.course.title}
+                    {isCareerCert
+                      ? `concluiu com sucesso a carreira ${programTitle}`
+                      : `concluiu com sucesso o curso de ${programTitle}`}
                   </div>
                 </div>
 
@@ -146,11 +151,15 @@ export default async function CertificatePage({
                 )}
               </div>
               <div>
-                <p className="text-muted-foreground text-sm mb-1">Curso</p>
-                <p className="text-white">{certificate.course.title}</p>
-                <p className="text-muted-foreground text-xs mt-1">
-                  Instrutor: {certificate.course.instructor.name}
+                <p className="text-muted-foreground text-sm mb-1">
+                  {isCareerCert ? "Carreira" : "Curso"}
                 </p>
+                <p className="text-white">{programTitle}</p>
+                {!isCareerCert && certificate.course ? (
+                  <p className="text-muted-foreground text-xs mt-1">
+                    Instrutor: {certificate.course.instructor.name}
+                  </p>
+                ) : null}
               </div>
               <div>
                 <p className="text-muted-foreground text-sm mb-1">

@@ -34,7 +34,11 @@ export default async function AccountCertificatesPage() {
             certificates.map((certificate) => (
               <CertificateCard
                 key={certificate.id}
-                courseName={certificate.course.title}
+                courseName={
+                  certificate.career?.title
+                    ? `Carreira: ${certificate.career.title}`
+                    : (certificate.course?.title ?? "Certificado")
+                }
                 completedAt={certificate.completedAt}
               />
             ))

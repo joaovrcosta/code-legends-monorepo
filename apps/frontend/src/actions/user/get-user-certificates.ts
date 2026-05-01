@@ -31,8 +31,14 @@ export async function getUserCertificates(): Promise<CertificateResponse> {
       return [];
     }
 
-    const certificates = await response.json();
-    return certificates;
+    const data = await response.json();
+    if (Array.isArray(data)) {
+      return data;
+    }
+    if (data && Array.isArray(data.certificates)) {
+      return data.certificates;
+    }
+    return [];
   } catch (error) {
     console.error("Erro ao buscar certificados do usuário:", error);
     return [];
