@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW 2020 (64 Bit) -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="40.5249mm" height="79.832mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 1183.82 2332.06"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .str0 {stroke:#2B2A29;stroke-width:5.84;stroke-miterlimit:22.9256}
+    .fil2 {fill:#FEFEFE}
+    .fil1 {fill:#101013}
+    .fil0 {fill:url(#id0)}
+   ]]>
+  </style>
+  <linearGradient id="id0" gradientUnits="userSpaceOnUse" x1="662.77" y1="1605.68" x2="180.15" y2="1094.85">
+   <stop offset="0" style="stop-opacity:1; stop-color:#F9262A"/>
+   <stop offset="1" style="stop-opacity:1; stop-color:#FF6A00"/>
+  </linearGradient>
+ </defs>
+ <g id="Camada_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <g id="_1684141345712">
+   <path class="fil0" d="M-0 1266.27c0,20.59 18.89,43.58 36.37,50.28 66.29,25.38 210.58,-32.02 210.58,53.7l-27.73 123.91c-61.59,245.88 -116.62,503 -178.51,744.32 -5.82,22.67 -12.55,40.06 -4.05,60.96 5.94,14.6 27.84,32.63 45.66,32.63 34.66,0 61.93,-37.73 81.32,-57.32l67.07 -71.57c274.08,-283.12 548.86,-579.57 823.17,-862.16 24.4,-24.32 46.22,-44.25 67.59,-71.05 25.24,-31.63 61.3,-43.08 61.3,-90.34 0,-19.18 -20.54,-41.32 -36.35,-45.97 -39.54,-11.6 -164.83,13.67 -198.49,-13.8 -32.48,-26.51 -9.96,-76.78 -2.54,-108.3l229.59 -944.51c33.59,-134.23 -36.63,-31.91 -75.6,6.72 -278.33,286.52 -567.23,612.39 -849.26,905.39 -67.84,70.47 -147.92,164.15 -220.85,238.39 -11.68,11.35 -29.26,27.69 -29.26,48.72z"/>
+   <g>
+    <rect class="fil1 str0" transform="matrix(0.692518 -0.339459 0.339459 0.692518 396.289 1189.2)" width="565.87" height="18.04"/>
+    <rect class="fil1 str0" transform="matrix(0.692518 0.339459 0.339459 -0.692518 396.289 1009.6)" width="565.87" height="18.04"/>
+    <path class="fil2" d="M763.86 1239.94l0 143.08c0,92.71 -75.86,168.57 -168.57,168.57l-0 0c-92.71,0 -168.56,-75.86 -168.56,-168.57l0 -143.08 337.13 0z"/>
+   </g>
+  </g>
+ </g>
+</svg>

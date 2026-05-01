@@ -67,9 +67,6 @@ export interface ChallengeFeedbackPanelProps {
   allowRetry?: boolean
 }
 
-/**
- * Feedback pós-resposta: caixa absoluta no desktop (pai deve ser `relative`) e drawer no mobile.
- */
 export function ChallengeFeedbackPanel({
   open,
   isCorrect,
@@ -86,7 +83,7 @@ export function ChallengeFeedbackPanel({
   allowRetry = true,
 }: ChallengeFeedbackPanelProps) {
   const wrong = !isCorrect
-  const msg = isCorrect ? okMessage : wrongMessage
+  const msg = isCorrect ? 'Parabéns.' : wrongMessage
   const showXpRow =
     isCorrect && xpAward.state !== 'idle' && open
 

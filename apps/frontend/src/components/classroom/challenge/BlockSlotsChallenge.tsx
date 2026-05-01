@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -9,12 +9,16 @@ import { playPieceClickSound } from '@/lib/play-piece-click'
 import { playCorrectChime, playWrongTamTamm } from '@/lib/play-correct-chime'
 import { awardChallengeXpFromBrowser } from '@/lib/award-challenge-xp-client'
 import { useActiveCourseStore } from '@/stores/active-course-store'
+import Image from 'next/image'
 import {
   ChallengeFeedbackPanel,
   useIsDesktopChallengeLayout,
   type ChallengeFeedbackXpAward,
 } from '@/components/classroom/challenge/challenge-feedback-panel'
 import { ArrowRight, Eye } from '@phosphor-icons/react/dist/ssr'
+import questionRai from '../../../../public/rai/question-rai-1.svg'
+import happyRai from '../../../../public/rai/happy-rai.svg'
+import happyRai2 from '../../../../public/rai/happy-rai-2.svg'
 
 const CodeBlockHighlighter = dynamic(
   () =>
@@ -125,6 +129,42 @@ export function BlockSlotsChallenge({
   const [xpAward, setXpAward] = useState<ChallengeFeedbackXpAward>({ state: 'idle' })
   const isDesktopLayout = useIsDesktopChallengeLayout()
 
+  const [typedQuestion, setTypedQuestion] = useState('')
+  const [questionTypingDone, setQuestionTypingDone] = useState(false)
+  const [cheerMsg, setCheerMsg] = useState<string | null>(null)
+  const [cheerRai, setCheerRai] = useState<'happy1' | 'happy2'>('happy1')
+
+  useEffect(() => {
+    const target = challenge.question ?? ''
+    setTypedQuestion('')
+    setQuestionTypingDone(false)
+    setCheerMsg(null)
+
+    let cancelled = false
+    let i = 0
+    const delayId = window.setTimeout(() => {
+      if (cancelled) return
+      const id = window.setInterval(() => {
+        i += 1
+        setTypedQuestion(target.slice(0, i))
+        if (i >= target.length) {
+          window.clearInterval(id)
+          setQuestionTypingDone(true)
+        }
+      }, 18)
+      // se target for vazio, marca como done imediatamente
+      if (target.length === 0) {
+        window.clearInterval(id)
+        setQuestionTypingDone(true)
+      }
+    }, 250)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(delayId)
+    }
+  }, [challenge.question])
+
   const usedIds = useMemo(
     () => new Set(slots.filter((s): s is string => s != null)),
     [slots],
@@ -169,6 +209,22 @@ export function BlockSlotsChallenge({
     else if (allowRetry) playWrongTamTamm()
     if (!correct) {
       setXpAward({ state: 'idle' })
+    }
+    if (correct) {
+      const phrases = [
+        'Boa! Mandou muito bem.',
+        'Aí sim! Resposta na mosca.',
+        'Perfeito! Você tá voando.',
+        'Excelente! Continua assim.',
+        'Brabo demais! Próxima!',
+        'Isso! Lógica afiada.',
+        'Muito bem! Tá ficando fácil.',
+        'Boa jogada! Acertou em cheio.',
+        'Top! Mais uma pra conta.',
+        'Caramba! Que precisão.',
+      ]
+      setCheerMsg(phrases[Math.floor(Math.random() * phrases.length)] ?? 'Boa!')
+      setCheerRai(Math.random() < 0.5 ? 'happy1' : 'happy2')
     }
     setIsCorrect(correct)
     setSubmitted(true)
@@ -245,9 +301,32 @@ export function BlockSlotsChallenge({
       </div>
 
       <div className="px-5 pt-5 pb-4">
-        <p className="text-base font-medium text-white leading-relaxed">
-          {challenge.question}
-        </p>
+        <div className="flex items-start gap-3">
+          <div className="shrink-0 pt-0.5">
+            <Image
+              src={
+                submitted && isCorrect === true
+                  ? cheerRai === 'happy2'
+                    ? happyRai2
+                    : happyRai
+                  : questionRai
+              }
+              alt=""
+              width={56}
+              height={56}
+              priority={false}
+            />
+          </div>
+          <div className="relative min-w-0 flex-1 rounded-[14px] border border-[#25252A] bg-surface px-4 py-3">
+            <div className="absolute left-[-6px] top-4 h-3 w-3 rotate-45 border-b border-l border-[#25252A] bg-surface" />
+            <p className="text-base font-medium text-white leading-relaxed">
+              {submitted && isCorrect === true ? (cheerMsg ?? 'Boa!') : typedQuestion}
+              {!(submitted && isCorrect === true) && !questionTypingDone && (
+                <span className="ml-0.5 inline-block h-4 w-[2px] align-[-2px] bg-white/60 animate-pulse" />
+              )}
+            </p>
+          </div>
+        </div>
       </div>
 
       {showMission && (
