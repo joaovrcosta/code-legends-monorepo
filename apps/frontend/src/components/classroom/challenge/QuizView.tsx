@@ -102,24 +102,26 @@ const QuizResultPanel = memo(function QuizResultPanel({
         </div>
       ) : null}
       {showXpInline ? (
-        <div className="mt-4 flex items-center justify-center gap-2 text-[15px] font-semibold text-white">
-          <span className="text-orange-400">+</span>
-          <CompactNumber
-            className="text-4xl text-white"
-            value={totalXpInline}
-            enableCountUp
-            flameGradient
-          />
-          <span className="inline-flex items-center gap-2">
-            <img
-              src="/xp-icon.svg"
-              alt=""
-              width={11}
-              height={20}
-              className="h-4 w-auto object-contain"
-              aria-hidden
+        <div className="mt-4 flex items-center flex-col justify-center gap-2 text-[15px] font-semibold text-white">
+          <span className="text-xs uppercase text-[#71717a]">Total de XP: </span>
+          <div className="flex items-center gap-2">
+            <CompactNumber
+              className="text-5xl text-white"
+              value={totalXpInline}
+              enableCountUp
+              flameGradient
             />
-          </span>
+            <span className="inline-flex items-center gap-2">
+              <img
+                src="/xp-icon.svg"
+                alt=""
+                width={11}
+                height={20}
+                className="h-4 w-auto object-contain"
+                aria-hidden
+              />
+            </span>
+          </div>
         </div>
       ) : null}
       {!passed && (
