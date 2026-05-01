@@ -37,7 +37,6 @@ export class CreateCourseUseCase {
   ) { }
 
   async execute(data: CreateCourseRequest): Promise<CreateCourseResponse> {
-    // Verificar se o curso já existe
     const courseWithSameSlug = await this.courseRepository.findBySlug(
       data.slug
     );
@@ -46,7 +45,6 @@ export class CreateCourseUseCase {
       throw new CourseAlreadyExistsError();
     }
 
-    // Verificar se o instrutor existe
     const instructor = await this.usersRepository.findById(data.instructorId);
 
     if (!instructor) {

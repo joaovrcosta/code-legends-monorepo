@@ -73,7 +73,7 @@ export function RaiQuestionBubble({
         <div className="shrink-0 pt-0.5">
           <Image src={raiSrc} alt="" width={56} height={56} priority={false} />
         </div>
-        <div className="relative min-w-0 flex-1 rounded-[14px] border border-[#25252A] bg-surface px-4 py-3">
+        <div className="relative min-w-0 w-fit max-w-full rounded-[14px] border border-[#25252A] bg-surface px-4 py-3">
           <div className="absolute left-[-6px] top-4 h-3 w-3 rotate-45 border-b border-l border-[#25252A] bg-surface" />
           <p className="text-base font-medium text-white leading-relaxed">
             {bubbleText}

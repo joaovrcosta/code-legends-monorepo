@@ -14,11 +14,11 @@ interface ContinueCourseRequest {
 
 interface ContinueCourseResponse {
   lesson:
-    | (LessonWithContentDTO & {
-        video_url: string | null
-        video_duration: string | null
-      })
-    | null
+  | (LessonWithContentDTO & {
+    video_url: string | null
+    video_duration: string | null
+  })
+  | null
   module: {
     id: string
     title: string
@@ -40,7 +40,7 @@ export class ContinueCourseUseCase {
     private lessonRepository: ILessonRepository,
     private usersRepository: IUsersRepository,
     private userProgressRepository: IUserProgressRepository,
-  ) {}
+  ) { }
 
   async execute({
     userId,
@@ -69,7 +69,6 @@ export class ContinueCourseUseCase {
       }
     }
 
-    // Verificar se o curso existe
     const course = await this.courseRepository.findById(activeCourseId)
     if (!course) {
       throw new CourseNotFoundError()
@@ -79,14 +78,12 @@ export class ContinueCourseUseCase {
       throw new CourseNotFoundError()
     }
 
-    // Buscar inscrição do usuário
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,
       activeCourseId,
     )
 
     if (!userCourse) {
-      // Se não está inscrito, retornar null para a aula
       return {
         lesson: null,
         module: null,
@@ -180,8 +177,8 @@ export class ContinueCourseUseCase {
     // Se não houver progresso, ignorar currentTaskId e usar a primeira lição
     const validCurrentTaskId =
       hasProgress &&
-      userCourse.currentTaskId &&
-      allLessons.some((l) => l.id === userCourse.currentTaskId)
+        userCourse.currentTaskId &&
+        allLessons.some((l) => l.id === userCourse.currentTaskId)
         ? userCourse.currentTaskId
         : (allLessons[0]?.id ?? null)
 
