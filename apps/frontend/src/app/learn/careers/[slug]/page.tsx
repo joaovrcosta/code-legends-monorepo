@@ -18,10 +18,6 @@ export default async function CareerDetailPage({
 }) {
   const { slug } = await params;
   const data = await getCareerBySlug(slug);
-  const firstExamId = data.modules.find((m) => m.exams.length > 0)?.exams[0]?.id ?? null;
-  const firstExamHref = firstExamId
-    ? `/learn/careers/${data.career.slug}/exams/${firstExamId}`
-    : null;
 
   return (
     <div className="w-full">
@@ -227,14 +223,24 @@ export default async function CareerDetailPage({
                             </div>
                           </div>
                           <div className="w-full sm:w-auto sm:shrink-0">
-                            <Button
-                              asChild
-                              className="h-10 w-full sm:w-auto rounded-full px-5 text-sm font-semibold bg-transparent hover:bg-white/5 text-white/80 transition-all"
-                            >
-                              <Link href={`/learn/careers/${data.career.slug}/exams/${e.id}`}>
-                                {e.passed ? "Refazer prova" : "Fazer teste"}
-                              </Link>
-                            </Button>
+                            {data.enrollment.isEnrolled ? (
+                              <Button
+                                asChild
+                                className="h-10 w-full sm:w-auto rounded-full px-5 text-sm font-semibold bg-transparent hover:bg-white/5 text-white/80 transition-all"
+                              >
+                                <Link href={`/learn/careers/${data.career.slug}/exams/${e.id}`}>
+                                  {e.passed ? "Refazer prova" : "Fazer teste"}
+                                </Link>
+                              </Button>
+                            ) : (
+                              <div
+                                className="flex h-10 w-full min-h-10 min-w-0 sm:w-auto sm:min-w-[120px] shrink-0 cursor-not-allowed items-center justify-center rounded-full border border-[#25252A] bg-white/[0.04] text-white/45"
+                                title="Inscreva-se na carreira para fazer o teste"
+                                aria-label="Exame bloqueado: inscreva-se na carreira para fazer o teste"
+                              >
+                                <Lock size={22} weight="bold" className="text-white/55" />
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
