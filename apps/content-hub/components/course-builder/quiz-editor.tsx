@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -102,13 +102,16 @@ function ChallengeItem({
   index,
   onChange,
   onRemove,
+  collapsed,
+  onToggleCollapsed,
 }: {
   challenge: Challenge
   index: number
   onChange: (c: Challenge) => void
   onRemove: () => void
+  collapsed: boolean
+  onToggleCollapsed: () => void
 }) {
-  const [collapsed, setCollapsed] = useState(false)
   const explanationRef = useRef<HTMLTextAreaElement>(null)
 
   const insertExplanationSnippet = useCallback(
@@ -162,7 +165,7 @@ function ChallengeItem({
     <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
       <div
         className="flex items-center justify-between px-4 py-3 cursor-pointer select-none"
-        onClick={() => setCollapsed((p) => !p)}
+        onClick={onToggleCollapsed}
       >
         <div className="flex items-center gap-3">
           <span className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center justify-center">
@@ -419,6 +422,24 @@ function ChallengeItem({
 
 export function QuizEditor({ challenges, onChange }: QuizEditorProps) {
   const addChallenge = () => onChange([...challenges, emptyChallenge()])
+  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [collapsedByIndex, setCollapsedByIndex] = useState<Record<number, boolean>>({})
+
+  useEffect(() => {
+    if (selectedIndex >= challenges.length) {
+      setSelectedIndex(Math.max(0, challenges.length - 1))
+    }
+  }, [challenges.length, selectedIndex])
+
+  useEffect(() => {
+    setCollapsedByIndex((prev) => {
+      // preserva estados existentes, e garante que o item selecionado comece expandido
+      if (challenges.length === 0) return {}
+      const next = { ...prev }
+      if (next[selectedIndex] === undefined) next[selectedIndex] = false
+      return next
+    })
+  }, [selectedIndex, challenges.length])
 
   const updateChallenge = (i: number, c: Challenge) => {
     const updated = [...challenges]
@@ -431,21 +452,16 @@ export function QuizEditor({ challenges, onChange }: QuizEditorProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
             Desafios ({challenges.length})
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            Cada desafio é exibido ao aluno como um bloco interativo.
+            Edite um desafio por vez, como no layout do Content Hub.
           </p>
         </div>
-        <Button
-          type="button"
-          size="sm"
-          onClick={addChallenge}
-          className="gap-1.5"
-        >
+        <Button type="button" size="sm" onClick={addChallenge} className="gap-1.5">
           <Plus size={14} /> Adicionar desafio
         </Button>
       </div>
@@ -457,16 +473,102 @@ export function QuizEditor({ challenges, onChange }: QuizEditorProps) {
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {challenges.map((c, i) => (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr] lg:gap-6">
+          {/* Sidebar */}
+          <aside className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
+                Questions
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {selectedIndex + 1}/{challenges.length}
+              </p>
+            </div>
+            <div className="max-h-[520px] overflow-y-auto p-2 space-y-1">
+              {challenges.map((c, i) => {
+                const isSelected = i === selectedIndex
+                const title =
+                  (c.question ?? '').trim().length > 0
+                    ? (c.question ?? '').trim()
+                    : 'Sem pergunta'
+                return (
+                  <div
+                    key={i}
+                    onClick={() => setSelectedIndex(i)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setSelectedIndex(i)
+                      }
+                    }}
+                    className={[
+                      'w-full text-left rounded-lg border px-3 py-2 transition-colors',
+                      isSelected
+                        ? 'border-blue-500/50 bg-blue-50 dark:bg-blue-950/30'
+                        : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/30',
+                    ].join(' ')}
+                    title={title}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className={[
+                            'shrink-0 w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center border',
+                            isSelected
+                              ? 'border-blue-500 text-blue-700 dark:text-blue-300'
+                              : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300',
+                          ].join(' ')}
+                        >
+                          {i + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {challengeTypeLabels[c.type]}
+                          </p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+                            {title}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="shrink-0 flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            removeChallenge(i)
+                          }}
+                          className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                          title="Remover desafio"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </aside>
+
+          {/* Editor */}
+          <div className="min-w-0">
             <ChallengeItem
-              key={i}
-              index={i}
-              challenge={c}
-              onChange={(updated) => updateChallenge(i, updated)}
-              onRemove={() => removeChallenge(i)}
+              key={selectedIndex}
+              index={selectedIndex}
+              challenge={challenges[selectedIndex]!}
+              onChange={(updated) => updateChallenge(selectedIndex, updated)}
+              onRemove={() => removeChallenge(selectedIndex)}
+              collapsed={collapsedByIndex[selectedIndex] ?? false}
+              onToggleCollapsed={() =>
+                setCollapsedByIndex((prev) => ({
+                  ...prev,
+                  [selectedIndex]: !(prev[selectedIndex] ?? false),
+                }))
+              }
             />
-          ))}
+          </div>
         </div>
       )}
     </div>

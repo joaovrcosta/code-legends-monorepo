@@ -405,7 +405,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  {isEnrolled && (
+                  {isEnrolled && (userProgress?.course.progress ?? 0) > 0 && (
                     <button
                       onClick={() => setShowResetModal(true)}
                       className="h-[54px] w-[54px] flex items-center justify-center border-2 rounded-full border-[#25252A] text-[#7e7e89] hover:text-red-400 hover:border-red-400/30 transition-all"
