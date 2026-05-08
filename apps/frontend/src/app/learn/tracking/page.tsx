@@ -34,6 +34,53 @@ function planToLightningClass(plan?: string) {
   return 'text-[#7e7e89]'
 }
 
+type TrackingStatsPillsProps = {
+  coursesCount: number
+  totalXp: number
+  lessonsDone: number
+  projectsDone: number
+}
+
+function TrackingStatsPills({
+  coursesCount,
+  totalXp,
+  lessonsDone,
+  projectsDone,
+}: TrackingStatsPillsProps) {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="flex items-center justify-between rounded-full bg-[#15151B] px-6 py-4">
+        <p className="text-[11px] text-[#7e7e89]">Cursos</p>
+        <p className="mt-1 text-2xl font-semibold tabular-nums text-white">{coursesCount}</p>
+      </div>
+
+      <div className="flex items-center justify-between rounded-full bg-[#15151B] px-6 py-4">
+        <p className="text-[11px] text-[#7e7e89]">Total de XP</p>
+        <div className="mt-1 flex items-center gap-2">
+          <Image src="/xp-icon.svg" alt="XP" width={11} height={20} />
+          <p className="text-2xl font-semibold tabular-nums text-white">
+            <CompactNumber value={totalXp} enableCountUp />
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between rounded-full bg-[#15151B] px-6 py-4">
+        <p className="text-[11px] text-[#7e7e89]">Lições feitas</p>
+        <p className="mt-1 text-2xl font-semibold tabular-nums text-white">
+          <CompactNumber value={lessonsDone} enableCountUp />
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between rounded-full bg-[#15151B] px-6 py-4">
+        <p className="text-[11px] text-[#7e7e89]">Projetos concluídos</p>
+        <p className="mt-1 text-2xl font-semibold tabular-nums text-white">
+          <CompactNumber value={projectsDone} enableCountUp />
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
@@ -81,7 +128,7 @@ export default async function TrackingPage() {
   return (
     <TooltipProvider delayDuration={250}>
       <div
-        className="relative overflow-hidden border-b border-[#25252A] p-6 h-[160px] sm:h-[180px]"
+        className="relative overflow-hidden border-b border-[#25252A] p-6 h-[100px] sm:h-[160px]"
         style={getAuroraBackground('#00C8FF')}
       >
       </div>
@@ -156,11 +203,34 @@ export default async function TrackingPage() {
               </div>
             </div>
 
+            <div className="lg:hidden">
+              <TrackingStatsPills
+                coursesCount={coursesCount}
+                totalXp={totalXp}
+                lessonsDone={lessonsDone}
+                projectsDone={projectsDone}
+              />
+            </div>
+
             <SkillsTrackingCard
               skills={skills}
               weeklyXpGained={weekly?.totalXp ?? 0}
               plan={userFromAPI?.plan ?? user.plan}
             />
+
+            {/* Progresso da semana - mobile (abaixo das skills) */}
+            <div className="mt-6 lg:hidden">
+              <div className="px-1">
+                <h2 className="text-[16px] font-semibold tracking-tight text-white">
+                  Progresso da semana
+                </h2>
+              </div>
+              <WeeklyXpCard
+                days={weekly?.days ?? []}
+                totalXp={weekly?.totalXp}
+                playerName="Você"
+              />
+            </div>
 
             <div className="rounded-[20px] ] px-0 py-6">
               <div className="flex items-center justify-between">
@@ -196,7 +266,7 @@ export default async function TrackingPage() {
             </div>
           </div>
 
-          <div className="space-y-4 lg:sticky lg:top-[24px] h-fit w-full">
+          <div className="hidden lg:block space-y-4 lg:sticky lg:top-[24px] h-fit w-full">
             <div className="px-6">
               <h2 className="text-[20px] font-semibold tracking-tight text-white">Progresso da semana</h2>
             </div>
@@ -206,37 +276,13 @@ export default async function TrackingPage() {
               totalXp={weekly?.totalXp}
               playerName="Você"
             />
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-full flex items-center justify-between bg-[#15151B] px-6 py-4">
-                <p className="text-[11px] text-[#7e7e89]">Cursos</p>
-                <p className="mt-1 text-2xl font-semibold text-white tabular-nums">
-                  {coursesCount}
-                </p>
-              </div>
-
-              <div className="rounded-full flex items-center justify-between bg-[#15151B] px-6 py-4">
-                <p className="text-[11px] text-[#7e7e89]">Total de XP</p>
-                <div className="mt-1 flex items-center gap-2">
-                  <Image src="/xp-icon.svg" alt="XP" width={11} height={20} />
-                  <p className="text-2xl font-semibold text-white tabular-nums">
-                    <CompactNumber value={totalXp} enableCountUp />
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-full flex items-center justify-between bg-[#15151B] px-6 py-4">
-                <p className="text-[11px] text-[#7e7e89]">Lições feitas</p>
-                <p className="mt-1 text-2xl font-semibold text-white tabular-nums">
-                  <CompactNumber value={lessonsDone} enableCountUp />
-                </p>
-              </div>
-
-              <div className="rounded-full flex items-center justify-between bg-[#15151B] px-6 py-4">
-                <p className="text-[11px] text-[#7e7e89]">Projetos concluídos</p>
-                <p className="mt-1 text-2xl font-semibold text-white tabular-nums">
-                  <CompactNumber value={projectsDone} enableCountUp />
-                </p>
-              </div>
+            <div className="hidden lg:block">
+              <TrackingStatsPills
+                coursesCount={coursesCount}
+                totalXp={totalXp}
+                lessonsDone={lessonsDone}
+                projectsDone={projectsDone}
+              />
             </div>
           </div>
         </div>
