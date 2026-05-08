@@ -1,7 +1,7 @@
 'use client'
 
-import { Plus } from '@phosphor-icons/react/dist/ssr'
 import { useMemo, useState } from 'react'
+import { Lightning, Plus } from '@phosphor-icons/react/dist/ssr'
 
 // --- Tipagens ---
 export type UserSkillTrackingItem = {
@@ -15,19 +15,32 @@ export type UserSkillTrackingItem = {
 export type SkillsTrackingCardProps = {
   skills: UserSkillTrackingItem[]
   weeklyXpGained?: number
+  /** Plano do usuário: raio ao lado do nome só em PRO / PREMIUM */
+  plan?: string | null
 }
 
 const XPValue = ({ value }: { value: number }) => {
   return <span>{value.toLocaleString('pt-BR')}</span>
 }
 
-export function SkillsTrackingCard({ skills, weeklyXpGained = 0 }: SkillsTrackingCardProps) {
+function planToLightningClass(plan?: string | null) {
+  if (plan === 'PREMIUM') return 'text-[#00FFA3]'
+  if (plan === 'PRO') return 'text-[#00C8FF]'
+  return 'text-[#7e7e89]'
+}
+
+export function SkillsTrackingCard({
+  skills,
+  weeklyXpGained = 0,
+  plan,
+}: SkillsTrackingCardProps) {
   const [expanded, setExpanded] = useState(false)
   const VISIBLE_COLLAPSED = 5
 
-  const visibleSkills = useMemo(() =>
-    skills.filter((s) => s.slug !== 'general'),
-    [skills])
+  const visibleSkills = useMemo(
+    () => skills.filter((s) => s.slug !== 'general'),
+    [skills],
+  )
 
   const sortedSkills = useMemo(() => {
     return [...visibleSkills].sort((a, b) => b.xp - a.xp)
@@ -62,6 +75,8 @@ export function SkillsTrackingCard({ skills, weeklyXpGained = 0 }: SkillsTrackin
     return String(value)
   }
 
+  const showPlanBolt = ['PRO', 'PREMIUM'].includes(String(plan ?? ''))
+
   if (visibleSkills.length === 0) {
     return (
       <div className="rounded-[20px] border border-[#25252A] bg-[#121214] px-6 py-10 text-center">
@@ -71,12 +86,12 @@ export function SkillsTrackingCard({ skills, weeklyXpGained = 0 }: SkillsTrackin
   }
 
   return (
-    <div className="w-full rounded-[24px] px-0 py-6 font-sans selection:bg-[#00C8FF]/30">
-      <div className="mb-8 flex flex-col gap-4">
+    <div className="w-full rounded-[24px] px-0 py-6 font-sans selection:bg-[#00C8FF]/30 md:px-0">
+      <div className="mb-6 flex flex-col gap-4 md:mb-8">
         <h2 className="text-[20px] font-semibold tracking-tight text-white">Skills</h2>
         {weeklyXpGained > 0 && (
-          <div className="flex items-center gap-3">
-            <div className="flex h-6 items-center gap-2 rounded-full bg-[#00C8FF] px-4 text-[13px] font-bold text-black">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex h-7 items-center gap-2 rounded-full bg-[#00C8FF] px-4 text-[13px] font-bold text-black">
               <Plus size={14} weight="bold" /> <XPValue value={weeklyXpGained} /> XP
             </div>
             <span className="text-sm font-medium text-[#7e7e89]">adicionado essa semana</span>
@@ -84,74 +99,150 @@ export function SkillsTrackingCard({ skills, weeklyXpGained = 0 }: SkillsTrackin
         )}
       </div>
 
-      <div className="mb-2 grid grid-cols-[140px_1fr_200px] items-center gap-6 px-4">
-        <div />
-        <div className="relative h-6">
-          {ticks.map((t, i) => (
-            <span
-              key={`${t}-${i}`}
-              className="absolute top-0 -translate-x-1/2 text-[13px] font-medium text-[#4a4a4f]"
-              style={{ left: `${(i / 3) * 100}%` }}
-            >
-              {formatTick(t)}
-            </span>
-          ))}
-        </div>
-        <div />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        {displayed.map((skill, index) => {
+      {/* Mobile: cards em coluna (layout do mock) */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {displayed.map((skill) => {
           const curr = skill.xp ?? 0
           const prev = skill.previousXp ?? null
           const ratio = Math.min(curr / axisMax, 1)
-          const isEven = index % 2 === 0
 
           return (
             <div
               key={skill.skillId}
-              className={`grid grid-cols-[140px_1fr_200px] items-center gap-6 px-4 py-3 transition-colors ${isEven ? 'rounded-[20px] bg-[#15151B]' : 'bg-transparent'
-                }`}
+              className="rounded-[20px] bg-[#15151B] px-4 py-3.5"
             >
-              <span className="truncate text-[15px] font-semibold text-[#C4C4CC]">
-                {skill.name}
-              </span>
-
-              <div className="relative flex h-8 items-center">
-                <div className="absolute inset-0 flex justify-between">
-                  {ticks.map((t, i) => (
-                    <div key={`${t}-${i}`} className="h-full w-[1px] bg-[#202024]" />
-                  ))}
+              <div className="flex items-center gap-3">
+                <div className="flex min-w-0 max-w-[38%] shrink-0 items-center gap-1.5">
+                  {showPlanBolt && (
+                    <Lightning
+                      size={16}
+                      weight="fill"
+                      className={`shrink-0 ${planToLightningClass(plan)}`}
+                    />
+                  )}
+                  <span className="truncate text-[15px] font-semibold text-white">
+                    {skill.name}
+                  </span>
                 </div>
 
-                <div
-                  className="relative h-[12px] min-w-[18px] rounded-full aurora-gradient"
-                  style={{ width: `${ratio * 100}%` }}
-                >
-                  <div className="absolute inset-x-1.5 top-[2px] h-[3px] rounded-full bg-white/25" />
-                  <div className="absolute inset-0 rounded-full shadow-[inset_0_-2px_4px_rgba(0,0,0,0.2)]" />
-                </div>
-              </div>
-
-              <div className="text-right text-[14px] font-bold tabular-nums">
-                {prev != null && prev !== curr ? (
-                  <div className="flex items-center justify-end gap-2">
-                    <span className="text-[#7e7e89]"><XPValue value={prev} /> XP</span>
-                    <span className="text-[#00C8FF] text-lg">→</span>
-                    <span className="text-[#00C8FF]"><XPValue value={curr} />XP</span>
+                <div className="min-w-0 flex-1">
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#25252A]">
+                    <div
+                      className="h-full min-w-[8px] rounded-full aurora-gradient"
+                      style={{ width: `${Math.max(4, ratio * 100)}%` }}
+                    />
                   </div>
-                ) : (
-                  <span className="text-[#C4C4CC]"><XPValue value={curr} />XP</span>
-                )}
+                </div>
+
+                <div className="max-w-[42%] shrink-0 text-right text-[12px] font-bold leading-tight tabular-nums sm:text-[13px]">
+                  {prev != null && prev !== curr ? (
+                    <span className="inline-flex flex-wrap items-center justify-end gap-x-1 gap-y-0.5">
+                      <span className="text-[#C4C4CC]">
+                        <XPValue value={prev} /> XP
+                      </span>
+                      <span className="text-[#00C8FF]">→</span>
+                      <span className="text-[#00C8FF]">
+                        <XPValue value={curr} />XP
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="text-[#C4C4CC]">
+                      <XPValue value={curr} />XP
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )
         })}
       </div>
 
+      {/* Desktop: gráfico com eixo e grade */}
+      <div className="hidden md:block">
+        <div className="mb-2 grid grid-cols-[140px_1fr_200px] items-center gap-6 px-4">
+          <div />
+          <div className="relative h-6">
+            {ticks.map((t, i) => (
+              <span
+                key={`${t}-${i}`}
+                className="absolute top-0 -translate-x-1/2 text-[13px] font-medium text-[#4a4a4f]"
+                style={{ left: `${(i / 3) * 100}%` }}
+              >
+                {formatTick(t)}
+              </span>
+            ))}
+          </div>
+          <div />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          {displayed.map((skill, index) => {
+            const curr = skill.xp ?? 0
+            const prev = skill.previousXp ?? null
+            const ratio = Math.min(curr / axisMax, 1)
+            const isEven = index % 2 === 0
+
+            return (
+              <div
+                key={skill.skillId}
+                className={`grid grid-cols-[140px_1fr_200px] items-center gap-6 px-4 py-3 transition-colors ${
+                  isEven ? 'rounded-[20px] bg-[#15151B]' : 'bg-transparent'
+                }`}
+              >
+                <span className="flex min-w-0 items-center gap-2 truncate text-[15px] font-semibold text-[#C4C4CC]">
+                  {showPlanBolt && (
+                    <Lightning
+                      size={16}
+                      weight="fill"
+                      className={`shrink-0 ${planToLightningClass(plan)}`}
+                    />
+                  )}
+                  <span className="truncate">{skill.name}</span>
+                </span>
+
+                <div className="relative flex h-8 items-center">
+                  <div className="absolute inset-0 flex justify-between">
+                    {ticks.map((t, i) => (
+                      <div key={`${t}-${i}`} className="h-full w-px bg-[#202024]" />
+                    ))}
+                  </div>
+
+                  <div
+                    className="relative h-3 min-w-[18px] rounded-full aurora-gradient"
+                    style={{ width: `${ratio * 100}%` }}
+                  >
+                    <div className="absolute inset-x-1.5 top-[2px] h-[3px] rounded-full bg-white/25" />
+                    <div className="absolute inset-0 rounded-full shadow-[inset_0_-2px_4px_rgba(0,0,0,0.2)]" />
+                  </div>
+                </div>
+
+                <div className="text-right text-[14px] font-bold tabular-nums">
+                  {prev != null && prev !== curr ? (
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-[#7e7e89]">
+                        <XPValue value={prev} /> XP
+                      </span>
+                      <span className="text-lg text-[#00C8FF]">→</span>
+                      <span className="text-[#00C8FF]">
+                        <XPValue value={curr} />XP
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-[#C4C4CC]">
+                      <XPValue value={curr} />XP
+                    </span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
       {hasOverflow && (
         <div className="mt-6 flex justify-end">
           <button
+            type="button"
             onClick={() => setExpanded(!expanded)}
             className="group flex items-center gap-2 text-[14px] font-semibold text-[#7e7e89] transition-colors hover:text-white"
           >

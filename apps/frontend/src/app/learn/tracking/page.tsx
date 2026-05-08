@@ -87,8 +87,8 @@ export default async function TrackingPage() {
       </div>
 
       <div className="mx-auto max-w-[1420px] px-4 py-6 xl:px-0">
-        <div className="grid gap-6 [grid-template-columns:756px_1fr]">
-          <div className="space-y-6 max-w-[756px]">
+        <div className="grid grid-cols-1 gap-6 lg:[grid-template-columns:756px_1fr]">
+          <div className="w-full space-y-6 lg:max-w-[756px]">
             <div
               className=""
             >
@@ -156,7 +156,11 @@ export default async function TrackingPage() {
               </div>
             </div>
 
-            <SkillsTrackingCard skills={skills} weeklyXpGained={weekly?.totalXp ?? 0} />
+            <SkillsTrackingCard
+              skills={skills}
+              weeklyXpGained={weekly?.totalXp ?? 0}
+              plan={userFromAPI?.plan ?? user.plan}
+            />
 
             <div className="rounded-[20px] ] px-0 py-6">
               <div className="flex items-center justify-between">
