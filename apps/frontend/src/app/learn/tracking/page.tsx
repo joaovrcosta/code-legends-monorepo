@@ -1,7 +1,6 @@
 import { getCurrentUser } from '@/actions/user'
 import { getMySkills } from '@/actions/user/get-my-skills'
 import { SkillsTrackingCard } from '@/components/learn/skills-tracking-card'
-import { WeeklyXpCard } from '@/components/learn/weekly-xp-card'
 import {
   Avatar,
   AvatarFallback,
@@ -14,14 +13,25 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { getUserFromAPI } from '@/actions/user/get-user-from-api'
-import { getWeeklyXp } from '@/actions/user/get-weekly-xp'
 import { getStreak } from '@/actions/user/get-streak'
-import { FlameIcon, TargetIcon } from '@phosphor-icons/react/dist/ssr'
+import { getUserCourses } from '@/actions/user/get-user-courses'
+import { getLessonActivity } from '@/actions/user/get-lesson-activity'
+import { getAuroraBackground } from '@/utils/hexToRgb'
+import { Progress } from '@/components/ui/progress'
+import { getWeeklyXp } from '@/actions/user/get-weekly-xp'
+import { WeeklyXpCard } from '@/components/learn/weekly-xp-card'
+import { Lightning } from '@phosphor-icons/react/dist/ssr'
 
 function planToRingVariant(plan?: string): AvatarRingVariant {
   if (plan === 'PRO') return 'pro'
   if (plan === 'PREMIUM') return 'premium'
   return 'free'
+}
+
+function planToLightningClass(plan?: string) {
+  if (plan === 'PREMIUM') return 'text-[#00FFA3]'
+  if (plan === 'PRO') return 'text-[#00C8FF]'
+  return 'text-[#7e7e89]'
 }
 
 export const dynamic = 'force-dynamic'
@@ -38,9 +48,15 @@ export default async function TrackingPage() {
   }
 
   const userFromAPI = await getUserFromAPI()
-  const weekly = await getWeeklyXp()
   const streak = await getStreak()
   const { skills } = await getMySkills()
+  const favoriteCourses = await getUserCourses()
+  const lessonActivity = await getLessonActivity({ days: 365 })
+  const weekly = await getWeeklyXp()
+  const userFromAPIAny = userFromAPI as unknown as {
+    completedLessons?: number
+    completedProjects?: number
+  } | null
 
   const totalXp =
     userFromAPI?.totalXp ?? user.totalXp ?? skills.reduce((acc, s) => acc + (s.xp ?? 0), 0)
@@ -48,93 +64,176 @@ export default async function TrackingPage() {
   const xpRemainingToNextLevel = userFromAPI?.xpToNextLevel ?? user.xpToNextLevel ?? 100
   const xpForNextLevel = totalXp + xpRemainingToNextLevel
   const offensive = streak?.current ?? 0
+  const xpProgress = xpForNextLevel > 0 ? Math.max(0, Math.min(1, totalXp / xpForNextLevel)) : 0
+
+  const coursesCount = Array.isArray(favoriteCourses) ? favoriteCourses.length : 0
+  const lessonsDone =
+    lessonActivity?.days?.reduce((acc, d) => acc + (d.count ?? 0), 0) ??
+    userFromAPIAny?.completedLessons ??
+    (user as unknown as { completedLessons?: number }).completedLessons ??
+    0
+
+  const projectsDone =
+    userFromAPIAny?.completedProjects ??
+    (user as unknown as { completedProjects?: number }).completedProjects ??
+    0
 
   return (
     <TooltipProvider delayDuration={250}>
+      <div
+        className="relative overflow-hidden border-b border-[#25252A] p-6 h-[160px] sm:h-[180px]"
+        style={getAuroraBackground('#00C8FF')}
+      >
+      </div>
+
       <div className="mx-auto max-w-[1420px] px-4 py-6 xl:px-0">
-        <div className="mb-6">
-          <p className="text-sm font-medium text-[#7e7e89]">Minha jornada</p>
-        </div>
+        <div className="grid gap-6 [grid-template-columns:756px_1fr]">
+          <div className="space-y-6 max-w-[756px]">
+            <div
+              className=""
+            >
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col items-start gap-4 min-w-0 -mt-[86px]">
+                  <Avatar
+                    className="h-[100px] w-[100px] shrink-0 sm:h-[100px] sm:w-[100px]"
+                    ringVariant={planToRingVariant(userFromAPI?.plan ?? user.plan)}
+                  >
+                    <AvatarImage src={userFromAPI?.avatar ?? user.avatar ?? ''} alt="" />
+                    <AvatarFallback className="bg-[#25252A] text-white font-semibold">
+                      {user.name?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
-          <div className="space-y-6">
-            <div className="rounded-[20px] border border-[#25252A] bg-gray-gradient p-6">
-              <div className="flex items-center gap-4">
-                <Avatar
-                  className="h-[52px] w-[52px] shrink-0"
-                  ringVariant={planToRingVariant(userFromAPI?.plan ?? user.plan)}
-                >
-                  <AvatarImage src={userFromAPI?.avatar ?? user.avatar ?? ''} alt="" />
-                  <AvatarFallback className="bg-[#25252A] text-white font-semibold">
-                    {user.name?.charAt(0).toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate text-3xl sm:text-2xl font-semibold text-white">
+                        {userFromAPI?.name ?? user.name}
+                      </p>
+                      {['PRO', 'PREMIUM'].includes(String(userFromAPI?.plan ?? user.plan)) && (
+                        <Lightning
+                          size={18}
+                          weight="fill"
+                          className={planToLightningClass(userFromAPI?.plan ?? user.plan)}
+                        />
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm text-[#7e7e89]">Fullstack developer</p>
+                  </div>
+                </div>
 
-                <div className="min-w-0">
-                  <p className="truncate text-base font-semibold text-white">
-                    {userFromAPI?.name ?? user.name}
+                <div className="flex items-end justify-between sm:block">
+                  <p className="text-[40px] leading-none text-end font-semibold text-white tabular-nums">
+                    {level}
                   </p>
-                  <p className="mt-1 text-xs text-[#7e7e89]">Acompanhe seu progresso por skills</p>
+                  <p className="mt-1 text-[24px] text-[#7e7e89] sm:text-right">Level</p>
                 </div>
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-full border border-[#25252A] bg-[#141417] px-6 py-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[#7e7e89]">
-                    XP Total
-                  </p>
-                  <div className="mt-1 flex items-center gap-2">
-                    <Image src="/xp-icon.svg" alt="XP" width={11} height={20} />
-                    <p className="text-lg font-semibold tabular-nums">
-                      <CompactNumber
-                        value={totalXp}
-                        flameGradient
-                        enableCountUp
-                      />{' '}
-                      <span className="text-[#7e7e89]">/</span>{' '}
-                      <CompactNumber
-                        value={xpForNextLevel}
-                        className="text-[#7e7e89]"
-                        tooltipOnlyWhenCompact={false}
-                      />
-                    </p>
+              <div className="mt-5">
+                <div className="flex-1 space-y-2">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-[#7e7e89]">
+                    <span></span>
+                    <div className="flex items-end justify-between gap-3">
+                      <p className="text-xs font-normal text-[#00C8FF] tabular-nums">
+                        <CompactNumber className="text-xs text-[#00C8FF]" value={totalXp} enableCountUp flameGradient />XP{' '}
+                        <span className="text-[#7e7e89] text-xs">/</span>{' '}
+                        <CompactNumber
+                          value={xpForNextLevel}
+                          className="!text-xs !text-[#7e7e89]"
+                          tooltipOnlyWhenCompact={false}
+                        />
+                        XP
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                <div className="rounded-full border border-[#25252A] bg-[#141417] px-6 py-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[#7e7e89]">
-                    Nível geral
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <TargetIcon size={24} weight="fill" className="text-[#00C8FF]" />
-                    <p className="mt-1 text-lg font-semibold text-[#00C8FF] tabular-nums">
-                      {level}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="rounded-full border border-[#25252A] bg-[#141417] px-6 py-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[#7e7e89]">
-                    Ofensivo
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <FlameIcon size={24} weight="fill" className="text-[#fda736]" />
-                    <p className="mt-1 text-lg font-semibold text-[#fda736] tabular-nums">
-                      {offensive}
-                    </p>
-                  </div>
+                  <Progress
+                    value={Math.round(xpProgress * 100)}
+                    className="h-[2px] bg-surface-2"
+                  >
+                    <div className="h-full bg-blue-500 shadow-[0_0_15px_rgba(0,200,255,0.4)]" />
+                  </Progress>
                 </div>
               </div>
             </div>
 
-            <SkillsTrackingCard skills={skills} />
+            <SkillsTrackingCard skills={skills} weeklyXpGained={weekly?.totalXp ?? 0} />
+
+            <div className="rounded-[20px] ] px-0 py-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[20px] font-semibold tracking-tight text-white">Emblemas</h2>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="aspect-square rounded-[18px] border border-[#25252A] bg-[#141417]"
+                  />
+                ))}
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="aspect-square rounded-[18px] border border-[#25252A] bg-[#141417]"
+                  />
+                ))}
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="aspect-square rounded-[18px] border border-[#25252A] bg-[#141417]"
+                  />
+                ))}
+              </div>
+            </div>
           </div>
 
-          <div className="lg:sticky lg:top-[24px] h-fit">
+          <div className="space-y-4 lg:sticky lg:top-[24px] h-fit w-full">
+            <div className="px-6">
+              <h2 className="text-[20px] font-semibold tracking-tight text-white">Progresso da semana</h2>
+            </div>
+
             <WeeklyXpCard
               days={weekly?.days ?? []}
               totalXp={weekly?.totalXp}
+              playerName="Você"
             />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-full flex items-center justify-between bg-[#15151B] px-6 py-4">
+                <p className="text-[11px] text-[#7e7e89]">Cursos</p>
+                <p className="mt-1 text-2xl font-semibold text-white tabular-nums">
+                  {coursesCount}
+                </p>
+              </div>
+
+              <div className="rounded-full flex items-center justify-between bg-[#15151B] px-6 py-4">
+                <p className="text-[11px] text-[#7e7e89]">Total de XP</p>
+                <div className="mt-1 flex items-center gap-2">
+                  <Image src="/xp-icon.svg" alt="XP" width={11} height={20} />
+                  <p className="text-2xl font-semibold text-white tabular-nums">
+                    <CompactNumber value={totalXp} enableCountUp />
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-full flex items-center justify-between bg-[#15151B] px-6 py-4">
+                <p className="text-[11px] text-[#7e7e89]">Lições feitas</p>
+                <p className="mt-1 text-2xl font-semibold text-white tabular-nums">
+                  <CompactNumber value={lessonsDone} enableCountUp />
+                </p>
+              </div>
+
+              <div className="rounded-full flex items-center justify-between bg-[#15151B] px-6 py-4">
+                <p className="text-[11px] text-[#7e7e89]">Projetos concluídos</p>
+                <p className="mt-1 text-2xl font-semibold text-white tabular-nums">
+                  <CompactNumber value={projectsDone} enableCountUp />
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

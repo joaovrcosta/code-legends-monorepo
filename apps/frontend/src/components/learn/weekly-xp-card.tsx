@@ -85,11 +85,11 @@ export function WeeklyXpCard({ days, totalXp, playerName = "Você" }: WeeklyXpCa
   const total = typeof totalXp === 'number' ? totalXp : values.reduce((acc, n) => acc + n, 0)
 
   return (
-    <div className="rounded-[20px] border border-[#25252A] bg-[#111114] p-6 select-none font-sans w-full max-w-[450px]">
+    <div className="rounded-[20px] bg-transparent p-6 select-none font-sans w-full max-w-none">
       {/* Header Estilo Foto */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[#FF6200]" />
+          <div className="w-2 h-2 rounded-full bg-[#00C8FF]" />
           <span className="text-sm font-bold text-white tracking-tight">{playerName}</span>
         </div>
         <div className="text-right">
@@ -106,7 +106,7 @@ export function WeeklyXpCard({ days, totalXp, playerName = "Você" }: WeeklyXpCa
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute z-10 pointer-events-none px-2 py-1 bg-[#FF6200] text-white text-[10px] font-bold rounded shadow-xl"
+              className="absolute z-10 pointer-events-none px-2 py-1 bg-[#00C8FF] text-white text-[10px] font-bold rounded shadow-xl"
               style={{
                 left: pts[hoveredIdx].x,
                 top: pts[hoveredIdx].y - 30,
@@ -145,11 +145,11 @@ export function WeeklyXpCard({ days, totalXp, playerName = "Você" }: WeeklyXpCa
           <motion.path
             d={path}
             fill="none"
-            stroke="#FF6200"
+            stroke="#00C8FF"
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ filter: 'drop-shadow(0px 4px 8px rgba(255, 98, 0, 0.2))' }}
+            style={{ filter: 'drop-shadow(0px 4px 8px rgba(0, 200, 255, 0.22))' }}
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 1, ease: "easeOut" }}
@@ -175,7 +175,7 @@ export function WeeklyXpCard({ days, totalXp, playerName = "Você" }: WeeklyXpCa
                 cy={p.y}
                 // Aumentamos o raio base de 4 para 8, e o de hover de 5 para 12
                 r={hoveredIdx === i ? 12 : 8}
-                fill={hoveredIdx === i ? "#fff" : "#FF6200"}
+                fill={hoveredIdx === i ? "#fff" : "#00C8FF"}
                 stroke="#111114"
                 // Aumentar o strokeWidth ajuda a destacar o círculo maior
                 strokeWidth="2"
