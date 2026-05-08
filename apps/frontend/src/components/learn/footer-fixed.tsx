@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { CourseDropdownMenu } from "./course-menu";
 import type { EnrolledCourse, ActiveCourse } from "@/types/user-course.ts";
 
@@ -12,6 +13,11 @@ export function FooterFixed({
   initialUserCourses = [],
   initialActiveCourse = null,
 }: FooterFixedProps) {
+  const pathname = usePathname();
+  if (pathname === "/learn/tracking") {
+    return null;
+  }
+
   return (
     <footer
       className="fixed bottom-0 left-0 right-0 z-[100] w-full px-4 pt-8 pb-3 lg:hidden pointer-events-none"
