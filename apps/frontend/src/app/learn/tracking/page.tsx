@@ -151,28 +151,36 @@ export default async function TrackingPage() {
                     </AvatarFallback>
                   </Avatar>
 
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate text-3xl sm:text-2xl font-semibold text-white">
-                        {userFromAPI?.name ?? user.name}
-                      </p>
-                      {['PRO', 'PREMIUM'].includes(String(userFromAPI?.plan ?? user.plan)) && (
-                        <Lightning
-                          size={18}
-                          weight="fill"
-                          className={planToLightningClass(userFromAPI?.plan ?? user.plan)}
-                        />
-                      )}
+                  <div className="flex items-center justify-between w-full">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate text-3xl sm:text-2xl font-semibold text-white">
+                          {userFromAPI?.name ?? user.name}
+                        </p>
+                        {['PRO', 'PREMIUM'].includes(String(userFromAPI?.plan ?? user.plan)) && (
+                          <Lightning
+                            size={18}
+                            weight="fill"
+                            className={planToLightningClass(userFromAPI?.plan ?? user.plan)}
+                          />
+                        )}
+                      </div>
+                      <p className="mt-1 text-sm text-[#7e7e89]">Fullstack developer</p>
                     </div>
-                    <p className="mt-1 text-sm text-[#7e7e89]">Fullstack developer</p>
+                    <div className="flex shrink-0 flex-col items-end text-right md:hidden">
+                      <p className="text-[40px] font-semibold leading-none tabular-nums text-white sm:text-[52px]">
+                        {level}
+                      </p>
+                      <p className="mt-1 text-sm text-[#7e7e89]">Level</p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-end justify-between sm:block">
-                  <p className="text-[40px] leading-none text-end font-semibold text-white tabular-nums">
+                <div className="hidden shrink-0 flex-col items-end text-right md:flex">
+                  <p className="text-[40px] font-semibold leading-none tabular-nums text-white sm:text-[52px]">
                     {level}
                   </p>
-                  <p className="mt-1 text-[24px] text-[#7e7e89] sm:text-right">Level</p>
+                  <p className="mt-1 text-sm text-[#7e7e89]">Level</p>
                 </div>
               </div>
 
