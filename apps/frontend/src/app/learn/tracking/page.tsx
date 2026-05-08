@@ -154,7 +154,7 @@ export default async function TrackingPage() {
                   <div className="flex items-center justify-between w-full">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="truncate text-3xl sm:text-2xl font-semibold text-white">
+                        <p className="truncate text-[24px] sm:text-2xl font-medium text-white">
                           {userFromAPI?.name ?? user.name}
                         </p>
                         {['PRO', 'PREMIUM'].includes(String(userFromAPI?.plan ?? user.plan)) && (
