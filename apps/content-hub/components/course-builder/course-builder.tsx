@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useCallback } from "react";
 import { ModuleWithStructure } from "@/actions/course/get-course-with-structure";
 import { ModuleNode } from "./module-node";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,7 @@ export function CourseBuilder({
   const [clearBeforeImport, setClearBeforeImport] = useState(true);
   const [importLoading, setImportLoading] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
+  const [exportIncludeContent, setExportIncludeContent] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleModule = (moduleId: string) => {
@@ -134,7 +135,7 @@ export function CourseBuilder({
     });
   };
 
-  const buildExportJson = () => {
+  const buildExportJson = useCallback((includeContent: boolean) => {
     const exportModules = modules.map((module) => ({
       title: module.title,
       slug: module.slug,
@@ -142,27 +143,50 @@ export function CourseBuilder({
       groups: module.groups.map((group) => ({
         title: group.title,
         orderIndex: group.orderIndex,
-        lessons: group.lessons.map((lesson) => ({
-          title: lesson.title,
-          description: lesson.description,
-          type: lesson.type,
-          slug: lesson.slug,
-          url: lesson.url ?? undefined,
-          video_url: lesson.video_url ?? undefined,
-          video_duration: lesson.video_duration ?? undefined,
-          isFree: lesson.isFree,
-          locked: lesson.locked,
-          order: lesson.order,
-        })),
+        lessons: group.lessons.map((lesson) => {
+          const base: Record<string, unknown> = {
+            title: lesson.title,
+            description: lesson.description,
+            type: lesson.type,
+            slug: lesson.slug,
+            url: lesson.url ?? undefined,
+            video_url: lesson.video_url ?? undefined,
+            video_duration: lesson.video_duration ?? undefined,
+            isFree: lesson.isFree,
+            locked: lesson.locked,
+            order: lesson.order,
+          };
+          if (includeContent) {
+            const t = (lesson.type ?? "").toString().trim().toLowerCase();
+            const body = lesson.article?.body?.trim();
+            if ((t === "article" || t === "text") && body) {
+              base.body = lesson.article!.body;
+            }
+            if (
+              (t === "quiz" || t === "multi_quiz") &&
+              Array.isArray(lesson.quiz?.content)
+            ) {
+              base.quiz_content = lesson.quiz!.content;
+            }
+            if (t === "project" && lesson.project) {
+              const desc = lesson.project.description?.trim();
+              if (desc) base.project_description = lesson.project.description;
+              if (lesson.project.specs != null) {
+                base.project_specs = lesson.project.specs;
+              }
+            }
+          }
+          return base;
+        }),
       })),
     }));
 
     return JSON.stringify(exportModules, null, 2);
-  };
+  }, [modules]);
 
   const handleDownloadJson = () => {
     try {
-      const json = buildExportJson();
+      const json = buildExportJson(exportIncludeContent);
       const safeTitle =
         courseTitle && courseTitle.trim().length > 0
           ? generateSlug(courseTitle)
@@ -171,7 +195,10 @@ export function CourseBuilder({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `curso-${safeTitle}-${courseId}-estrutura.json`;
+      const suffix = exportIncludeContent
+        ? "estrutura-e-conteudo"
+        : "estrutura";
+      a.download = `curso-${safeTitle}-${courseId}-${suffix}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -193,6 +220,10 @@ export function CourseBuilder({
     isFree?: boolean;
     locked?: boolean;
     order?: number;
+    body?: string;
+    quiz_content?: unknown[];
+    project_description?: string;
+    project_specs?: unknown;
   }
 
   interface ImportGroupData {
@@ -310,6 +341,28 @@ export function CourseBuilder({
               order: lesson.order ?? lessonIndex + 1,
             };
 
+            if (
+              (normalizedType === "article" || normalizedType === "text") &&
+              typeof lesson.body === "string"
+            ) {
+              lessonData.body = lesson.body;
+            }
+            if (
+              (normalizedType === "quiz" ||
+                normalizedType === "multi_quiz") &&
+              Array.isArray(lesson.quiz_content)
+            ) {
+              lessonData.quiz_content = lesson.quiz_content;
+            }
+            if (normalizedType === "project") {
+              if (typeof lesson.project_description === "string") {
+                lessonData.project_description = lesson.project_description;
+              }
+              if (lesson.project_specs !== undefined) {
+                lessonData.project_specs = lesson.project_specs;
+              }
+            }
+
             await createLesson(groupId, lessonData, token);
           }
         }
@@ -332,7 +385,10 @@ export function CourseBuilder({
     }
   };
 
-  const exportJson = buildExportJson();
+  const exportJson = useMemo(
+    () => buildExportJson(exportIncludeContent),
+    [buildExportJson, exportIncludeContent],
+  );
 
   const typeCounts = useMemo(() => {
     const counts = {
@@ -478,8 +534,29 @@ export function CourseBuilder({
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Use esta ferramenta para copiar a estrutura completa de
                     módulos, grupos e aulas de um curso, ou importar a estrutura
-                    em outro curso.
+                    em outro curso. Marque a opção abaixo para incluir no JSON o
+                    conteúdo das aulas (corpo de artigo/texto, quiz e projeto),
+                    permitindo importação completa quando o arquivo contiver
+                    esses campos.
                   </p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="exportIncludeContent"
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      checked={exportIncludeContent}
+                      onChange={(e) =>
+                        setExportIncludeContent(e.target.checked)
+                      }
+                    />
+                    <label
+                      htmlFor="exportIncludeContent"
+                      className="text-sm text-gray-700 dark:text-gray-300"
+                    >
+                      Incluir conteúdo das aulas (corpo, quiz, projeto) para
+                      importação completa
+                    </label>
+                  </div>
                   <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     Estrutura atual (somente leitura)
                   </label>

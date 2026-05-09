@@ -13,6 +13,7 @@ export interface CreateLessonData {
   video_url?: string;
   video_duration?: string;
   body?: string;
+  quiz_content?: unknown[];
   project_description?: string;
   project_specs?: unknown;
   locked?: boolean;
