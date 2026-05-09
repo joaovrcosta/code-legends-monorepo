@@ -230,36 +230,68 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
 
     const tokenWithRefresh = token as TokenWithRefresh;
 
-    if (trigger === "update" && session) {
+    // update() sem argumentos pode vir com session undefined; ainda assim precisamos buscar /me.
+    if (trigger === "update") {
         const updatedToken = {
             ...tokenWithRefresh,
-            ...session.user,
+            ...(session?.user ?? {}),
         };
 
-        try {
-            const userResponse = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333"}/me`,
-                {
+        const apiBase =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
+        let lastError: unknown = null;
+
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                const userResponse = await fetch(`${apiBase}/me`, {
                     headers: {
                         Authorization: `Bearer ${updatedToken.accessToken}`,
                     },
                     cache: "no-store",
-                }
-            );
+                });
 
-            if (userResponse.ok) {
-                const userData = await userResponse.json();
-                updatedToken.onboardingCompleted = userData.user.onboardingCompleted ?? false;
-                updatedToken.onboardingGoal = userData.user.onboardingGoal ?? null;
-                updatedToken.onboardingCareer = userData.user.onboardingCareer ?? null;
-                updatedToken.plan = userData.user.plan ?? "FREE";
-                updatedToken.lastOnboardingCheck = 0;
-            } else if (userResponse.status === 401 || userResponse.status === 404) {
-                return { ...tokenWithRefresh, error: "RefreshAccessTokenError" };
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    updatedToken.onboardingCompleted =
+                        userData.user.onboardingCompleted ?? false;
+                    updatedToken.onboardingGoal =
+                        userData.user.onboardingGoal ?? null;
+                    updatedToken.onboardingCareer =
+                        userData.user.onboardingCareer ?? null;
+                    updatedToken.plan = userData.user.plan ?? "FREE";
+                    updatedToken.lastOnboardingCheck = Date.now();
+                    return updatedToken;
+                }
+
+                if (
+                    userResponse.status === 401 ||
+                    userResponse.status === 404
+                ) {
+                    return {
+                        ...tokenWithRefresh,
+                        error: "RefreshAccessTokenError",
+                    };
+                }
+
+                lastError = new Error(
+                    `GET /me failed with status ${userResponse.status}`,
+                );
+            } catch (err) {
+                lastError = err;
             }
-        } catch {
-            // Ignora erro no update manual
+
+            if (attempt === 0) {
+                await new Promise((r) => setTimeout(r, 400));
+            }
         }
+
+        if (process.env.NODE_ENV === "development" && lastError != null) {
+            console.warn(
+                "[jwt] trigger=update: /me failed after retry; keeping previous token fields",
+                lastError,
+            );
+        }
+
         return updatedToken;
     }
 

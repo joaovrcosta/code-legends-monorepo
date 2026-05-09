@@ -20,6 +20,7 @@ import { listCategories } from "@/actions/course/list-categories";
 import { listCoursesByCategory } from "@/actions/course/list-courses-by-category";
 import { Category } from "@/types/categories";
 import type { CourseWithCount } from "@/types/user-course.ts";
+import { Loader2 } from "lucide-react";
 import codeLegendsLogo from "../../../../../public/loading-logo.svg";
 
 const CATEGORY_REVEAL_STAGGER_MS = 200;
@@ -87,6 +88,17 @@ function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
+function sessionShowsOnboardingComplete(session: unknown): boolean {
+  if (!session || typeof session !== "object") return false;
+  const s = session as {
+    onboardingCompleted?: boolean;
+    user?: { onboardingCompleted?: boolean };
+  };
+  return (
+    s.onboardingCompleted === true || s.user?.onboardingCompleted === true
+  );
+}
+
 function pickRandom<T>(items: T[], avoid?: T) {
   if (items.length <= 1) return items[0];
   const filtered = avoid === undefined ? items : items.filter((x) => x !== avoid);
@@ -126,6 +138,8 @@ function CareersPageContent() {
   const [coursesError, setCoursesError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  /** Sessão JWT não refletiu onboarding após poucas tentativas — oferece ir ao início manualmente. */
+  const [showGoHomeFallback, setShowGoHomeFallback] = useState(false);
   const [barFill, setBarFill] = useState(() =>
     onboardingProgressPercent(ONBOARDING_STEP.career),
   );
@@ -360,6 +374,7 @@ function CareersPageContent() {
   const handleCareerClick = (slug: string) => {
     if (isLoading) return;
     setError("");
+    setShowGoHomeFallback(false);
     setSelectedCareer(slug);
     syncCareerToUrl(slug);
   };
@@ -368,28 +383,64 @@ function CareersPageContent() {
     try {
       setIsLoading(true);
       setError("");
-      await completeOnboarding();
+      setShowGoHomeFallback(false);
 
-      const { getOnboardingStatus } = await import(
-        "@/actions/user/get-onboarding-status"
-      );
-      let onboardingCompleted = false;
-      let verificationAttempts = 0;
-      const maxVerificationAttempts = 5;
+      const completeResult = await completeOnboarding();
 
-      while (
-        !onboardingCompleted &&
-        verificationAttempts < maxVerificationAttempts
-      ) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
+      let apiCompleted = completeResult.onboardingCompleted;
+      if (!apiCompleted) {
+        const { getOnboardingStatus } = await import(
+          "@/actions/user/get-onboarding-status"
+        );
+        await sleep(300);
         const status = await getOnboardingStatus();
-        onboardingCompleted = status.isCompleted;
-        verificationAttempts++;
+        apiCompleted = status.isCompleted;
+        if (!apiCompleted) {
+          await sleep(400);
+          const status2 = await getOnboardingStatus();
+          apiCompleted = status2.isCompleted;
+        }
       }
 
-      await update();
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      window.location.href = "/";
+      if (!apiCompleted) {
+        throw new Error(
+          "Não foi possível confirmar o onboarding no servidor. Tente novamente.",
+        );
+      }
+
+      const maxSyncAttempts = 8;
+      const backoffMs = (i: number) => Math.min(300 * 2 ** i, 1500);
+
+      let sessionReady = false;
+      for (let i = 0; i < maxSyncAttempts; i++) {
+        const refreshed = await update();
+        if (sessionShowsOnboardingComplete(refreshed)) {
+          sessionReady = true;
+          break;
+        }
+        await sleep(backoffMs(i));
+      }
+
+      if (!sessionReady) {
+        const { getAuthOnboardingFromSession } = await import(
+          "@/actions/auth/get-session-onboarding"
+        );
+        const { onboardingCompleted } = await getAuthOnboardingFromSession();
+        if (onboardingCompleted) {
+          sessionReady = true;
+        }
+      }
+
+      if (sessionReady) {
+        window.location.assign("/");
+        return;
+      }
+
+      setError(
+        "A sessão demorou a atualizar. Você pode ir ao início manualmente — se voltar ao onboarding, atualize a página (F5).",
+      );
+      setShowGoHomeFallback(true);
+      setIsLoading(false);
     } catch (e) {
       console.error("Erro ao completar onboarding:", e);
       setError(
@@ -407,6 +458,7 @@ function CareersPageContent() {
     try {
       setIsLoading(true);
       setError("");
+      setShowGoHomeFallback(false);
       const course = courses.find((c) => c.slug === selectedCourse);
       if (course) {
         const { enrollInCourse } = await import("@/actions/course/enroll");
@@ -473,8 +525,25 @@ function CareersPageContent() {
         </header>
 
         {error ? (
-          <div className="mt-6 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-            {error}
+          <div className="mt-6 space-y-3">
+            <div
+              className={
+                showGoHomeFallback
+                  ? "rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+                  : "rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+              }
+            >
+              {error}
+            </div>
+            {showGoHomeFallback ? (
+              <button
+                type="button"
+                onClick={() => window.location.assign("/")}
+                className="rounded-full bg-[#ececee] px-5 py-2.5 text-sm font-semibold text-[#0D0D12] transition-colors hover:bg-white"
+              >
+                Ir para o início
+              </button>
+            ) : null}
           </div>
         ) : null}
 
@@ -735,9 +804,20 @@ function CareersPageContent() {
                   isLoading ||
                   coursesLoadState !== "done"
                 }
-                className="mx-auto w-full max-w-[280px] rounded-full bg-[#ececee] py-4 text-center text-base font-semibold text-[#0D0D12] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                aria-busy={isLoading}
+                className="mx-auto flex w-full max-w-[280px] items-center justify-center gap-2 rounded-full bg-[#ececee] py-4 text-center text-base font-semibold text-[#0D0D12] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {isLoading ? "Criando sua trilha…" : "Finalizar"}
+                {isLoading ? (
+                  <>
+                    <Loader2
+                      className="h-5 w-5 shrink-0 animate-spin motion-reduce:animate-none"
+                      aria-hidden
+                    />
+                    <span>Criando sua trilha…</span>
+                  </>
+                ) : (
+                  "Finalizar"
+                )}
               </button>
               <button
                 type="button"

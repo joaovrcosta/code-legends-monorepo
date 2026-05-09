@@ -2,7 +2,14 @@
 
 import { getAuthToken } from "../auth/session";
 
-export async function completeOnboarding(): Promise<{ success: boolean }> {
+export interface CompleteOnboardingResult {
+  success: true;
+  onboardingCompleted: boolean;
+  onboardingGoal: string | null;
+  onboardingCareer: string | null;
+}
+
+export async function completeOnboarding(): Promise<CompleteOnboardingResult> {
   try {
     const token = await getAuthToken();
 
@@ -32,7 +39,21 @@ export async function completeOnboarding(): Promise<{ success: boolean }> {
       throw new Error(errorData.message || "Erro ao completar onboarding");
     }
 
-    return { success: true };
+    const data = (await response.json().catch(() => null)) as {
+      user?: {
+        onboardingCompleted?: boolean;
+        onboardingGoal?: string | null;
+        onboardingCareer?: string | null;
+      };
+    } | null;
+
+    const user = data?.user;
+    return {
+      success: true,
+      onboardingCompleted: user?.onboardingCompleted ?? true,
+      onboardingGoal: user?.onboardingGoal ?? null,
+      onboardingCareer: user?.onboardingCareer ?? null,
+    };
   } catch (error) {
     console.error("Erro ao completar onboarding:", error);
     throw error instanceof Error

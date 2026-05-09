@@ -7,3 +7,4 @@ export {
   destroySession,
   getAuthToken,
 } from "./session";
+export { getAuthOnboardingFromSession } from "./get-session-onboarding";
