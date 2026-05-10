@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 interface ActivityData {
     date: string;
     count: number;
@@ -13,29 +15,41 @@ interface ActivityCalendarProps {
 
 const SAO_PAULO_TZ = "America/Sao_Paulo";
 
+/** Alinhado ao grid carregado: 91 dias → 13 colunas × 7 linhas (mesmas gaps/medidas do calendário real). */
+const SKELETON_WEEK_COUNT = 13;
+
 function ActivityCalendarSkeleton() {
-    const weeks = Array.from({ length: 14 }, (_, i) => i);
+    const weeks = Array.from({ length: SKELETON_WEEK_COUNT }, (_, i) => i);
     const days = Array.from({ length: 7 }, (_, i) => i);
 
     return (
-        <div className="w-full font-sans select-none flex flex-col items-center">
+        <div
+            className="w-full font-sans select-none flex flex-col items-center"
+            aria-busy
+            aria-label="A carregar calendário de atividade"
+        >
             <div className="w-full overflow-x-auto scrollbar-hide py-2">
-                <div className="flex flex-col gap-2 w-max mx-auto lg:ml-auto lg:mr-0 animate-pulse">
-                    <div className="flex text-[9px] font-bold text-[#737373] h-4 ml-8">
-                        {weeks.map((i) => (
-                            <div key={i} className="relative w-full">
-                                <span className="absolute left-0 whitespace-nowrap">
-                                    {i % 4 === 0 ? "···" : ""}
-                                </span>
+                <div className="flex flex-col gap-2 w-max mx-auto lg:ml-auto lg:mr-0">
+                    {/* Rótulos dos meses — placeholders alinhados às colunas */}
+                    <div className="flex ml-8 gap-[5px] sm:gap-[6px] h-4 items-end shrink-0">
+                        {weeks.map((wi) => (
+                            <div
+                                key={wi}
+                                className="relative flex w-[13px] shrink-0 flex-col justify-end sm:w-[15px]"
+                            >
+                                {wi % 4 === 0 ? (
+                                    <Skeleton className="h-2.5 w-7 rounded-sm sm:w-8" />
+                                ) : null}
                             </div>
                         ))}
                     </div>
 
                     <div className="flex gap-3">
-                        <div className="flex flex-col justify-between text-[9px] font-medium text-[#525252] py-[2px] h-[105px] sm:h-[130px]">
-                            <span>Seg</span>
-                            <span>Qua</span>
-                            <span>Sex</span>
+                        {/* Dias da semana — só barras, sem texto */}
+                        <div className="flex h-[105px] w-8 shrink-0 flex-col justify-between py-[2px] sm:h-[130px]">
+                            <Skeleton className="h-2 w-7 rounded-sm" />
+                            <Skeleton className="h-2 w-8 rounded-sm" />
+                            <Skeleton className="h-2 w-7 rounded-sm" />
                         </div>
 
                         <div className="flex gap-[5px] sm:gap-[6px]">
@@ -45,29 +59,30 @@ function ActivityCalendarSkeleton() {
                                     className="flex flex-col gap-[5px] sm:gap-[6px]"
                                 >
                                     {days.map((dayIndex) => (
-                                        <div
+                                        <Skeleton
                                             key={`${weekIndex}-${dayIndex}`}
-                                            className="w-[13px] h-[13px] sm:w-[15px] sm:h-[14px] rounded-[4px] bg-surface-2/70"
+                                            className="h-[13px] w-[13px] rounded-[4px] sm:h-[14px] sm:w-[15px]"
                                         />
                                     ))}
                                 </div>
                             ))}
                         </div>
                     </div>
-
-                    <div className="w-full flex justify-center lg:justify-end mt-4 px-2 gap-2 text-[10px] text-[#525252]">
-                        <span>Menos</span>
-                        <div className="flex gap-[3px]">
-                            {Array.from({ length: 5 }, (_, lvl) => (
-                                <div
-                                    key={lvl}
-                                    className="w-[10px] h-[10px] rounded-[2px] bg-surface-2/70"
-                                />
-                            ))}
-                        </div>
-                        <span>Mais</span>
-                    </div>
                 </div>
+            </div>
+
+            {/* Legenda — Menos / escala / Mais */}
+            <div className="mt-4 flex w-full items-center justify-center gap-2 px-2 lg:justify-end">
+                <Skeleton className="h-3 w-10 rounded-sm" />
+                <div className="flex gap-[3px]">
+                    {Array.from({ length: 5 }, (_, lvl) => (
+                        <Skeleton
+                            key={lvl}
+                            className="h-[10px] w-[10px] rounded-[2px]"
+                        />
+                    ))}
+                </div>
+                <Skeleton className="h-3 w-9 rounded-sm" />
             </div>
         </div>
     );
