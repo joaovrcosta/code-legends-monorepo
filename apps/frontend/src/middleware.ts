@@ -1,27 +1,34 @@
 import { auth } from "./auth/authSetup";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { CL_ONBOARDING_HOME_COOKIE } from "./lib/onboarding-home-cookie";
+
+type AuthShape = {
+  user?: { id?: string; onboardingCompleted?: boolean } | null;
+  error?: string;
+  onboardingCompleted?: boolean;
+} | null;
+
+function readOnboardingFromAuth(session: AuthShape): boolean {
+  if (!session) return false;
+  return (
+    session.onboardingCompleted ??
+    session.user?.onboardingCompleted ??
+    false
+  );
+}
 
 export default auth(
-  async (
-    req: NextRequest & {
-      auth: {
-        user?: {
-          id?: string;
-        };
-      } | null;
-    }
-  ) => {
+  async (req: NextRequest & { auth: AuthShape }) => {
     const { pathname } = req.nextUrl;
-    const session = await auth();
+    const session = req.auth;
 
-    // Rotas públicas
     const publicRoutes = ["/login", "/signup", "/certificates"];
     const isPublicRoute = publicRoutes.some(
       (route) => pathname === route || pathname.startsWith(route + "/")
     );
 
-    const sessionError = (session as { error?: string })?.error;
+    const sessionError = session?.error;
     if (sessionError === "RefreshAccessTokenError") {
       if (!isPublicRoute) {
         return NextResponse.redirect(new URL("/login", req.url));
@@ -31,9 +38,11 @@ export default auth(
 
     const isLoggedIn = !!session?.user;
 
+    const jwtOnboardingDone = readOnboardingFromAuth(session);
+    const obHomeOk =
+      req.cookies.get(CL_ONBOARDING_HOME_COOKIE)?.value === "1";
     const onboardingCompleted =
-      (session as { onboardingCompleted?: boolean })?.onboardingCompleted ??
-      false;
+      jwtOnboardingDone || (isLoggedIn && obHomeOk);
 
     const onboardingRoutes = ["/onboarding", "/learn/onboarding"];
     const isOnboardingRoute = onboardingRoutes.some((route) =>

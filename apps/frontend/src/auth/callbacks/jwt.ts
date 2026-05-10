@@ -230,10 +230,10 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
 
     const tokenWithRefresh = token as TokenWithRefresh;
 
-    if (trigger === "update" && session) {
+    if (trigger === "update") {
         const updatedToken = {
             ...tokenWithRefresh,
-            ...session.user,
+            ...(session?.user ?? {}),
         };
 
         try {

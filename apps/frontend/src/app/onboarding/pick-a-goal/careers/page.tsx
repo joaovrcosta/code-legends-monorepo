@@ -375,20 +375,40 @@ function CareersPageContent() {
       );
       let onboardingCompleted = false;
       let verificationAttempts = 0;
-      const maxVerificationAttempts = 5;
+      const maxVerificationAttempts = 10;
 
       while (
         !onboardingCompleted &&
         verificationAttempts < maxVerificationAttempts
       ) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 250));
         const status = await getOnboardingStatus();
         onboardingCompleted = status.isCompleted;
         verificationAttempts++;
       }
 
+      if (!onboardingCompleted) {
+        throw new Error(
+          "Não foi possível confirmar o onboarding. Tente novamente.",
+        );
+      }
+
+      const prep = await fetch("/api/onboarding/prepare-home", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!prep.ok) {
+        console.warn(
+          "[onboarding] prepare-home:",
+          prep.status,
+          await prep.text().catch(() => ""),
+        );
+      }
+
       await update();
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      await update();
+
       window.location.href = "/";
     } catch (e) {
       console.error("Erro ao completar onboarding:", e);
