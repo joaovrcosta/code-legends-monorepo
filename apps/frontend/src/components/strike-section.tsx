@@ -279,45 +279,52 @@ export function StrikeSection({
       status !== 'unauthenticated' &&
       !dataReady)
 
-  if (showSkeleton) {
-    return (
-      <div
-        className="flex items-center space-x-3 lg:border border-transparent lg:border-[#25252A] py-2 px-3 rounded-[20px] pointer-events-none select-none"
-        aria-hidden
-      >
-        <Skeleton className="h-6 w-6 shrink-0 rounded-full" />
-        <Skeleton className="h-5 w-7 rounded-md" />
-      </div>
-    )
-  }
-
   return (
     <>
-      <DropdownMenu onOpenChange={setIsOpen}>
+      <DropdownMenu
+        open={showSkeleton ? false : isOpen}
+        onOpenChange={(open) => {
+          if (showSkeleton) return
+          setIsOpen(open)
+        }}
+      >
         <DropdownMenuTrigger asChild>
           <div
-            className={`flex items-center space-x-3 lg:border py-2 px-3 rounded-[20px] transition-colors ${isOpen
-              ? 'bg-[#25252A] border-lime-400/80'
-              : streak.current > 0
-                ? 'lg:border-[#25252A] hover:bg-[#25252A] hover:border-lime-400/70'
-                : 'lg:border-[#25252A] hover:bg-[#25252A] hover:border-lime-400/70'
+            className={`flex items-center space-x-3 lg:border py-2 px-3 rounded-[20px] transition-colors ${showSkeleton
+              ? 'border-transparent lg:border-[#25252A] pointer-events-none select-none'
+              : isOpen
+                ? 'bg-[#25252A] border-lime-400/80'
+                : streak.current > 0
+                  ? 'lg:border-[#25252A] hover:bg-[#25252A] hover:border-lime-400/70'
+                  : 'lg:border-[#25252A] hover:bg-[#25252A] hover:border-lime-400/70'
               }`}
+            aria-busy={showSkeleton}
+            aria-hidden={showSkeleton}
           >
-            <Lightning
-              size={24}
-              weight="fill"
-              className={
-                streak.current > 0
-                  ? 'text-lime-400 drop-shadow-[0_0_10px_rgba(163,230,53,0.45)]'
-                  : 'text-[#515155]'
-              }
-            />
-            <span
-              className={`text-base ${streak.current > 0 ? 'text-white' : 'text-[#515155]'
-                }`}
-            >
-              {streak.current}
-            </span>
+            {showSkeleton ? (
+              <>
+                <Skeleton className="h-6 w-6 shrink-0 rounded-full" />
+                <Skeleton className="h-5 w-7 rounded-md" />
+              </>
+            ) : (
+              <>
+                <Lightning
+                  size={24}
+                  weight="fill"
+                  className={
+                    streak.current > 0
+                      ? 'text-lime-400 drop-shadow-[0_0_10px_rgba(163,230,53,0.45)]'
+                      : 'text-[#515155]'
+                  }
+                />
+                <span
+                  className={`text-base ${streak.current > 0 ? 'text-white' : 'text-[#515155]'
+                    }`}
+                >
+                  {streak.current}
+                </span>
+              </>
+            )}
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent

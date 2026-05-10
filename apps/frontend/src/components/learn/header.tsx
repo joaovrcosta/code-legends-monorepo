@@ -34,17 +34,10 @@ export default function LearnHeader({
 }: LearnHeaderProps) {
   const { toggleSidebar, isOpen } = useSidebarStore()
   const openMobileNav = useMobileNavStore((s) => s.open)
-  const [mounted, setMounted] = useState(false)
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<CourseWithCount[]>([])
   const [isSearching, setIsSearching] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const showSidebarButton = mounted
 
   const performSearch = useCallback(async (query: string) => {
     const trimmedQuery = query.trim()
@@ -91,7 +84,7 @@ export default function LearnHeader({
     >
       <ul className="flex justify-between items-center gap-2 lg:gap-0 lg:pt-4 pt-0 lg:pb-4 pb-0 w-full mx-auto px-4 sm:px-5">
         <li className="flex min-w-0 shrink-0 items-center lg:space-x-3">
-          {showSidebarButton && showDesktopSidebarToggle && (
+          {showDesktopSidebarToggle && (
             <button
               onClick={toggleSidebar}
               className="text-white p-1 border border-[#25252a] rounded-lg lg:block hidden hover:bg-[#25252a] transition-all duration-150 ease-in-out"

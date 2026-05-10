@@ -43,19 +43,6 @@ function getNotificationIcon(type: string) {
   }
 }
 
-function NotificationsBellSkeleton() {
-  return (
-    <div
-      className="relative pointer-events-none select-none"
-      aria-hidden
-    >
-      <div className="flex items-center space-x-3 border border-[#25252A] py-2 px-3 rounded-[20px]">
-        <Skeleton className="h-6 w-6 shrink-0 rounded-full" />
-      </div>
-    </div>
-  )
-}
-
 export function NotificationsSection() {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'unread' | 'read'>('unread')
@@ -141,28 +128,38 @@ export function NotificationsSection() {
     }
   }, [isOpen])
 
-  if (showBellSkeleton) {
-    return <NotificationsBellSkeleton />
-  }
-
   const unreadNotifications = notifications.filter((n) => !n.read)
   const readNotifications = notifications.filter((n) => n.read)
   const displayedNotifications =
     activeTab === 'unread' ? unreadNotifications : readNotifications
 
   return (
-    <DropdownMenu onOpenChange={setIsOpen}>
+    <DropdownMenu
+      open={showBellSkeleton ? false : isOpen}
+      onOpenChange={(open) => {
+        if (showBellSkeleton) return
+        setIsOpen(open)
+      }}
+    >
       <DropdownMenuTrigger asChild>
         <div className="relative">
           <div
-            className={`flex items-center space-x-3 border py-2 px-3 rounded-[20px] transition-colors ${isOpen
+            className={`flex items-center space-x-3 border py-2 px-3 rounded-[20px] transition-colors ${showBellSkeleton
+              ? 'border-[#25252A] pointer-events-none select-none'
+              : isOpen
                 ? 'bg-[#25252A] border-[#FFB733]'
                 : 'border-[#25252A] hover:bg-[#25252A] hover:border-[#FFB733]'
               }`}
+            aria-busy={showBellSkeleton}
+            aria-hidden={showBellSkeleton}
           >
-            <Bell size={24} weight="fill" className="text-[#515155]" />
+            {showBellSkeleton ? (
+              <Skeleton className="h-6 w-6 shrink-0 rounded-full" />
+            ) : (
+              <Bell size={24} weight="fill" className="text-[#515155]" />
+            )}
           </div>
-          {unreadCount > 0 && (
+          {!showBellSkeleton && unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-[#FFB733] text-[#1A1A1E] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
