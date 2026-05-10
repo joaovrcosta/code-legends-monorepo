@@ -9,6 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
+import { Skeleton } from './ui/skeleton'
 
 const SAO_PAULO_TZ = 'America/Sao_Paulo'
 
@@ -96,6 +97,14 @@ export function StrikeSection({
   }))
   const [weekly, setWeekly] = useState<LessonActivityDay[]>([])
 
+  const [dataReady, setDataReady] = useState(() => {
+    return (
+      initialCurrent != null ||
+      initialBest != null ||
+      initialTotalActiveDays != null
+    )
+  })
+
   const hasInitial = useMemo(() => {
     return (
       initialCurrent != null ||
@@ -103,6 +112,12 @@ export function StrikeSection({
       initialTotalActiveDays != null
     )
   }, [initialCurrent, initialBest, initialTotalActiveDays])
+
+  useEffect(() => {
+    if (hasInitial) {
+      setDataReady(true)
+    }
+  }, [hasInitial])
 
   useEffect(() => {
     if (hasInitial) {
@@ -114,9 +129,17 @@ export function StrikeSection({
       return
     }
 
+    if (status === 'unauthenticated') {
+      setDataReady(true)
+      return
+    }
+
     if (status !== 'authenticated') return
     const token = (session as unknown as { accessToken?: string } | null)?.accessToken
-    if (!token) return
+    if (!token) {
+      setDataReady(true)
+      return
+    }
 
     let cancelled = false
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
@@ -149,6 +172,9 @@ export function StrikeSection({
         }
       })
       .catch(() => { })
+      .finally(() => {
+        if (!cancelled) setDataReady(true)
+      })
 
     return () => {
       cancelled = true
@@ -246,6 +272,24 @@ export function StrikeSection({
       }
     }
   }, [isOpen])
+
+  const showSkeleton =
+    status === 'loading' ||
+    (!hasInitial &&
+      status !== 'unauthenticated' &&
+      !dataReady)
+
+  if (showSkeleton) {
+    return (
+      <div
+        className="flex items-center space-x-3 lg:border border-transparent lg:border-[#25252A] py-2 px-3 rounded-[20px] pointer-events-none select-none"
+        aria-hidden
+      >
+        <Skeleton className="h-6 w-6 shrink-0 rounded-full" />
+        <Skeleton className="h-5 w-7 rounded-md" />
+      </div>
+    )
+  }
 
   return (
     <>

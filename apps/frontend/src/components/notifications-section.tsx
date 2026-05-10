@@ -9,6 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
+import { Skeleton } from './ui/skeleton'
 import {
   getNotifications,
   type Notification,
@@ -42,14 +43,37 @@ function getNotificationIcon(type: string) {
   }
 }
 
+function NotificationsBellSkeleton() {
+  return (
+    <div
+      className="relative pointer-events-none select-none"
+      aria-hidden
+    >
+      <div className="flex items-center space-x-3 border border-[#25252A] py-2 px-3 rounded-[20px]">
+        <Skeleton className="h-6 w-6 shrink-0 rounded-full" />
+      </div>
+    </div>
+  )
+}
+
 export function NotificationsSection() {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'unread' | 'read'>('unread')
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [showBellSkeleton, setShowBellSkeleton] = useState(true)
 
   // Usar SSE para contagem em tempo real
-  const { unreadCount } = useNotificationSSE()
+  const { unreadCount, isConnected } = useNotificationSSE()
+
+  useEffect(() => {
+    if (isConnected) setShowBellSkeleton(false)
+  }, [isConnected])
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setShowBellSkeleton(false), 3000)
+    return () => window.clearTimeout(t)
+  }, [])
 
   const loadNotifications = useCallback(async () => {
     setIsLoading(true)
@@ -116,6 +140,10 @@ export function NotificationsSection() {
       }
     }
   }, [isOpen])
+
+  if (showBellSkeleton) {
+    return <NotificationsBellSkeleton />
+  }
 
   const unreadNotifications = notifications.filter((n) => !n.read)
   const readNotifications = notifications.filter((n) => n.read)
@@ -223,7 +251,21 @@ export function NotificationsSection() {
 
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
-            <div className="p-8 text-center text-[#8D8D93]">Carregando...</div>
+            <div className="p-4 space-y-3" aria-busy>
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 rounded-[16px] border border-[#25252A]/60 p-4"
+                >
+                  <Skeleton className="mt-0.5 h-10 w-10 shrink-0 rounded-lg" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-3 w-28 rounded-md" />
+                    <Skeleton className="h-4 w-full rounded-md" />
+                    <Skeleton className="h-4 w-full max-w-[260px] rounded-md" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : displayedNotifications.length === 0 ? (
             <div className="p-8 text-center text-[#8D8D93]">
               {activeTab === 'unread'
