@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Skeleton } from "@/components/ui/skeleton";
-
 interface ActivityData {
     date: string;
     count: number;
@@ -18,6 +16,16 @@ const SAO_PAULO_TZ = "America/Sao_Paulo";
 /** Alinhado ao grid carregado: 91 dias → 13 colunas × 7 linhas (mesmas gaps/medidas do calendário real). */
 const SKELETON_WEEK_COUNT = 13;
 
+/** Mesmas medidas das células reais — `div` nativo evita padding/rounding extra do componente Skeleton. */
+function SkeletonCell() {
+    return (
+        <div
+            className="box-border shrink-0 w-[13px] h-[13px] sm:w-[15px] sm:h-[14px] rounded-[4px] bg-white/10 animate-pulse"
+            aria-hidden
+        />
+    );
+}
+
 function ActivityCalendarSkeleton() {
     const weeks = Array.from({ length: SKELETON_WEEK_COUNT }, (_, i) => i);
     const days = Array.from({ length: 7 }, (_, i) => i);
@@ -30,26 +38,23 @@ function ActivityCalendarSkeleton() {
         >
             <div className="w-full overflow-x-auto scrollbar-hide py-2">
                 <div className="flex flex-col gap-2 w-max mx-auto lg:ml-auto lg:mr-0">
-                    {/* Rótulos dos meses — placeholders alinhados às colunas */}
-                    <div className="flex ml-8 gap-[5px] sm:gap-[6px] h-4 items-end shrink-0">
+                    {/* Mesma estrutura que o calendário carregado: flex sem gap entre colunas de mês */}
+                    <div className="flex text-[9px] font-bold h-4 ml-8">
                         {weeks.map((wi) => (
-                            <div
-                                key={wi}
-                                className="relative flex w-[13px] shrink-0 flex-col justify-end sm:w-[15px]"
-                            >
+                            <div key={wi} className="relative min-w-0 w-full">
                                 {wi % 4 === 0 ? (
-                                    <Skeleton className="h-2.5 w-7 rounded-sm sm:w-8" />
+                                    <span className="absolute left-0 top-0 inline-block h-[10px] w-[26px] rounded-sm bg-white/10 animate-pulse sm:w-[30px]" />
                                 ) : null}
                             </div>
                         ))}
                     </div>
 
                     <div className="flex gap-3">
-                        {/* Dias da semana — só barras, sem texto */}
-                        <div className="flex h-[105px] w-8 shrink-0 flex-col justify-between py-[2px] sm:h-[130px]">
-                            <Skeleton className="h-2 w-7 rounded-sm" />
-                            <Skeleton className="h-2 w-8 rounded-sm" />
-                            <Skeleton className="h-2 w-7 rounded-sm" />
+                        {/* Mesma coluna que “Seg / Qua / Sex”: sem largura fixa extra */}
+                        <div className="flex flex-col justify-between text-[9px] font-medium py-[2px] h-[105px] sm:h-[130px] shrink-0">
+                            <span className="inline-block h-[10px] w-[22px] rounded-sm bg-white/10 animate-pulse" />
+                            <span className="inline-block h-[10px] w-[26px] rounded-sm bg-white/10 animate-pulse" />
+                            <span className="inline-block h-[10px] w-[22px] rounded-sm bg-white/10 animate-pulse" />
                         </div>
 
                         <div className="flex gap-[5px] sm:gap-[6px]">
@@ -59,9 +64,8 @@ function ActivityCalendarSkeleton() {
                                     className="flex flex-col gap-[5px] sm:gap-[6px]"
                                 >
                                     {days.map((dayIndex) => (
-                                        <Skeleton
+                                        <SkeletonCell
                                             key={`${weekIndex}-${dayIndex}`}
-                                            className="h-[13px] w-[13px] rounded-[4px] sm:h-[14px] sm:w-[15px]"
                                         />
                                     ))}
                                 </div>
@@ -71,18 +75,18 @@ function ActivityCalendarSkeleton() {
                 </div>
             </div>
 
-            {/* Legenda — Menos / escala / Mais */}
-            <div className="mt-4 flex w-full items-center justify-center gap-2 px-2 lg:justify-end">
-                <Skeleton className="h-3 w-10 rounded-sm" />
+            {/* Legenda — mesmas classes base que o bloco real (text-[10px] ≈ altura de linha) */}
+            <div className="w-full flex justify-center lg:justify-end mt-4 px-2 gap-2 text-[10px] text-[#525252] items-center">
+                <span className="inline-block h-[12px] w-[34px] rounded-sm bg-white/10 animate-pulse" />
                 <div className="flex gap-[3px]">
                     {Array.from({ length: 5 }, (_, lvl) => (
-                        <Skeleton
+                        <div
                             key={lvl}
-                            className="h-[10px] w-[10px] rounded-[2px]"
+                            className="w-[10px] h-[10px] rounded-[2px] bg-white/10 animate-pulse shrink-0 box-border"
                         />
                     ))}
                 </div>
-                <Skeleton className="h-3 w-9 rounded-sm" />
+                <span className="inline-block h-[12px] w-[30px] rounded-sm bg-white/10 animate-pulse" />
             </div>
         </div>
     );
