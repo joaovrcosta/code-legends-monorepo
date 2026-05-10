@@ -10,7 +10,4 @@ export {
   updateOnboarding,
   type UpdateOnboardingData,
 } from "./update-onboarding";
-export {
-  completeOnboarding,
-  type CompleteOnboardingResult,
-} from "./complete-onboarding";
+export { completeOnboarding } from "./complete-onboarding";
