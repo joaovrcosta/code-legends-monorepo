@@ -170,7 +170,7 @@ export function CatalogCard({
     md:hover:shadow-[0_30px_60px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06),inset_0_-24px_24px_rgba(255,255,255,0.03)]
     ${isCurrent
             ? 'bg-blue-gradient-second border-[#35BED5]'
-            : 'bg-gray-gradient border-[#25252A]'
+            : 'bg-primary border-[#25252A]'
           }
     ${transformOriginClass}
     ${className}`}

@@ -8,18 +8,11 @@ import {
     CarouselItem,
     CarouselNext,
     CarouselPrevious,
-    carouselHeaderNavButtonClassName,
 } from '@/components/ui/carousel'
-import { CarouselSectionHeader } from '@/components/ui/carousel-section-header'
 import type { CourseWithCount } from '@/types/user-course.ts'
 import { cn } from '@/lib/utils'
 import { CatalogCard } from './catalog-card'
-import { CodeBlock } from '@phosphor-icons/react'
 import { useSession } from 'next-auth/react'
-
-const defaultHeaderIcon = (
-    <CodeBlock weight="fill" size={16} className="text-[#eceeef]" aria-hidden />
-)
 
 const getColorByLevel = (level: string): string => {
     const normalized = (level ?? '')
@@ -46,17 +39,11 @@ const getColorByLevel = (level: string): string => {
 
 export type CarouselSectionProps = {
     courses: CourseWithCount[]
-    sectionTitle?: string
-    titleRowClassName?: string
-    sectionIcon?: ReactNode
+    /** Cabeçalho com título + ações (ex. setas), renderizado dentro do `Carousel`. */
+    header?: ReactNode
 }
 
-export function CarouselSection({
-    courses,
-    sectionTitle,
-    titleRowClassName,
-    sectionIcon,
-}: CarouselSectionProps) {
+export function CarouselSection({ courses, header }: CarouselSectionProps) {
     const { data, status } = useSession()
     const plan = (data?.user as { plan?: 'FREE' | 'PRO' | 'PREMIUM' } | undefined)
         ?.plan
@@ -69,13 +56,13 @@ export function CarouselSection({
                     ? false
                     : undefined
 
-    const inlineHeader = Boolean(sectionTitle)
+    const hasHeader = Boolean(header)
 
     return (
         <div
             className={cn(
                 'relative min-w-0 overflow-x-hidden overflow-y-visible pb-0',
-                inlineHeader ? 'pt-0' : 'pt-6',
+                hasHeader ? 'pt-0' : 'pt-6',
             )}
         >
             <Carousel
@@ -85,34 +72,12 @@ export function CarouselSection({
                 }}
                 className="w-full"
             >
-                {inlineHeader && (
-                    <CarouselSectionHeader
-                        className={cn('mb-4 pb-0', titleRowClassName)}
-                        icon={sectionIcon ?? defaultHeaderIcon}
-                        title={sectionTitle}
-                        actions={
-                            <>
-                                <CarouselPrevious
-                                    variant="ghost"
-                                    hideWhenDisabled
-                                    aria-label="Anterior"
-                                    className={carouselHeaderNavButtonClassName}
-                                />
-                                <CarouselNext
-                                    variant="ghost"
-                                    hideWhenDisabled
-                                    aria-label="Próximo"
-                                    className={carouselHeaderNavButtonClassName}
-                                />
-                            </>
-                        }
-                    />
-                )}
+                {header}
 
                 <div className="relative min-w-0">
                     <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
 
-                    {!inlineHeader && (
+                    {!hasHeader && (
                         <>
                             <CarouselPrevious
                                 hideWhenDisabled

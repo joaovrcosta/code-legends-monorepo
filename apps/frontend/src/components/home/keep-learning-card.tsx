@@ -30,7 +30,7 @@ export function KeepLearningCard({ course, progress }: KeepLearningCardProps) {
             className="cursor-pointer"
         >
             <Link href={`/learn/paths/${course.course.slug}`}>
-                <div className={`flex items-center gap-4 px-4 py-2 bg-[#151517] rounded-[20px] border border-[#25252A] transition-opacity ${isLoading ? "opacity-50" : ""}`}>
+                <div className={`flex items-center gap-4 px-4 py-2 bg-primary rounded-[20px] border border-[#25252A] transition-opacity ${isLoading ? "opacity-50" : ""}`}>
                     <div>
                         {course.course.icon && (
                             <Image

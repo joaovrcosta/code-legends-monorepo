@@ -74,7 +74,7 @@ export function RecommendationsCarousel({
   return (
     <div
       className={cn(
-        'relative min-w-0 overflow-x-hidden overflow-y-visible pb-0',
+        'relative min-w-0 overflow-visible pb-16',
         inlineHeader ? 'pt-0' : 'pt-6',
       )}
     >

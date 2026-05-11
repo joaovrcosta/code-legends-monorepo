@@ -19,9 +19,6 @@ export async function CurrentCourses() {
 
     return (
         <div className="flex flex-col gap-4 w-full relative">
-            <h2 className="text-muted-foreground text-sm font-semibold mb-2 mt-8">
-                Continuar aprendendo
-            </h2>
 
             <div className="pointer-events-none absolute right-0 top-10 h-[calc(100%-40px)] w-20 bg-gradient-to-l from-surface via-surface/80 to-transparent z-10" />
 

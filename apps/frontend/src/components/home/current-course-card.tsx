@@ -57,12 +57,12 @@ export async function CurrentCourseCard() {
   // VISUAL PADRÃO (COM CURSO ATIVO)
   return (
     <div className="w-full max-w-full overflow-hidden">
-      <div className="flex flex-col lg:flex-row justify-between items-center rounded-[20px] bg-gradient-to-b border border-[#25252A] from-[#1a1a1e] to-[#0e0e0e] p-5 sm:p-6 gap-6">
+      <div className="flex flex-col lg:flex-row justify-between items-center rounded-[20px] bg-primary border border-[#25252A] p-5 sm:p-6 gap-6">
         <div className="flex flex-col items-center lg:items-start w-full lg:w-auto">
-          <div className="mb-4">
-            <span className="bg-transparent text-[#737373] border border-[#737373] text-[10px] sm:text-xs font-medium px-3 py-1 rounded-full uppercase tracking-wider">
-              Formação
-            </span>
+          <div className="px-2 text-gray-500 rounded-full border border-[#25252A] mb-6">
+            <p className="text-xs text-muted-foreground">
+              Curso ativo
+            </p>
           </div>
 
           <div className="flex flex-row items-center justify-center lg:justify-start gap-3 mb-6">
@@ -83,7 +83,7 @@ export async function CurrentCourseCard() {
             <div className="flex-1">
               <Progress
                 value={userProgress?.course.progress ?? 0}
-                className="w-full bg-[#25252A] h-[4px]"
+                className="w-full min-w-[200px] bg-[#25252A] h-[4px]"
               />
             </div>
             <span className="text-xs sm:text-sm text-[#737373] font-medium min-w-[35px]">
@@ -95,7 +95,7 @@ export async function CurrentCourseCard() {
           <div className="hidden lg:block mt-6">
             <button
               type="button"
-              className="flex items-center h-[42px] gap-2 px-5 py-2 bg-[#222226] hover:bg-[#2E2E32] text-white text-sm rounded-xl transition-all active:scale-95"
+              className="flex items-center h-[42px] gap-2 px-5 py-2 bg-[#25252a] hover:bg-[#2E2E32] text-white text-sm rounded-full transition-all active:scale-95"
             >
               <BarbellIcon size={20} className="text-[#FF6200]" weight="fill" />
               Pratique
@@ -113,7 +113,7 @@ export async function CurrentCourseCard() {
 
           <button
             type="button"
-            className="lg:hidden flex items-center justify-center w-full sm:w-[280px] h-[42px] gap-2 px-5 py-2 bg-[#222226] text-white text-sm rounded-xl border border-[#25252A]"
+            className="lg:hidden flex items-center justify-center w-full sm:w-[280px] h-[42px] gap-2 px-5 py-2 text-white text-sm rounded-full border border-[#25252A]"
           >
             <BarbellIcon size={18} className="text-[#FF6200]" weight="fill" />
             Pratique

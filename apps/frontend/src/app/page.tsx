@@ -8,8 +8,9 @@ import { UserProfiler } from '@/components/home/user-profiler'
 import { CurrentCourses } from '@/components/home/current-courses'
 import { HomePageWrapper } from '@/components/home/home-page-wrapper'
 import { PostPaymentWelcomeGate } from '@/components/providers/post-payment-welcome-gate'
-import { Flame } from '@phosphor-icons/react/ssr'
-import { CarouselSection } from '@/components/home/carousel-section'
+import { Briefcase } from '@phosphor-icons/react/ssr'
+import { CatalogCoursesCarousel } from '@/components/home/catalog-courses-carousel'
+import { SectionTitle } from './catalog-courses-carousel-title'
 
 export const metadata: Metadata = {
   title: 'Início - Code Legends',
@@ -29,16 +30,19 @@ export default async function Home() {
             {/* overflow-x só na coluna esquerda — no wrapper pai o `sticky` do profiler deixava de funcionar */}
             <div className="flex-1 flex flex-col items-start min-w-0 overflow-x-hidden">
               <div className="w-full">
-                <div className="flex items-center space-x-2 pb-4 pt-0">
-                  <span className="text-muted-foreground text-[14px] font-semibold">
-                    Trilha atual
-                  </span>
-                </div>
+                <SectionTitle
+                  className="mb-4"
+                  title="Trilha atual"
+                />
                 <div className="lg:pr-0 pr-6">
                   <CurrentCourseCard />
                 </div>
 
                 <div className="w-full mt-0">
+                  <SectionTitle
+                    className="mb-4 mt-8"
+                    title="Continuar aprendendo"
+                  />
                   <CurrentCourses />
                 </div>
 
@@ -46,35 +50,36 @@ export default async function Home() {
                   <UserProfiler />
                 </div>
 
-                <div className="mb-8">
-                  <CarouselSection
-                    courses={courses.courses}
-                    sectionTitle="Em alta"
-                    titleRowClassName="pt-8"
-                    sectionIcon={
-                      <Flame
-                        weight="fill"
-                        size={16}
-                        className="text-[#eceeef]"
-                        aria-hidden
-                      />
-                    }
+                <div className="mb-8 pt-8">
+                  <SectionTitle
+                    className=""
+                    title="Em alta"
                   />
+                  <CatalogCoursesCarousel courses={courses.courses} />
                 </div>
 
                 <div className="mb-8">
-                  <CarouselSection
-                    courses={courses.courses}
-                    sectionTitle="Recomendações"
+                  <SectionTitle
+                    className=""
+                    title="Recomendações"
                   />
+                  <CatalogCoursesCarousel courses={courses.courses} />
                 </div>
 
                 <div className="relative w-full min-w-0 overflow-hidden px-0 mb-6">
-                  <NewsBannerCarousel variant="novidades" />
+                  <SectionTitle
+                    className="mb-5"
+                    title="Novidades"
+                  />
+                  <NewsBannerCarousel />
                 </div>
 
                 <div className="relative w-full min-w-0 overflow-hidden px-0 pb-4">
-                  <CategoriesCarousel variant="carreiras" />
+                  <SectionTitle
+                    className="mb-5"
+                    title="Categorias"
+                  />
+                  <CategoriesCarousel />
                 </div>
               </div>
             </div>

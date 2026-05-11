@@ -1,16 +1,11 @@
 'use client'
 
-import { Briefcase } from '@phosphor-icons/react'
 import { Card } from '@/components/ui/card'
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  carouselHeaderNavButtonClassName,
 } from '@/components/ui/carousel'
-import { CarouselSectionHeader } from '@/components/ui/carousel-section-header'
 import Image from 'next/image'
 
 type CategorySlide = {
@@ -31,15 +26,7 @@ const CATEGORIES: CategorySlide[] = [
   { id: 'nodejs2', title: 'NodeJS', icon: "https://xesque.rocketseat.dev/platform/1724859305154.svg" },
 ]
 
-export type CategoriesCarouselProps = {
-  variant?: 'default' | 'carreiras'
-}
-
-export function CategoriesCarousel({
-  variant = 'default',
-}: CategoriesCarouselProps) {
-  const showCareersHeader = variant === 'carreiras'
-
+export function CategoriesCarousel() {
   return (
     <div className="relative w-full min-w-0">
       <Carousel
@@ -49,35 +36,6 @@ export function CategoriesCarousel({
         }}
         className="w-full"
       >
-        {showCareersHeader && (
-          <CarouselSectionHeader
-            className="pb-4 pt-2"
-            icon={
-              <Briefcase
-                weight="fill"
-                size={16}
-                className="text-[#eceeef]"
-                aria-hidden
-              />
-            }
-            title="Carreiras"
-            actions={
-              <>
-                <CarouselPrevious
-                  variant="ghost"
-                  aria-label="Categorias anteriores"
-                  className={carouselHeaderNavButtonClassName}
-                />
-                <CarouselNext
-                  variant="ghost"
-                  aria-label="Próximas categorias"
-                  className={carouselHeaderNavButtonClassName}
-                />
-              </>
-            }
-          />
-        )}
-
         <div className="relative min-w-0">
           <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-20 bg-gradient-to-l from-surface via-surface/60 to-transparent sm:w-32 lg:w-40" />
 

@@ -11,6 +11,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        primary: "#101013",
         surface: "var(--color-surface)",
         "surface-2": "var(--color-surface-2)",
         blueGradient500:
@@ -25,10 +26,6 @@ export default {
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
-        },
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
