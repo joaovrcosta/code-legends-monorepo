@@ -186,7 +186,7 @@ export function StreakCongratsModal() {
         <Lightning
           size={120}
           weight="fill"
-          className="text-lime-300 drop-shadow-[0_0_32px_rgba(163,230,53,0.55)]"
+          className="text-sky-300 drop-shadow-[0_0_36px_rgba(56,189,248,0.6)]"
         />
 
         <div className="mt-4 text-2xl text-[#C4C4CC] leading-relaxed">
@@ -248,7 +248,7 @@ export function StreakCongratsModal() {
                     "w-10 h-10 rounded-full flex items-center justify-center motion-reduce:transition-none",
                     !showLightning &&
                       "transition-all duration-300 ease-out",
-                    isActiveCircle ? "bg-lime-streak" : "bg-[#25252A]",
+                    isActiveCircle ? "bg-streak-flame" : "bg-[#25252A]",
                     showLightning && "animate-streak-bolinha-kick origin-center",
                   )}
                 >
@@ -256,7 +256,7 @@ export function StreakCongratsModal() {
                     <Lightning
                       size={20}
                       weight="fill"
-                      className="text-[#0f1408] animate-lightning-electric motion-reduce:animate-none"
+                      className="text-white drop-shadow-[0_0_8px_rgba(14,165,233,0.85)] animate-lightning-electric motion-reduce:animate-none"
                     />
                   ) : null}
                 </div>
@@ -267,7 +267,7 @@ export function StreakCongratsModal() {
         <div className="relative h-4 bg-[#25252A] rounded-full overflow-hidden">
           <div
             className={cn(
-              "absolute left-0 top-0 h-full rounded-full bg-lime-streak-bar motion-reduce:transition-none",
+              "absolute left-0 top-0 h-full rounded-full bg-streak-flame-bar motion-reduce:transition-none",
               reduceMotion ? "" : "transition-[width] ease-out",
             )}
             style={{

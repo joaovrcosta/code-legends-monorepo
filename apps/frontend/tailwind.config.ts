@@ -101,11 +101,11 @@ export default {
         "red-gradient-500": "linear-gradient(267deg, #570D0D 0%, #BD1C1C 100%)",
         "lime-gradient-500":
           "linear-gradient(267deg, #365314 0%, #4d7c0f 28%, #84cc16 58%, #bef264 82%, #ecfccb 100%)",
-        /** Streak / energia — lime denso → highlights claros */
-        "lime-streak":
-          "linear-gradient(267deg, #3f6212 0%, #65a30d 38%, #a3e635 72%, #d9f99d 100%)",
-        "lime-streak-bar":
-          "linear-gradient(90deg, #365314 0%, #65a30d 35%, #a3e635 62%, #ecfccb 100%)",
+        /** Streak — chama de fogão a gás (azul → ciano claro) */
+        "streak-flame":
+          "linear-gradient(267deg, #082f49 0%, #0c4a6e 18%, #0369a1 38%, #0284c7 56%, #0ea5e9 72%, #38bdf8 86%, #bae6fd 100%)",
+        "streak-flame-bar":
+          "linear-gradient(90deg, #082f49 0%, #0c4a6e 22%, #0369a1 44%, #0ea5e9 64%, #38bdf8 82%, #7dd3fc 100%)",
         "purple-gradient-500":
           "linear-gradient(267deg, #39007F 0%, #6547EB 100%)",
         "yellow-lightning-500":

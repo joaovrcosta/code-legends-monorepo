@@ -132,7 +132,7 @@ export default function LearnHeader({
           </div>
         </li>
 
-        <li className="flex-none sm:min-w-0 sm:flex-1 sm:max-w-[478px] mx-1 sm:mx-4">
+        {/* <li className="flex-none sm:min-w-0 sm:flex-1 sm:max-w-[478px] mx-1 sm:mx-4">
           <div
             className="relative cursor-pointer w-full max-w-[42px] sm:max-w-none"
             onClick={() => setIsSearchModalOpen(true)}
@@ -150,7 +150,7 @@ export default function LearnHeader({
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c4c4cc] pointer-events-none hidden sm:block"
             />
           </div>
-        </li>
+        </li> */}
 
         <li className="flex min-w-0 shrink-0 items-center">
           <div className="flex items-center gap-2 sm:gap-4">
