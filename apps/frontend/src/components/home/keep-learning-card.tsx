@@ -26,11 +26,9 @@ export function KeepLearningCard({ course, progress }: KeepLearningCardProps) {
     };
 
     return (
-        <div
-            className="cursor-pointer"
-        >
-            <Link href={`/learn/paths/${course.course.slug}`}>
-                <div className={`flex items-center gap-4 px-4 py-2 bg-primary rounded-[20px] border border-[#25252A] transition-opacity ${isLoading ? "opacity-50" : ""}`}>
+        <div className="cursor-pointer w-full min-w-0">
+            <Link href={`/learn/paths/${course.course.slug}`} className="block w-full min-w-0">
+                <div className={`flex w-full min-w-0 items-center gap-4 px-4 py-2 bg-primary rounded-[20px] border border-[#25252A] transition-opacity ${isLoading ? "opacity-50" : ""}`}>
                     <div>
                         {course.course.icon && (
                             <Image
@@ -71,5 +69,4 @@ export function KeepLearningCard({ course, progress }: KeepLearningCardProps) {
         </div>
     );
 }
-
 

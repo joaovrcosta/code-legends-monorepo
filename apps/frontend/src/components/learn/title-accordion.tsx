@@ -106,9 +106,9 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
             />
           </AccordionTrigger>
 
-          <AccordionContent className="lg:px-8 px-6 pb-8 border-t border-[#25252A] bg-[#0C0C0F]">
+          <AccordionContent className="lg:px-8 px-6 pb-6 border-t border-[#25252A] bg-[#0C0C0F]">
             <div className="pt-6">
-              <p className="text-[#a5a5a6] lg:text-base text-sm leading-relaxed mb-8 max-w-[900px]">
+              <p className="text-[#a5a5a6] lg:text-base text-sm leading-relaxed max-w-[900px]">
                 {description}
               </p>
 

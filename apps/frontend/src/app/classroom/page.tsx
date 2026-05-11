@@ -396,7 +396,7 @@ export default function ClassroomPage() {
 
         <div
           className={`flex-1 w-full bg-blue-aurora
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-[margin-left] duration-300 ease-in-out pt-[132px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-[margin-left] duration-300 ease-in-out pt-[111px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
             }`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
@@ -448,7 +448,7 @@ export default function ClassroomPage() {
       {/* Conteúdo principal */}
       <div
         className={`flex-1 w-full bg-blue-aurora
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-[margin-left] duration-300 ease-in-out pt-[132px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-[margin-left] duration-300 ease-in-out pt-[110px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
           }`}
       >
 

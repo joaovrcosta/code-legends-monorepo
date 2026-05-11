@@ -427,8 +427,8 @@ export default function VideoComponent({
             <Image
               src={notFoundImg}
               alt="Not Found"
-              width={320}
-              height={320}
+              width={240}
+              height={240}
               className="rounded-[20px]"
             />
           </div>

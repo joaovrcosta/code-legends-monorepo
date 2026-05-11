@@ -387,7 +387,7 @@ export default function DynamicLessonPage() {
           )}
         </aside>
         <div
-          className={`flex-1 w-full min-h-[calc(100dvh-63px)] lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)] bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)] text-white flex flex-col transition-all duration-300 ease-in-out pt-[132px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+          className={`flex-1 w-full min-h-[calc(100dvh-63px)] lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)] bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)] text-white flex flex-col transition-all duration-300 ease-in-out pt-[110px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
             }`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
@@ -490,7 +490,7 @@ export default function DynamicLessonPage() {
         <div
           className={`flex-1 w-full min-h-0 flex flex-col lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)]
-             text-white shadow-2xl shadow-[#00C8FF]/10 transition-all duration-300 ease-in-out pt-[132px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+             text-white shadow-2xl shadow-[#00C8FF]/10 transition-all duration-300 ease-in-out pt-[110px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
             }`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
@@ -574,7 +574,7 @@ export default function DynamicLessonPage() {
       <div
         className={`flex-1 w-full min-h-0 max-w-full overflow-x-hidden lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)]
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[132px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[110px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
           }`}
       >
         <header className="h-[78px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none mb-0 flex-shrink-0 lg:block hidden">

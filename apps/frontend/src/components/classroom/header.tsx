@@ -89,8 +89,8 @@ export default function ClassroomHeader({
 
   return (
     <div className="fixed top-0 left-0 w-full z-40 bg-white shadow-md">
-      <header className="fixed top-0 left-0 w-full z-40 bg-surface shadow-lg lg:py-0 pt-2 pb-0">
-        <ul className="relative z-10 mx-auto flex w-full items-center justify-between px-4 pt-2 pb-4 lg:pt-4 lg:pb-4">
+      <header className="fixed top-0 left-0 w-full z-40 bg-surface shadow-lg lg:py-0 pb-0">
+        <ul className="relative z-10 mx-auto flex w-full items-center justify-between px-4 py-2 lg:pt-4 lg:pb-4">
           <li className="flex items-center lg:space-x-6">
             <button
               onClick={toggleSidebar}
