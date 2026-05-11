@@ -180,7 +180,7 @@ export function CatalogCard({
           alt="Background do Card"
           fill
           priority
-          className="object-cover absolute inset-0 opacity-30 pointer-events-none"
+          className="object-cover absolute inset-0 opacity-80 pointer-events-none"
         />
 
         {label && (

@@ -20,7 +20,7 @@ export function SectionTitle({
                     {icon}
                 </div>
             ) : null}
-            <span className="text-muted-foreground text-sm font-semibold">
+            <span className="text-[#666] text-sm font-semibold">
                 {title}
             </span>
         </div>

@@ -95,7 +95,7 @@ export async function CurrentCourseCard() {
           <div className="hidden lg:block mt-6">
             <button
               type="button"
-              className="flex items-center h-[42px] gap-2 px-5 py-2 bg-[#25252a] hover:bg-[#2E2E32] text-white text-sm rounded-full transition-all active:scale-95"
+              className="flex items-center h-[42px] gap-2 px-5 py-2 bg-[#18181f] hover:bg-[#2E2E32] text-white text-sm rounded-full transition-all active:scale-95"
             >
               <BarbellIcon size={20} className="text-[#FF6200]" weight="fill" />
               Pratique
