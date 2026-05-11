@@ -88,7 +88,7 @@ export async function UserProfiler() {
 
           {/* Botão Meu perfil */}
           <Link href="/account" className="flex-1">
-            <button className="w-full h-[44px] bg-transparent border border-[#25252a] hover:opacity-90 hover:bg-[#25252a] transition-all rounded-[12px] text-white font-medium text-sm flex items-center justify-center">
+            <button className="w-full h-[44px] bg-transparent border border-[#25252a] hover:opacity-90 hover:bg-[#25252a] transition-all rounded-full text-white font-medium text-sm flex items-center justify-center">
               Meu perfil
             </button>
           </Link>
