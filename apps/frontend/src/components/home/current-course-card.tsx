@@ -121,7 +121,7 @@ export async function CurrentCourseCard() {
         </div>
       </div>
 
-      <div className="pt-4 px-2">
+      {/* <div className="pt-4 px-2">
         <p className="text-[#737373] text-[11px] sm:text-xs text-center lg:text-left leading-relaxed">
           Parte da jornada front-end{' '}
           <Link
@@ -131,7 +131,7 @@ export async function CurrentCourseCard() {
             Veja a nossa Trilha de Aprendizado
           </Link>
         </p>
-      </div>
+      </div> */}
     </div>
   )
 }
