@@ -74,7 +74,7 @@ export async function CurrentCourseCard() {
                 className="object-contain"
               />
             </div>
-            <h2 className="font-bold text-[28px] sm:text-[28px] leading-tight">
+            <h2 className="font-bold lg:text-[28px] text-[24px] sm:text-[28px] leading-tight">
               {activeCourse.title}
             </h2>
           </div>
