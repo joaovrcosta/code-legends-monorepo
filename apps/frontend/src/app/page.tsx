@@ -22,6 +22,10 @@ export default async function Home() {
   const courses = await listCourses()
   const enrolledCoursesData = await getUserEnrolledList()
 
+  const hasContinueLearningCourses = (enrolledCoursesData.userCourses ?? []).some(
+    (course) => course.progress > 0 && !course.isCompleted,
+  )
+
   return (
     <>
       <HomePageWrapper initialUserCourses={enrolledCoursesData.userCourses || []}>
@@ -38,13 +42,15 @@ export default async function Home() {
                   <CurrentCourseCard />
                 </div>
 
-                <div className="w-full mt-0">
-                  <SectionTitle
-                    className="mb-4 mt-8"
-                    title="Continuar aprendendo"
-                  />
-                  <CurrentCourses />
-                </div>
+                {hasContinueLearningCourses ? (
+                  <div className="w-full mt-0">
+                    <SectionTitle
+                      className="mb-4 mt-8"
+                      title="Continuar aprendendo"
+                    />
+                    <CurrentCourses />
+                  </div>
+                ) : null}
 
                 <div className="lg:hidden w-full pr-6 lg:mt-6 mt-12">
                   <UserProfiler />
