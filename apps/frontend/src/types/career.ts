@@ -4,6 +4,7 @@ export type CareerListItem = {
   title: string
   description: string | null
   thumbnail: string | null
+  icon: string | null
   colorHex: string | null
   modulesCount: number
 }
@@ -52,6 +53,7 @@ export type GetCareerBySlugResponse = {
     title: string
     description: string | null
     thumbnail: string | null
+    icon: string | null
     colorHex: string | null
   }
   modules: CareerModule[]

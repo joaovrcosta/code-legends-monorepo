@@ -50,6 +50,7 @@ model Career {
   title       String
   description String?
   thumbnail   String?
+  icon        String?
   colorHex    String?
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())

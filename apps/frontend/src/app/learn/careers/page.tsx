@@ -23,6 +23,7 @@ export default async function CareersPage() {
               href={`/learn/careers/${c.slug}`}
               badge="Carreira"
               pills={[`${c.modulesCount} módulos`]}
+              iconUrl={c.icon ?? c.thumbnail}
             />
           ))}
         </div>

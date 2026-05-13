@@ -13,7 +13,12 @@ export type CareerTrackCardProps = {
   pills?: string[]
   level?: string
   className?: string
+  /** URL externa (SVG/PNG); se ausente, usa ilustração padrão */
+  iconUrl?: string | null
 }
+
+const DEFAULT_TRACK_ILLUSTRATION =
+  'https://xesque.rocketseat.dev/platform/1760965821149.svg'
 
 export function CareerTrackCard({
   title,
@@ -22,6 +27,7 @@ export function CareerTrackCard({
   pills = [],
   level,
   className,
+  iconUrl,
 }: CareerTrackCardProps) {
   return (
     <Link
@@ -52,12 +58,24 @@ export function CareerTrackCard({
       {/* Conteúdo */}
       <div className="relative z-10 flex h-full flex-col p-5">
         <div className="flex items-start justify-between gap-3">
-          <Image
-            src="https://xesque.rocketseat.dev/platform/1760965821149.svg"
-            alt="Trilha de carreira"
-            width={80}
-            height={80}
-          />
+          {iconUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={iconUrl}
+              alt=""
+              width={80}
+              height={80}
+              className="h-20 w-20 shrink-0 object-contain"
+            />
+          ) : (
+            <Image
+              src={DEFAULT_TRACK_ILLUSTRATION}
+              alt="Trilha de carreira"
+              width={80}
+              height={80}
+              unoptimized
+            />
+          )}
 
           {badge ? (
             <div className="shrink-0 rounded-full border border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-orange-400/20 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-purple-300">

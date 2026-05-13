@@ -8,6 +8,7 @@ export type UpdateCareerData = Partial<{
   title: string;
   description: string | null;
   thumbnail: string | null;
+  icon: string | null;
   colorHex: string | null;
   active: boolean;
 }>;

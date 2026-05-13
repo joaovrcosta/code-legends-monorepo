@@ -8,6 +8,7 @@ export type CreateCareerData = {
   title: string;
   description?: string;
   thumbnail?: string;
+  icon?: string;
   colorHex?: string;
   active?: boolean;
 };

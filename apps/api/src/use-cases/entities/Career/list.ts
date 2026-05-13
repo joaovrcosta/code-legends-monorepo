@@ -7,6 +7,7 @@ export interface ListCareersResponse {
     title: string
     description: string | null
     thumbnail: string | null
+    icon: string | null
     colorHex: string | null
     modulesCount: number
   }>
@@ -33,6 +34,7 @@ export class ListCareersUseCase {
         title: c.title,
         description: c.description,
         thumbnail: c.thumbnail,
+        icon: c.icon,
         colorHex: c.colorHex,
         modulesCount: c._count.modules,
       })),

@@ -23,7 +23,7 @@ export default async function CareerDetailPage({
     <div className="w-full">
       {/* Banner full-width */}
       <section
-        className="relative w-full border-b border-[#25252A] px-4 pb-8 pt-6 lg:px-12 lg:py-12"
+        className="relative w-full border-b border-[#25252A] px-4 pb-8 pt-6 lg:px-12 lg:py-12 xl:px-0"
         style={getAuroraBackground(data.career.colorHex)}
       >
         <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
@@ -42,21 +42,28 @@ export default async function CareerDetailPage({
               </span>
             </Link>
 
-            {data.career.thumbnail ? (
+            {data.career.icon || data.career.thumbnail ? (
               <div className="mb-4 flex items-center justify-center lg:justify-start">
-                <Image
-                  src={data.career.thumbnail}
-                  alt={data.career.title}
-                  width={120}
-                  height={120}
-                  className="relative lg:right-[12px] right-0"
-                />
+                {data.career.icon ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={data.career.icon}
+                    alt=""
+                    width={140}
+                    height={140}
+                    className="relative right-0 object-contain lg:right-[12px]"
+                  />
+                ) : data.career.thumbnail ? (
+                  <Image
+                    src={data.career.thumbnail}
+                    alt={data.career.title}
+                    width={120}
+                    height={120}
+                    className="relative lg:right-[12px] right-0"
+                  />
+                ) : null}
               </div>
             ) : null}
-
-            <span className="mb-4 shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/70">
-              Carreira
-            </span>
 
             <h1 className="font-bold lg:text-[44px] text-2xl lg:text-left leading-tight text-center mb-3 text-white">
               {data.career.title}
@@ -97,13 +104,13 @@ export default async function CareerDetailPage({
         </div>
       </section>
 
-      <div className="mx-auto flex w-full max-w-[1420px] flex-col items-start mt-6">
-        <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start xl:px-0 lg:px-4 px-4">
+      <div className="mx-auto mt-6 flex w-full max-w-[1420px] flex-col items-start px-4 sm:px-6 lg:px-8 xl:px-0">
+        <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
           <div id="modulos" className="min-w-0 space-y-4">
             {data.modules.map((m) => (
               <div
                 key={m.id}
-                className="w-full rounded-2xl py-4 px-0"
+                className="w-full rounded-2xl py-4"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -133,13 +140,23 @@ export default async function CareerDetailPage({
 
                 <div className="mt-4 grid grid-cols-1 gap-3">
                   <div className="">
-                    <ul className="mt-3 space-y-2">
+                    <ul className="mt-3 space-y-5">
                       {m.courses.map((c) => (
                         <li
                           key={c.id}
                           className="flex items-center justify-between gap-3"
                         >
                           <div className="flex min-w-0 items-center gap-3">
+                            <ProgressRing
+                              progress={Math.max(0, Math.min(1, c.progress / 100))}
+                              moduleNumber={0}
+                              size={34}
+                              strokeWidth={2}
+                              progressColor="stroke-[#00C8FF]"
+                              trackColor="stroke-[#25252A]"
+                              padModuleNumber={false}
+                              centerLabel={`${Math.round(c.progress)}%`}
+                            />
                             {c.icon ? (
                               <span className="relative block h-10 w-10 shrink-0 overflow-hidden">
                                 <Image
@@ -163,16 +180,6 @@ export default async function CareerDetailPage({
                                 <div className="truncate text-sm font-medium text-white/90">
                                   {c.title}
                                 </div>
-                                <ProgressRing
-                                  progress={Math.max(0, Math.min(1, c.progress / 100))}
-                                  moduleNumber={0}
-                                  size={34}
-                                  strokeWidth={2.5}
-                                  progressColor="stroke-[#00C8FF]"
-                                  trackColor="stroke-[#25252A]"
-                                  padModuleNumber={false}
-                                  centerLabel={`${Math.round(c.progress)}%`}
-                                />
                               </div>
                             </div>
                           </div>
@@ -199,16 +206,19 @@ export default async function CareerDetailPage({
                       {m.exams.map((e) => (
                         <div
                           key={e.id}
-                          className="flex flex-col gap-4 px-4 py-5 rounded-[16px] bg-[#101013] border border-[#25252A] transition-opacity sm:flex-row sm:items-center sm:justify-between"
+                          className="flex flex-col gap-4 px-4 py-5 rounded-[20px] bg-primary border border-[#25252A] transition-opacity sm:flex-row sm:items-center sm:justify-between"
                         >
                           <div className="flex items-center gap-4">
                             <div>
                               <FlaskIcon
                                 size={20}
-                                className="text-white"
+                                className="text-[#a7f3d7]"
                               />
                             </div>
                             <div className="min-w-0">
+                              <div className="text-[10px] text-white/50 mb-2 uppercase tracking-widest">
+                                Exame de certificação
+                              </div>
                               <div className="text-sm font-semibold text-white leading-snug line-clamp-2 sm:line-clamp-1">
                                 {e.title}
                                 {e.passed ? (
@@ -216,9 +226,6 @@ export default async function CareerDetailPage({
                                     <Check size={14} weight="bold" className="text-emerald-200" />
                                   </span>
                                 ) : null}
-                              </div>
-                              <div className="text-xs text-white/50">
-                                Nota mínima: {e.passingScore}%
                               </div>
                             </div>
                           </div>

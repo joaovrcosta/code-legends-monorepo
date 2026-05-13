@@ -24,6 +24,7 @@ export default function NewCareerPage() {
     slug: "",
     description: "",
     thumbnail: "",
+    icon: "",
     colorHex: "",
     active: true,
   });
@@ -49,6 +50,7 @@ export default function NewCareerPage() {
           slug: form.slug,
           description: form.description || undefined,
           thumbnail: form.thumbnail || undefined,
+          icon: form.icon || undefined,
           colorHex: form.colorHex || undefined,
           active: form.active,
         },
@@ -130,6 +132,15 @@ export default function NewCareerPage() {
                     id="thumbnail"
                     value={form.thumbnail}
                     onChange={(e) => setForm({ ...form, thumbnail: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="icon">Ícone (URL)</Label>
+                  <Input
+                    id="icon"
+                    value={form.icon}
+                    onChange={(e) => setForm({ ...form, icon: e.target.value })}
+                    placeholder="https://… (SVG ou PNG)"
                   />
                 </div>
                 <div className="space-y-2">

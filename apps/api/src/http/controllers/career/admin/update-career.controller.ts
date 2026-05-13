@@ -9,6 +9,7 @@ export async function adminUpdateCareer(request: FastifyRequest, reply: FastifyR
     title: z.string().min(2).optional(),
     description: z.string().nullable().optional(),
     thumbnail: z.string().nullable().optional(),
+    icon: z.string().nullable().optional(),
     colorHex: z.string().nullable().optional(),
     active: z.boolean().optional(),
   })
@@ -23,6 +24,7 @@ export async function adminUpdateCareer(request: FastifyRequest, reply: FastifyR
       ...(body.title !== undefined ? { title: body.title } : {}),
       ...(body.description !== undefined ? { description: body.description } : {}),
       ...(body.thumbnail !== undefined ? { thumbnail: body.thumbnail } : {}),
+      ...(body.icon !== undefined ? { icon: body.icon } : {}),
       ...(body.colorHex !== undefined ? { colorHex: body.colorHex } : {}),
       ...(body.active !== undefined ? { active: body.active } : {}),
     },

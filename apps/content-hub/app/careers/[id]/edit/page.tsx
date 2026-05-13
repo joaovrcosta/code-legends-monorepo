@@ -63,6 +63,7 @@ export default function EditCareerPage() {
     slug: "",
     description: "",
     thumbnail: "",
+    icon: "",
     colorHex: "",
     active: true,
   });
@@ -93,6 +94,7 @@ export default function EditCareerPage() {
         slug: found.slug,
         description: found.description ?? "",
         thumbnail: found.thumbnail ?? "",
+        icon: found.icon ?? "",
         colorHex: found.colorHex ?? "",
         active: found.active,
       });
@@ -132,6 +134,7 @@ export default function EditCareerPage() {
           slug: form.slug,
           description: form.description || null,
           thumbnail: form.thumbnail || null,
+          icon: form.icon || null,
           colorHex: form.colorHex || null,
           active: form.active,
         },
@@ -295,6 +298,15 @@ export default function EditCareerPage() {
                   id="thumbnail"
                   value={form.thumbnail}
                   onChange={(e) => setForm({ ...form, thumbnail: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="icon">Ícone (URL)</Label>
+                <Input
+                  id="icon"
+                  value={form.icon}
+                  onChange={(e) => setForm({ ...form, icon: e.target.value })}
+                  placeholder="https://… (SVG ou PNG)"
                 />
               </div>
               <div className="space-y-2">

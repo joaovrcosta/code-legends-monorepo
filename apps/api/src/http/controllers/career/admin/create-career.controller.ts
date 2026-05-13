@@ -8,6 +8,7 @@ export async function adminCreateCareer(request: FastifyRequest, reply: FastifyR
     title: z.string().min(2),
     description: z.string().optional(),
     thumbnail: z.string().optional(),
+    icon: z.string().optional(),
     colorHex: z.string().optional(),
     active: z.boolean().optional(),
   })
@@ -20,6 +21,7 @@ export async function adminCreateCareer(request: FastifyRequest, reply: FastifyR
       title: body.title,
       description: body.description ?? null,
       thumbnail: body.thumbnail ?? null,
+      icon: body.icon ?? null,
       colorHex: body.colorHex ?? null,
       active: body.active ?? true,
     },

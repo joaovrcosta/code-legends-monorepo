@@ -13,6 +13,7 @@ export interface GetCareerBySlugResponse {
     title: string
     description: string | null
     thumbnail: string | null
+    icon: string | null
     colorHex: string | null
   }
   modules: Array<{
@@ -190,6 +191,7 @@ export class GetCareerBySlugUseCase {
         title: career.title,
         description: career.description,
         thumbnail: career.thumbnail,
+        icon: career.icon,
         colorHex: career.colorHex,
       },
       modules,
