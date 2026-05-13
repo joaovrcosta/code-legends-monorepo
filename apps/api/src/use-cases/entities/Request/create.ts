@@ -19,7 +19,7 @@ interface CreateRequestResponse {
 }
 
 export class CreateRequestUseCase {
-  constructor(private requestRepository: IRequestRepository) {}
+  constructor(private requestRepository: IRequestRepository) { }
 
   async execute(data: CreateRequestRequest): Promise<CreateRequestResponse> {
     if (data.type === CAREER_FINAL_EXAM_REQUEST_TYPE) {

@@ -25,6 +25,12 @@ interface RequestStatusData {
   response?: string | null;
 }
 
+function truncateForNotification(text: string, max: number): string {
+  const t = text.trim();
+  if (t.length <= max) return t;
+  return `${t.slice(0, max - 1)}…`;
+}
+
 interface CourseData {
   courseId: string;
   courseTitle: string;
@@ -115,12 +121,37 @@ export class NotificationBuilder {
       userId,
       type: NotificationType.REQUEST_STATUS_CHANGED,
       title: `Solicitação ${statusMessage} ${emoji}`,
-      message: `Sua solicitação foi ${statusMessage}${requestData.response ? `. ${requestData.response}` : ""}`,
+      message: `Sua solicitação foi ${statusMessage}${requestData.response
+        ? `. ${truncateForNotification(String(requestData.response), 400)}`
+        : ""
+        }`,
       data: {
         requestId: requestData.requestId,
         oldStatus: requestData.oldStatus,
         newStatus: requestData.newStatus,
         response: requestData.response,
+      },
+    };
+  }
+
+  static createRequestReplyNotification(
+    userId: string,
+    requestData: { requestId: string; title: string | null; response: string }
+  ) {
+    const preview = truncateForNotification(requestData.response, 450);
+    const label = requestData.title?.trim()
+      ? `"${truncateForNotification(requestData.title, 100)}"`
+      : "sua solicitação";
+
+    return {
+      userId,
+      type: NotificationType.REQUEST_STATUS_CHANGED,
+      title: "Equipe Code Legends 💬",
+      message: `Há uma nova mensagem em ${label}: ${preview}`,
+      data: {
+        requestId: requestData.requestId,
+        response: requestData.response,
+        kind: "REQUEST_REPLY" as const,
       },
     };
   }

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createRequest } from "@/actions/request/create-request";
 import { generateCareerCertificate } from "@/actions/career/generate-career-certificate";
 import { Lock } from "@phosphor-icons/react";
+import { FinalExamSchedulePicker } from "./final-exam-schedule-picker";
 
 const REQUEST_TYPE = "CAREER_FINAL_EXAM";
 
@@ -39,18 +42,41 @@ export function CareerCertificatePanel({
 }: CareerCertificatePanelProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [pickerKey, setPickerKey] = useState(0);
+  const [selectedSlotIso, setSelectedSlotIso] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [issueLoading, setIssueLoading] = useState(false);
 
+  const handleSlotChange = useCallback((iso: string | null) => {
+    setSelectedSlotIso(iso);
+  }, []);
+
   const handleSchedule = async () => {
+    if (!selectedSlotIso) {
+      alert("Selecione um dia e um horário disponíveis.");
+      return;
+    }
     setLoading(true);
     try {
+      const slotLabel = format(parseISO(selectedSlotIso), "PPP 'às' HH:mm", {
+        locale: ptBR,
+      });
+      const descriptionParts = [
+        `Horário preferido: ${slotLabel}.`,
+        notes.trim() ? `Observações: ${notes.trim()}` : null,
+      ].filter(Boolean);
+
       const res = await createRequest({
         type: REQUEST_TYPE,
         title: `Exame final — ${careerTitle}`,
-        description: notes.trim() || undefined,
-        data: JSON.stringify({ careerId, careerSlug }),
+        description: descriptionParts.join("\n\n"),
+        data: JSON.stringify({
+          careerId,
+          careerSlug,
+          preferredSlotStart: selectedSlotIso,
+          notes: notes.trim() || undefined,
+        }),
       });
       if (!res.success) {
         alert(res.message);
@@ -58,6 +84,7 @@ export function CareerCertificatePanel({
       }
       setOpen(false);
       setNotes("");
+      setSelectedSlotIso(null);
       router.refresh();
     } finally {
       setLoading(false);
@@ -152,29 +179,50 @@ export function CareerCertificatePanel({
         agende e realize o exame final para liberar o certificado.
       </p>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="border-[#25252A] bg-[#0c0c0d] text-white sm:max-w-md">
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next);
+          if (next) {
+            setPickerKey((k) => k + 1);
+          } else {
+            setNotes("");
+            setSelectedSlotIso(null);
+          }
+        }}
+      >
+        <DialogContent className="border-[#25252A] bg-[#0c0c0d] text-white sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Agendar exame final</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 py-2">
-            <label htmlFor="final-exam-notes" className="text-sm text-white/80 block">
-              Preferência de data / observações (opcional)
-            </label>
-            <Textarea
-              id="final-exam-notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={4}
-              className="border-[#333] bg-[#141418] text-white"
-              placeholder="Ex.: fins de semana à tarde…"
+          <div className="space-y-4 py-2">
+            <FinalExamSchedulePicker
+              key={pickerKey}
+              onSlotChange={handleSlotChange}
             />
+            <div className="space-y-2">
+              <label htmlFor="final-exam-notes" className="text-sm text-white/80 block">
+                Observações adicionais (opcional)
+              </label>
+              <Textarea
+                id="final-exam-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className="border-[#333] bg-[#141418] text-white"
+                placeholder="Ex.: necessidade de acessibilidade, fuso horário, etc."
+              />
+            </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
-            <Button type="button" disabled={loading} onClick={handleSchedule}>
+            <Button
+              type="button"
+              disabled={loading || !selectedSlotIso}
+              onClick={handleSchedule}
+            >
               {loading ? "Enviando…" : "Enviar solicitação"}
             </Button>
           </DialogFooter>

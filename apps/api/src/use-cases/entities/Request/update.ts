@@ -33,6 +33,12 @@ export class UpdateRequestUseCase {
       throw new RequestNotFoundError();
     }
 
+    const newResponseTrimmed = (data.response ?? "").trim();
+    const oldResponseTrimmed = (requestExists.response ?? "").trim();
+    const responseUpdatedWithText =
+      newResponseTrimmed.length > 0 &&
+      newResponseTrimmed !== oldResponseTrimmed;
+
     const updateData: any = {
       status: data.status,
       title: data.title,
@@ -42,8 +48,9 @@ export class UpdateRequestUseCase {
       respondedBy: data.respondedBy,
     };
 
-    // Se está mudando o status para algo diferente de PENDING, registrar resposta
     if (data.status && data.status !== "PENDING") {
+      updateData.respondedAt = new Date();
+    } else if (data.response !== undefined && responseUpdatedWithText) {
       updateData.respondedAt = new Date();
     }
 
@@ -89,23 +96,39 @@ export class UpdateRequestUseCase {
       }
     }
 
-    // Criar notificação se o status mudou
-    if (data.status && data.status !== requestExists.status) {
+    const statusChanged =
+      data.status != null && data.status !== requestExists.status;
+
+    if (statusChanged) {
       try {
         const notificationData = NotificationBuilder.createRequestStatusNotification(
           requestExists.userId,
           {
             requestId: request.id,
             oldStatus: requestExists.status,
-            newStatus: data.status,
+            newStatus: data.status as string,
             response: data.response ?? null,
           }
         );
 
         await createNotification(notificationData);
       } catch (error) {
-        // Não quebra o fluxo se a notificação falhar
         console.error("Erro ao criar notificação de status de solicitação:", error);
+      }
+    } else if (responseUpdatedWithText) {
+      try {
+        const notificationData = NotificationBuilder.createRequestReplyNotification(
+          requestExists.userId,
+          {
+            requestId: request.id,
+            title: requestExists.title,
+            response: newResponseTrimmed,
+          }
+        );
+
+        await createNotification(notificationData);
+      } catch (error) {
+        console.error("Erro ao criar notificação de resposta na solicitação:", error);
       }
     }
 

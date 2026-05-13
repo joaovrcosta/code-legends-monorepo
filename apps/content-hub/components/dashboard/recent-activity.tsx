@@ -66,9 +66,11 @@ function RequestList({ items }: { items: DashboardRecentRequest[] }) {
   return (
     <div className="space-y-3">
       {items.map((request) => (
-        <div
+        <Link
           key={request.id}
-          className="rounded-lg border border-gray-200 p-4 dark:border-[#25252a]"
+          href={`/requests/${encodeURIComponent(request.id)}`}
+          className="block rounded-lg border border-gray-200 p-4 transition-colors hover:border-gray-300 hover:bg-gray-50/80 dark:border-[#25252a] dark:hover:border-[#3f3f46] dark:hover:bg-white/3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+          aria-label={`Ver solicitação: ${request.title || "sem título"}`}
         >
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
@@ -80,7 +82,7 @@ function RequestList({ items }: { items: DashboardRecentRequest[] }) {
               </p>
             </div>
             <span
-              className={`rounded-full px-2.5 py-1 text-xs font-medium ${requestStatusClassName[request.status] ?? requestStatusClassName.PENDING
+              className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${requestStatusClassName[request.status] ?? requestStatusClassName.PENDING
                 }`}
             >
               {requestStatusLabel[request.status] ?? request.status}
@@ -89,7 +91,7 @@ function RequestList({ items }: { items: DashboardRecentRequest[] }) {
           <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
             {formatDate(request.createdAt)}
           </p>
-        </div>
+        </Link>
       ))}
     </div>
   );
