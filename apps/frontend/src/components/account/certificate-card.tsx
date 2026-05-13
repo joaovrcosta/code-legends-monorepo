@@ -1,12 +1,15 @@
+import Link from "next/link";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 
 interface CertificateCardProps {
+  certificateId: string;
   courseName: string;
   completedAt?: Date | string | null;
 }
 
 export function CertificateCard({
+  certificateId,
   courseName,
   completedAt,
 }: CertificateCardProps) {
@@ -34,8 +37,11 @@ export function CertificateCard({
           </p>
         )}
       </div>
-      <Button className="bg-transparent border border-[#25252a] text-white">
-        Ver certificado
+      <Button
+        asChild
+        className="bg-transparent border border-[#25252a] text-white hover:bg-white/5"
+      >
+        <Link href={`/certificates/${certificateId}`}>Ver certificado</Link>
       </Button>
     </Card>
   );
