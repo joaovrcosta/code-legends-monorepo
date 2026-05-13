@@ -52,13 +52,12 @@ export class CreateCareerCertificateUseCase {
     if (!userCareer) {
       throw new CareerNotFoundError()
     }
-    if (!(userCareer as { finalExamClearedAt?: Date | null }).finalExamClearedAt) {
+    const readiness = await evaluateCareerCertificationReadiness(userId, careerId)
+    if (!readiness.finalExamClearedAt) {
       throw new CareerCertificateNotEligibleError(
         'Exame final ainda não foi liberado. Aguarde a aprovação da solicitação.',
       )
     }
-
-    const readiness = await evaluateCareerCertificationReadiness(userId, careerId)
     if (!readiness.onlineTrackComplete) {
       throw new CareerCertificateNotEligibleError(
         'Conclua todos os cursos (100%) e exames com nota mínima para emitir o certificado.',

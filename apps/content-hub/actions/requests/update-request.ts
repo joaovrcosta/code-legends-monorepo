@@ -3,7 +3,7 @@
 import { buildApiHeaders } from "@/actions/auth";
 
 export interface UpdateRequestData {
-  status?: "PENDING" | "APPROVED" | "REJECTED" | "IN_PROGRESS";
+  status?: "PENDING" | "APPROVED" | "REJECTED";
   response?: string;
 }
 

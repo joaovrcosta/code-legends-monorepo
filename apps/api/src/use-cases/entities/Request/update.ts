@@ -63,8 +63,18 @@ export class UpdateRequestUseCase {
       requestExists.data
     ) {
       try {
-        const parsed = JSON.parse(requestExists.data) as { careerId?: string };
-        const careerId = parsed.careerId;
+        const parsed = JSON.parse(requestExists.data) as {
+          careerId?: string;
+          careerSlug?: string;
+        };
+        let careerId = parsed.careerId;
+        if (!careerId && parsed.careerSlug) {
+          const c = await prisma.career.findUnique({
+            where: { slug: parsed.careerSlug },
+            select: { id: true },
+          });
+          careerId = c?.id;
+        }
         if (careerId) {
           const uc = await prisma.userCareer.findUnique({
             where: {

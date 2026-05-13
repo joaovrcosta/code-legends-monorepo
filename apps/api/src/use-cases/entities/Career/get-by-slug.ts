@@ -195,15 +195,16 @@ export class GetCareerBySlugUseCase {
     ])
 
     const certificateIssued = certificate != null
-    const finalExamRaw = (userCareer as { finalExamClearedAt?: Date | null } | null)
-      ?.finalExamClearedAt
-    const finalExamClearedAt = finalExamRaw ? finalExamRaw.toISOString() : null
+    const finalExamEffective = readiness?.finalExamClearedAt ?? null
+    const finalExamClearedAt = finalExamEffective
+      ? new Date(finalExamEffective).toISOString()
+      : null
     const finalExamRequestPending = readiness?.pendingFinalExamRequest ?? false
     const canScheduleFinalExam = Boolean(
       readiness &&
         readiness.onlineTrackComplete &&
         !certificateIssued &&
-        !finalExamRaw &&
+        finalExamEffective == null &&
         !readiness.pendingFinalExamRequest,
     )
 

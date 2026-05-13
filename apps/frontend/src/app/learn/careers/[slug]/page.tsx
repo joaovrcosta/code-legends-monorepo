@@ -211,52 +211,52 @@ export default async function CareerDetailPage({
                           className="flex flex-col gap-3 px-4 py-5 rounded-[20px] bg-primary border border-[#25252A] transition-opacity"
                         >
                           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex items-center gap-4">
-                            <div>
-                              <FlaskIcon
-                                size={20}
-                                className="text-[#a7f3d7]"
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="text-[10px] text-white/50 mb-2 uppercase tracking-widest">
-                                Exame de certificação
+                            <div className="flex items-center gap-4">
+                              <div>
+                                <FlaskIcon
+                                  size={20}
+                                  className="text-[#a7f3d7]"
+                                />
                               </div>
-                              <div className="text-sm font-semibold text-white leading-snug line-clamp-2 sm:line-clamp-1">
-                                {e.title}
-                                {e.passed ? (
-                                  <span className="ml-2 inline-flex align-middle opacity-70">
-                                    <Check size={14} weight="bold" className="text-emerald-200" />
-                                  </span>
+                              <div className="min-w-0">
+                                <div className="text-[10px] text-white/50 mb-2 uppercase tracking-widest">
+                                  Exame de certificação
+                                </div>
+                                <div className="text-sm font-semibold text-white leading-snug line-clamp-2 sm:line-clamp-1">
+                                  {e.title}
+                                  {e.passed ? (
+                                    <span className="ml-2 inline-flex align-middle opacity-70">
+                                      <Check size={14} weight="bold" className="text-emerald-200" />
+                                    </span>
+                                  ) : null}
+                                </div>
+                                {e.bestScore != null ? (
+                                  <div className="mt-1 text-[11px] text-white/45">
+                                    Melhor nota: {Math.round(e.bestScore)}%
+                                  </div>
                                 ) : null}
                               </div>
-                              {e.bestScore != null ? (
-                                <div className="mt-1 text-[11px] text-white/45">
-                                  Melhor nota: {Math.round(e.bestScore)}%
-                                </div>
-                              ) : null}
                             </div>
-                          </div>
-                          <div className="w-full sm:w-auto sm:shrink-0">
-                            {data.enrollment.isEnrolled ? (
-                              <Button
-                                asChild
-                                className="h-10 w-full sm:w-auto rounded-full px-5 text-sm font-semibold bg-transparent hover:bg-white/5 text-white/80 transition-all"
-                              >
-                                <Link href={`/learn/careers/${data.career.slug}/exams/${e.id}`}>
-                                  {e.passed ? "Refazer prova" : "Fazer teste"}
-                                </Link>
-                              </Button>
-                            ) : (
-                              <div
-                                className="flex h-10 w-full min-h-10 min-w-0 sm:w-auto sm:min-w-[120px] shrink-0 cursor-not-allowed items-center justify-center rounded-full border border-[#25252A] bg-white/[0.04] text-white/45"
-                                title="Inscreva-se na carreira para fazer o teste"
-                                aria-label="Exame bloqueado: inscreva-se na carreira para fazer o teste"
-                              >
-                                <Lock size={22} weight="bold" className="text-white/55" />
-                              </div>
-                            )}
-                          </div>
+                            <div className="w-full sm:w-auto sm:shrink-0">
+                              {data.enrollment.isEnrolled ? (
+                                <Button
+                                  asChild
+                                  className="h-10 w-full sm:w-auto rounded-full px-5 text-sm font-semibold bg-transparent hover:bg-white/5 text-white/80 transition-all"
+                                >
+                                  <Link href={`/learn/careers/${data.career.slug}/exams/${e.id}`}>
+                                    {e.passed ? "Refazer prova" : "Fazer teste"}
+                                  </Link>
+                                </Button>
+                              ) : (
+                                <div
+                                  className="flex h-10 w-full min-h-10 min-w-0 sm:w-auto sm:min-w-[120px] shrink-0 cursor-not-allowed items-center justify-center rounded-full border border-[#25252A] bg-white/[0.04] text-white/45"
+                                  title="Inscreva-se na carreira para fazer o teste"
+                                  aria-label="Exame bloqueado: inscreva-se na carreira para fazer o teste"
+                                >
+                                  <Lock size={22} weight="bold" className="text-white/55" />
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <CareerExamAttemptHistory
                             careerSlug={data.career.slug}
@@ -279,20 +279,6 @@ export default async function CareerDetailPage({
 
           <div className="lg:sticky lg:top-6">
             <div className="space-y-4">
-              <Card className="">
-                <CardContent className="p-5 space-y-4">
-                  <div className="space-y-2 pt-2">
-                    <Button
-                      variant="secondary"
-                      className="w-full rounded-md h-[54px] bg-transparent hover:bg-white/10 text-white"
-                      asChild
-                    >
-                      <Link href="#modulos">Ver conteúdos</Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
               <Card className="">
                 <CardContent className="p-5">
                   <div className="text-sm font-semibold text-white/80">

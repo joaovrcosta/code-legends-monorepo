@@ -83,9 +83,7 @@ export default function RequestDetailPage() {
     }
   };
 
-  const handleUpdateStatus = async (
-    status: "APPROVED" | "REJECTED" | "IN_PROGRESS"
-  ) => {
+  const handleUpdateStatus = async (status: "APPROVED" | "REJECTED") => {
     if (!request) return;
     const token = getAuthTokenFromClient();
     if (!token) {

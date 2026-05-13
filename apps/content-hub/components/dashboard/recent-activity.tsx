@@ -23,14 +23,14 @@ const paymentStatusClassName: Record<string, string> = {
 
 const requestStatusLabel: Record<string, string> = {
   PENDING: "Pendente",
-  IN_PROGRESS: "Em andamento",
+  IN_PROGRESS: "Pendente",
   APPROVED: "Concluida",
   REJECTED: "Rejeitada",
 };
 
 const requestStatusClassName: Record<string, string> = {
   PENDING: "bg-amber-900/20 text-amber-700 dark:text-amber-300",
-  IN_PROGRESS: "bg-blue-900/20 text-blue-700 dark:text-blue-300",
+  IN_PROGRESS: "bg-amber-900/20 text-amber-700 dark:text-amber-300",
   APPROVED: "bg-emerald-900/20 text-emerald-700 dark:text-emerald-300",
   REJECTED: "bg-red-900/20 text-red-700 dark:text-red-300",
 };

@@ -21,12 +21,68 @@ export function examScoreMeetsCertification(score: number, passingScore: number)
   return score >= CAREER_CERT_MIN_SCORE && score >= passingScore
 }
 
+function normalizeExamRequestTitle(s: string): string {
+  return s
+    .replace(/[\u2013\u2014\u2212]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/** Detecta se um Request CAREER_FINAL_EXAM se refere a esta carreira. */
+export function careerFinalExamRequestMatchesCareer(
+  row: { data: string | null; title: string | null },
+  careerId: string,
+  careerSlug: string,
+  careerTitle: string,
+): boolean {
+  const expectedTitle = `Exame final — ${careerTitle}`
+  const rowTitle = row.title?.trim()
+  if (rowTitle) {
+    if (
+      normalizeExamRequestTitle(rowTitle) ===
+      normalizeExamRequestTitle(expectedTitle)
+    ) {
+      return true
+    }
+  }
+
+  const raw = row.data?.trim()
+  if (!raw) {
+    return false
+  }
+
+  try {
+    const j = JSON.parse(raw) as { careerId?: string; careerSlug?: string }
+    if (j.careerId && j.careerId === careerId) {
+      return true
+    }
+    if (j.careerSlug && careerSlug && j.careerSlug === careerSlug) {
+      return true
+    }
+  } catch {
+    // fallback por substring
+  }
+
+  if (raw.includes(careerId)) {
+    return true
+  }
+  if (careerSlug && raw.includes(`"careerSlug":"${careerSlug}"`)) {
+    return true
+  }
+  if (careerSlug && raw.includes(`"careerSlug": "${careerSlug}"`)) {
+    return true
+  }
+  return false
+}
+
 export type CareerCertificationReadiness = {
   coursesComplete: boolean
   examsMeetCertRules: boolean
   onlineTrackComplete: boolean
   hasCertificate: boolean
+  /** Data em que o exame final foi liberado (UserCareer) ou pedido aprovado (Request APPROVED). */
   finalExamClearedAt: Date | null
+  /** Há solicitação em aberto (pendente / em análise legada / rejeitada). */
   pendingFinalExamRequest: boolean
 }
 
@@ -42,6 +98,8 @@ export async function evaluateCareerCertificationReadiness(
     prisma.career.findUnique({
       where: { id: careerId },
       select: {
+        slug: true,
+        title: true,
         modules: {
           select: {
             id: true,
@@ -53,8 +111,7 @@ export async function evaluateCareerCertificationReadiness(
     }),
     prisma.userCareer.findUnique({
       where: { userId_careerId: { userId, careerId } },
-      // finalExamClearedAt: após migration — `npx prisma generate`
-      select: { id: true, finalExamClearedAt: true } as { id: true; finalExamClearedAt: true },
+      select: { id: true, finalExamClearedAt: true },
     }),
     prisma.certificate.findFirst({
       where: { userId, careerId },
@@ -73,41 +130,45 @@ export async function evaluateCareerCertificationReadiness(
     }
   }
 
+  const careerSlug = career.slug ?? ''
+  const careerTitle = career.title ?? ''
+
   const courseIds = [...new Set(career.modules.flatMap((m) => m.courses.map((c) => c.courseId)))]
   const examLinks = career.modules.flatMap((m) => m.exams.map((e) => e.careerExamId))
   const uniqueExamIds = [...new Set(examLinks)]
 
-  const [userCourses, examsMeta, attempts, pendingRows] = await Promise.all([
+  const [userCourses, examsMeta, attempts, examRequests] = await Promise.all([
     courseIds.length
       ? prisma.userCourse.findMany({
-        where: { userId, courseId: { in: courseIds } },
-        select: { courseId: true, progress: true, isCompleted: true },
-      })
+          where: { userId, courseId: { in: courseIds } },
+          select: { courseId: true, progress: true, isCompleted: true },
+        })
       : [],
     uniqueExamIds.length
       ? prisma.careerExam.findMany({
-        where: { id: { in: uniqueExamIds } },
-        select: { id: true, passingScore: true },
-      })
+          where: { id: { in: uniqueExamIds } },
+          select: { id: true, passingScore: true },
+        })
       : [],
     uniqueExamIds.length
       ? prisma.userCareerExamAttempt.findMany({
-        where: {
-          userId,
-          userCareerId: userCareer.id,
-          careerExamId: { in: uniqueExamIds },
-        },
-        orderBy: { createdAt: 'desc' },
-        select: { careerExamId: true, score: true },
-      })
+          where: {
+            userId,
+            userCareerId: userCareer.id,
+            careerExamId: { in: uniqueExamIds },
+          },
+          orderBy: { createdAt: 'desc' },
+          select: { careerExamId: true, score: true },
+        })
       : [],
     prisma.request.findMany({
       where: {
         userId,
         type: CAREER_FINAL_EXAM_REQUEST_TYPE,
-        status: 'PENDING',
+        status: { in: ['PENDING', 'IN_PROGRESS', 'REJECTED', 'APPROVED'] },
       },
-      select: { data: true },
+      orderBy: { createdAt: 'desc' },
+      select: { status: true, data: true, title: true, createdAt: true },
     }),
   ])
 
@@ -144,22 +205,28 @@ export async function evaluateCareerCertificationReadiness(
     examsMeetCertRules = true
   }
 
-  const pendingFinalExamRequest = pendingRows.some((r) => {
-    if (!r.data) return false
-    try {
-      const j = JSON.parse(r.data) as { careerId?: string }
-      return j.careerId === careerId
-    } catch {
-      return r.data.includes(careerId)
-    }
-  })
+  const matchesCareer = (r: { data: string | null; title: string | null }) =>
+    careerFinalExamRequestMatchesCareer(r, careerId, careerSlug, careerTitle)
+
+  const pendingFinalExamRequest = examRequests.some(
+    (r) =>
+      (r.status === 'PENDING' || r.status === 'IN_PROGRESS' || r.status === 'REJECTED') &&
+      matchesCareer(r),
+  )
+
+  const approvedForCareer = examRequests.find(
+    (r) => r.status === 'APPROVED' && matchesCareer(r),
+  )
+
+  const finalExamClearedAt =
+    userCareer.finalExamClearedAt ?? approvedForCareer?.createdAt ?? null
 
   return {
     coursesComplete,
     examsMeetCertRules,
     onlineTrackComplete: coursesComplete && examsMeetCertRules,
     hasCertificate: certificate != null,
-    finalExamClearedAt: (userCareer as { finalExamClearedAt?: Date | null }).finalExamClearedAt ?? null,
+    finalExamClearedAt,
     pendingFinalExamRequest,
   }
 }

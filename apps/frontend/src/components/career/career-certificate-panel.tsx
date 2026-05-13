@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
@@ -47,6 +47,14 @@ export function CareerCertificatePanel({
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [issueLoading, setIssueLoading] = useState(false);
+  /** Após enviar o agendamento: esconde o botão até o refresh trazer `finalExamRequestPending` da API. */
+  const [finalExamJustScheduled, setFinalExamJustScheduled] = useState(false);
+
+  useEffect(() => {
+    if (enrollment.finalExamRequestPending) {
+      setFinalExamJustScheduled(false);
+    }
+  }, [enrollment.finalExamRequestPending]);
 
   const handleSlotChange = useCallback((iso: string | null) => {
     setSelectedSlotIso(iso);
@@ -82,6 +90,7 @@ export function CareerCertificatePanel({
         alert(res.message);
         return;
       }
+      setFinalExamJustScheduled(true);
       setOpen(false);
       setNotes("");
       setSelectedSlotIso(null);
@@ -114,9 +123,14 @@ export function CareerCertificatePanel({
     );
   }
 
+  const canShowScheduleButton =
+    enrollment.canScheduleFinalExam && !finalExamJustScheduled;
+  const showFinalExamChamadoMessage =
+    enrollment.finalExamRequestPending || finalExamJustScheduled;
+
   return (
     <>
-      {enrollment.canScheduleFinalExam ? (
+      {canShowScheduleButton ? (
         <Button
           type="button"
           variant="outline"
@@ -127,9 +141,9 @@ export function CareerCertificatePanel({
         </Button>
       ) : null}
 
-      {enrollment.finalExamRequestPending ? (
+      {showFinalExamChamadoMessage ? (
         <p className="mb-3 text-xs text-amber-200/90">
-          Solicitação de exame final enviada. Aguarde a análise da equipe.
+          Agendamento realizado com sucesso. Aguarde a análise da equipe.
         </p>
       ) : null}
 

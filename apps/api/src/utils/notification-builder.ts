@@ -103,14 +103,14 @@ export class NotificationBuilder {
     const statusMessages: Record<string, string> = {
       APPROVED: "aprovada",
       REJECTED: "rejeitada",
-      IN_PROGRESS: "em andamento",
+      IN_PROGRESS: "pendente",
       PENDING: "pendente",
     };
 
     const statusEmojis: Record<string, string> = {
       APPROVED: "✅",
       REJECTED: "❌",
-      IN_PROGRESS: "🔄",
+      IN_PROGRESS: "⏳",
       PENDING: "⏳",
     };
 

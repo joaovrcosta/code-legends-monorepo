@@ -9,7 +9,7 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
   });
 
   const updateRequestBodySchema = z.object({
-    status: z.enum(["PENDING", "APPROVED", "REJECTED", "IN_PROGRESS"]).optional(),
+    status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
     title: z.string().optional(),
     description: z.string().optional(),
     data: z.string().optional(),

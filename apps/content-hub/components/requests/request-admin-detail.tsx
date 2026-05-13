@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import type { Request } from "@/actions/requests";
-import { CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock } from "lucide-react";
 
 const statusConfig = {
   PENDING: {
@@ -22,10 +22,11 @@ const statusConfig = {
     color: "bg-red-500/10 text-red-500 border-red-500/20",
     icon: XCircle,
   },
+  /** Registos antigos: exibido como Pendente. */
   IN_PROGRESS: {
-    label: "Em Andamento",
-    color: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    icon: AlertCircle,
+    label: "Pendente",
+    color: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+    icon: Clock,
   },
 } as const;
 
@@ -55,7 +56,7 @@ export type RequestAdminDetailProps = {
   /** Gravar só a mensagem (notifica o usuário sem mudar status). */
   onSendMessage: () => void | Promise<void>;
   sendingMessage: boolean;
-  onUpdateStatus: (status: "APPROVED" | "REJECTED" | "IN_PROGRESS") => void;
+  onUpdateStatus: (status: "APPROVED" | "REJECTED") => void;
   updatingStatus: boolean;
   headerExtra?: ReactNode;
 };
@@ -154,15 +155,6 @@ export function RequestAdminDetail({
             {sendingMessage ? "Enviando…" : "Enviar mensagem"}
           </Button>
           <div className="order-1 flex w-full flex-wrap justify-stretch gap-2 sm:order-2 sm:w-auto sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onUpdateStatus("IN_PROGRESS")}
-              disabled={anyBusy}
-              className="min-w-0 flex-1 border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 sm:flex-none"
-            >
-              {updatingStatus ? "Atualizando…" : "Em andamento"}
-            </Button>
             <Button
               type="button"
               variant="outline"

@@ -92,14 +92,12 @@ const COURSE_STATUS_COLORS: Record<string, string> = {
 
 const REQUEST_STATUS_LABELS: Record<string, string> = {
   PENDING: "Pendente",
-  IN_PROGRESS: "Em andamento",
   APPROVED: "Concluida",
   REJECTED: "Rejeitada",
 };
 
 const REQUEST_STATUS_COLORS: Record<string, string> = {
   PENDING: "hsl(var(--chart-5))",
-  IN_PROGRESS: "hsl(var(--chart-1))",
   APPROVED: "hsl(var(--chart-3))",
   REJECTED: "hsl(var(--chart-2))",
 };
@@ -359,7 +357,8 @@ export async function getDashboardOverview(
   }, {});
 
   const requestStatusCounts = requests.reduce<Record<string, number>>((acc, request) => {
-    acc[request.status] = (acc[request.status] ?? 0) + 1;
+    const bucket = request.status === "IN_PROGRESS" ? "PENDING" : request.status;
+    acc[bucket] = (acc[bucket] ?? 0) + 1;
     return acc;
   }, {});
 
@@ -443,7 +442,9 @@ export async function getDashboardOverview(
     summary: {
       totalUsers: users.length,
       publishedCourses: courses.filter((course) => course.status === "PUBLISHED").length,
-      pendingRequests: requests.filter((request) => request.status === "PENDING").length,
+      pendingRequests: requests.filter(
+        (request) => request.status === "PENDING" || request.status === "IN_PROGRESS"
+      ).length,
       paidRevenueAmount,
     },
     usersByPlan: buildChartData(
@@ -460,7 +461,7 @@ export async function getDashboardOverview(
     ),
     requestsByStatus: buildChartData(
       requestStatusCounts,
-      ["PENDING", "IN_PROGRESS", "APPROVED", "REJECTED"],
+      ["PENDING", "APPROVED", "REJECTED"],
       REQUEST_STATUS_LABELS,
       REQUEST_STATUS_COLORS
     ),
