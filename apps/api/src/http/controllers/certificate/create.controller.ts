@@ -7,7 +7,7 @@ import { CourseNotFoundError } from "../../../use-cases/errors/course-not-found"
 import { UserNotFoundError } from "../../../use-cases/errors/user-not-found";
 import { CourseNotCompletedError } from "../../../use-cases/errors/course-not-completed";
 import { CareerNotFoundError } from "../../../use-cases/errors/career-not-found";
-import { CareerNotCompletedError } from "../../../use-cases/errors/career-not-completed";
+import { CareerCertificateNotEligibleError } from "../../../use-cases/errors/career-certificate-not-eligible";
 
 const createCertificateBodySchema = z
   .object({
@@ -58,7 +58,7 @@ export async function createCertificate(
       return reply.status(400).send({ message: error.message });
     }
 
-    if (error instanceof CareerNotCompletedError) {
+    if (error instanceof CareerCertificateNotEligibleError) {
       return reply.status(400).send({ message: error.message });
     }
 

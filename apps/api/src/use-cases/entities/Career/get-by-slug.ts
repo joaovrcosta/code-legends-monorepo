@@ -1,5 +1,9 @@
 import { prisma } from '../../../lib/prisma'
 import { CareerNotFoundError } from '../../errors/career-not-found'
+import {
+  examScoreMeetsCertification,
+  evaluateCareerCertificationReadiness,
+} from './career-certification-readiness'
 
 interface GetCareerBySlugRequest {
   slug: string
@@ -37,6 +41,9 @@ export interface GetCareerBySlugResponse {
       slug: string
       passingScore: number
       passed: boolean
+      attemptCount: number
+      bestScore: number | null
+      lastAttemptAt: string | null
     }>
     status: {
       isCompleted: boolean
@@ -48,6 +55,10 @@ export interface GetCareerBySlugResponse {
     isEnrolled: boolean
     progress: number
     isCompleted: boolean
+    finalExamClearedAt: string | null
+    certificateIssued: boolean
+    canScheduleFinalExam: boolean
+    finalExamRequestPending: boolean
   }
 }
 
@@ -106,7 +117,7 @@ export class GetCareerBySlugUseCase {
     const userCourses = userId
       ? await prisma.userCourse.findMany({
           where: { userId, courseId: { in: uniqueCourseIds } },
-          select: { courseId: true, progress: true },
+          select: { courseId: true, progress: true, isCompleted: true },
         })
       : []
     const userCourseMap = new Map(userCourses.map((uc) => [uc.courseId, uc]))
@@ -126,30 +137,84 @@ export class GetCareerBySlugUseCase {
 
     const examIds = career.modules.flatMap((m) => m.exams.map((e) => e.careerExamId))
     const uniqueExamIds = [...new Set(examIds)]
-    const latestAttempts = userId
-      ? await prisma.userCareerExamAttempt.findMany({
-          where: {
-            userId,
-            careerExamId: { in: uniqueExamIds },
-            userCareerId: userCareer?.id ?? undefined,
-          },
-          orderBy: { createdAt: 'desc' },
-          select: { careerExamId: true, passed: true },
-        })
-      : []
 
-    const examPassedMap = new Map<string, boolean>()
-    for (const a of latestAttempts) {
-      if (!examPassedMap.has(a.careerExamId)) {
-        examPassedMap.set(a.careerExamId, a.passed)
+    type AttemptLite = {
+      careerExamId: string
+      score: number
+      passed: boolean
+      createdAt: Date
+    }
+    const allAttempts: AttemptLite[] =
+      userId && userCareer
+        ? await prisma.userCareerExamAttempt.findMany({
+            where: {
+              userId,
+              careerExamId: { in: uniqueExamIds },
+              userCareerId: userCareer.id,
+            },
+            select: { careerExamId: true, score: true, passed: true, createdAt: true },
+          })
+        : []
+
+    const latestByExam = new Map<string, AttemptLite>()
+    const orderedDesc = [...allAttempts].sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    )
+    for (const a of orderedDesc) {
+      if (!latestByExam.has(a.careerExamId)) {
+        latestByExam.set(a.careerExamId, a)
       }
     }
 
+    const statsByExam = new Map<
+      string,
+      { count: number; best: number; lastAt: Date | null }
+    >()
+    for (const a of allAttempts) {
+      const cur = statsByExam.get(a.careerExamId) ?? {
+        count: 0,
+        best: 0,
+        lastAt: null as Date | null,
+      }
+      cur.count += 1
+      cur.best = Math.max(cur.best, a.score)
+      if (!cur.lastAt || a.createdAt > cur.lastAt) cur.lastAt = a.createdAt
+      statsByExam.set(a.careerExamId, cur)
+    }
+
+    const [certificate, readiness] = await Promise.all([
+      userId
+        ? prisma.certificate.findFirst({
+            where: { userId, careerId: career.id },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
+      userId
+        ? evaluateCareerCertificationReadiness(userId, career.id)
+        : Promise.resolve(null),
+    ])
+
+    const certificateIssued = certificate != null
+    const finalExamRaw = (userCareer as { finalExamClearedAt?: Date | null } | null)
+      ?.finalExamClearedAt
+    const finalExamClearedAt = finalExamRaw ? finalExamRaw.toISOString() : null
+    const finalExamRequestPending = readiness?.pendingFinalExamRequest ?? false
+    const canScheduleFinalExam = Boolean(
+      readiness &&
+        readiness.onlineTrackComplete &&
+        !certificateIssued &&
+        !finalExamRaw &&
+        !readiness.pendingFinalExamRequest,
+    )
+
     const modules = career.modules.map((m) => {
       const statusRow = statusMap.get(m.id)
-      const exams = m.exams.map((e) => e.exam)
       const examsPassedCount = m.exams.reduce((acc, e) => {
-        return acc + (examPassedMap.get(e.careerExamId) ? 1 : 0)
+        const latest = latestByExam.get(e.careerExamId)
+        const ok = latest
+          ? examScoreMeetsCertification(latest.score, e.exam.passingScore)
+          : false
+        return acc + (ok ? 1 : 0)
       }, 0)
 
       return {
@@ -167,13 +232,23 @@ export class GetCareerBySlugUseCase {
             isEnrolled: uc != null,
           }
         }),
-        exams: m.exams.map((row) => ({
-          id: row.exam.id,
-          title: row.exam.title,
-          slug: row.exam.slug,
-          passingScore: row.exam.passingScore,
-          passed: examPassedMap.get(row.careerExamId) === true,
-        })),
+        exams: m.exams.map((row) => {
+          const latest = latestByExam.get(row.careerExamId)
+          const stats = statsByExam.get(row.careerExamId)
+          const passed = latest
+            ? examScoreMeetsCertification(latest.score, row.exam.passingScore)
+            : false
+          return {
+            id: row.exam.id,
+            title: row.exam.title,
+            slug: row.exam.slug,
+            passingScore: row.exam.passingScore,
+            passed,
+            attemptCount: stats?.count ?? 0,
+            bestScore: stats && stats.count > 0 ? stats.best : null,
+            lastAttemptAt: stats?.lastAt ? stats.lastAt.toISOString() : null,
+          }
+        }),
         status: {
           isCompleted: statusRow?.isCompleted ?? false,
           completedAt: statusRow?.completedAt
@@ -210,8 +285,11 @@ export class GetCareerBySlugUseCase {
               )
             : 0,
         isCompleted: userCareer?.isCompleted ?? false,
+        finalExamClearedAt,
+        certificateIssued,
+        canScheduleFinalExam,
+        finalExamRequestPending,
       },
     }
   }
 }
-

@@ -3,6 +3,9 @@ import { IRequestRepository } from "../../../repositories/request-repository";
 import { RequestNotFoundError } from "../../errors/request-not-found";
 import { NotificationBuilder } from "../../../utils/notification-builder";
 import { createNotification } from "../../../utils/create-notification";
+import { prisma } from "../../../lib/prisma";
+import { CAREER_FINAL_EXAM_REQUEST_TYPE } from "../Career/career-certification-readiness";
+import { makeCreateCareerCertificateUseCase } from "../../../utils/factories/make-create-career-certificate-use-case";
 
 interface UpdateRequestRequest {
   status?: string;
@@ -45,6 +48,46 @@ export class UpdateRequestUseCase {
     }
 
     const request = await this.requestRepository.update(id, updateData);
+
+    if (
+      data.status === "APPROVED" &&
+      requestExists.status !== "APPROVED" &&
+      requestExists.type === CAREER_FINAL_EXAM_REQUEST_TYPE &&
+      requestExists.data
+    ) {
+      try {
+        const parsed = JSON.parse(requestExists.data) as { careerId?: string };
+        const careerId = parsed.careerId;
+        if (careerId) {
+          const uc = await prisma.userCareer.findUnique({
+            where: {
+              userId_careerId: { userId: requestExists.userId, careerId },
+            },
+            select: { id: true },
+          });
+          if (uc) {
+            await prisma.userCareer.update({
+              where: { id: uc.id },
+              data: { finalExamClearedAt: new Date() } as { finalExamClearedAt: Date },
+            });
+            try {
+              const createCert = makeCreateCareerCertificateUseCase();
+              await createCert.execute({
+                userId: requestExists.userId,
+                careerId,
+              });
+            } catch (certErr) {
+              console.error(
+                "[UpdateRequest] Certificado de carreira não emitido após aprovação:",
+                certErr,
+              );
+            }
+          }
+        }
+      } catch (e) {
+        console.error("[UpdateRequest] CAREER_FINAL_EXAM approve hook:", e);
+      }
+    }
 
     // Criar notificação se o status mudou
     if (data.status && data.status !== requestExists.status) {

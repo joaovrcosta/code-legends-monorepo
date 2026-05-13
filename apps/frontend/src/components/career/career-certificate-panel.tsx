@@ -1,0 +1,185 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { createRequest } from "@/actions/request/create-request";
+import { generateCareerCertificate } from "@/actions/career/generate-career-certificate";
+import { Lock } from "@phosphor-icons/react";
+
+const REQUEST_TYPE = "CAREER_FINAL_EXAM";
+
+export type CareerCertificatePanelProps = {
+  careerId: string;
+  careerSlug: string;
+  careerTitle: string;
+  enrollment: {
+    isEnrolled: boolean;
+    certificateIssued: boolean;
+    canScheduleFinalExam: boolean;
+    finalExamRequestPending: boolean;
+    finalExamClearedAt: string | null;
+  };
+};
+
+export function CareerCertificatePanel({
+  careerId,
+  careerSlug,
+  careerTitle,
+  enrollment,
+}: CareerCertificatePanelProps) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [notes, setNotes] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [issueLoading, setIssueLoading] = useState(false);
+
+  const handleSchedule = async () => {
+    setLoading(true);
+    try {
+      const res = await createRequest({
+        type: REQUEST_TYPE,
+        title: `Exame final — ${careerTitle}`,
+        description: notes.trim() || undefined,
+        data: JSON.stringify({ careerId, careerSlug }),
+      });
+      if (!res.success) {
+        alert(res.message);
+        return;
+      }
+      setOpen(false);
+      setNotes("");
+      router.refresh();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleIssueCertificate = async () => {
+    setIssueLoading(true);
+    try {
+      await generateCareerCertificate(careerId);
+      router.refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Erro ao emitir certificado");
+    } finally {
+      setIssueLoading(false);
+    }
+  };
+
+  if (!enrollment.isEnrolled) {
+    return (
+      <div className="mt-3 relative overflow-hidden rounded-[20px] border border-[#25252A]">
+        <div className="h-[120px] w-full bg-black/40 flex items-center justify-center gap-2">
+          <Lock size={20} className="text-white" />
+          <span className="text-white text-sm font-semibold">Inscreva-se na carreira</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {enrollment.canScheduleFinalExam ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="mb-3 rounded-full bg-blue-gradient-500 w-full border-none h-[52px]  text-white hover:bg-[#00C8FF]/10"
+          onClick={() => setOpen(true)}
+        >
+          Agendar exame final
+        </Button>
+      ) : null}
+
+      {enrollment.finalExamRequestPending ? (
+        <p className="mb-3 text-xs text-amber-200/90">
+          Solicitação de exame final enviada. Aguarde a análise da equipe.
+        </p>
+      ) : null}
+
+      <div className="relative overflow-hidden rounded-[20px] border border-[#25252A]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/certificate-image.png"
+          alt="Certificado"
+          width={500}
+          height={120}
+          className="h-[120px] w-full object-cover opacity-80"
+        />
+
+        {enrollment.certificateIssued ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Button
+              asChild
+              className="h-10 rounded-full bg-[#00C8FF] hover:bg-[#00a8d4] text-black font-semibold"
+            >
+              <Link href="/account/certificates">Ver certificado</Link>
+            </Button>
+          </div>
+        ) : enrollment.finalExamClearedAt ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/50 px-4">
+            <p className="text-center text-xs text-white/80">
+              Exame final liberado. Emita seu certificado.
+            </p>
+            <Button
+              type="button"
+              disabled={issueLoading}
+              onClick={handleIssueCertificate}
+              className="h-10 rounded-full bg-[#00C8FF] hover:bg-[#00a8d4] text-black font-semibold"
+            >
+              {issueLoading ? "Emitindo…" : "Emitir certificado"}
+            </Button>
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-black/35 backdrop-blur-sm flex items-center justify-center gap-2">
+            <Lock size={20} className="text-white" />
+            <span className="text-white text-sm font-semibold">Bloqueado</span>
+          </div>
+        )}
+      </div>
+
+      <p className="mt-3 text-xs text-white/55">
+        Conclua 100% dos cursos e todos os exames (nota mínima 70% e aprovação em cada prova),
+        agende e realize o exame final para liberar o certificado.
+      </p>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="border-[#25252A] bg-[#0c0c0d] text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Agendar exame final</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <label htmlFor="final-exam-notes" className="text-sm text-white/80 block">
+              Preferência de data / observações (opcional)
+            </label>
+            <Textarea
+              id="final-exam-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+              className="border-[#333] bg-[#141418] text-white"
+              placeholder="Ex.: fins de semana à tarde…"
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="button" disabled={loading} onClick={handleSchedule}>
+              {loading ? "Enviando…" : "Enviar solicitação"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

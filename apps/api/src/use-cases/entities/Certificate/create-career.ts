@@ -6,7 +6,8 @@ import { IUserCareerRepository } from '../../../repositories/user-career-reposit
 import { ICareerRepository } from '../../../repositories/career-repository'
 import { UserNotFoundError } from '../../errors/user-not-found'
 import { CareerNotFoundError } from '../../errors/career-not-found'
-import { CareerNotCompletedError } from '../../errors/career-not-completed'
+import { CareerCertificateNotEligibleError } from '../../errors/career-certificate-not-eligible'
+import { evaluateCareerCertificationReadiness } from '../Career/career-certification-readiness'
 import { NotificationBuilder } from '../../../utils/notification-builder'
 import { createNotification } from '../../../utils/create-notification'
 
@@ -51,8 +52,17 @@ export class CreateCareerCertificateUseCase {
     if (!userCareer) {
       throw new CareerNotFoundError()
     }
-    if (!userCareer.isCompleted) {
-      throw new CareerNotCompletedError()
+    if (!(userCareer as { finalExamClearedAt?: Date | null }).finalExamClearedAt) {
+      throw new CareerCertificateNotEligibleError(
+        'Exame final ainda não foi liberado. Aguarde a aprovação da solicitação.',
+      )
+    }
+
+    const readiness = await evaluateCareerCertificationReadiness(userId, careerId)
+    if (!readiness.onlineTrackComplete) {
+      throw new CareerCertificateNotEligibleError(
+        'Conclua todos os cursos (100%) e exames com nota mínima para emitir o certificado.',
+      )
     }
 
     const existing = await this.certificateRepository.findByUserIdAndCareerId(

@@ -30,6 +30,9 @@ export type CareerExam = {
   slug: string
   passingScore: number
   passed?: boolean
+  attemptCount: number
+  bestScore: number | null
+  lastAttemptAt: string | null
 }
 
 export type CareerModule = {
@@ -61,6 +64,10 @@ export type GetCareerBySlugResponse = {
     isEnrolled: boolean
     progress: number
     isCompleted: boolean
+    finalExamClearedAt: string | null
+    certificateIssued: boolean
+    canScheduleFinalExam: boolean
+    finalExamRequestPending: boolean
   }
 }
 

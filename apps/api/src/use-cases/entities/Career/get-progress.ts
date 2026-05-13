@@ -1,5 +1,6 @@
 import { prisma } from '../../../lib/prisma'
 import { CareerNotFoundError } from '../../errors/career-not-found'
+import { examScoreMeetsCertification } from './career-certification-readiness'
 
 interface GetCareerProgressRequest {
   userId: string
@@ -36,7 +37,10 @@ export class GetCareerProgressUseCase {
           select: {
             id: true,
             exams: {
-              select: { careerExamId: true },
+              select: {
+                careerExamId: true,
+                exam: { select: { passingScore: true } },
+              },
             },
           },
         },
@@ -79,19 +83,30 @@ export class GetCareerProgressUseCase {
         careerExamId: { in: uniqueExamIds },
       },
       orderBy: { createdAt: 'desc' },
-      select: { careerExamId: true, passed: true },
+      select: { careerExamId: true, score: true },
     })
-    const examPassedMap = new Map<string, boolean>()
+    const latestScoreByExam = new Map<string, number>()
     for (const a of attempts) {
-      if (!examPassedMap.has(a.careerExamId)) examPassedMap.set(a.careerExamId, a.passed)
+      if (!latestScoreByExam.has(a.careerExamId)) {
+        latestScoreByExam.set(a.careerExamId, a.score)
+      }
+    }
+
+    const passingByExamId = new Map<string, number>()
+    for (const m of career.modules) {
+      for (const e of m.exams) {
+        passingByExamId.set(e.careerExamId, e.exam.passingScore)
+      }
     }
 
     const modules = career.modules.map((m) => {
       const s = statusMap.get(m.id)
-      const passedCount = m.exams.reduce(
-        (acc, e) => acc + (examPassedMap.get(e.careerExamId) ? 1 : 0),
-        0,
-      )
+      const passedCount = m.exams.reduce((acc, e) => {
+        const score = latestScoreByExam.get(e.careerExamId)
+        const passing = passingByExamId.get(e.careerExamId) ?? 70
+        const ok = score != null && examScoreMeetsCertification(score, passing)
+        return acc + (ok ? 1 : 0)
+      }, 0)
       return {
         id: m.id,
         isCompleted: s?.isCompleted ?? false,

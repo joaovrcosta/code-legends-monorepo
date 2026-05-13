@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { makeCreateRequestUseCase } from "../../../utils/factories/make-create-request-use-case";
+import { CareerFinalExamRequestInvalidError } from "../../../use-cases/errors/career-final-exam-request-invalid";
 
 export async function create(request: FastifyRequest, reply: FastifyReply) {
   const createRequestBodySchema = z.object({
@@ -27,6 +28,9 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
 
     return reply.status(201).send({ request: newRequest });
   } catch (error) {
+    if (error instanceof CareerFinalExamRequestInvalidError) {
+      return reply.status(400).send({ message: error.message });
+    }
     return reply.status(500).send({ message: "Internal server error" });
   }
 }

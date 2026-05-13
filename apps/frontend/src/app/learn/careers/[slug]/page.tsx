@@ -1,5 +1,7 @@
 import { getCareerBySlug } from "@/actions/career";
 import { EnrollCareerButton } from "@/components/career/enroll-career-button";
+import { CareerCertificatePanel } from "@/components/career/career-certificate-panel";
+import { CareerExamAttemptHistory } from "@/components/career/career-exam-attempt-history";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -206,8 +208,9 @@ export default async function CareerDetailPage({
                       {m.exams.map((e) => (
                         <div
                           key={e.id}
-                          className="flex flex-col gap-4 px-4 py-5 rounded-[20px] bg-primary border border-[#25252A] transition-opacity sm:flex-row sm:items-center sm:justify-between"
+                          className="flex flex-col gap-3 px-4 py-5 rounded-[20px] bg-primary border border-[#25252A] transition-opacity"
                         >
+                          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex items-center gap-4">
                             <div>
                               <FlaskIcon
@@ -227,6 +230,11 @@ export default async function CareerDetailPage({
                                   </span>
                                 ) : null}
                               </div>
+                              {e.bestScore != null ? (
+                                <div className="mt-1 text-[11px] text-white/45">
+                                  Melhor nota: {Math.round(e.bestScore)}%
+                                </div>
+                              ) : null}
                             </div>
                           </div>
                           <div className="w-full sm:w-auto sm:shrink-0">
@@ -249,6 +257,12 @@ export default async function CareerDetailPage({
                               </div>
                             )}
                           </div>
+                          </div>
+                          <CareerExamAttemptHistory
+                            careerSlug={data.career.slug}
+                            examId={e.id}
+                            attemptCount={e.attemptCount}
+                          />
                         </div>
                       ))}
                       {m.exams.length === 0 ? (
@@ -284,37 +298,14 @@ export default async function CareerDetailPage({
                   <div className="text-sm font-semibold text-white/80">
                     Certificado
                   </div>
-                  <div className="mt-3 relative overflow-hidden rounded-[20px] border border-[#25252A]">
-                    <Image
-                      src="/certificate-image.png"
-                      alt="Certificado"
-                      width={500}
-                      height={120}
-                      className="h-[120px] w-full object-cover opacity-80"
+                  <div className="mt-3">
+                    <CareerCertificatePanel
+                      careerId={data.career.id}
+                      careerSlug={data.career.slug}
+                      careerTitle={data.career.title}
+                      enrollment={data.enrollment}
                     />
-
-                    {data.enrollment.isCompleted ? (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Button
-                          asChild
-                          className="h-10 rounded-full bg-[#00C8FF] hover:bg-[#00a8d4] text-black font-semibold"
-                        >
-                          <Link href="/account/certificates">Ver certificado</Link>
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="absolute inset-0 bg-black/35 backdrop-blur-sm flex items-center justify-center gap-2">
-                        <Lock size={20} className="text-white" />
-                        <span className="text-white text-sm font-semibold">
-                          Bloqueado
-                        </span>
-                      </div>
-                    )}
                   </div>
-
-                  <p className="mt-3 text-xs text-white/55">
-                    Conclua 100% da carreira para liberar o certificado.
-                  </p>
                 </CardContent>
               </Card>
             </div>

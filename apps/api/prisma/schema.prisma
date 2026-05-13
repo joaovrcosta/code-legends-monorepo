@@ -129,14 +129,15 @@ model CareerModuleExam {
 }
 
 model UserCareer {
-  id             String    @id @default(cuid())
-  userId         String
-  careerId       String
-  enrolledAt     DateTime  @default(now())
-  lastAccessedAt DateTime  @default(now())
-  isCompleted    Boolean   @default(false)
-  completedAt    DateTime?
-  progress       Float     @default(0.0)
+  id                 String    @id @default(cuid())
+  userId             String
+  careerId           String
+  enrolledAt         DateTime  @default(now())
+  lastAccessedAt     DateTime  @default(now())
+  isCompleted        Boolean   @default(false)
+  completedAt        DateTime?
+  progress           Float     @default(0.0)
+  finalExamClearedAt DateTime?
 
   user     User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   career   Career                   @relation(fields: [careerId], references: [id], onDelete: Cascade)
