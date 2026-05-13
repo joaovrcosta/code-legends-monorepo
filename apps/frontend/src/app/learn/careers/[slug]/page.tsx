@@ -98,7 +98,7 @@ export default async function CareerDetailPage({
       </section>
 
       <div className="mx-auto flex w-full max-w-[1420px] flex-col items-start mt-6">
-        <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:px-0 px-4">
+        <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start xl:px-0 lg:px-4 px-4">
           <div id="modulos" className="min-w-0 space-y-4">
             {data.modules.map((m) => (
               <div

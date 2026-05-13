@@ -8,9 +8,10 @@ import { UserProfiler } from '@/components/home/user-profiler'
 import { CurrentCourses } from '@/components/home/current-courses'
 import { HomePageWrapper } from '@/components/home/home-page-wrapper'
 import { PostPaymentWelcomeGate } from '@/components/providers/post-payment-welcome-gate'
-import { Briefcase } from '@phosphor-icons/react/ssr'
 import { CatalogCoursesCarousel } from '@/components/home/catalog-courses-carousel'
 import { SectionTitle } from './catalog-courses-carousel-title'
+import { CareerTrack, CareerTracksSection } from '@/components/learn/catolog/career-tracks-section'
+import { listCareers } from '@/actions/career'
 
 export const metadata: Metadata = {
   title: 'Início - Code Legends',
@@ -20,11 +21,21 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const courses = await listCourses()
+  const careers = await listCareers()
   const enrolledCoursesData = await getUserEnrolledList()
 
   const hasContinueLearningCourses = (enrolledCoursesData.userCourses ?? []).some(
     (course) => course.progress > 0 && !course.isCompleted,
   )
+
+  const tracks: CareerTrack[] = careers.careers.map((c) => ({
+    id: c.id,
+    title: c.title,
+    href: `/learn/careers/${c.slug}`,
+    badge: 'Carreira',
+    pills: [`${c.modulesCount} módulos`],
+  }))
+
 
   return (
     <>
@@ -72,6 +83,22 @@ export default async function Home() {
                   <CatalogCoursesCarousel courses={courses.courses} />
                 </div>
 
+                <div className="relative w-full min-w-0 overflow-hidden px-0 pb-4">
+                  <SectionTitle
+                    className="mb-5"
+                    title="Categorias"
+                  />
+                  <CategoriesCarousel />
+                </div>
+
+                <div className="mb-8">
+                  <SectionTitle
+                    className="mb-5"
+                    title="Trilhas de carreira"
+                  />
+                  <CareerTracksSection tracks={tracks} />
+                </div>
+
                 <div className="relative w-full min-w-0 overflow-hidden px-0 mb-6">
                   <SectionTitle
                     className="mb-5"
@@ -80,13 +107,7 @@ export default async function Home() {
                   <NewsBannerCarousel />
                 </div>
 
-                <div className="relative w-full min-w-0 overflow-hidden px-0 pb-4">
-                  <SectionTitle
-                    className="mb-5"
-                    title="Categorias"
-                  />
-                  <CategoriesCarousel />
-                </div>
+
               </div>
             </div>
 

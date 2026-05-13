@@ -140,24 +140,11 @@ export async function UserProfiler() {
           </div>
           <div className="mt-6">
             <Link
-              href="/learn/badges"
-              className="flex items-center justify-between py-4 border-b border-[#25252A] hover:opacity-80 transition-opacity cursor-pointer"
-            >
-              <span className="text-[#C4C4CC] text-sm font-medium">
-                Ver Meus Emblemas
-              </span>
-              <CaretRight
-                size={16}
-                className="text-[#C4C4CC]"
-                weight="regular"
-              />
-            </Link>
-            <Link
               href="/learn/tracking"
               className="flex items-center justify-between py-4 hover:opacity-80 transition-opacity cursor-pointer"
             >
               <span className="text-[#C4C4CC] text-sm font-medium">
-                Ver Meu Progresso
+                Ver meu progresso
               </span>
               <CaretRight
                 size={16}

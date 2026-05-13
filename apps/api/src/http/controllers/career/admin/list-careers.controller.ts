@@ -5,7 +5,20 @@ export async function adminListCareers(_: FastifyRequest, reply: FastifyReply) {
   const careers = await prisma.career.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      modules: { orderBy: { orderIndex: 'asc' } },
+      modules: {
+        orderBy: { orderIndex: 'asc' },
+        include: {
+          courses: {
+            orderBy: { orderIndex: 'asc' },
+            select: {
+              id: true,
+              courseId: true,
+              orderIndex: true,
+              course: { select: { id: true, title: true, slug: true } },
+            },
+          },
+        },
+      },
       exams: { orderBy: { createdAt: 'asc' } },
     },
   })

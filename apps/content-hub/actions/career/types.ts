@@ -10,6 +10,13 @@ export type Career = {
   updatedAt: string
 }
 
+export type CareerModuleCourseLink = {
+  id: string
+  courseId: string
+  orderIndex: number
+  course: { id: string; title: string; slug: string }
+}
+
 export type CareerModule = {
   id: string
   careerId: string
@@ -18,6 +25,8 @@ export type CareerModule = {
   orderIndex: number
   createdAt: string
   updatedAt: string
+  /** Presente na listagem admin GET /admin/careers */
+  courses?: CareerModuleCourseLink[]
 }
 
 export type CareerExam = {

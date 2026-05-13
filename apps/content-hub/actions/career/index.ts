@@ -10,5 +10,5 @@ export { adminSetCareerModuleExams } from "./set-module-exams";
 export { adminCreateCareerExam } from "./create-exam";
 export { adminUpdateCareerExam } from "./update-exam";
 export { adminDeleteCareerExam } from "./delete-exam";
-export type { Career, CareerExam, CareerModule } from "./types";
+export type { Career, CareerExam, CareerModule, CareerModuleCourseLink } from "./types";
 

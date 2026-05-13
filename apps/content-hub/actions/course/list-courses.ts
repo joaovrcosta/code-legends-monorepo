@@ -21,6 +21,8 @@ export interface Course {
   releaseAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Inscrições reais (UserCourse) — vem do GET /courses via `_count` */
+  _count?: { userCourses: number };
 }
 
 export interface CoursesListResponse {

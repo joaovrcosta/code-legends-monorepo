@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowDown, ArrowUp, ChevronDown, Plus, Save, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import {
   type CareerModule,
 } from "@/actions/career";
 import { listCourses, type Course } from "@/actions/course";
+import { cn } from "@/lib/utils";
 
 function safeJsonParse(text: string): { ok: true; value: any } | { ok: false; error: string } {
   try {
@@ -54,6 +55,9 @@ export default function EditCareerPage() {
   const [allCourses, setAllCourses] = useState<Course[]>([]);
 
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(true);
+  const [infoOpen, setInfoOpen] = useState(true);
+  const [modulesPanelOpen, setModulesPanelOpen] = useState(true);
+  const [examsPanelOpen, setExamsPanelOpen] = useState(true);
   const [form, setForm] = useState({
     title: "",
     slug: "",
@@ -227,10 +231,31 @@ export default function EditCareerPage() {
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle>Informações</CardTitle>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1.5 px-2 text-gray-600 dark:text-gray-400"
+              onClick={() => setInfoOpen((o) => !o)}
+              aria-expanded={infoOpen}
+              aria-controls="career-edit-info"
+            >
+              <span className="text-xs font-normal">
+                {infoOpen ? "Recolher" : "Expandir"}
+              </span>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 shrink-0 transition-transform duration-200",
+                  infoOpen && "rotate-180"
+                )}
+                aria-hidden
+              />
+            </Button>
           </CardHeader>
-          <CardContent>
+          {infoOpen ? (
+          <CardContent id="career-edit-info">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="title">Título *</Label>
@@ -302,17 +327,37 @@ export default function EditCareerPage() {
               <Label htmlFor="active">Ativa</Label>
             </div>
           </CardContent>
+          ) : null}
         </Card>
 
         <div className="grid gap-6 xl:grid-cols-2">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Módulos</CardTitle>
+            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0 pb-2">
+              <div className="flex items-center gap-2">
+                <CardTitle>Módulos</CardTitle>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-gray-600 dark:text-gray-400"
+                  onClick={() => setModulesPanelOpen((o) => !o)}
+                  aria-expanded={modulesPanelOpen}
+                  aria-label={modulesPanelOpen ? "Recolher lista de módulos" : "Expandir lista de módulos"}
+                >
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform duration-200",
+                      modulesPanelOpen && "rotate-180"
+                    )}
+                  />
+                </Button>
+              </div>
               <Button onClick={handleAddModule} disabled={loading} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Adicionar
               </Button>
             </CardHeader>
+            {modulesPanelOpen ? (
             <CardContent className="space-y-4">
               {sortedModules.length === 0 ? (
                 <div className="text-sm text-gray-500">Nenhum módulo ainda.</div>
@@ -322,10 +367,17 @@ export default function EditCareerPage() {
                     key={m.id}
                     careerId={careerId}
                     module={m}
+                    allModules={modules}
                     allCourses={allCourses}
                     exams={exams}
                     onUpdated={(next) => {
-                      setModules((prev) => prev.map((x) => (x.id === next.id ? next : x)));
+                      setModules((prev) =>
+                        prev.map((x) =>
+                          x.id === next.id
+                            ? { ...next, courses: next.courses ?? x.courses }
+                            : x,
+                        ),
+                      );
                     }}
                     onDeleted={async () => {
                       setModules((prev) => prev.filter((x) => x.id !== m.id));
@@ -334,6 +386,7 @@ export default function EditCareerPage() {
                       const token = getAuthTokenFromClient();
                       await adminSetCareerModuleCourses(m.id, courses, token || undefined);
                       toast.success("Cursos vinculados!");
+                      await load();
                     }}
                     onSetExams={async (examsToSet) => {
                       const token = getAuthTokenFromClient();
@@ -344,16 +397,36 @@ export default function EditCareerPage() {
                 ))
               )}
             </CardContent>
+            ) : null}
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Exames</CardTitle>
+            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0 pb-2">
+              <div className="flex items-center gap-2">
+                <CardTitle>Exames</CardTitle>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-gray-600 dark:text-gray-400"
+                  onClick={() => setExamsPanelOpen((o) => !o)}
+                  aria-expanded={examsPanelOpen}
+                  aria-label={examsPanelOpen ? "Recolher lista de exames" : "Expandir lista de exames"}
+                >
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform duration-200",
+                      examsPanelOpen && "rotate-180"
+                    )}
+                  />
+                </Button>
+              </div>
               <Button onClick={handleAddExam} disabled={loading} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Adicionar
               </Button>
             </CardHeader>
+            {examsPanelOpen ? (
             <CardContent className="space-y-4">
               {exams.length === 0 ? (
                 <div className="text-sm text-gray-500">Nenhum exame ainda.</div>
@@ -373,6 +446,7 @@ export default function EditCareerPage() {
                 ))
               )}
             </CardContent>
+            ) : null}
           </Card>
         </div>
       </div>
@@ -383,6 +457,7 @@ export default function EditCareerPage() {
 function CareerModuleCard({
   careerId,
   module,
+  allModules,
   allCourses,
   exams,
   onUpdated,
@@ -392,6 +467,7 @@ function CareerModuleCard({
 }: {
   careerId: string;
   module: CareerModule;
+  allModules: CareerModule[];
   allCourses: Course[];
   exams: CareerExam[];
   onUpdated: (m: CareerModule) => void;
@@ -405,9 +481,84 @@ function CareerModuleCard({
     orderIndex: module.orderIndex ?? 0,
   });
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [courseSearch, setCourseSearch] = useState("");
   const [exam1, setExam1] = useState<string>("");
   const [exam2, setExam2] = useState<string>("");
   const [busy, setBusy] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const linkedCourseIdsKey = useMemo(
+    () =>
+      (module.courses ?? [])
+        .slice()
+        .sort((a, b) => a.orderIndex - b.orderIndex)
+        .map((l) => l.courseId)
+        .join("|"),
+    [module.courses],
+  );
+
+  useEffect(() => {
+    const ids =
+      (module.courses ?? [])
+        .slice()
+        .sort((a, b) => a.orderIndex - b.orderIndex)
+        .map((l) => l.courseId);
+    setSelectedCourses(ids);
+  }, [module.id, linkedCourseIdsKey]);
+
+  const occupiedElsewhere = useMemo(() => {
+    const s = new Set<string>();
+    for (const mod of allModules) {
+      if (mod.id === module.id) continue;
+      for (const row of mod.courses ?? []) {
+        s.add(row.courseId);
+      }
+    }
+    return s;
+  }, [allModules, module.id]);
+
+  const availableToAdd = useMemo(() => {
+    const q = courseSearch.trim().toLowerCase();
+    return allCourses.filter((c) => {
+      if (occupiedElsewhere.has(c.id)) return false;
+      if (selectedCourses.includes(c.id)) return false;
+      if (!q) return true;
+      const slug = (c.slug ?? "").toLowerCase();
+      return c.title.toLowerCase().includes(q) || slug.includes(q);
+    });
+  }, [allCourses, occupiedElsewhere, selectedCourses, courseSearch]);
+
+  const courseTitle = useCallback(
+    (courseId: string) => {
+      const fromList = allCourses.find((c) => c.id === courseId);
+      if (fromList?.title) return fromList.title;
+      const fromLink = module.courses?.find((l) => l.courseId === courseId)?.course?.title;
+      return fromLink ?? courseId;
+    },
+    [allCourses, module.courses],
+  );
+
+  const moveCourse = (index: number, dir: -1 | 1) => {
+    setSelectedCourses((prev) => {
+      const j = index + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      const t = next[index]!;
+      next[index] = next[j]!;
+      next[j] = t;
+      return next;
+    });
+  };
+
+  const removeCourseAt = (index: number) => {
+    setSelectedCourses((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addCourse = (courseId: string) => {
+    setSelectedCourses((prev) =>
+      prev.includes(courseId) ? prev : [...prev, courseId],
+    );
+  };
 
   const save = async () => {
     try {
@@ -477,7 +628,34 @@ function CareerModuleCard({
   };
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4 space-y-4">
+    <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center justify-between gap-3 bg-gray-50/90 px-4 py-3 text-left transition-colors hover:bg-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-800/80"
+        aria-expanded={expanded}
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200",
+              expanded && "rotate-180"
+            )}
+            aria-hidden
+          />
+          <span className="truncate font-medium text-gray-900 dark:text-gray-100">
+            {local.title || "Módulo sem título"}
+          </span>
+          <span className="shrink-0 rounded-md bg-gray-200/80 px-1.5 py-0.5 text-xs tabular-nums text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+            ordem {local.orderIndex}
+          </span>
+        </div>
+        <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+          {expanded ? "Recolher" : "Expandir"}
+        </span>
+      </button>
+      {expanded ? (
+        <div className="space-y-4 border-t border-gray-200 p-4 dark:border-gray-800">
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2 space-y-2">
           <Label>Título</Label>
@@ -509,26 +687,120 @@ function CareerModuleCard({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Cursos vinculados</Label>
-          <Select
-            multiple
-            value={selectedCourses}
-            onChange={(e) => {
-              const opts = Array.from(e.currentTarget.selectedOptions).map((o) => o.value);
-              setSelectedCourses(opts);
-            }}
-            className="h-40"
-          >
-            {allCourses.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.title}
-              </option>
-            ))}
-          </Select>
-          <Button onClick={applyCourses} disabled={busy} variant="outline">
-            Aplicar cursos
+        <div className="space-y-3">
+          <div>
+            <Label>Cursos vinculados a este módulo</Label>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Um mesmo curso não pode estar em dois módulos ao mesmo tempo. Use as setas para
+              definir a ordem na trilha.
+            </p>
+          </div>
+
+          <div className="min-h-20 space-y-1.5 rounded-lg border border-gray-200 bg-gray-50/50 p-2 dark:border-gray-700 dark:bg-gray-900/30">
+            {selectedCourses.length === 0 ? (
+              <p className="px-2 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                Nenhum curso vinculado. Adicione abaixo.
+              </p>
+            ) : (
+              selectedCourses.map((courseId, idx) => (
+                <div
+                  key={`${courseId}-${idx}`}
+                  className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1.5 dark:border-gray-600 dark:bg-gray-950"
+                >
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {courseTitle(courseId)}
+                  </span>
+                  <div className="flex shrink-0 items-center gap-0.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      disabled={busy || idx === 0}
+                      onClick={() => moveCourse(idx, -1)}
+                      aria-label="Mover curso para cima"
+                    >
+                      <ArrowUp className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      disabled={busy || idx === selectedCourses.length - 1}
+                      onClick={() => moveCourse(idx, 1)}
+                      aria-label="Mover curso para baixo"
+                    >
+                      <ArrowDown className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-red-600 hover:text-red-700"
+                      disabled={busy}
+                      onClick={() => removeCourseAt(idx)}
+                      aria-label="Remover curso do módulo"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <Button onClick={applyCourses} disabled={busy} variant="default" className="w-full sm:w-auto">
+            Salvar vínculos ({selectedCourses.length})
           </Button>
+
+          <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
+            <Label htmlFor={`add-course-${module.id}`}>Adicionar curso</Label>
+            <div className="relative mt-1.5">
+              <Search
+                className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                aria-hidden
+              />
+              <Input
+                id={`add-course-${module.id}`}
+                value={courseSearch}
+                onChange={(e) => setCourseSearch(e.target.value)}
+                placeholder="Buscar por título ou slug…"
+                className="pl-9"
+                autoComplete="off"
+              />
+            </div>
+            <div className="mt-2 max-h-52 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700">
+              {availableToAdd.length === 0 ? (
+                <p className="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                  {allCourses.length === 0
+                    ? "Nenhum curso cadastrado na plataforma."
+                    : "Nenhum curso disponível (todos já vinculados a este ou a outro módulo)."}
+                </p>
+              ) : (
+                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {availableToAdd.map((c) => (
+                    <li key={c.id}>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => addCourse(c.id)}
+                        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/80 disabled:opacity-50"
+                      >
+                        <span className="min-w-0 flex-1 truncate font-medium text-gray-900 dark:text-gray-100">
+                          {c.title}
+                        </span>
+                        <span className="flex shrink-0 items-center gap-1 text-xs text-gray-500">
+                          <Plus className="h-3.5 w-3.5" aria-hidden />
+                          adicionar
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -562,6 +834,8 @@ function CareerModuleCard({
           </Button>
         </div>
       </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -586,6 +860,7 @@ function CareerExamCard({
     contentText: JSON.stringify(exam.content ?? { challenges: [] }, null, 2),
   });
   const [busy, setBusy] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const parsed = useMemo(() => safeJsonParse(local.contentText), [local.contentText]);
 
   const save = async () => {
@@ -636,7 +911,36 @@ function CareerExamCard({
   };
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4 space-y-4">
+    <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center justify-between gap-3 bg-gray-50/90 px-4 py-3 text-left transition-colors hover:bg-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-800/80"
+        aria-expanded={expanded}
+      >
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200",
+                expanded && "rotate-180"
+              )}
+              aria-hidden
+            />
+            <span className="truncate font-medium text-gray-900 dark:text-gray-100">
+              {local.title || "Exame sem título"}
+            </span>
+          </div>
+          <span className="truncate pl-6 text-xs text-gray-500 dark:text-gray-400 sm:pl-0">
+            {local.slug}
+          </span>
+        </div>
+        <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+          {expanded ? "Recolher" : "Expandir"}
+        </span>
+      </button>
+      {expanded ? (
+        <div className="space-y-4 border-t border-gray-200 p-4 dark:border-gray-800">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label>Título</Label>
@@ -703,6 +1007,8 @@ function CareerExamCard({
           Excluir
         </Button>
       </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { listCourses, deleteCourse, type Course } from "@/actions/course";
 import { getAuthTokenFromClient } from "@/lib/auth";
-import { Plus, Edit, Trash2, LayoutList, Kanban } from "lucide-react";
+import { Plus, Edit, Trash2, LayoutList, Kanban, ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { CourseKanban } from "@/components/courses/course-kanban";
@@ -134,9 +134,11 @@ export default function CoursesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[72px]">Ícone</TableHead>
                     <TableHead>Título</TableHead>
                     <TableHead>Slug</TableHead>
                     <TableHead>Nível</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Alunos</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
@@ -144,7 +146,7 @@ export default function CoursesPage() {
                 <TableBody>
                   {courses.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                         Nenhum curso encontrado
                       </TableCell>
                     </TableRow>
@@ -153,9 +155,29 @@ export default function CoursesPage() {
                       const badge = STATUS_BADGE[course.status] ?? STATUS_BADGE.DRAFT;
                       return (
                         <TableRow key={course.id}>
+                          <TableCell className="align-middle">
+                            {course.icon ? (
+                              // eslint-disable-next-line @next/next/no-img-element -- URLs de ícone variam (S3/CDN); evita configurar cada host no next.config
+                              <img
+                                src={course.icon}
+                                alt=""
+                                className="h-10 w-10 rounded-lg object-cover border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800"
+                              />
+                            ) : (
+                              <div
+                                className="flex h-10 w-10 items-center justify-center rounded-lg border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 text-gray-400"
+                                title="Sem ícone"
+                              >
+                                <ImageIcon className="h-4 w-4" aria-hidden />
+                              </div>
+                            )}
+                          </TableCell>
                           <TableCell className="font-medium">{course.title}</TableCell>
                           <TableCell>{course.slug}</TableCell>
                           <TableCell>{course.level}</TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {course._count?.userCourses ?? 0}
+                          </TableCell>
                           <TableCell>
                             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${badge.classes}`}>
                               {badge.label}
