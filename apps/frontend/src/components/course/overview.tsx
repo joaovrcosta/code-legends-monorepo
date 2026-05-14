@@ -97,7 +97,7 @@ export function CourseOverview({
   return (
     <div className="flex lg:flex-row flex-col gap-8 mt-8">
       <div className="w-full max-w-[1240px] space-y-4">
-        <Card className="p-0 text-whit bg-gray-gradient rounded-[20px]">
+        <Card className="p-0 text-whit bg-primary rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">
             <div className="flex items-center justify-between">
               <div>
@@ -242,7 +242,7 @@ export function CourseOverview({
           </div>
         </Card>
 
-        <Card className="p-0 text-white bg-gray-gradient rounded-[20px]">
+        <Card className="p-0 text-white bg-primary rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">
             <div className="flex items-center justify-between">
               <div>
@@ -341,7 +341,7 @@ export function CourseOverview({
           )}
         </Card>
 
-        <Card className="p-0 text-whit bg-gray-gradient rounded-[20px]">
+        <Card className="p-0 text-whit bg-primary rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">
             <div className="flex items-center justify-between">
               <div>
@@ -394,7 +394,7 @@ export function CourseOverview({
           </div>
         </Card>
 
-        <Card className="p-0 text-white bg-gray-gradient rounded-[20px]">
+        <Card className="p-0 text-white bg-primary rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">
             <div className="flex items-center justify-between">
               <div>
@@ -451,7 +451,7 @@ export function CourseOverview({
         </Card>
 
         {/* Section 4: Detalhes */}
-        <Card className="p-0 text-white bg-gray-gradient rounded-[20px]">
+        <Card className="p-0 text-white bg-primary rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">
             <div className="flex items-center justify-between">
               <div>
@@ -526,7 +526,7 @@ export function CourseOverview({
       </div>
       <div className="lg:max-w-[500px] w-full space-y-4 lg:sticky lg:top-[100px] lg:h-fit">
         {sessionReady && !isPaidUser && <LearnUpgradeCard />}
-        <Card className="p-0 text-white bg-gray-gradient rounded-[20px]">
+        <Card className="p-0 text-white bg-primary rounded-[20px]">
           <CardHeader className="px-4 py-6 border-b border-[#25252A]">
             <div className="flex items-center justify-between">
               <div>

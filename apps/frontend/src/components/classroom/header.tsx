@@ -152,7 +152,7 @@ export default function ClassroomHeader({
             </div>
             <div className="p-2 lg:flex hidden px-3 space-x-2">
               <p className="text-white text-sm truncate max-w-[200px]">
-                {currentLesson?.title || 'Introdução'}
+                {currentLesson?.title || 'Aula exclusiva'}
               </p>
             </div>
           </li>

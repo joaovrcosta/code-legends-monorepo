@@ -315,7 +315,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                   alt={course.title}
                   width={120}
                   height={120}
-                  className="relative lg:right-[24px] right-0"
+                  className="relative lg:right-[20px] right-0"
                 />
               )}
             </div>
