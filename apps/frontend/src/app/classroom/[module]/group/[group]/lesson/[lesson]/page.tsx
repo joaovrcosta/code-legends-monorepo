@@ -48,6 +48,7 @@ export default function DynamicLessonPage() {
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
   const {
     setLessonForPage,
+    setExclusiveAccessBlocked,
     lessonCompletedTimestamp,
     currentLesson,
     setShowModuleStatsOnce,
@@ -119,6 +120,7 @@ export default function DynamicLessonPage() {
       setIsLoading(true)
       setError(null)
       setUpgradeRequired(false)
+      setExclusiveAccessBlocked(false)
 
       let data: Awaited<ReturnType<typeof getLessonBySlug>> = null
       try {
@@ -144,6 +146,7 @@ export default function DynamicLessonPage() {
         lastLoadedKeyRef.current = null
         setError(data.message)
         setUpgradeRequired(true)
+        setExclusiveAccessBlocked(true)
         setIsLoading(false)
         return
       }
@@ -175,6 +178,7 @@ export default function DynamicLessonPage() {
     lessonSlug,
     moduleSlug,
     setLessonForPage,
+    setExclusiveAccessBlocked,
     fetchActiveCourse,
   ])
 

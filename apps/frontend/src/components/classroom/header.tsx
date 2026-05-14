@@ -5,7 +5,7 @@ import codeLegendsLogo from '../../../public/code-legends-logo.svg'
 import Link from 'next/link'
 import { Menu } from 'lucide-react'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
-import { SkipBack, SkipForward } from '@phosphor-icons/react/dist/ssr'
+import { Lightning, SkipBack, SkipForward } from '@phosphor-icons/react/dist/ssr'
 import codeLegendsLogoMobile from '../../../public/logo-mobile.png'
 import { UserDropdown } from '../user-dropdown'
 import { StrikeSection } from '../strike-section'
@@ -16,6 +16,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { useRoadmapUpdater } from '@/hooks/use-roadmap-updater'
 import type { RoadmapResponse } from '@/types/roadmap'
+import { cn } from '@/lib/utils'
 
 interface ClassroomHeaderProps {
   initialUserCourses: EnrolledCourse[]
@@ -28,7 +29,7 @@ export default function ClassroomHeader({
 }: ClassroomHeaderProps) {
   const { toggleSidebar } = useClassroomSidebarStore()
   const { activeCourse, setActiveCourse } = useActiveCourseStore()
-  const { currentLesson } = useCourseModalStore()
+  const { currentLesson, exclusiveAccessBlocked } = useCourseModalStore()
   const [isAutoplay, setIsAutoplay] = useState(false)
   const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
 
@@ -86,6 +87,24 @@ export default function ClassroomHeader({
       .filter(Boolean)
       .join(' / ')
   }, [currentActiveCourse?.title, moduleTitle, groupTitle])
+
+  /** Título no header: aula bloqueada ou paywall → sempre “Aula exclusiva”. */
+  const displayLessonTitle = useMemo(() => {
+    if (exclusiveAccessBlocked) return 'Aula exclusiva'
+    if (currentLesson?.status === 'locked') return 'Aula exclusiva'
+    return currentLesson?.title ?? 'Aula exclusiva'
+  }, [currentLesson, exclusiveAccessBlocked])
+
+  /** Free = lime, paga = roxo, sem acesso (locked ou sem aula) = amarelo */
+  const lessonLightningClass = useMemo(() => {
+    if (exclusiveAccessBlocked || !currentLesson || currentLesson.status === 'locked') {
+      return 'text-yellow-400'
+    }
+    if (currentLesson.isFree === true) {
+      return 'text-lime-400'
+    }
+    return 'text-purple-400'
+  }, [currentLesson, exclusiveAccessBlocked])
 
   return (
     <div className="fixed top-0 left-0 w-full z-40 bg-white shadow-md">
@@ -150,9 +169,15 @@ export default function ClassroomHeader({
               <SkipBack size={24} />
               <SkipForward size={24} weight="fill" />
             </div>
-            <div className="p-2 lg:flex hidden px-3 space-x-2">
+            <div className="flex items-center gap-2 p-2 lg:flex hidden px-3">
+              <Lightning
+                size={18}
+                weight="fill"
+                className={cn('shrink-0', lessonLightningClass)}
+                aria-hidden
+              />
               <p className="text-white text-sm truncate max-w-[200px]">
-                {currentLesson?.title || 'Aula exclusiva'}
+                {displayLessonTitle}
               </p>
             </div>
           </li>

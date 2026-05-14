@@ -26,6 +26,9 @@ interface CourseModalStore {
   setLessonsForPage: (lessons: Lesson[], startIndex?: number) => void
   setLessonForPage: (lesson: Lesson) => void
   setTaskForPage: (task: Task) => void
+  /** Sala de aula: paywall / upgrade — não há `currentLesson` novo, mas o header deve mostrar “Aula exclusiva”. */
+  exclusiveAccessBlocked: boolean
+  setExclusiveAccessBlocked: (blocked: boolean) => void
   currentLesson: Lesson | null
   updateCurrentLessonStatus: (status: LessonStatus) => void
   lessonCompletedTimestamp: number | null
@@ -50,6 +53,9 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
   lastModuleCompletion: null,
   showModuleStatsOnce: false,
   multiQuizBlocksNextLesson: false,
+  exclusiveAccessBlocked: false,
+  setExclusiveAccessBlocked: (blocked) =>
+    set({ exclusiveAccessBlocked: blocked }),
   setMultiQuizBlocksNextLesson: (blocked) =>
     set({ multiQuizBlocksNextLesson: blocked }),
   setModuleUnlockedTimestamp: () =>
@@ -72,6 +78,7 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
       currentIndex: 0,
       currentLesson: null,
       multiQuizBlocksNextLesson: false,
+      exclusiveAccessBlocked: false,
     }),
 
   goToNextLesson: () => {
@@ -143,6 +150,7 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
       lessons,
       currentIndex: startIndex,
       currentLesson: lessons[startIndex],
+      exclusiveAccessBlocked: false,
     }),
 
   setLessonForPage: (lesson: Lesson) =>
@@ -151,6 +159,7 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
       lessons: [lesson],
       currentIndex: 0,
       currentLesson: lesson,
+      exclusiveAccessBlocked: false,
     }),
 
   setTaskForPage: (task: Task) => {
