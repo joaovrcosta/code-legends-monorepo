@@ -3,6 +3,7 @@ import { CareerNotFoundError } from '../../errors/career-not-found'
 import {
   examScoreMeetsCertification,
   evaluateCareerCertificationReadiness,
+  isUserCourseFullyComplete,
 } from './career-certification-readiness'
 
 interface GetCareerBySlugRequest {
@@ -218,6 +219,30 @@ export class GetCareerBySlugUseCase {
         return acc + (ok ? 1 : 0)
       }, 0)
 
+      const coursesCompleteForModule = m.courses.every((row) =>
+        isUserCourseFullyComplete(userCourseMap.get(row.courseId)),
+      )
+      const examsAllPassed =
+        m.exams.length === 0 || examsPassedCount === m.exams.length
+      const moduleCompleteDerived = coursesCompleteForModule && examsAllPassed
+
+      let moduleCompletedAt: string | null = null
+      if (moduleCompleteDerived) {
+        if (statusRow?.completedAt) {
+          moduleCompletedAt = statusRow.completedAt.toISOString()
+        } else {
+          const lastTimes: number[] = []
+          for (const e of m.exams) {
+            const st = statsByExam.get(e.careerExamId)
+            if (st?.lastAt) lastTimes.push(st.lastAt.getTime())
+          }
+          moduleCompletedAt =
+            lastTimes.length > 0
+              ? new Date(Math.max(...lastTimes)).toISOString()
+              : null
+        }
+      }
+
       return {
         id: m.id,
         title: m.title,
@@ -251,10 +276,8 @@ export class GetCareerBySlugUseCase {
           }
         }),
         status: {
-          isCompleted: statusRow?.isCompleted ?? false,
-          completedAt: statusRow?.completedAt
-            ? statusRow.completedAt.toISOString()
-            : null,
+          isCompleted: moduleCompleteDerived,
+          completedAt: moduleCompletedAt,
           examsPassedCount,
         },
       }

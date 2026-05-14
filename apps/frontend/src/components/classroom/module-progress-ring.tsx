@@ -13,7 +13,7 @@ interface ProgressRingProps {
   isCurrent?: boolean
   /** Se true, exibe "01", "02"…; se false, "1", "2"… */
   padModuleNumber?: boolean
-  /** Texto opcional no centro (ex.: "42%"). Se definido, substitui número/check. */
+  /** Texto opcional no centro (ex.: "42%"). Em 100% mostra check no lugar do texto. */
   centerLabel?: string
 }
 
@@ -40,7 +40,6 @@ export const ProgressRing = memo(function ModuleProgressRing({
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90" aria-hidden>
-        {/* Fundo do anel */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -49,7 +48,6 @@ export const ProgressRing = memo(function ModuleProgressRing({
           strokeWidth={strokeWidth}
           className={trackColor}
         />
-        {/* Arco de progresso */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -63,19 +61,19 @@ export const ProgressRing = memo(function ModuleProgressRing({
         />
       </svg>
       <div
-        className="absolute inset-0 flex items-center justify-center"
+        className="pointer-events-none absolute inset-0 flex items-center justify-center"
         aria-hidden
       >
-        {centerLabel != null ? (
-          <span className="text-xs font-bold tabular-nums text-zinc-200">
-            {centerLabel}
-          </span>
-        ) : isComplete ? (
+        {isComplete ? (
           <Check
-            size={20}
+            size={Math.max(18, Math.round(size * 0.55))}
             className="text-cyan-400 animate-check-in origin-center"
             weight="bold"
           />
+        ) : centerLabel != null ? (
+          <span className="text-xs font-bold tabular-nums text-zinc-200">
+            {centerLabel}
+          </span>
         ) : (
           <span
             className={`text-sm font-bold tabular-nums ${isCurrent ? 'text-cyan-400' : 'text-zinc-300'

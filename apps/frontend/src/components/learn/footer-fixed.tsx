@@ -18,6 +18,11 @@ export function FooterFixed({
     return null;
   }
 
+  /** Pill de trilha ativa: só na home (`/`); fora disso (ex.: carreiras, catálogo) fica oculto no mobile. */
+  if (pathname !== "/") {
+    return null;
+  }
+
   return (
     <footer
       className="fixed bottom-0 left-0 right-0 z-[100] w-full px-4 pt-8 pb-3 lg:hidden pointer-events-none"

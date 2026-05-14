@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/classroom/module-progress-ring";
 import { getAuroraBackground } from "@/utils/hexToRgb";
-import { CaretLeftIcon, Check, FlaskIcon, Lock, Play } from "@phosphor-icons/react/dist/ssr";
+import { CaretLeftIcon, Check, FlaskIcon, LightningIcon, LightningSlashIcon, Lock, Play } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -25,12 +25,12 @@ export default async function CareerDetailPage({
     <div className="w-full">
       {/* Banner full-width */}
       <section
-        className="relative w-full border-b border-[#25252A] px-4 pb-8 pt-6 lg:px-12 lg:py-12 xl:px-0"
+        className="relative w-full border-b border-[#25252A] pb-8 pt-6 lg:py-12"
         style={getAuroraBackground(data.career.colorHex)}
       >
         <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
 
-        <div className="mx-auto w-full max-w-[1420px]">
+        <div className="mx-auto w-full max-w-[1420px] px-4 sm:px-6 lg:px-8 xl:px-12">
           <div className="relative z-10 flex w-full flex-col items-center lg:items-start">
             <Link
               href="/learn/careers"
@@ -67,6 +67,16 @@ export default async function CareerDetailPage({
               </div>
             ) : null}
 
+            <div className="flex items-center gap-1 my-4">
+              <div className="text-xs flex gap-1 items-center font-semibold bg-premium-gradient text-white px-2 py-0.5 rounded-full">
+                <span>PREMIUM</span>
+                <LightningIcon
+                  size={12}
+                  className="text-white"
+                  weight="fill"
+                />
+              </div>
+            </div>
             <h1 className="font-bold lg:text-[44px] text-2xl lg:text-left leading-tight text-center mb-3 text-white">
               {data.career.title}
             </h1>
@@ -77,7 +87,7 @@ export default async function CareerDetailPage({
               </p>
             ) : null}
 
-            <div className="mt-6 flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="mt-6 flex w-full justify-center lg:justify-start">
               <div className="w-full max-w-[500px]">
                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-[#7e7e89]">
                   <span>Seu Progresso</span>
@@ -95,9 +105,9 @@ export default async function CareerDetailPage({
                   <EnrollCareerButton
                     careerId={data.career.id}
                     isEnrolled={data.enrollment.isEnrolled}
-                    notEnrolledLabel="Iniciar"
+                    notEnrolledLabel="Inscreva-se"
                     enrolledLabel="Inscrito"
-                    className="h-12 w-full lg:max-w-[142px] rounded-full px-4 text-xs font-semibold bg-white/10 text-white/70 hover:bg-white/10"
+                    className="h-12 w-full lg:max-w-[142px] rounded-full px-4 text-base text-white font-semibold bg-blue-gradient-500 text-white/70 hover:bg-white/10"
                   />
                 </div>
               </div>
@@ -106,7 +116,7 @@ export default async function CareerDetailPage({
         </div>
       </section>
 
-      <div className="mx-auto mt-6 flex w-full max-w-[1420px] flex-col items-start px-4 sm:px-6 lg:px-8 xl:px-0">
+      <div className="mx-auto mt-6 flex w-full max-w-[1420px] flex-col items-start px-4 sm:px-6 lg:px-8 xl:px-12">
         <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
           <div id="modulos" className="min-w-0 space-y-4">
             {data.modules.map((m) => (
@@ -114,8 +124,8 @@ export default async function CareerDetailPage({
                 key={m.id}
                 className="w-full rounded-2xl py-4"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
+                <div className="flex items-start justify-between gap-4 sm:gap-6">
+                  <div className="min-w-0 flex-1">
                     <span className="font-bold bg-blue-gradient-500 bg-clip-text text-transparent text-lg">
                       {m.title}
                     </span>
@@ -123,7 +133,7 @@ export default async function CareerDetailPage({
                       <p className="mt-1 text-sm text-white/60">{m.description}</p>
                     ) : null}
                   </div>
-                  <div className="shrink-0 text-right">
+                  <div className="flex shrink-0 flex-col items-end gap-0 text-right">
                     <div className="text-xs font-semibold text-white/70">
                       Exames: {m.status.examsPassedCount}/{m.exams.length}
                     </div>
@@ -146,9 +156,9 @@ export default async function CareerDetailPage({
                       {m.courses.map((c) => (
                         <li
                           key={c.id}
-                          className="flex items-center justify-between gap-3"
+                          className="flex items-center gap-3"
                         >
-                          <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex min-w-0 flex-1 items-center gap-3">
                             <ProgressRing
                               progress={Math.max(0, Math.min(1, c.progress / 100))}
                               moduleNumber={0}
@@ -179,7 +189,7 @@ export default async function CareerDetailPage({
                             )}
                             <div className="min-w-0">
                               <div className="flex items-center justify-between gap-3">
-                                <div className="truncate text-sm font-medium text-white/90">
+                                <div className="truncate text-base font-medium text-white/90">
                                   {c.title}
                                 </div>
                               </div>
@@ -187,9 +197,9 @@ export default async function CareerDetailPage({
                           </div>
                           <Link
                             href={`/learn/paths/${c.slug}`}
-                            className="text-xs font-semibold text-[#00C8FF] mr-2"
+                            className="shrink-0 text-xs font-semibold text-[#00C8FF]"
                           >
-                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#25252A] hover:bg-[#2E2E32] flex items-center justify-center transition-colors">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#25252A] transition-colors hover:bg-[#2E2E32]">
                               <Play size={20} className="text-white ml-0.5" fill="white" weight="fill" />
                             </div>
                           </Link>
@@ -208,10 +218,10 @@ export default async function CareerDetailPage({
                       {m.exams.map((e) => (
                         <div
                           key={e.id}
-                          className="flex flex-col gap-3 px-4 py-5 rounded-[20px] bg-primary border border-[#25252A] transition-opacity"
+                          className="flex flex-col gap-3 rounded-[20px] border border-[#25252A] bg-primary px-4 py-5 transition-opacity sm:px-5"
                         >
-                          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="flex items-center gap-4">
+                          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                            <div className="flex min-w-0 flex-1 items-center gap-4">
                               <div>
                                 <FlaskIcon
                                   size={20}
@@ -222,7 +232,7 @@ export default async function CareerDetailPage({
                                 <div className="text-[10px] text-white/50 mb-2 uppercase tracking-widest">
                                   Exame de certificação
                                 </div>
-                                <div className="text-sm font-semibold text-white leading-snug line-clamp-2 sm:line-clamp-1">
+                                <div className="text-sm font-semibold text-white/90 leading-snug line-clamp-2 sm:line-clamp-1">
                                   {e.title}
                                   {e.passed ? (
                                     <span className="ml-2 inline-flex align-middle opacity-70">
@@ -237,11 +247,11 @@ export default async function CareerDetailPage({
                                 ) : null}
                               </div>
                             </div>
-                            <div className="w-full sm:w-auto sm:shrink-0">
+                            <div className="w-full shrink-0 sm:w-auto sm:self-center">
                               {data.enrollment.isEnrolled ? (
                                 <Button
                                   asChild
-                                  className="h-10 w-full sm:w-auto rounded-full px-5 text-sm font-semibold bg-transparent hover:bg-white/5 text-white/80 transition-all"
+                                  className="h-10 w-full rounded-full bg-transparent px-5 text-sm font-semibold text-white/80 transition-all hover:bg-white/5 sm:min-w-[10rem] sm:w-auto"
                                 >
                                   <Link href={`/learn/careers/${data.career.slug}/exams/${e.id}`}>
                                     {e.passed ? "Refazer prova" : "Fazer teste"}
@@ -249,7 +259,7 @@ export default async function CareerDetailPage({
                                 </Button>
                               ) : (
                                 <div
-                                  className="flex h-10 w-full min-h-10 min-w-0 sm:w-auto sm:min-w-[120px] shrink-0 cursor-not-allowed items-center justify-center rounded-full border border-[#25252A] bg-white/[0.04] text-white/45"
+                                  className="flex h-10 w-full min-h-10 min-w-0 sm:w-auto sm:min-w-[120px] shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-[#18181f] text-white/45"
                                   title="Inscreva-se na carreira para fazer o teste"
                                   aria-label="Exame bloqueado: inscreva-se na carreira para fazer o teste"
                                 >
