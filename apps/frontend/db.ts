@@ -1,5 +1,4 @@
 import completeTaskRight from "./public/complete-task-right.svg";
-import completeTaskLeft from "./public/complete-task-left.svg";
 import incompleteTaskLeft from "./public/incomplete-task-left.svg";
 import recordedClassIcon from "./public/recorded-class-icon.svg";
 import incompleteRecordedClass from "./public/incomplete-recorded-class.svg";
@@ -207,7 +206,7 @@ export const reactCourseData: ReactCourse = {
               id: 2,
               title: "CSS Global",
               category: "ReactJS",
-              image: completeTaskLeft,
+              image: '',
               completed: false,
               locked: true,
               type: "video",
@@ -262,7 +261,7 @@ export const reactCourseData: ReactCourse = {
               id: 2,
               title: "CSS Global",
               category: "ReactJS",
-              image: completeTaskLeft,
+              image: '',
               completed: false,
               locked: true,
               type: "video",
@@ -317,7 +316,7 @@ export const reactCourseData: ReactCourse = {
               id: 2,
               title: "CSS Global",
               category: "ReactJS",
-              image: completeTaskLeft,
+              image: '',
               completed: false,
               locked: true,
               type: "video",
@@ -372,7 +371,7 @@ export const reactCourseData: ReactCourse = {
               id: 2,
               title: "CSS Global",
               category: "ReactJS",
-              image: completeTaskLeft,
+              image: '',
               completed: false,
               locked: true,
               type: "video",

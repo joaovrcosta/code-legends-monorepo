@@ -12,12 +12,14 @@ import {
   BookBookmarkIcon,
   House,
   RocketLaunchIcon,
+  Briefcase,
 } from "@phosphor-icons/react/dist/ssr";
 
 const links = [
   { name: "Dashboard", path: "/", icon: House },
   { name: "Aprender", path: "/learn", icon: Path },
   { name: "Catálogo", path: "/learn/catalog", icon: BookOpenText },
+  { name: "Carreiras", path: "/learn/careers", icon: Briefcase },
   {
     name: "Meu aprendizado",
     path: "/learn/my-learning",
