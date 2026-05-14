@@ -10,6 +10,7 @@ import { getAuroraBackground } from "@/utils/hexToRgb";
 import { CaretLeftIcon, Check, FlaskIcon, LightningIcon, LightningSlashIcon, Lock, Play } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
+import { SectionTitle } from "@/app/catalog-courses-carousel-title";
 
 export const dynamic = "force-dynamic";
 
@@ -289,21 +290,20 @@ export default async function CareerDetailPage({
 
           <div className="lg:sticky lg:top-6">
             <div className="space-y-4">
-              <Card className="">
-                <CardContent className="p-5">
-                  <div className="text-sm font-semibold text-white/80">
-                    Certificado
-                  </div>
-                  <div className="mt-3">
-                    <CareerCertificatePanel
-                      careerId={data.career.id}
-                      careerSlug={data.career.slug}
-                      careerTitle={data.career.title}
-                      enrollment={data.enrollment}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+
+              <SectionTitle
+                className=""
+                title="Certificado"
+              />
+              <div className="mt-3">
+                <CareerCertificatePanel
+                  careerId={data.career.id}
+                  careerSlug={data.career.slug}
+                  careerTitle={data.career.title}
+                  enrollment={data.enrollment}
+                />
+              </div>
+
             </div>
           </div>
         </div>
