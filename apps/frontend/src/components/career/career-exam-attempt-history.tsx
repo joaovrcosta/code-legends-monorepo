@@ -46,9 +46,7 @@ export function CareerExamAttemptHistory({
   };
 
   if (attemptCount === 0) {
-    return (
-      <p className="mt-2 text-[11px] text-white/45">Nenhuma tentativa registrada ainda.</p>
-    );
+    return null;
   }
 
   return (

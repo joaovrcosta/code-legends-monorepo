@@ -118,6 +118,10 @@ export default async function CareerDetailPage({
       </section>
 
       <div className="mx-auto mt-6 flex w-full max-w-[1420px] flex-col items-start px-4 sm:px-6 lg:px-8 xl:px-12">
+        <SectionTitle
+          className="mb-4"
+          title="Curriculo do caminho"
+        />
         <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
           <div id="modulos" className="min-w-0 space-y-4">
             {data.modules.map((m) => (
@@ -230,8 +234,9 @@ export default async function CareerDetailPage({
                                 />
                               </div>
                               <div className="min-w-0">
-                                <div className="text-[10px] text-white/50 mb-2 uppercase tracking-widest">
-                                  Exame de certificação
+                                <div className="text-[10px] text-white/50 mb-2 tracking-widest">
+                                  <p className="text-muted-foreground text-[10px] font-light mb-1">Exame de certificação
+                                  </p>
                                 </div>
                                 <div className="text-sm font-semibold text-white/90 leading-snug line-clamp-2 sm:line-clamp-1">
                                   {e.title}
@@ -290,7 +295,6 @@ export default async function CareerDetailPage({
 
           <div className="lg:sticky lg:top-6">
             <div className="space-y-4">
-
               <SectionTitle
                 className=""
                 title="Certificado"
@@ -308,7 +312,7 @@ export default async function CareerDetailPage({
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createRequest } from "@/actions/request/create-request";
 import { generateCareerCertificate } from "@/actions/career/generate-career-certificate";
 import { Lock } from "@phosphor-icons/react";
+import { cn } from "@/lib/utils";
 import { FinalExamSchedulePicker } from "./final-exam-schedule-picker";
 
 const REQUEST_TYPE = "CAREER_FINAL_EXAM";
@@ -49,6 +50,30 @@ export function CareerCertificatePanel({
   const [issueLoading, setIssueLoading] = useState(false);
   /** Após enviar o agendamento: esconde o botão até o refresh trazer `finalExamRequestPending` da API. */
   const [finalExamJustScheduled, setFinalExamJustScheduled] = useState(false);
+  /** Toque no cadeado bloqueado: shake + “tranco” no ícone */
+  const [lockDeniedPulse, setLockDeniedPulse] = useState(false);
+  const lockDeniedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const playLockedPadlockEffect = useCallback(() => {
+    if (lockDeniedTimeoutRef.current) {
+      clearTimeout(lockDeniedTimeoutRef.current);
+    }
+    setLockDeniedPulse(true);
+    lockDeniedTimeoutRef.current = setTimeout(() => {
+      setLockDeniedPulse(false);
+      lockDeniedTimeoutRef.current = null;
+    }, 480);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (lockDeniedTimeoutRef.current) {
+        clearTimeout(lockDeniedTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (enrollment.finalExamRequestPending) {
@@ -115,10 +140,28 @@ export function CareerCertificatePanel({
   if (!enrollment.isEnrolled) {
     return (
       <div className="mt-3 relative overflow-hidden rounded-[20px] border border-[#25252A]">
-        <div className="h-[120px] w-full bg-black/40 flex items-center justify-center gap-2">
-          <Lock size={20} className="text-white" />
-          <span className="text-white text-sm font-semibold">Inscreva-se na carreira</span>
-        </div>
+        <button
+          type="button"
+          onClick={playLockedPadlockEffect}
+          aria-label="Certificado bloqueado. Inscreva-se na carreira para desbloquear."
+          className={cn(
+            "flex h-[120px] w-full cursor-pointer items-center justify-center gap-2 border-0 bg-black/40 p-0 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#00C8FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
+            lockDeniedPulse && "animate-locked-shake",
+          )}
+        >
+          <Lock
+            size={20}
+            weight="fill"
+            className={cn(
+              "shrink-0 text-white/90",
+              lockDeniedPulse && "animate-locked-latch",
+            )}
+            aria-hidden
+          />
+          <span className="text-sm font-semibold text-white">
+            Inscreva-se na carreira
+          </span>
+        </button>
       </div>
     );
   }
@@ -181,10 +224,26 @@ export function CareerCertificatePanel({
             </Button>
           </div>
         ) : (
-          <div className="absolute inset-0 bg-black/35 backdrop-blur-sm flex items-center justify-center gap-2">
-            <Lock size={20} className="text-white" />
-            <span className="text-white text-sm font-semibold">Bloqueado</span>
-          </div>
+          <button
+            type="button"
+            onClick={playLockedPadlockEffect}
+            aria-label="Certificado bloqueado. Conclua os requisitos para emitir."
+            className={cn(
+              "absolute inset-0 flex items-center justify-center gap-2 border-0 bg-black/35 p-0 backdrop-blur-sm outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#00C8FF]/50",
+              lockDeniedPulse && "animate-locked-shake",
+            )}
+          >
+            <Lock
+              size={20}
+              weight="fill"
+              className={cn(
+                "shrink-0 text-white/90",
+                lockDeniedPulse && "animate-locked-latch",
+              )}
+              aria-hidden
+            />
+            <span className="text-sm font-semibold text-white">Bloqueado</span>
+          </button>
         )}
       </div>
 
