@@ -3,6 +3,10 @@
 import { getAuthToken } from "../auth/session";
 import { revalidatePath } from "next/cache";
 import type { EnrollCareerResponse } from "@/types/career";
+import {
+  CAREER_ENROLL_PREMIUM_REQUIRED,
+  type CareerEnrollBlockedPlan,
+} from "@/lib/career-enroll-gate";
 
 export async function enrollInCareer(
   careerId: string
@@ -24,7 +28,26 @@ export async function enrollInCareer(
   });
 
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
+    const data = (await res.json().catch(() => ({}))) as {
+      message?: string;
+      currentPlan?: string;
+    };
+    if (
+      res.status === 403 &&
+      (data.currentPlan === "FREE" || data.currentPlan === "PRO")
+    ) {
+      const plan = data.currentPlan as CareerEnrollBlockedPlan;
+      throw Object.assign(
+        new Error(
+          data.message ||
+            "As carreiras exigem o plano Premium para se inscrever.",
+        ),
+        {
+          code: CAREER_ENROLL_PREMIUM_REQUIRED,
+          currentPlan: plan,
+        },
+      );
+    }
     throw new Error(data.message || "Erro ao se inscrever na carreira");
   }
 

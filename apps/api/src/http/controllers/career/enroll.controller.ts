@@ -2,6 +2,8 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { makeEnrollCareerUseCase } from '../../../utils/factories/make-enroll-career-use-case'
 import { CareerNotFoundError } from '../../../use-cases/errors/career-not-found'
+import { CareerEnrollmentRequiresPremiumError } from '../../../use-cases/errors/career-enrollment-requires-premium'
+import { UserNotFoundError } from '../../../use-cases/errors/user-not-found'
 
 export async function enroll(request: FastifyRequest, reply: FastifyReply) {
   const paramsSchema = z.object({
@@ -18,6 +20,15 @@ export async function enroll(request: FastifyRequest, reply: FastifyReply) {
     return reply.status(201).send({ userCareer })
   } catch (error) {
     if (error instanceof CareerNotFoundError) {
+      return reply.status(404).send({ message: error.message })
+    }
+    if (error instanceof CareerEnrollmentRequiresPremiumError) {
+      return reply.status(403).send({
+        message: error.message,
+        currentPlan: error.currentPlan,
+      })
+    }
+    if (error instanceof UserNotFoundError) {
       return reply.status(404).send({ message: error.message })
     }
     return reply.status(500).send({ message: 'Internal server error' })
