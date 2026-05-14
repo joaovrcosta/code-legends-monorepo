@@ -91,7 +91,7 @@ export function SkillsTrackingCard({
         <h2 className="text-[20px] font-semibold tracking-tight text-white">Skills</h2>
         {weeklyXpGained > 0 && (
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex h-7 items-center gap-2 rounded-full bg-[#00C8FF] px-4 text-[13px] font-bold text-black">
+            <div className="flex items-center gap-1 rounded-full bg-streak-flame px-2 text-[12px] font-bold text-black">
               <Plus size={14} weight="bold" /> <XPValue value={weeklyXpGained} /> XP
             </div>
             <span className="text-sm font-medium text-[#7e7e89]">adicionado essa semana</span>
@@ -185,9 +185,8 @@ export function SkillsTrackingCard({
             return (
               <div
                 key={skill.skillId}
-                className={`grid grid-cols-[140px_1fr_200px] items-center gap-6 px-4 py-3 transition-colors ${
-                  isEven ? 'rounded-[20px] bg-[#15151B]' : 'bg-transparent'
-                }`}
+                className={`grid grid-cols-[140px_1fr_200px] items-center gap-6 px-4 py-3 transition-colors ${isEven ? 'rounded-[20px] bg-[#15151B]' : 'bg-transparent'
+                  }`}
               >
                 <span className="flex min-w-0 items-center gap-2 truncate text-[15px] font-semibold text-[#C4C4CC]">
                   {showPlanBolt && (
