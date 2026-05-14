@@ -43,7 +43,7 @@ export function CareerEnrollPremiumGateDialog({
           <Button
             type="button"
             variant="outline"
-            className="rounded-full border-[#25252A] bg-white/5 text-white hover:bg-white/10"
+            className="rounded-full border-[#25252A] bg-white/5 h-[44px] text-white hover:bg-white/10"
             onClick={() => onOpenChange(false)}
           >
             Fechar
@@ -52,14 +52,14 @@ export function CareerEnrollPremiumGateDialog({
             <CtaAssinarCursoButton
               planSlug="premium"
               showArrow
-              className="[&_button]:h-11 [&_button]:rounded-full"
+              className="[&_button]:h-[44px] [&_button]:rounded-full"
             >
               Ir para Premium
             </CtaAssinarCursoButton>
           ) : (
             <Button
               asChild
-              className="rounded-full bg-blue-gradient-500 font-semibold text-white hover:opacity-90"
+              className="rounded-full bg-blue-gradient-500 h-[44px] font-semibold text-white hover:opacity-90"
             >
               <Link href="/plans">Ver planos</Link>
             </Button>

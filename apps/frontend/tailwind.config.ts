@@ -96,7 +96,7 @@ export default {
           "linear-gradient(267deg, rgba(0,78,99,1) 0%, #00c8ff 100%)",
         "blue-gradient-500-inverse":
           "linear-gradient(267deg, #00c8ff 0%, rgba(0,78,99,1) 100%)",
-        "orange-gradient-500":
+        "premium-gradient":
           "linear-gradient(267deg, rgba(153,41,0,1) 0%, #FF4500 100%)",
         "red-gradient-500": "linear-gradient(267deg, #570D0D 0%, #BD1C1C 100%)",
         "lime-gradient-500":
@@ -104,8 +104,8 @@ export default {
         /** Streak — chama de fogão a gás (azul → ciano claro) */
         "streak-flame":
           "linear-gradient(267deg, #082f49 0%, #0c4a6e 18%, #0369a1 38%, #0284c7 56%, #0ea5e9 72%, #38bdf8 86%, #bae6fd 100%)",
-        "premium-gradient":
-          "linear-gradient(267deg, #f8bb42 0%, #fba982 18%, #fe94cf 38%, #e290e6 56%, #ae90f1 72%, #5f60a5 100%)",
+        // "premium-gradient":
+        //   "linear-gradient(267deg, #f8bb42 0%, #fba982 18%, #fe94cf 38%, #e290e6 56%, #ae90f1 72%, #5f60a5 100%)",
         "streak-flame-bar":
           "linear-gradient(90deg, #082f49 0%, #0c4a6e 22%, #0369a1 44%, #0ea5e9 64%, #38bdf8 82%, #7dd3fc 100%)",
         "purple-gradient-500":

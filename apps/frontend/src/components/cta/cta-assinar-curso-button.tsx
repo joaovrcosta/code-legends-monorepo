@@ -29,7 +29,14 @@ export function CtaAssinarCursoButton({
 
   return (
     <Link href={href} className={cn("block w-full sm:w-auto", className)}>
-      <PrimaryButton variant="callToAction" className="gap-2 w-full sm:w-auto">
+      <PrimaryButton
+        variant="callToAction"
+        className={cn(
+          "gap-2 w-full sm:w-auto",
+          planSlug === "premium" &&
+            "!bg-premium-gradient border-white/25 text-white shadow-[0_0_20px_rgba(245,180,200,0.15)] hover:opacity-90",
+        )}
+      >
         {children}
         {showArrow && <ArrowUpRight size={18} weight="bold" />}
       </PrimaryButton>
