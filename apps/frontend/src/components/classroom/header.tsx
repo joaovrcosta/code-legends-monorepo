@@ -13,14 +13,29 @@ import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import type { EnrolledCourse, ActiveCourse } from '@/types/user-course.ts'
 import { useState, useMemo, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { useRoadmapUpdater } from '@/hooks/use-roadmap-updater'
 import type { RoadmapResponse } from '@/types/roadmap'
 import { cn } from '@/lib/utils'
+import { Skeleton } from '@/components/skeleton'
 
 interface ClassroomHeaderProps {
   initialUserCourses: EnrolledCourse[]
   initialActiveCourse: ActiveCourse | null
+}
+
+/** Slug da aula na URL `/classroom/.../lesson/:slug` — fora desse padrão devolve `null`. */
+function classroomRouteLessonSlug(pathname: string | null): string | null {
+  if (!pathname) return null
+  const parts = pathname.split('/').filter(Boolean)
+  const i = parts.indexOf('lesson')
+  if (i === -1 || !parts[i + 1]) return null
+  try {
+    return decodeURIComponent(parts[i + 1])
+  } catch {
+    return parts[i + 1]
+  }
 }
 
 export default function ClassroomHeader({
@@ -30,8 +45,19 @@ export default function ClassroomHeader({
   const { toggleSidebar } = useClassroomSidebarStore()
   const { activeCourse, setActiveCourse } = useActiveCourseStore()
   const { currentLesson, exclusiveAccessBlocked } = useCourseModalStore()
+  const pathname = usePathname()
   const [isAutoplay, setIsAutoplay] = useState(false)
   const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
+
+  const routeLessonSlug = useMemo(
+    () => classroomRouteLessonSlug(pathname),
+    [pathname],
+  )
+  /** URL já mudou para outra aula, mas a store ainda tem a lição anterior — carregando. */
+  const isLessonNavLoading =
+    routeLessonSlug != null &&
+    currentLesson != null &&
+    routeLessonSlug !== currentLesson.slug
 
   useEffect(() => {
     setActiveCourse(initialActiveCourse ?? null)
@@ -88,6 +114,9 @@ export default function ClassroomHeader({
       .join(' / ')
   }, [currentActiveCourse?.title, moduleTitle, groupTitle])
 
+  const showLessonTitleSkeleton =
+    isLessonNavLoading && !exclusiveAccessBlocked
+
   /** Título no header: aula bloqueada ou paywall → sempre “Aula exclusiva”. */
   const displayLessonTitle = useMemo(() => {
     if (exclusiveAccessBlocked) return 'Aula exclusiva'
@@ -95,16 +124,24 @@ export default function ClassroomHeader({
     return currentLesson?.title ?? 'Aula exclusiva'
   }, [currentLesson, exclusiveAccessBlocked])
 
-  /** Free = lime, paga = roxo, sem acesso (locked ou sem aula) = amarelo */
+  /** Free = lime, paga = roxo, sem acesso = amarelo; carregando troca de aula = cinza (#18181f+). */
   const lessonLightningClass = useMemo(() => {
-    if (exclusiveAccessBlocked || !currentLesson || currentLesson.status === 'locked') {
+    if (isLessonNavLoading && !exclusiveAccessBlocked) {
+      /* Cinza mais claro que #18181f (mesma família do surface) */
+      return 'text-[#3D3D47]'
+    }
+    if (
+      exclusiveAccessBlocked ||
+      !currentLesson ||
+      currentLesson.status === 'locked'
+    ) {
       return 'text-yellow-400'
     }
     if (currentLesson.isFree === true) {
       return 'text-lime-400'
     }
     return 'text-purple-400'
-  }, [currentLesson, exclusiveAccessBlocked])
+  }, [currentLesson, exclusiveAccessBlocked, isLessonNavLoading])
 
   return (
     <div className="fixed top-0 left-0 w-full z-40 bg-white shadow-md">
@@ -169,16 +206,32 @@ export default function ClassroomHeader({
               <SkipBack size={24} />
               <SkipForward size={24} weight="fill" />
             </div>
-            <div className="flex items-center gap-2 p-2 lg:flex hidden px-3">
+            <div
+              className="flex items-center gap-2 p-2 lg:flex hidden px-3"
+              aria-busy={showLessonTitleSkeleton}
+            >
               <Lightning
                 size={18}
                 weight="fill"
                 className={cn('shrink-0', lessonLightningClass)}
                 aria-hidden
               />
-              <p className="text-white text-sm truncate max-w-[200px]">
-                {displayLessonTitle}
-              </p>
+              {showLessonTitleSkeleton ? (
+                <Skeleton
+                  variant="rectangular"
+                  animate="pulse"
+                  width={168}
+                  height={14}
+                  className="!mt-0 !mb-0 h-3.5 max-w-[200px] shrink-0 rounded-md !bg-[#18181f]"
+                />
+              ) : (
+                <p
+                  className="text-sm truncate max-w-[200px] min-h-[1.25rem] text-white"
+                  aria-live="polite"
+                >
+                  {displayLessonTitle}
+                </p>
+              )}
             </div>
           </li>
 

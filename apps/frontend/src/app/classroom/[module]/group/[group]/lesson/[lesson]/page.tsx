@@ -120,7 +120,8 @@ export default function DynamicLessonPage() {
       setIsLoading(true)
       setError(null)
       setUpgradeRequired(false)
-      setExclusiveAccessBlocked(false)
+      // Não limpar `exclusiveAccessBlocked` aqui: um frame com a aula antiga + flag falsa
+      // causava piscada do título antes de “Aula exclusiva”. O store limpa em `setLessonForPage`.
 
       let data: Awaited<ReturnType<typeof getLessonBySlug>> = null
       try {
