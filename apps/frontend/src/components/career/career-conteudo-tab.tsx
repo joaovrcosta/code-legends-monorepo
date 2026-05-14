@@ -1,8 +1,9 @@
 import { CareerExamAttemptHistory } from "@/components/career/career-exam-attempt-history";
+import { CareerLockedPadlockPill } from "@/components/career/career-locked-padlock-pill";
 import { ProgressRing } from "@/components/classroom/module-progress-ring";
 import { Button } from "@/components/ui/button";
 import type { GetCareerBySlugResponse } from "@/types/career";
-import { Check, FlaskIcon, Lock, Play } from "@phosphor-icons/react/dist/ssr";
+import { Check, FlaskIcon, Play } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -153,13 +154,10 @@ export function CareerConteudoTab({
                             </Link>
                           </Button>
                         ) : (
-                          <div
-                            className="flex h-10 w-full min-h-10 min-w-0 sm:w-auto sm:min-w-[120px] shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-[#18181f] text-white/45"
+                          <CareerLockedPadlockPill
                             title="Inscreva-se na carreira para fazer o teste"
                             aria-label="Exame bloqueado: inscreva-se na carreira para fazer o teste"
-                          >
-                            <Lock size={22} weight="bold" className="text-white/55" />
-                          </div>
+                          />
                         )}
                       </div>
                     </div>
