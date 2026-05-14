@@ -43,7 +43,7 @@ export default async function CareerDetailPage({
               </span>
             </Link>
 
-            <div className="flex items-center gap-1 my-4">
+            <div className="flex items-center gap-1 mt-3 mb-4">
               <div className="text-xs flex gap-1 items-center font-semibold bg-premium-gradient text-white px-2 py-0.5 rounded-full">
                 <span>PREMIUM</span>
                 <LightningIcon
@@ -83,7 +83,7 @@ export default async function CareerDetailPage({
                     isEnrolled={data.enrollment.isEnrolled}
                     notEnrolledLabel="Inscreva-se"
                     enrolledLabel="Inscrito"
-                    className="h-14 w-full lg:max-w-[142px] rounded-full px-4 text-base text-white font-semibold bg-blue-gradient-500 text-white/70 hover:bg-white/10"
+                    className="h-12 w-full lg:max-w-[142px] rounded-full px-4 text-base text-white font-semibold bg-blue-gradient-500 text-white/70 hover:bg-white/10"
                   />
                 </div>
               </div>
