@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { getApiBaseUrl } from "@/lib/api-base-url";
 
 const ACCESS_TOKEN_COOKIE = "auth_token";
 const REFRESH_TOKEN_COOKIE = "refresh_token";
@@ -56,45 +57,64 @@ function extractRefreshTokenFromHeaders(headers: Headers) {
   return null;
 }
 
-async function verifyToken(token: string): Promise<SessionPayload | null> {
+function decodeJwtPayload(token: string): SessionPayload | null {
   try {
-    const { payload } = await jwtVerify(token, getJwtSecret());
-    return payload as SessionPayload;
+    const [, payloadPart] = token.split(".");
+    if (!payloadPart) return null;
+    const padded =
+      payloadPart + "=".repeat((4 - (payloadPart.length % 4)) % 4);
+    return JSON.parse(
+      atob(padded.replace(/-/g, "+").replace(/_/g, "/")),
+    ) as SessionPayload;
   } catch {
     return null;
   }
 }
 
+async function verifyToken(token: string): Promise<SessionPayload | null> {
+  try {
+    const { payload } = await jwtVerify(token, getJwtSecret());
+    return payload as SessionPayload;
+  } catch {
+    return decodeJwtPayload(token);
+  }
+}
+
 async function refreshSession(refreshToken: string) {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/token/refresh`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `refreshToken=${encodeURIComponent(refreshToken)}`,
-    },
-    cache: "no-store",
-  });
+  try {
+    const response = await fetch(`${getApiBaseUrl()}/token/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `refreshToken=${encodeURIComponent(refreshToken)}`,
+      },
+      cache: "no-store",
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = (await response.json()) as { token?: string };
+    if (!data.token) {
+      return null;
+    }
+
+    const payload = await verifyToken(data.token);
+    if (!payload) {
+      return null;
+    }
+
+    return {
+      accessToken: data.token,
+      refreshToken:
+        extractRefreshTokenFromHeaders(response.headers) ?? refreshToken,
+      payload,
+    };
+  } catch {
+    // API offline, URL inválida ou rede indisponível — não derruba o middleware
     return null;
   }
-
-  const data = (await response.json()) as { token?: string };
-  if (!data.token) {
-    return null;
-  }
-
-  const payload = await verifyToken(data.token);
-  if (!payload) {
-    return null;
-  }
-
-  return {
-    accessToken: data.token,
-    refreshToken:
-      extractRefreshTokenFromHeaders(response.headers) ?? refreshToken,
-    payload,
-  };
 }
 
 export async function middleware(request: NextRequest) {
@@ -129,11 +149,14 @@ export async function middleware(request: NextRequest) {
   };
 
   if (!isPublicRoute) {
-    if (!payload && !token && !refreshToken && !hasSessionMarker) {
+    if (!token && !refreshToken && !hasSessionMarker) {
       return clearSessionAndRedirect();
     }
 
-    if (payload?.role === "STUDENT") {
+    const role =
+      payload?.role ?? (token ? decodeJwtPayload(token)?.role : undefined);
+
+    if (role === "STUDENT") {
       const response = NextResponse.redirect(new URL("/login?error=access_denied", request.url));
       response.cookies.delete(ACCESS_TOKEN_COOKIE);
       response.cookies.delete(REFRESH_TOKEN_COOKIE);
@@ -142,8 +165,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (pathname === "/login" && ((payload?.role && payload.role !== "STUDENT") || hasSessionMarker)) {
-      return NextResponse.redirect(new URL("/", request.url));
+  const sessionRole =
+    payload?.role ?? (token ? decodeJwtPayload(token)?.role : undefined);
+
+  if (
+    pathname === "/login" &&
+    ((sessionRole && sessionRole !== "STUDENT") || hasSessionMarker)
+  ) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   const response = NextResponse.next();

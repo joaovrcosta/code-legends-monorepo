@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { VideoDurationInput } from "@/components/ui/video-duration-input";
+import { VideoProviderFields } from "@/components/lesson/video-provider-fields";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
@@ -21,6 +21,7 @@ import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { getLessonVideoProviderId } from "@/lib/lesson-video";
 
 export default function EditLessonPage() {
   const router = useRouter();
@@ -45,6 +46,7 @@ export default function EditLessonPage() {
     isFree: false,
     video_url: "",
     video_duration: "",
+    video_provider_id: "",
     locked: false,
     order: 0,
     authorId: "",
@@ -151,8 +153,9 @@ export default function EditLessonPage() {
         slug: lesson.slug,
         url: lesson.url || "",
         isFree: lesson.isFree,
-        video_url: lesson.video_url || "",
-        video_duration: lesson.video_duration || "",
+        video_url: lesson.video_url || lesson.video?.url || "",
+        video_duration: lesson.video_duration || lesson.video?.duration || "",
+        video_provider_id: getLessonVideoProviderId(lesson.video),
         locked: lesson.locked,
         order: lesson.order || 0,
         authorId: lesson.authorId || "",
@@ -319,27 +322,24 @@ export default function EditLessonPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="video_url">URL do Vídeo</Label>
-                  <Input
-                    id="video_url"
-                    value={formData.video_url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, video_url: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="video_duration">Duração do Vídeo</Label>
-                  <VideoDurationInput
-                    id="video_duration"
-                    value={formData.video_duration ?? ""}
-                    onChange={(video_duration) =>
-                      setFormData({ ...formData, video_duration })
-                    }
-                  />
-                </div>
+                {formData.type === "video" && (
+                  <div className="sm:col-span-2">
+                    <VideoProviderFields
+                      videoProviderId={formData.video_provider_id ?? ""}
+                      videoUrl={formData.video_url ?? ""}
+                      videoDuration={formData.video_duration ?? ""}
+                      onProviderIdChange={(video_provider_id) =>
+                        setFormData({ ...formData, video_provider_id })
+                      }
+                      onVideoUrlChange={(video_url) =>
+                        setFormData({ ...formData, video_url })
+                      }
+                      onVideoDurationChange={(video_duration) =>
+                        setFormData({ ...formData, video_duration })
+                      }
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-6">

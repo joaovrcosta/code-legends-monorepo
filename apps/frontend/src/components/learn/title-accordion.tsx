@@ -16,6 +16,7 @@ import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { cn } from '@/lib/utils'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
+import { ClassroomAutoplayToggle } from '@/components/classroom/classroom-autoplay-toggle'
 
 interface TitleAccordionProps {
   title: string | undefined
@@ -99,6 +100,9 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
                     markingLabel="Marcando..."
                   />
                 </div>
+                {currentLesson?.type === 'video' && (
+                  <ClassroomAutoplayToggle />
+                )}
               </div>
             </div>
             <ChevronDown

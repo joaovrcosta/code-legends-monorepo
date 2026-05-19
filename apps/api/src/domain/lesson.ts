@@ -44,6 +44,12 @@ export interface LessonWithContentDTO {
   video?: {
     url: string | null;
     duration: string | null;
+    provider?: {
+      id: string;
+      slug: string;
+      name: string;
+      handlerKey: string;
+    } | null;
   } | null;
   article?: {
     body: string;

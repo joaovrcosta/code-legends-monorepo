@@ -52,6 +52,7 @@ export const LessonContent = memo(function LessonContent({
               description={lesson.description}
               title={lesson.title}
               src={lesson.video?.url ?? lesson.video_url ?? undefined}
+              providerHandlerKey={lesson.video?.provider?.handlerKey}
               onVideoEnded={onVideoEnded}
               startPlaybackAutoplay={startVideoPlaybackAutoplay}
             />

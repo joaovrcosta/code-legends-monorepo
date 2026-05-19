@@ -1,4 +1,5 @@
 import type { TokenWithRefresh } from "../types";
+import { getApiBaseUrl } from "@/lib/api-base-url";
 
 function extractRefreshTokenFromSetCookie(setCookieHeader: string | null) {
     if (!setCookieHeader) {
@@ -16,7 +17,7 @@ async function refreshAccessToken(token: TokenWithRefresh): Promise<TokenWithRef
         }
 
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/token/refresh`,
+            `${getApiBaseUrl()}/token/refresh`,
             {
                 method: "POST",
                 headers: {
@@ -49,7 +50,7 @@ async function refreshAccessToken(token: TokenWithRefresh): Promise<TokenWithRef
 
         try {
             const userResponse = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/me`,
+                `${getApiBaseUrl()}/me`,
                 {
                     headers: {
                         Authorization: `Bearer ${newAccessToken}`,
@@ -128,9 +129,13 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
         // Se for login Google
         if (account?.provider === "google") {
             try {
+                const apiBase = getApiBaseUrl();
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'7492d7'},body:JSON.stringify({sessionId:'7492d7',location:'jwt.ts:google:start',message:'Google OAuth jwt callback start',data:{apiBase,hasEmail:!!user.email,hasGoogleId:!!account.providerAccountId},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+                // #endregion
                 // Autenticar/criar usuário na sua API
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/users/auth/google`,
+                    `${apiBase}/users/auth/google`,
                     {
                         method: "POST",
                         headers: {
@@ -145,6 +150,13 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
                     }
                 );
 
+                const setCookieRaw = response.headers.get("set-cookie");
+                const setCookieList = typeof (response.headers as Headers & { getSetCookie?: () => string[] }).getSetCookie === "function"
+                    ? (response.headers as Headers & { getSetCookie: () => string[] }).getSetCookie()
+                    : setCookieRaw ? [setCookieRaw] : [];
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'7492d7'},body:JSON.stringify({sessionId:'7492d7',location:'jwt.ts:google:api-response',message:'Google API auth response',data:{status:response.status,ok:response.ok,setCookieCount:setCookieList.length,hasSetCookieRaw:!!setCookieRaw},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+                // #endregion
                 if (!response.ok) {
                     // Se for erro 403 (usuário não encontrado e criação bloqueada)
                     if (response.status === 403) {
@@ -161,14 +173,17 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
                 const data = await response.json();
                 const apiToken = data.token;
                 const refreshToken = extractRefreshTokenFromSetCookie(response.headers.get("set-cookie"));
-
+                const refreshFromList = setCookieList.map((h) => extractRefreshTokenFromSetCookie(h)).find(Boolean) ?? null;
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'7492d7'},body:JSON.stringify({sessionId:'7492d7',location:'jwt.ts:google:tokens',message:'Google token extraction',data:{hasApiToken:!!apiToken,hasRefreshToken:!!refreshToken,hasRefreshFromList:!!refreshFromList},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+                // #endregion
                 if (!apiToken || !refreshToken) {
                     return null;
                 }
 
                 // Buscar dados completos do usuário
                 const userResponse = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333"}/me`,
+                    `${apiBase}/me`,
                     {
                         headers: {
                             Authorization: `Bearer ${apiToken}`,
@@ -176,12 +191,18 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
                     }
                 );
 
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'7492d7'},body:JSON.stringify({sessionId:'7492d7',location:'jwt.ts:google:me',message:'Google /me response',data:{meStatus:userResponse.status,meOk:userResponse.ok},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+                // #endregion
                 if (!userResponse.ok) {
                     return null;
                 }
 
                 const userData = await userResponse.json();
 
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'7492d7'},body:JSON.stringify({sessionId:'7492d7',location:'jwt.ts:google:success',message:'Google jwt success',data:{hasUserId:!!userData?.user?.id},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
+                // #endregion
                 return {
                     ...token,
                     id: userData.user.id,
@@ -198,6 +219,9 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
                     lastOnboardingCheck: Date.now(),
                 };
             } catch (error) {
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'7492d7'},body:JSON.stringify({sessionId:'7492d7',location:'jwt.ts:google:catch',message:'Google jwt exception',data:{errorName:error instanceof Error?error.name:'unknown',errorMessage:error instanceof Error?error.message.slice(0,120):'unknown'},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+                // #endregion
                 console.error("Erro ao autenticar com Google:", error);
                 // Se for erro de usuário não encontrado, lança erro que o NextAuth pode capturar
                 if (error instanceof Error && error.message.includes("não encontrada")) {
@@ -238,7 +262,7 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
 
         try {
             const userResponse = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333"}/me`,
+                `${getApiBaseUrl()}/me`,
                 {
                     headers: {
                         Authorization: `Bearer ${updatedToken.accessToken}`,
@@ -271,7 +295,7 @@ export async function jwtCallback({ token, user, account, trigger, session }: Jw
         if (shouldUpdateOnboarding) {
             try {
                 const userResponse = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333"}/me`,
+                    `${getApiBaseUrl()}/me`,
                     {
                         headers: {
                             Authorization: `Bearer ${tokenWithRefresh.accessToken}`,

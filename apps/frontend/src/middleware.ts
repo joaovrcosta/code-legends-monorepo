@@ -29,6 +29,9 @@ export default auth(
     );
 
     const sessionError = session?.error;
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'7492d7'},body:JSON.stringify({sessionId:'7492d7',location:'middleware.ts:auth',message:'Frontend middleware session',data:{pathname,sessionError:sessionError??null,isLoggedIn:!!session?.user,hasUserId:!!session?.user?.id},timestamp:Date.now(),hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
     if (sessionError === "RefreshAccessTokenError") {
       if (!isPublicRoute) {
         return NextResponse.redirect(new URL("/login", req.url));

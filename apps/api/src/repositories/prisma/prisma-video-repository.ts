@@ -4,17 +4,19 @@ import { prisma } from "../../lib/prisma";
 
 export class PrismaVideoRepository implements IVideoRepository {
   async create(data: {
-    lessonId: number;
-    url?: string;
-    duration?: string;
+    lessonId: number
+    url?: string
+    duration?: string
+    providerId?: string | null
   }): Promise<Video> {
     return prisma.video.create({
       data: {
         lessonId: data.lessonId,
         url: data.url ?? null,
         duration: data.duration ?? null,
+        providerId: data.providerId ?? null,
       },
-    });
+    })
   }
 
   async findByLessonId(lessonId: number): Promise<Video | null> {
@@ -25,7 +27,7 @@ export class PrismaVideoRepository implements IVideoRepository {
 
   async upsert(
     lessonId: number,
-    data: { url?: string; duration?: string }
+    data: { url?: string; duration?: string; providerId?: string | null },
   ): Promise<Video> {
     return prisma.video.upsert({
       where: { lessonId },
@@ -33,11 +35,14 @@ export class PrismaVideoRepository implements IVideoRepository {
         lessonId,
         url: data.url ?? null,
         duration: data.duration ?? null,
+        providerId: data.providerId ?? null,
       },
       update: {
         url: data.url ?? undefined,
         duration: data.duration ?? undefined,
+        providerId:
+          data.providerId !== undefined ? data.providerId : undefined,
       },
-    });
+    })
   }
 }

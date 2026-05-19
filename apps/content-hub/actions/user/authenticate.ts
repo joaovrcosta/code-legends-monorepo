@@ -2,6 +2,7 @@
 
 import { createSession } from "@/actions/auth";
 import { redirect } from "next/navigation";
+import { getApiBaseUrl } from "@/lib/api-base-url";
 
 export interface AuthenticateResponse {
   token: string;
@@ -82,7 +83,7 @@ export async function authenticateUserSessionData(
 ): Promise<AuthenticateSessionData> {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/users/auth`,
+      `${getApiBaseUrl()}/users/auth`,
       {
         method: "POST",
         headers: {

@@ -276,6 +276,8 @@ model User {
   subscriptions            Subscription[]
   lessonProductionsUpdated LessonProduction[]    @relation("LessonProductionUpdatedBy")
   lessonProductionLogs     LessonProductionLog[] @relation("LessonProductionLogActor")
+  videoProvidersCreated    VideoProvider[]       @relation("VideoProviderCreator")
+  videoProviderAuditLogs   VideoProviderAuditLog[] @relation("VideoProviderAuditActor")
 
   userCareers        UserCareer[]
   careerExamAttempts UserCareerExamAttempt[]
@@ -421,14 +423,70 @@ enum LessonType {
   PROJECT    @map("project")
 }
 
+enum VideoProviderStatus {
+  ACTIVE
+  DEPRECATED
+  DISABLED
+}
+
+enum VideoProviderAuditAction {
+  CREATE
+  UPDATE
+  SET_DEFAULT
+  DEPRECATE
+  DISABLE
+}
+
+model VideoProvider {
+  id               String              @id @default(cuid())
+  name             String
+  slug             String              @unique
+  status           VideoProviderStatus @default(ACTIVE)
+  isDefault        Boolean             @default(false)
+  isBuiltin        Boolean             @default(false)
+  handlerKey       String
+  urlPlaceholder   String              @default("")
+  helpText         String?
+  allowedDomains   Json                @default("[]")
+  allowedProtocols Json                @default("[\"https\"]")
+  maxUrlLength     Int                 @default(2048)
+  sortOrder        Int                 @default(0)
+  createdById      String?
+  createdBy        User?               @relation("VideoProviderCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  videos           Video[]
+  auditLogs        VideoProviderAuditLog[]
+
+  @@index([status, sortOrder])
+}
+
+model VideoProviderAuditLog {
+  id         String                   @id @default(cuid())
+  providerId String
+  provider   VideoProvider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  actorId    String
+  actor      User                     @relation("VideoProviderAuditActor", fields: [actorId], references: [id], onDelete: Cascade)
+  action     VideoProviderAuditAction
+  before     Json?
+  after      Json?
+  createdAt  DateTime                 @default(now())
+
+  @@index([providerId, createdAt])
+}
+
 model Video {
-  id        String   @id @default(cuid())
-  url       String?
-  duration  String?
-  lessonId  Int      @unique
-  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String         @id @default(cuid())
+  url        String?
+  duration   String?
+  providerId String?
+  provider   VideoProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  lessonId   Int            @unique
+  lesson     Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([providerId])
 }
 
 model Article {

@@ -12,6 +12,7 @@ export interface CreateLessonData {
   isFree?: boolean;
   video_url?: string;
   video_duration?: string;
+  video_provider_id?: string;
   body?: string;
   quiz_content?: unknown[];
   project_description?: string;

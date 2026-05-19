@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@code-legends/shared-types": "workspace:*",
+    "@code-legends/video-providers": "workspace:*",
     "@codesandbox/sandpack-react": "^2.20.0",
     "@hookform/resolvers": "^3.9.1",
     "@phosphor-icons/react": "^2.1.7",

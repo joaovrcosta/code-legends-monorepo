@@ -118,6 +118,7 @@ export const AulaModal = () => {
                     currentLesson.video_url ??
                     undefined
                   }
+                  providerHandlerKey={currentLesson.video?.provider?.handlerKey}
                 />
               )}
               {(currentLesson?.type === 'article' ||

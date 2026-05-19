@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { jwtVerify, type JWTPayload } from "jose";
+import { getApiBaseUrl } from "@/lib/api-base-url";
 
 const ACCESS_TOKEN_COOKIE = "auth_token";
 const REFRESH_TOKEN_COOKIE = "refresh_token";
@@ -87,17 +88,24 @@ export async function clearSession() {
 }
 
 async function refreshAccessToken(refreshToken: string): Promise<string | null> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/token/refresh`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `refreshToken=${encodeURIComponent(refreshToken)}`,
-    },
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}/token/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `refreshToken=${encodeURIComponent(refreshToken)}`,
+      },
+      cache: "no-store",
+    });
+  } catch {
+    return null;
+  }
 
   if (!response.ok) {
-    await clearSession();
+    if (response.status === 401 || response.status === 403) {
+      await clearSession();
+    }
     return null;
   }
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { LessonWithStructure } from '@/actions/course/get-course-with-structure'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { VideoDurationInput } from '@/components/ui/video-duration-input'
+import { VideoProviderFields } from '@/components/lesson/video-provider-fields'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { ArticleBodyEditor } from './article-body-editor'
@@ -26,6 +26,10 @@ import { generateSlug } from '@/lib/utils'
 import { parseSkillWeightInput } from '@/lib/parse-skill-weight'
 import { X, ChevronDown, ChevronUp } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  getLessonVideoProviderId,
+  mapLessonVideoForState,
+} from '@/lib/lesson-video'
 
 const PRIORITIES: LessonProductionPriority[] = [
   'NONE',
@@ -117,6 +121,7 @@ export function LessonEditModal({
     url: lesson.url || '',
     video_url: lesson.video_url || lesson.video?.url || '',
     video_duration: lesson.video_duration || lesson.video?.duration || '',
+    video_provider_id: getLessonVideoProviderId(lesson.video),
     body: lesson.article?.body ?? '',
     project_description: lesson.project?.description ?? '',
     project_specs: JSON.stringify(lesson.project?.specs ?? {}, null, 2),
@@ -138,6 +143,7 @@ export function LessonEditModal({
         url: lesson.url || '',
         video_url: lesson.video_url || lesson.video?.url || '',
         video_duration: lesson.video_duration || lesson.video?.duration || '',
+        video_provider_id: getLessonVideoProviderId(lesson.video),
         body: lesson.article?.body ?? '',
         project_description: lesson.project?.description ?? '',
         project_specs: JSON.stringify(lesson.project?.specs ?? {}, null, 2),
@@ -281,12 +287,17 @@ export function LessonEditModal({
                   ...basePayload,
                   video_url: formData.video_url,
                   video_duration: formData.video_duration,
+                  video_provider_id: formData.video_provider_id || undefined,
                 }
               : formData.type === 'article' || formData.type === 'text'
                 ? { ...basePayload, body: String(formData.body ?? '') }
                 : basePayload
 
-      await updateLesson(lesson.id.toString(), payload, token)
+      const { lesson: savedLesson } = await updateLesson(
+        lesson.id.toString(),
+        payload,
+        token,
+      )
       await updateLessonSkillsConfig(
         lesson.id,
         lessonSkillsToPersist.map((item) => ({
@@ -326,6 +337,8 @@ export function LessonEditModal({
         setLessonSkills(lessonSkillsToPersist)
         setSelectedSkillId('')
       }
+      const savedVideo = (savedLesson as { video?: Parameters<typeof mapLessonVideoForState>[0] })
+        .video
       onSave({
         ...lesson,
         ...formData,
@@ -334,10 +347,17 @@ export function LessonEditModal({
         video_duration: formData.video_duration || null,
         video:
           formData.type === 'video'
-            ? {
-                url: formData.video_url || null,
-                duration: formData.video_duration || null,
-              }
+            ? mapLessonVideoForState(
+                savedVideo ?? {
+                  url: formData.video_url || null,
+                  duration: formData.video_duration || null,
+                  provider: formData.video_provider_id
+                    ? { id: formData.video_provider_id }
+                    : null,
+                },
+                formData.video_url,
+                formData.video_duration,
+              )
             : null,
         article:
           (formData.type === 'article' || formData.type === 'text') &&
@@ -460,29 +480,20 @@ export function LessonEditModal({
             )}
 
             {formData.type === 'video' && (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="video_url">URL do Vídeo</Label>
-                  <Input
-                    id="video_url"
-                    value={formData.video_url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, video_url: e.target.value })
-                    }
-                    placeholder="https://player-vz-....tv.pandavideo.com.br/embed/?v=..."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="video_duration">Duração do Vídeo</Label>
-                  <VideoDurationInput
-                    id="video_duration"
-                    value={formData.video_duration}
-                    onChange={(video_duration) =>
-                      setFormData({ ...formData, video_duration })
-                    }
-                  />
-                </div>
-              </div>
+              <VideoProviderFields
+                videoProviderId={formData.video_provider_id}
+                videoUrl={formData.video_url}
+                videoDuration={formData.video_duration}
+                onProviderIdChange={(video_provider_id) =>
+                  setFormData({ ...formData, video_provider_id })
+                }
+                onVideoUrlChange={(video_url) =>
+                  setFormData({ ...formData, video_url })
+                }
+                onVideoDurationChange={(video_duration) =>
+                  setFormData({ ...formData, video_duration })
+                }
+              />
             )}
 
             {(formData.type === 'article' || formData.type === 'text') && (

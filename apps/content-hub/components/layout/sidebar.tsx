@@ -36,6 +36,7 @@ const navigation = [
   { name: "Solicitações", href: "/requests", icon: MessageSquare },
   { name: "Broadcaster", href: "/broadcast", icon: Megaphone },
   { name: "Configurações Globais", href: "/settings/gamification", icon: Settings },
+  { name: "Provedores de vídeo", href: "/settings/video-providers", icon: Settings },
 ];
 
 export function Sidebar({

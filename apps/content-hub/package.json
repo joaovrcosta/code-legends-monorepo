@@ -10,6 +10,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@code-legends/video-providers": "workspace:*",
     "@blocknote/code-block": "^0.47.1",
     "@blocknote/core": "^0.47.1",
     "@blocknote/mantine": "^0.47.1",

@@ -1,6 +1,8 @@
 import { Lesson } from "@prisma/client";
 import { ILessonRepository } from "../../../repositories/lesson-repository";
 import { IVideoRepository } from "../../../repositories/video-repository";
+import { IVideoProviderRepository } from "../../../repositories/video-provider-repository";
+import { resolveLessonVideoInput } from "../../../lib/resolve-lesson-video";
 import { IArticleRepository } from "../../../repositories/article-repository";
 import { IQuizRepository } from "../../../repositories/quiz-repository";
 import { IProjectRepository } from "../../../repositories/project-repository";
@@ -17,6 +19,7 @@ interface UpdateLessonRequest {
   isFree?: boolean;
   video_url?: string;
   video_duration?: string;
+  video_provider_id?: string;
   body?: string;
   quiz_content?: unknown[];
   project_description?: string;
@@ -33,6 +36,7 @@ export class UpdateLessonUseCase {
   constructor(
     private lessonRepository: ILessonRepository,
     private videoRepository: IVideoRepository,
+    private videoProviderRepository: IVideoProviderRepository,
     private articleRepository: IArticleRepository,
     private quizRepository: IQuizRepository,
     private projectRepository: IProjectRepository
@@ -57,6 +61,7 @@ export class UpdateLessonUseCase {
     const {
       video_url,
       video_duration,
+      video_provider_id,
       body,
       quiz_content,
       project_description,
@@ -65,10 +70,34 @@ export class UpdateLessonUseCase {
     } = data;
     const updatedLesson = await this.lessonRepository.update(data.id, updateData);
 
-    if (data.type === "video") {
+    const lessonType = String(data.type ?? lesson.type).toLowerCase();
+    const touchesVideoFields =
+      video_url !== undefined ||
+      video_duration !== undefined ||
+      video_provider_id !== undefined;
+
+    if (lessonType === "video" && (data.type === "video" || touchesVideoFields)) {
+      const existingVideo = await this.videoRepository.findByLessonId(lesson.id);
+      const urlToValidate =
+        video_url !== undefined ? video_url : existingVideo?.url ?? undefined;
+      const providerIdToUse =
+        video_provider_id !== undefined
+          ? video_provider_id
+          : existingVideo?.providerId ?? undefined;
+
+      const resolved = await resolveLessonVideoInput({
+        videoUrl: urlToValidate,
+        videoProviderId: providerIdToUse,
+        videoProviderRepository: this.videoProviderRepository,
+        requireUrl: false,
+      });
       await this.videoRepository.upsert(lesson.id, {
-        url: video_url,
-        duration: video_duration,
+        url: resolved.url ?? existingVideo?.url ?? null,
+        duration:
+          video_duration !== undefined
+            ? video_duration
+            : existingVideo?.duration ?? undefined,
+        providerId: resolved.provider.id,
       });
     }
     if (data.type === "article" && body != null) {

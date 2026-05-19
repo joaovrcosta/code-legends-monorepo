@@ -8,19 +8,24 @@ import { LessonsAccordion } from '../learn/lessons-accordion'
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react'
 import { useClassroomAutoplayStore } from '@/stores/classroom-autoplay-store'
+import {
+  formatEmbedUrl,
+  isDirectPlaybackUrl,
+  isPandaVideoUrl,
+  isStreamableUrl,
+  type VideoProviderHandlerKey,
+} from '@code-legends/video-providers'
 
 interface VideoComponentProps {
   src?: string | null
   title: string | undefined
   description?: string
-  /** Disparado ao terminar (mp4 ou evento panda_ended do iframe Panda). */
+  providerHandlerKey?: VideoProviderHandlerKey | string | null
   onVideoEnded?: () => void
-  /** Inicia o embed mutado (cadeia de vídeos com autoplay ligado). */
   startPlaybackAutoplay?: boolean
 }
 
 function withEmbedAutoplay(url: string): string {
-  // Panda: use Smart Autoplay do painel — params na URL duplicam o carregamento.
   if (isPandaVideoUrl(url)) return url
 
   try {
@@ -45,168 +50,16 @@ function formatTime(seconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-// Função auxiliar: converte links normais do YouTube em embed
-function formatYouTubeUrl(url?: string | null) {
-  if (!url) return null
-
-  const isYouTube =
-    url.includes('youtube.com') || url.includes('youtu.be')
-  if (!isYouTube) return null
-
-  // Se já for embed
-  if (url.includes('youtube.com/embed/')) return url
-
-  // watch?v=...
-  const match = url.match(/[?&]v=([a-zA-Z0-9_-]+)/)
-  if (match?.[1]) {
-    return `https://www.youtube.com/embed/${match[1]}`
-  }
-
-  // youtu.be/...
-  const short = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/)
-  if (short?.[1]) {
-    return `https://www.youtube.com/embed/${short[1]}`
-  }
-
-  return null
-}
-
-// Função auxiliar: converte links do Streamable em embed
-function formatStreamableUrl(url?: string | null) {
-  if (!url) return null
-
-  // Se já for embed
-  if (url.includes('streamable.com/e/')) return url
-
-  // streamable.com/xxxxx ou streamable.com/o/xxxxx
-  const match = url.match(/streamable\.com\/(?:o\/)?([a-zA-Z0-9]+)/)
-  if (match && match[1]) {
-    return `https://streamable.com/e/${match[1]}`
-  }
-
-  return null
-}
-
-// Verifica se é URL do Streamable
-function isStreamableUrl(url?: string | null): boolean {
-  if (!url) return false
-  return url.includes('streamable.com')
-}
-
-// Verifica se é uma URL direta de vídeo (mp4, webm, etc)
-function isDirectVideoUrl(url?: string | null): boolean {
-  if (!url) return false
-  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.m3u8']
-  return videoExtensions.some((ext) => url.toLowerCase().includes(ext))
-}
-
-// Função auxiliar: converte links do Vimeo em embed
-function formatVimeoUrl(url?: string | null) {
-  if (!url) return null
-
-  // Se já for embed
-  if (url.includes('player.vimeo.com/video/')) return url
-
-  // vimeo.com/xxxxx
-  const match = url.match(/vimeo\.com\/(\d+)/)
-  if (match && match[1]) {
-    return `https://player.vimeo.com/video/${match[1]}`
-  }
-
-  return null
-}
-
-function normalizePandaInput(url?: string | null): string | null {
-  if (!url) return null
-  const trimmed = url.trim()
-  const iframeSrc = trimmed.match(/src=["']([^"']*pandavideo[^"']*)["']/i)
-  return iframeSrc?.[1] ?? trimmed
-}
-
-function isPandaVideoUrl(url?: string | null): boolean {
-  if (!url) return false
-  return /pandavideo\.com(\.br)?/i.test(url)
-}
-
-// Função auxiliar: converte links da Panda Video em embed
-function formatPandaVideoUrl(url?: string | null) {
-  const input = normalizePandaInput(url)
-  if (!input || !isPandaVideoUrl(input)) return null
-
-  // Embed: https://player-vz-{zona}.tv.pandavideo.com.br/embed/?v={id}
-  const embedMatch = input.match(
-    /https?:\/\/player[.-]vz-[^/]+\.tv\.pandavideo\.com\.br\/embed\/\?v=[^&\s"'<>]+/i,
-  )
-  if (embedMatch) return embedMatch[0]
-
-  // HLS: https://b-vz-{zona}.tv.pandavideo.com.br/{id}/playlist.m3u8
-  const hlsMatch = input.match(
-    /https?:\/\/b[.-]vz-([^.]+)\.tv\.pandavideo\.com\.br\/([a-f0-9-]+)\/playlist\.m3u8/i,
-  )
-  if (hlsMatch?.[1] && hlsMatch[2]) {
-    return `https://player-vz-${hlsMatch[1]}.tv.pandavideo.com.br/embed/?v=${hlsMatch[2]}`
-  }
-
-  // Player com ?v= em outro path
-  try {
-    const parsed = new URL(input)
-    const videoId = parsed.searchParams.get('v')
-    if (
-      videoId &&
-      /^player[.-]vz-/i.test(parsed.hostname) &&
-      parsed.hostname.includes('pandavideo')
-    ) {
-      parsed.pathname = '/embed/'
-      parsed.search = `?v=${videoId}`
-      return parsed.toString()
-    }
-  } catch {
-    // URL inválida
-  }
-
-  return null
-}
-
-// Função principal: formata URL do vídeo para embed
-function formatVideoUrl(url?: string | null) {
-  if (!url) return null
-
-  // Panda Video (antes do YouTube: ambos usam ?v=)
-  const pandaUrl = formatPandaVideoUrl(url)
-  if (pandaUrl) return pandaUrl
-
-  // YouTube
-  const youtubeUrl = formatYouTubeUrl(url)
-  if (youtubeUrl) return youtubeUrl
-
-  // Streamable
-  const streamableUrl = formatStreamableUrl(url)
-  if (streamableUrl) return streamableUrl
-
-  // Vimeo
-  const vimeoUrl = formatVimeoUrl(url)
-  if (vimeoUrl) return vimeoUrl
-
-  // Se já for uma URL de embed válida, retorna como está
-  if (
-    url.includes('/embed/') ||
-    url.includes('/e/') ||
-    (url.includes('player.') && !isPandaVideoUrl(url))
-  ) {
-    return url
-  }
-
-  return null
-}
-
 export default function VideoComponent({
   src,
   title,
   description,
+  providerHandlerKey,
   onVideoEnded,
   startPlaybackAutoplay = false,
 }: VideoComponentProps) {
-  const embedSrc = formatVideoUrl(src)
+  const handlerKey = (providerHandlerKey as VideoProviderHandlerKey | null) ?? null
+  const embedSrc = formatEmbedUrl(src, handlerKey)
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const endedFiredRef = useRef(false)
@@ -222,7 +75,7 @@ export default function VideoComponent({
   }
 
   const iframeSrc = useMemo(() => {
-    if (!embedSrc || isDirectVideoUrl(src)) return embedSrc
+    if (!embedSrc || isDirectPlaybackUrl(src, handlerKey)) return embedSrc
     if (!autoplayLockRef.current.applyAutoplay) return embedSrc
     return withEmbedAutoplay(embedSrc)
   }, [embedSrc, src])
@@ -258,7 +111,7 @@ export default function VideoComponent({
   const [volume, setVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
 
-  const isDirectVideo = isDirectVideoUrl(src) && (embedSrc ? !!src : !!src)
+  const isDirectVideo = isDirectPlaybackUrl(src, handlerKey) && !!src
 
   const togglePlay = useCallback(() => {
     const video = videoRef.current
@@ -365,7 +218,7 @@ export default function VideoComponent({
     }
   }, [isDirectVideo])
 
-  if (src && !embedSrc && !isDirectVideoUrl(src)) {
+  if (src && !embedSrc && !isDirectPlaybackUrl(src, handlerKey)) {
     if (isPandaVideoUrl(src)) {
       console.warn(
         'URL da Panda Video não reconhecida. Use o link Embed (Incorporar) do painel da Panda.',
@@ -397,7 +250,7 @@ export default function VideoComponent({
         className="relative w-full max-h-[570px] rounded-lg aspect-[16/9] overflow-hidden bg-black group shrink-0"
       >
         {embedSrc ? (
-          isDirectVideoUrl(src) ? (
+          isDirectPlaybackUrl(src, handlerKey) ? (
             <>
               <video
                 ref={videoRef}
@@ -484,7 +337,7 @@ export default function VideoComponent({
               allowFullScreen
             />
           )
-        ) : src && isDirectVideoUrl(src) ? (
+        ) : src && isDirectPlaybackUrl(src, handlerKey) ? (
           <>
             <video
               ref={videoRef}

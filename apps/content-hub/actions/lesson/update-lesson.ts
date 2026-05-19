@@ -12,6 +12,7 @@ export interface UpdateLessonData {
   isFree?: boolean;
   video_url?: string;
   video_duration?: string;
+  video_provider_id?: string;
   body?: string;
   quiz_content?: Challenge[];
   project_description?: string;

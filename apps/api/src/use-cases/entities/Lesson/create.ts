@@ -3,6 +3,8 @@ import { ILessonRepository } from "../../../repositories/lesson-repository";
 import { IGroupRepository } from "../../../repositories/group-repository";
 import { IUsersRepository } from "../../../repositories/users-repository";
 import { IVideoRepository } from "../../../repositories/video-repository";
+import { IVideoProviderRepository } from "../../../repositories/video-provider-repository";
+import { resolveLessonVideoInput } from "../../../lib/resolve-lesson-video";
 import { IArticleRepository } from "../../../repositories/article-repository";
 import { IQuizRepository } from "../../../repositories/quiz-repository";
 import { IProjectRepository } from "../../../repositories/project-repository";
@@ -19,6 +21,7 @@ interface CreateLessonRequest {
   isFree?: boolean;
   video_url?: string;
   video_duration?: string;
+  video_provider_id?: string;
   body?: string;
   quiz_content?: unknown[];
   project_description?: string;
@@ -39,6 +42,7 @@ export class CreateLessonUseCase {
     private groupRepository: IGroupRepository,
     private usersRepository: IUsersRepository,
     private videoRepository: IVideoRepository,
+    private videoProviderRepository: IVideoProviderRepository,
     private articleRepository: IArticleRepository,
     private quizRepository: IQuizRepository,
     private projectRepository: IProjectRepository
@@ -66,6 +70,7 @@ export class CreateLessonUseCase {
     const {
       video_url,
       video_duration,
+      video_provider_id,
       body,
       quiz_content,
       project_description,
@@ -74,11 +79,18 @@ export class CreateLessonUseCase {
     } = data;
     const lesson = await this.lessonRepository.create(lessonData);
 
-    if (data.type === "video" && (video_url != null || video_duration != null)) {
+    if (data.type === "video" && (video_url != null || video_duration != null || video_provider_id != null)) {
+      const resolved = await resolveLessonVideoInput({
+        videoUrl: video_url,
+        videoProviderId: video_provider_id,
+        videoProviderRepository: this.videoProviderRepository,
+        requireUrl: false,
+      });
       await this.videoRepository.create({
         lessonId: lesson.id,
-        url: video_url,
+        url: resolved.url,
         duration: video_duration,
+        providerId: resolved.provider.id,
       });
     }
     if (data.type === "article" && body != null && body.trim() !== "") {

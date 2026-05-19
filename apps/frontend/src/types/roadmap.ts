@@ -49,7 +49,16 @@ export type Lesson = {
   type: LessonType;
   video_url?: string | null;
   video_duration?: string | null;
-  video?: { url?: string | null; duration?: string | null } | null;
+  video?: {
+    url?: string | null;
+    duration?: string | null;
+    provider?: {
+      id: string;
+      slug: string;
+      name: string;
+      handlerKey: string;
+    } | null;
+  } | null;
   article?: { body: string } | null;
   quiz?: { content: Challenge[] } | null;
   project?: { description: string; specs?: PlaygroundBlock | null } | null;

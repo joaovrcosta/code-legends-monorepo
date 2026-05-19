@@ -21,6 +21,7 @@ import { planRoutes } from './http/controllers/plan/routes'
 import { dashboardRoutes } from './http/controllers/dashboard/routes'
 import { certificateTemplateRoutes } from './http/controllers/certificate-template/routes'
 import { systemSettingsRoutes } from './http/controllers/system-settings/routes'
+import { videoProviderRoutes } from './http/controllers/video-provider/routes'
 import { careerRoutes } from './http/controllers/career/routes'
 import { careerAdminRoutes } from './http/controllers/career/admin-routes'
 import { verifyCertificate } from './http/controllers/certificate/verify.controller'
@@ -162,6 +163,7 @@ app.register(planRoutes)
 app.register(dashboardRoutes)
 app.register(certificateTemplateRoutes)
 app.register(systemSettingsRoutes)
+app.register(videoProviderRoutes)
 app.register(careerRoutes)
 app.register(careerAdminRoutes)
 

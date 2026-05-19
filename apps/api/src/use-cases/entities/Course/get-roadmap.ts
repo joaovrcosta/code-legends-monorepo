@@ -39,7 +39,16 @@ interface RoadmapLesson {
   type: string
   video_url: string | null
   video_duration: string | null
-  video?: { url: string | null; duration: string | null } | null
+  video?: {
+    url: string | null
+    duration: string | null
+    provider?: {
+      id: string
+      slug: string
+      name: string
+      handlerKey: string
+    } | null
+  } | null
   article?: { body: string } | null
   order: number
   status: 'locked' | 'unlocked' | 'completed'
@@ -280,20 +289,44 @@ export class GetRoadmapUseCase {
           const canReview = isCompleted
 
           const lessonWithContent = lesson as typeof lesson & {
-            video?: { url: string | null; duration: string | null } | null
+            video?: {
+              url: string | null
+              duration: string | null
+              provider?: {
+                id: string
+                slug: string
+                name: string
+                handlerKey: string
+              } | null
+            } | null
             article?: { body: string } | null
             quiz?: { content: unknown } | null
             project?: { description: string; specs: unknown } | null
           }
+          const videoRow = lessonWithContent.video
+          const videoPayload = videoRow
+            ? {
+                url: videoRow.url,
+                duration: videoRow.duration,
+                provider: videoRow.provider
+                  ? {
+                      id: videoRow.provider.id,
+                      slug: videoRow.provider.slug,
+                      name: videoRow.provider.name,
+                      handlerKey: videoRow.provider.handlerKey,
+                    }
+                  : null,
+              }
+            : null
           return {
             id: lesson.id,
             title: lesson.title,
             slug: lesson.slug,
             description: lesson.description,
             type: lesson.type.toLowerCase(),
-            video_url: lessonWithContent.video?.url ?? null,
-            video_duration: lessonWithContent.video?.duration ?? null,
-            video: lessonWithContent.video ?? null,
+            video_url: videoRow?.url ?? null,
+            video_duration: videoRow?.duration ?? null,
+            video: videoPayload,
             article: lessonWithContent.article ?? null,
             quiz: lessonWithContent.quiz ?? null,
             project: lessonWithContent.project ?? null,

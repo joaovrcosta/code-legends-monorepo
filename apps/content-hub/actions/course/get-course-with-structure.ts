@@ -32,7 +32,17 @@ export interface LessonWithStructure {
   isFree: boolean;
   video_url: string | null;
   video_duration: string | null;
-  video?: { url: string | null; duration: string | null } | null;
+  video?: {
+    url: string | null;
+    duration: string | null;
+    providerId?: string | null;
+    provider?: {
+      id: string;
+      slug?: string;
+      name?: string;
+      handlerKey?: string;
+    } | null;
+  } | null;
   article?: { body: string } | null;
   quiz?: { content: import('../lesson/list-lessons').Challenge[] } | null;
   project?: { description: string; specs?: Record<string, unknown> | null } | null;

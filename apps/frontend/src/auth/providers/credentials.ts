@@ -1,4 +1,5 @@
 import Credentials from "next-auth/providers/credentials";
+import { getApiBaseUrl } from "@/lib/api-base-url";
 
 function extractRefreshTokenFromSetCookie(setCookieHeader: string | null) {
     if (!setCookieHeader) {
@@ -22,7 +23,7 @@ export const credentialsProvider = Credentials({
 
         try {
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/users/auth`,
+                `${getApiBaseUrl()}/users/auth`,
                 {
                     method: "POST",
                     headers: {
@@ -48,7 +49,7 @@ export const credentialsProvider = Credentials({
             }
 
             const userResponse = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333"}/me`,
+                `${getApiBaseUrl()}/me`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
