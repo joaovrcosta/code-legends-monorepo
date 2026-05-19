@@ -25,18 +25,22 @@ function formatTime(seconds: number): string {
 function formatYouTubeUrl(url?: string | null) {
   if (!url) return null
 
+  const isYouTube =
+    url.includes('youtube.com') || url.includes('youtu.be')
+  if (!isYouTube) return null
+
   // Se já for embed
   if (url.includes('youtube.com/embed/')) return url
 
   // watch?v=...
-  const match = url.match(/v=([a-zA-Z0-9_-]+)/)
-  if (match && match[1]) {
+  const match = url.match(/[?&]v=([a-zA-Z0-9_-]+)/)
+  if (match?.[1]) {
     return `https://www.youtube.com/embed/${match[1]}`
   }
 
   // youtu.be/...
   const short = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/)
-  if (short && short[1]) {
+  if (short?.[1]) {
     return `https://www.youtube.com/embed/${short[1]}`
   }
 
@@ -88,9 +92,64 @@ function formatVimeoUrl(url?: string | null) {
   return null
 }
 
+function normalizePandaInput(url?: string | null): string | null {
+  if (!url) return null
+  const trimmed = url.trim()
+  const iframeSrc = trimmed.match(/src=["']([^"']*pandavideo[^"']*)["']/i)
+  return iframeSrc?.[1] ?? trimmed
+}
+
+function isPandaVideoUrl(url?: string | null): boolean {
+  if (!url) return false
+  return /pandavideo\.com(\.br)?/i.test(url)
+}
+
+// Função auxiliar: converte links da Panda Video em embed
+function formatPandaVideoUrl(url?: string | null) {
+  const input = normalizePandaInput(url)
+  if (!input || !isPandaVideoUrl(input)) return null
+
+  // Embed: https://player-vz-{zona}.tv.pandavideo.com.br/embed/?v={id}
+  const embedMatch = input.match(
+    /https?:\/\/player[.-]vz-[^/]+\.tv\.pandavideo\.com\.br\/embed\/\?v=[^&\s"'<>]+/i,
+  )
+  if (embedMatch) return embedMatch[0]
+
+  // HLS: https://b-vz-{zona}.tv.pandavideo.com.br/{id}/playlist.m3u8
+  const hlsMatch = input.match(
+    /https?:\/\/b[.-]vz-([^.]+)\.tv\.pandavideo\.com\.br\/([a-f0-9-]+)\/playlist\.m3u8/i,
+  )
+  if (hlsMatch?.[1] && hlsMatch[2]) {
+    return `https://player-vz-${hlsMatch[1]}.tv.pandavideo.com.br/embed/?v=${hlsMatch[2]}`
+  }
+
+  // Player com ?v= em outro path
+  try {
+    const parsed = new URL(input)
+    const videoId = parsed.searchParams.get('v')
+    if (
+      videoId &&
+      /^player[.-]vz-/i.test(parsed.hostname) &&
+      parsed.hostname.includes('pandavideo')
+    ) {
+      parsed.pathname = '/embed/'
+      parsed.search = `?v=${videoId}`
+      return parsed.toString()
+    }
+  } catch {
+    // URL inválida
+  }
+
+  return null
+}
+
 // Função principal: formata URL do vídeo para embed
 function formatVideoUrl(url?: string | null) {
   if (!url) return null
+
+  // Panda Video (antes do YouTube: ambos usam ?v=)
+  const pandaUrl = formatPandaVideoUrl(url)
+  if (pandaUrl) return pandaUrl
 
   // YouTube
   const youtubeUrl = formatYouTubeUrl(url)
@@ -108,7 +167,7 @@ function formatVideoUrl(url?: string | null) {
   if (
     url.includes('/embed/') ||
     url.includes('/e/') ||
-    url.includes('player.')
+    (url.includes('player.') && !isPandaVideoUrl(url))
   ) {
     return url
   }
@@ -224,7 +283,14 @@ export default function VideoComponent({
   }, [isDirectVideo])
 
   if (src && !embedSrc && !isDirectVideoUrl(src)) {
-    console.warn('URL de vídeo não reconhecida:', src)
+    if (isPandaVideoUrl(src)) {
+      console.warn(
+        'URL da Panda Video não reconhecida. Use o link Embed (Incorporar) do painel da Panda.',
+        src,
+      )
+    } else {
+      console.warn('URL de vídeo não reconhecida:', src)
+    }
   }
 
   return (
@@ -410,6 +476,14 @@ export default function VideoComponent({
               </div>
             </div>
           </>
+        ) : src && isPandaVideoUrl(src) ? (
+          <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-surface-2 rounded-lg border border-[#25252A] px-6 text-center">
+            <p className="text-white text-sm mb-2">Link da Panda Video inválido</p>
+            <p className="text-[#787878] text-xs max-w-md">
+              No painel da Panda, use &quot;Embed (Incorporar)&quot; e cole apenas a URL do
+              iframe (atributo src), não o link do dashboard.
+            </p>
+          </div>
         ) : src && isStreamableUrl(src) ? (
           <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-surface-2 rounded-lg border border-[#25252A]">
             <p className="text-white text-sm mb-4">Vídeo do Streamable</p>

@@ -469,7 +469,7 @@ export function LessonEditModal({
                     onChange={(e) =>
                       setFormData({ ...formData, video_url: e.target.value })
                     }
-                    placeholder="https://..."
+                    placeholder="https://player-vz-....tv.pandavideo.com.br/embed/?v=..."
                   />
                 </div>
                 <div className="space-y-2">
