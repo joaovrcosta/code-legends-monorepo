@@ -67,6 +67,8 @@ export type Lesson = {
   isCurrent: boolean;
   canReview: boolean;
   isFree?: boolean;
+  /** XP estimado ao concluir a aula (primeira vez). */
+  xpReward?: number;
 };
 
 export type Group = {

@@ -3,6 +3,8 @@ import { IUserCourseRepository } from '../../../repositories/user-course-reposit
 import { IUserProgressRepository } from '../../../repositories/user-progress-repository'
 import { CourseNotFoundError } from '../../errors/course-not-found'
 import { prisma } from '../../../lib/prisma'
+import { computeEstimatedLessonXpReward } from '../../../lib/lesson-xp-reward'
+import { getGamificationSettingsCached } from '../../../utils/gamification-settings-cache'
 
 // Função auxiliar para converter duração em segundos
 function parseDurationToSeconds(duration: string | null): number {
@@ -55,6 +57,7 @@ interface RoadmapLesson {
   isCurrent: boolean
   canReview: boolean
   isFree: boolean
+  xpReward: number
 }
 
 interface RoadmapGroup {
@@ -130,6 +133,8 @@ export class GetRoadmapUseCase {
       userId,
       courseId,
     )
+
+    const gamification = await getGamificationSettingsCached()
 
     const modules = await prisma.module.findMany({
       where: { courseId },
@@ -318,12 +323,19 @@ export class GetRoadmapUseCase {
                   : null,
               }
             : null
+          const lessonType = lesson.type.toLowerCase()
+          const challengeCount = Array.isArray(lessonWithContent.quiz?.content)
+            ? lessonWithContent.quiz.content.length
+            : 0
+          const xpReward = computeEstimatedLessonXpReward(lessonType, gamification, {
+            challengeCount,
+          })
           return {
             id: lesson.id,
             title: lesson.title,
             slug: lesson.slug,
             description: lesson.description,
-            type: lesson.type.toLowerCase(),
+            type: lessonType,
             video_url: videoRow?.url ?? null,
             video_duration: videoRow?.duration ?? null,
             video: videoPayload,
@@ -335,6 +347,7 @@ export class GetRoadmapUseCase {
             isCurrent,
             canReview,
             isFree: lesson.isFree,
+            xpReward,
           }
         })
 

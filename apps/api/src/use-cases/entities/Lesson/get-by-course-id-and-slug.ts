@@ -5,6 +5,8 @@ import { LessonNotFoundError } from '../../errors/lesson-not-found'
 import { prisma } from '../../../lib/prisma'
 import { LessonWithContentDTO } from '../../../domain/lesson'
 import { normalizeQuizContentToArray } from './challenge-first-correct-xp'
+import { computeEstimatedLessonXpReward } from '../../../lib/lesson-xp-reward'
+import { getGamificationSettingsCached } from '../../../utils/gamification-settings-cache'
 
 interface GetLessonByCourseIdAndSlugRequest {
   courseId: string
@@ -216,20 +218,27 @@ export class GetLessonByCourseIdAndSlugUseCase {
 
     const rawQuiz = (lessonEntity as any).quiz ?? null;
     const rawProject = (lessonEntity as any).project ?? null;
+    const quizContent = rawQuiz
+      ? normalizeQuizContentToArray(rawQuiz.content)
+      : [];
+    const gamification = await getGamificationSettingsCached();
+    const lessonType = lessonEntity.type.toString().toLowerCase();
+    const xpReward = computeEstimatedLessonXpReward(lessonType, gamification, {
+      challengeCount: quizContent.length,
+    });
 
     const lesson: LessonWithContentDTO = {
       id: lessonEntity.id,
       title: lessonEntity.title,
       slug: lessonEntity.slug,
       description: lessonEntity.description,
-      type: lessonEntity.type.toString().toLowerCase(),
+      type: lessonType,
+      xpReward,
       isFree: lessonEntity.isFree,
       order: lessonEntity.order,
       video: (lessonEntity as any).video ?? null,
       article: (lessonEntity as any).article ?? null,
-      quiz: rawQuiz
-        ? { content: normalizeQuizContentToArray(rawQuiz.content) }
-        : null,
+      quiz: rawQuiz ? { content: quizContent } : null,
       project: rawProject
         ? {
             description: rawProject.description,

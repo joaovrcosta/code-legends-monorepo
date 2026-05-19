@@ -13,6 +13,7 @@ import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import type { EnrolledCourse, ActiveCourse } from '@/types/user-course.ts'
 import { useState, useMemo, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { useClassroomAutoplayStore } from '@/stores/classroom-autoplay-store'
 import { usePathname } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
@@ -43,6 +44,10 @@ export default function ClassroomHeader({
   initialUserCourses: _initialUserCourses,
   initialActiveCourse,
 }: ClassroomHeaderProps) {
+  const { data: session } = useSession()
+  const userPlan = (session?.user as { plan?: string } | undefined)?.plan
+  const showLessonLightning = userPlan === 'FREE'
+
   const { toggleSidebar } = useClassroomSidebarStore()
   const { activeCourse, setActiveCourse } = useActiveCourseStore()
   const { currentLesson, exclusiveAccessBlocked } = useCourseModalStore()
@@ -153,6 +158,19 @@ export default function ClassroomHeader({
     return 'text-purple-400'
   }, [currentLesson, exclusiveAccessBlocked, isLessonNavLoading])
 
+  const lessonXpReward = useMemo(() => {
+    if (exclusiveAccessBlocked || !currentLesson) return null
+    if (
+      currentLesson.status === 'completed' ||
+      currentLesson.status === 'locked'
+    ) {
+      return null
+    }
+    const xp = currentLesson.xpReward
+    if (typeof xp !== 'number' || xp <= 0) return null
+    return xp
+  }, [currentLesson, exclusiveAccessBlocked])
+
   return (
     <div className="fixed top-0 left-0 w-full z-40 bg-white shadow-md">
       <header className="fixed top-0 left-0 w-full z-40 bg-surface shadow-lg lg:py-0 pb-0">
@@ -217,15 +235,17 @@ export default function ClassroomHeader({
               <SkipForward size={24} weight="fill" />
             </div>
             <div
-              className="flex items-center gap-2 p-2 lg:flex hidden px-3"
+              className="flex items-center gap-2 p-2 lg:flex hidden px-3 min-w-0 max-w-[320px]"
               aria-busy={showLessonTitleSkeleton}
             >
-              <Lightning
-                size={18}
-                weight="fill"
-                className={cn('shrink-0', lessonLightningClass)}
-                aria-hidden
-              />
+              {showLessonLightning && (
+                <Lightning
+                  size={18}
+                  weight="fill"
+                  className={cn('shrink-0', lessonLightningClass)}
+                  aria-hidden
+                />
+              )}
               {showLessonTitleSkeleton ? (
                 <Skeleton
                   variant="rectangular"
@@ -236,11 +256,27 @@ export default function ClassroomHeader({
                 />
               ) : (
                 <p
-                  className="text-sm truncate max-w-[200px] min-h-[1.25rem] text-white"
+                  className="text-sm truncate min-w-0 flex-1 min-h-[1.25rem] text-white"
                   aria-live="polite"
                 >
                   {displayLessonTitle}
                 </p>
+              )}
+              {lessonXpReward != null && !showLessonTitleSkeleton && (
+                <span
+                  className="ml-2 shrink-0 flex items-center gap-1 text-sm font-thin text-white tabular-nums"
+                  title={`+${lessonXpReward.toLocaleString('pt-BR')} XP ao concluir esta aula`}
+                >
+                  {lessonXpReward.toLocaleString('pt-BR')}XP
+                  <Image
+                    src="/xp-icon.svg"
+                    alt=""
+                    width={11}
+                    height={20}
+                    className="h-3.5 w-auto object-contain"
+                    aria-hidden
+                  />
+                </span>
               )}
             </div>
           </li>

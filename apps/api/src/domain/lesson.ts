@@ -61,5 +61,7 @@ export interface LessonWithContentDTO {
     description: string;
     specs?: ProjectSpecs | null;
   } | null;
+  /** XP estimado ao concluir (primeira vez). */
+  xpReward?: number;
 }
 
