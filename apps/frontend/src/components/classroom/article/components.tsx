@@ -3,12 +3,8 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { ArticlePlaygroundProvider, useArticlePlayground } from '@/contexts/article-playground-context'
-import { continueCourse } from '@/actions/course'
-import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
-import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
-import { useActiveCourseStore } from '@/stores/active-course-store'
-import { useCourseModalStore } from '@/stores/course-modal-store'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
+import { useCompleteLesson } from '@/hooks/use-complete-lesson'
 import type { Lesson } from '@/types/roadmap'
 
 const ArticleMarkdownInner = dynamic(
@@ -27,58 +23,6 @@ const ArticleMarkdownInner = dynamic(
   },
 )
 
-function useCompleteLesson(lesson: Lesson, moduleTitle?: string) {
-  const [isMarking, setIsMarking] = useState(false)
-  const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
-  const {
-    currentLesson,
-    updateCurrentLessonStatus,
-    setLastModuleCompletion,
-    setShowModuleStatsOnce,
-  } = useCourseModalStore()
-
-  const isMarked =
-    currentLesson?.id === lesson?.id && currentLesson?.status === 'completed'
-
-  const handleMarkAsComplete = async () => {
-    if (!currentLesson?.id || currentLesson.id !== lesson.id || isMarking || isMarked)
-      return
-
-    try {
-      setIsMarking(true)
-      const result = await continueCourse(currentLesson.id, activeCourse?.id)
-
-      if (!result?.success) throw new Error('API_ERROR')
-
-      showLessonXpToast(result)
-      maybeShowStreakCongrats(result)
-
-      if (result.moduleCompleted) {
-        setLastModuleCompletion({
-          moduleCompleted: true,
-          moduleId: result.moduleId,
-          moduleTitle: result.moduleTitle ?? moduleTitle,
-          progress: result.progress,
-          xpGained: result.xpGained,
-          xpGainedInModule: result.xpGainedInModule,
-          xpGainedInModuleBySkill: result.xpGainedInModuleBySkill,
-        })
-        setShowModuleStatsOnce(true)
-      }
-
-      updateCurrentLessonStatus('completed')
-      await fetchActiveCourse()
-    } catch (error) {
-      console.error(error)
-      alert('Erro ao concluir lição. Verifique se há dependências pendentes.')
-    } finally {
-      setIsMarking(false)
-    }
-  }
-
-  return { isMarking, isMarked, handleMarkAsComplete, currentLesson, activeCourse }
-}
-
 export function ComponentsArticle({
   lesson,
   moduleTitle,
@@ -87,10 +31,17 @@ export function ComponentsArticle({
   moduleTitle?: string
 }) {
   const body = lesson.article?.body?.trim()
-  const { isMarking, isMarked, handleMarkAsComplete, currentLesson } = useCompleteLesson(
+  const { isMarking, isMarked, completeLesson, currentLesson } = useCompleteLesson(
     lesson,
     moduleTitle,
   )
+
+  const handleMarkAsComplete = async () => {
+    const result = await completeLesson()
+    if (!result.ok && !result.alreadyCompleted) {
+      alert('Erro ao concluir lição. Verifique se há dependências pendentes.')
+    }
+  }
 
   return (
     <ArticlePlaygroundProvider>

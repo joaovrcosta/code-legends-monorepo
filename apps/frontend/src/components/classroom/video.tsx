@@ -5,13 +5,37 @@ import notFoundImg from '../../../public/not-found.png'
 import { TitleAccordion } from '../learn/title-accordion'
 import { LevelAccordion } from '../learn/level-accordion'
 import { LessonsAccordion } from '../learn/lessons-accordion'
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react'
+import { useClassroomAutoplayStore } from '@/stores/classroom-autoplay-store'
 
 interface VideoComponentProps {
   src?: string | null
   title: string | undefined
   description?: string
+  /** Disparado ao terminar (mp4 ou evento panda_ended do iframe Panda). */
+  onVideoEnded?: () => void
+  /** Inicia o embed mutado (cadeia de vídeos com autoplay ligado). */
+  startPlaybackAutoplay?: boolean
+}
+
+function withEmbedAutoplay(url: string): string {
+  // Panda: use Smart Autoplay do painel — params na URL duplicam o carregamento.
+  if (isPandaVideoUrl(url)) return url
+
+  try {
+    const parsed = new URL(url)
+    if (url.includes('youtube.com')) {
+      parsed.searchParams.set('autoplay', '1')
+      parsed.searchParams.set('mute', '1')
+    } else if (url.includes('vimeo.com')) {
+      parsed.searchParams.set('autoplay', '1')
+      parsed.searchParams.set('muted', '1')
+    }
+    return parsed.toString()
+  } catch {
+    return url
+  }
 }
 
 function formatTime(seconds: number): string {
@@ -179,10 +203,54 @@ export default function VideoComponent({
   src,
   title,
   description,
+  onVideoEnded,
+  startPlaybackAutoplay = false,
 }: VideoComponentProps) {
   const embedSrc = formatVideoUrl(src)
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const endedFiredRef = useRef(false)
+  const { setPendingVideoAutoplay } = useClassroomAutoplayStore()
+
+  const srcKey = src ?? ''
+  const autoplayLockRef = useRef({ srcKey: '', applyAutoplay: false })
+  if (autoplayLockRef.current.srcKey !== srcKey) {
+    autoplayLockRef.current = {
+      srcKey,
+      applyAutoplay: !!startPlaybackAutoplay,
+    }
+  }
+
+  const iframeSrc = useMemo(() => {
+    if (!embedSrc || isDirectVideoUrl(src)) return embedSrc
+    if (!autoplayLockRef.current.applyAutoplay) return embedSrc
+    return withEmbedAutoplay(embedSrc)
+  }, [embedSrc, src])
+
+  useEffect(() => {
+    if (startPlaybackAutoplay) {
+      setPendingVideoAutoplay(false)
+    }
+  }, [startPlaybackAutoplay, setPendingVideoAutoplay])
+
+  const pandaVideoId = useMemo(() => {
+    if (!iframeSrc || !isPandaVideoUrl(iframeSrc)) return null
+    try {
+      return new URL(iframeSrc).searchParams.get('v')
+    } catch {
+      return null
+    }
+  }, [iframeSrc])
+
+  const fireVideoEnded = useCallback(() => {
+    if (endedFiredRef.current || !onVideoEnded) return
+    endedFiredRef.current = true
+    onVideoEnded()
+  }, [onVideoEnded])
+
+  useEffect(() => {
+    endedFiredRef.current = false
+  }, [src, iframeSrc])
 
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -217,7 +285,22 @@ export default function VideoComponent({
   const handleEnded = useCallback(() => {
     setIsPlaying(false)
     setCurrentTime(0)
-  }, [])
+    fireVideoEnded()
+  }, [fireVideoEnded])
+
+  useEffect(() => {
+    if (!onVideoEnded || !iframeSrc?.includes('pandavideo')) return
+
+    const onMessage = (event: MessageEvent) => {
+      const data = event.data as { message?: string; video?: string }
+      if (data?.message !== 'panda_ended') return
+      if (pandaVideoId && data.video && data.video !== pandaVideoId) return
+      fireVideoEnded()
+    }
+
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [onVideoEnded, iframeSrc, pandaVideoId, fireVideoEnded])
 
   const handleProgressClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -393,7 +476,7 @@ export default function VideoComponent({
           ) : (
             <iframe
               className="absolute inset-0 w-full h-full border-none rounded-lg object-contain"
-              src={embedSrc}
+              src={iframeSrc ?? embedSrc}
               title={title}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

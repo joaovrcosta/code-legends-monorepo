@@ -16,11 +16,15 @@ interface LessonContentProps {
   groupTitle?: string
   courseIcon?: string
   showModuleCompletionStats?: boolean
+  onVideoEnded?: () => void
+  startVideoPlaybackAutoplay?: boolean
 }
 
 export const LessonContent = memo(function LessonContent({
   lesson,
   moduleTitle,
+  onVideoEnded,
+  startVideoPlaybackAutoplay,
 }: LessonContentProps) {
   const { lastModuleCompletion, showModuleStatsOnce } = useCourseModalStore()
 
@@ -48,6 +52,8 @@ export const LessonContent = memo(function LessonContent({
               description={lesson.description}
               title={lesson.title}
               src={lesson.video?.url ?? lesson.video_url ?? undefined}
+              onVideoEnded={onVideoEnded}
+              startPlaybackAutoplay={startVideoPlaybackAutoplay}
             />
           )}
           {(lesson?.type === 'article' || lesson?.type === 'text') && (

@@ -27,6 +27,9 @@ import { useCourseModalStore } from '@/stores/course-modal-store'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
 import type { RoadmapResponse } from '@/types/roadmap'
 import { appendCourseIdToClassroomHref } from '@/utils/lesson-url'
+import { useClassroomAutoplayStore } from '@/stores/classroom-autoplay-store'
+import { useCompleteLesson } from '@/hooks/use-complete-lesson'
+import { resolveAutoplayNextVideo } from '@/lib/lesson-chain-navigation'
 
 function isLessonUpgradeRequiredResult(
   data: LessonResponse | LessonUpgradeRequired | null,
@@ -328,6 +331,57 @@ export default function DynamicLessonPage() {
 
   const classroomCourseId = courseIdFromUrl || activeCourse?.id || undefined
 
+  const lesson = lessonData?.lesson
+  const navigation = lessonData?.navigation
+  const { isAutoplayEnabled, pendingVideoAutoplay, setPendingVideoAutoplay } =
+    useClassroomAutoplayStore()
+  const { completeLesson } = useCompleteLesson(lesson ?? null, lessonData?.moduleTitle)
+  const videoChainBusyRef = useRef(false)
+
+  const handleVideoEnded = useCallback(async () => {
+    if (videoChainBusyRef.current || !lesson || lesson.type !== 'video') return
+    videoChainBusyRef.current = true
+
+    try {
+      const wasCompleted = lessonData?.status === 'completed'
+      let moduleCompleted = false
+
+      if (!wasCompleted) {
+        const result = await completeLesson()
+        if (!result.ok) return
+        moduleCompleted = !!result.moduleCompleted
+      }
+
+      if (moduleCompleted) return
+      if (!isAutoplayEnabled) return
+
+      const nextTarget = resolveAutoplayNextVideo(navigation, allLessons)
+      if (!nextTarget) return
+
+      setPendingVideoAutoplay(true)
+      window.setTimeout(() => {
+        navigateToLesson(
+          nextTarget.slug,
+          nextTarget.moduleSlug,
+          nextTarget.groupSlug,
+        )
+      }, 700)
+    } finally {
+      window.setTimeout(() => {
+        videoChainBusyRef.current = false
+      }, 1200)
+    }
+  }, [
+    lesson,
+    lessonData?.status,
+    completeLesson,
+    isAutoplayEnabled,
+    navigation,
+    allLessons,
+    setPendingVideoAutoplay,
+    navigateToLesson,
+  ])
+
   if (isLoading) {
     return (
       <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-78px)]">
@@ -547,10 +601,6 @@ export default function DynamicLessonPage() {
     )
   }
 
-  // lessonData não pode ser null aqui devido ao check anterior
-  const lesson = lessonData!.lesson
-  const navigation = lessonData!.navigation
-
   return (
     <div className="flex h-[100dvh] w-full">
       <aside
@@ -567,7 +617,7 @@ export default function DynamicLessonPage() {
             <div className="flex-1 overflow-y-auto">
               <LessonsList
                 lessons={allLessons}
-                currentLessonId={lesson.id}
+                currentLessonId={lessonData.lesson.id}
                 roadmap={roadmap}
                 courseId={classroomCourseId}
               />
@@ -599,11 +649,21 @@ export default function DynamicLessonPage() {
             {/* min-h-full: filho ocupa a altura do scrollport — o card da aula pode crescer e não deixa “buraco” de gradiente quando o acordeão está fechado */}
             <div className="flex min-h-full w-full min-w-0 flex-col lg:pr-2 pr-0">
               <LessonContent
-                lesson={lesson}
+                lesson={lessonData.lesson}
                 courseTitle={activeCourse?.title ?? 'Curso'}
                 moduleTitle={lessonData.moduleTitle}
                 groupTitle={lessonData.groupTitle}
                 courseIcon={activeCourse?.icon}
+                onVideoEnded={
+                  lessonData.lesson.type === 'video'
+                    ? handleVideoEnded
+                    : undefined
+                }
+                startVideoPlaybackAutoplay={
+                  lessonData.lesson.type === 'video'
+                    ? pendingVideoAutoplay
+                    : false
+                }
               />
             </div>
           </div>

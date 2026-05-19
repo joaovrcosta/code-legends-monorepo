@@ -13,6 +13,7 @@ import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import type { EnrolledCourse, ActiveCourse } from '@/types/user-course.ts'
 import { useState, useMemo, useEffect } from 'react'
+import { useClassroomAutoplayStore } from '@/stores/classroom-autoplay-store'
 import { usePathname } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { useRoadmapUpdater } from '@/hooks/use-roadmap-updater'
@@ -46,8 +47,17 @@ export default function ClassroomHeader({
   const { activeCourse, setActiveCourse } = useActiveCourseStore()
   const { currentLesson, exclusiveAccessBlocked } = useCourseModalStore()
   const pathname = usePathname()
-  const [isAutoplay, setIsAutoplay] = useState(false)
+  const {
+    isAutoplayEnabled,
+    hydrated: autoplayHydrated,
+    hydrate: hydrateAutoplay,
+    setAutoplayEnabled,
+  } = useClassroomAutoplayStore()
   const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
+
+  useEffect(() => {
+    hydrateAutoplay()
+  }, [hydrateAutoplay])
 
   const routeLessonSlug = useMemo(
     () => classroomRouteLessonSlug(pathname),
@@ -290,12 +300,17 @@ export default function ClassroomHeader({
               <div className="flex items-center gap-2 flex-shrink-0">
                 {/* Reprodução automática */}
                 <button
-                  onClick={() => setIsAutoplay(!isAutoplay)}
-                  className={`relative w-11 h-6 rounded-full transition-colors ${isAutoplay ? 'bg-[#00C8FF]' : 'bg-[#25252A]'
+                  type="button"
+                  role="switch"
+                  aria-checked={autoplayHydrated ? isAutoplayEnabled : false}
+                  aria-label="Reprodução automática entre vídeos"
+                  title="Avança automaticamente para o próximo vídeo ao terminar"
+                  onClick={() => setAutoplayEnabled(!isAutoplayEnabled)}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${isAutoplayEnabled ? 'bg-[#00C8FF]' : 'bg-[#25252A]'
                     }`}
                 >
                   <span
-                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${isAutoplay ? 'translate-x-5' : 'translate-x-0'
+                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${isAutoplayEnabled ? 'translate-x-5' : 'translate-x-0'
                       }`}
                   />
                 </button>
