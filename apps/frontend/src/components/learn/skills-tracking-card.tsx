@@ -1,7 +1,12 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Lightning, Plus } from '@phosphor-icons/react/dist/ssr'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 // --- Tipagens ---
 export type UserSkillTrackingItem = {
@@ -67,6 +72,31 @@ function getSkillBarSegments(skill: UserSkillTrackingItem, axisMax: number) {
   }
 }
 
+const tooltipContentClass =
+  'border border-[#35353d] bg-[#1a1a1f] px-2.5 py-1.5 text-white shadow-lg'
+
+function SkillBarSegmentTooltip({
+  label,
+  xp,
+  children,
+}: {
+  label: string
+  xp: number
+  children: ReactNode
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side="top" className={tooltipContentClass}>
+        <p className="text-[10px] font-medium text-[#7e7e89]">{label}</p>
+        <p className="text-xs font-bold tabular-nums text-white">
+          {xp.toLocaleString('pt-BR')} XP
+        </p>
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
 function SkillXpProgressBar({
   skill,
   axisMax,
@@ -78,6 +108,8 @@ function SkillXpProgressBar({
 }) {
   const {
     curr,
+    prev,
+    gained,
     currRatio,
     hasPrevious,
     hasGain,
@@ -103,28 +135,37 @@ function SkillXpProgressBar({
           className={`relative ${heightClass}`}
           style={{ width: `${currRatio * 100}%` }}
         >
-          <div
-            className="skill-xp-base-fill absolute inset-y-0 left-0 z-10 rounded-full"
-            style={{ width: `${innerPrevShare * 100}%` }}
-          />
-          <div
-            className="bg-cyan-500/30 absolute inset-y-0 z-0 rounded-full"
-            style={{
-              left: `calc(${innerPrevShare * 100}% - ${gainUnderlapPx}px)`,
-              width: `calc(${innerGainShare * 100}% + ${gainUnderlapPx}px)`,
-            }}
-          />
+          <SkillBarSegmentTooltip label="Início da semana" xp={prev}>
+            <div
+              className="skill-xp-base-fill absolute inset-y-0 left-0 z-10 h-full cursor-default rounded-full"
+              style={{ width: `${innerPrevShare * 100}%` }}
+            />
+          </SkillBarSegmentTooltip>
+          <SkillBarSegmentTooltip label="Total" xp={curr}>
+            <div
+              className="absolute inset-y-0 z-0 h-full cursor-default rounded-full bg-cyan-500/30"
+              style={{
+                left: `calc(${innerPrevShare * 100}% - ${gainUnderlapPx}px)`,
+                width: `calc(${innerGainShare * 100}% + ${gainUnderlapPx}px)`,
+              }}
+            />
+          </SkillBarSegmentTooltip>
         </div>
       ) : (
         <div
           className={`flex h-full min-w-0 ${heightClass}`}
           style={{ width: `${currRatio * 100}%` }}
         >
-          {hasGain ? (
-            <div className="bg-cyan-500/30 h-full w-full min-w-0 shrink-0 rounded-full" />
-          ) : (
-            <div className="aurora-gradient h-full w-full min-w-0 rounded-full" />
-          )}
+          <SkillBarSegmentTooltip
+            label={hasGain ? 'Total' : 'XP na skill'}
+            xp={curr}
+          >
+            {hasGain ? (
+              <div className="h-full w-full min-w-0 shrink-0 cursor-default rounded-full bg-cyan-500/30" />
+            ) : (
+              <div className="aurora-gradient h-full w-full min-w-0 cursor-default rounded-full" />
+            )}
+          </SkillBarSegmentTooltip>
         </div>
       )}
     </div>
