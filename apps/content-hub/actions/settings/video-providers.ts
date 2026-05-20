@@ -19,7 +19,7 @@ export type VideoProviderDto = {
   _count?: { videos: number }
 }
 
-async function apiFetch(path: string, init?: RequestInit) {
+async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const token = await getAuthToken()
   if (!token) throw new Error('Não autenticado')
 
@@ -44,20 +44,20 @@ async function apiFetch(path: string, init?: RequestInit) {
       `Erro na API (${response.status})`
     throw new Error(detail)
   }
-  return body
+  return body as T
 }
 
 export async function listVideoProviders(options?: {
   includeDeprecated?: boolean
 }): Promise<{ providers: VideoProviderDto[] }> {
   const q = options?.includeDeprecated ? '?includeDeprecated=true' : ''
-  return apiFetch(`/video-providers${q}`)
+  return apiFetch<{ providers: VideoProviderDto[] }>(`/video-providers${q}`)
 }
 
 export async function listActiveVideoProviders(): Promise<{
   providers: VideoProviderDto[]
 }> {
-  return apiFetch('/video-providers/active')
+  return apiFetch<{ providers: VideoProviderDto[] }>('/video-providers/active')
 }
 
 export async function createVideoProvider(input: {
@@ -66,7 +66,7 @@ export async function createVideoProvider(input: {
   urlPlaceholder?: string
   helpText?: string | null
 }): Promise<{ provider: VideoProviderDto }> {
-  const result = await apiFetch('/video-providers', {
+  const result = await apiFetch<{ provider: VideoProviderDto }>('/video-providers', {
     method: 'POST',
     body: JSON.stringify(input),
   })
@@ -84,7 +84,7 @@ export async function updateVideoProvider(
     sortOrder?: number
   },
 ): Promise<{ provider: VideoProviderDto }> {
-  const result = await apiFetch(`/video-providers/${id}`, {
+  const result = await apiFetch<{ provider: VideoProviderDto }>(`/video-providers/${id}`, {
     method: 'PUT',
     body: JSON.stringify(input),
   })
@@ -95,7 +95,9 @@ export async function updateVideoProvider(
 export async function setDefaultVideoProvider(
   id: string,
 ): Promise<{ provider: VideoProviderDto }> {
-  const result = await apiFetch(`/video-providers/${id}/default`, {
+  const result = await apiFetch<{ provider: VideoProviderDto }>(
+    `/video-providers/${id}/default`,
+    {
     method: 'PATCH',
   })
   revalidatePath('/settings/video-providers')
@@ -106,7 +108,9 @@ export async function setVideoProviderStatus(
   id: string,
   status: 'ACTIVE' | 'DEPRECATED' | 'DISABLED',
 ): Promise<{ provider: VideoProviderDto }> {
-  const result = await apiFetch(`/video-providers/${id}/status`, {
+  const result = await apiFetch<{ provider: VideoProviderDto }>(
+    `/video-providers/${id}/status`,
+    {
     method: 'PATCH',
     body: JSON.stringify({ status }),
   })
