@@ -43,12 +43,12 @@ function TrackingStatsPills({
 }: TrackingStatsPillsProps) {
   return (
     <div className="grid grid-cols-2 gap-4">
-      <div className="flex items-center justify-between rounded-full bg-[#15151B] px-6 py-4">
+      <div className="flex items-center justify-between rounded-full bg-primary px-6 py-4">
         <p className="text-[11px] text-[#7e7e89]">Cursos</p>
         <p className="mt-1 text-2xl font-semibold tabular-nums text-white">{coursesCount}</p>
       </div>
 
-      <div className="flex items-center justify-between rounded-full bg-[#15151B] px-6 py-4">
+      <div className="flex items-center justify-between rounded-full bg-primary px-6 py-4">
         <p className="text-[11px] text-[#7e7e89]">Total de XP</p>
         <div className="mt-1 flex items-center gap-2">
           <Image src="/xp-icon.svg" alt="XP" width={11} height={20} />
@@ -58,14 +58,14 @@ function TrackingStatsPills({
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-full bg-[#15151B] px-6 py-4">
+      <div className="flex items-center justify-between rounded-full bg-primary px-6 py-4">
         <p className="text-[11px] text-[#7e7e89]">Lições feitas</p>
         <p className="mt-1 text-2xl font-semibold tabular-nums text-white">
           <CompactNumber value={lessonsDone} enableCountUp />
         </p>
       </div>
 
-      <div className="flex items-center justify-between rounded-full bg-[#15151B] px-6 py-4">
+      <div className="flex items-center justify-between rounded-full bg-primary px-6 py-4">
         <p className="text-[11px] text-[#7e7e89]">Projetos concluídos</p>
         <p className="mt-1 text-2xl font-semibold tabular-nums text-white">
           <CompactNumber value={projectsDone} enableCountUp />
@@ -78,7 +78,7 @@ function TrackingStatsPills({
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Minha jornada - Code Legends',
+  title: 'Meu progresso - Code Legends',
   description: 'Acompanhe seu progresso por skills e tecnologias.',
 }
 
@@ -234,28 +234,10 @@ export default async function TrackingPage() {
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
-                {Array.from({ length: 5 }).map((_, i) => (
+                {Array.from({ length: 15 }).map((_, i) => (
                   <div
                     key={i}
-                    className="aspect-square rounded-[18px] border border-[#25252A] bg-[#141417]"
-                  />
-                ))}
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-[18px] border border-[#25252A] bg-[#141417]"
-                  />
-                ))}
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-[18px] border border-[#25252A] bg-[#141417]"
+                    className="aspect-square rounded-[20px] bg-primary"
                   />
                 ))}
               </div>

@@ -16,7 +16,6 @@ export type UserSkillTrackingItem = {
 export type SkillsTrackingCardProps = {
   skills: UserSkillTrackingItem[]
   weeklyXpGained?: number
-  /** Plano do usuário: raio ao lado do nome só em PRO / PREMIUM */
   plan?: string | null
 }
 
@@ -190,7 +189,7 @@ export function SkillsTrackingCard({
 
   if (visibleSkills.length === 0) {
     return (
-      <div className="rounded-[20px] border border-[#25252A] bg-[#121214] px-6 py-10 text-center">
+      <div className="rounded-[20px] bg-transparent px-6 py-10 text-center">
         <p className="text-sm text-[#C4C4CC]">Ainda não há XP por skill.</p>
       </div>
     )

@@ -12,6 +12,9 @@ export default {
     extend: {
       colors: {
         primary: "#101013",
+        secondary: "#18181f",
+        muted: '#b2b3bf',
+        mutedForeground: '#7e7e89',
         surface: "var(--color-surface)",
         "surface-2": "var(--color-surface-2)",
         blueGradient500:
@@ -26,14 +29,6 @@ export default {
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
