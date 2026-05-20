@@ -15,9 +15,7 @@ import { getLessonActivity } from '@/actions/user/get-lesson-activity'
 import { getStreak } from '@/actions/user/get-streak'
 import { CompactNumber } from '@/components/ui/compact-number'
 import { CtaFacaUpgradeCard } from '@/components/cta'
-import freeIconPlan from '../../../public/free-plan-icon.svg'
-import premiumIconPlan from '../../../public/premium-plan-icon.svg'
-import proIconPlan from '../../../public/pro-plan-icon.svg'
+import { PlanBadge } from '@/components/ui/plan-badge'
 import Image from 'next/image'
 
 export async function UserProfiler() {
@@ -55,27 +53,7 @@ export async function UserProfiler() {
       <div className="bg-surface-2 p-6 border border-[#25252A] rounded-[20px] w-full">
         <div className=" flex justify-between">
           <h1 className="text-white text-xl font-medium">Olá, {firstName}</h1>
-          {userPlan === 'PREMIUM' ? (
-            <div className="flex items-center gap-2">
-              <Image
-                src={premiumIconPlan}
-                alt="PREMIUM"
-                width={16}
-                height={16}
-              />
-              <span className="text-[#FF6200] font-medium">PREMIUM</span>
-            </div>
-          ) : userPlan === 'PRO' ? (
-            <div className="flex items-center gap-2">
-              <Image src={proIconPlan} alt="PRO" width={16} height={16} />
-              <span className="text-[#8234E9] font-medium">PRO</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Image src={freeIconPlan} alt="FREE" width={16} height={16} />
-              <span className="text-[#B8E62E] font-medium">FREE</span>
-            </div>
-          )}
+          <PlanBadge plan={userPlan} />
         </div>
         <div className="flex items-center gap-4 mt-6">
           {/* Avatar com anel na cor do plano */}

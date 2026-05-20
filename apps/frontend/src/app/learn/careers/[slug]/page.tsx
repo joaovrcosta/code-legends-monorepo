@@ -6,7 +6,8 @@ import { CareerDetailTabs } from "@/components/career/career-detail-tabs";
 import { CareerInformacoesTab } from "@/components/career/career-informacoes-tab";
 import { Progress } from "@/components/ui/progress";
 import { getAuroraBackground } from "@/utils/hexToRgb";
-import { CaretLeftIcon, LightningIcon } from "@phosphor-icons/react/dist/ssr";
+import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr";
+import { PlanBadge } from "@/components/ui/plan-badge";
 import Link from "next/link";
 import { SectionTitle } from "@/app/catalog-courses-carousel-title";
 
@@ -44,14 +45,7 @@ export default async function CareerDetailPage({
             </Link>
 
             <div className="flex items-center gap-1 mt-3 mb-4">
-              <div className="text-xs flex gap-1 items-center font-semibold bg-premium-gradient text-white px-2 py-0.5 rounded-full">
-                <span>PREMIUM</span>
-                <LightningIcon
-                  size={12}
-                  className="text-white"
-                  weight="fill"
-                />
-              </div>
+              <PlanBadge plan="PREMIUM" />
             </div>
             <h1 className="font-bold lg:text-[44px] text-2xl lg:text-left leading-tight text-center mb-3 text-white">
               {data.career.title}

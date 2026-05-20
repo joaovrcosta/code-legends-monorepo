@@ -11,7 +11,7 @@ const RING_GRADIENT_BY_VARIANT: Record<
 > = {
   free: {
     background:
-      'linear-gradient(135deg, #B8E62E 0%, #9AC91F 50%, #7FB318 100%)',
+      '#25252a',
   },
   pro: {
     background:

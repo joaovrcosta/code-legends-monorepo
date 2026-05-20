@@ -15,10 +15,7 @@ import { logout } from '@/actions/auth'
 import { getUserFromAPI } from '@/actions/user/get-user-from-api'
 import { useSession } from 'next-auth/react'
 import { useState, useEffect, useCallback } from 'react'
-import Image from 'next/image'
-import freeIconPlan from '../../public/free-plan-icon.svg'
-import premiumIconPlan from '../../public/premium-plan-icon.svg'
-import proIconPlan from '../../public/pro-plan-icon.svg'
+import { PlanBadge } from '@/components/ui/plan-badge'
 
 type UserPlan = 'FREE' | 'PRO' | 'PREMIUM'
 
@@ -140,27 +137,7 @@ export function UserDropdown() {
                   <p className="text-[#708089] text-xs">{user?.email}</p>
                 </div>
               </div>
-              {userPlan === 'PREMIUM' ? (
-                <div className="flex items-center gap-2">
-                  <Image
-                    src={premiumIconPlan}
-                    alt="PREMIUM"
-                    width={16}
-                    height={16}
-                  />
-                  <span className="text-[#FF6200] font-medium">PREMIUM</span>
-                </div>
-              ) : userPlan === 'PRO' ? (
-                <div className="flex items-center gap-2">
-                  <Image src={proIconPlan} alt="PRO" width={16} height={16} />
-                  <span className="text-[#8234E9] font-medium">PRO</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Image src={freeIconPlan} alt="FREE" width={16} height={16} />
-                  <span className="text-[#B8E62E] font-medium">FREE</span>
-                </div>
-              )}
+              <PlanBadge plan={userPlan} />
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="border border-[#25252A]" />

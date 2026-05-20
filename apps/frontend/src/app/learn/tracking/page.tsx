@@ -20,18 +20,12 @@ import { getAuroraBackground } from '@/utils/hexToRgb'
 import { Progress } from '@/components/ui/progress'
 import { getWeeklyXp } from '@/actions/user/get-weekly-xp'
 import { WeeklyXpCard } from '@/components/learn/weekly-xp-card'
-import { Lightning } from '@phosphor-icons/react/dist/ssr'
+import { PlanBadge } from '@/components/ui/plan-badge'
 
 function planToRingVariant(plan?: string): AvatarRingVariant {
   if (plan === 'PRO') return 'pro'
   if (plan === 'PREMIUM') return 'premium'
   return 'free'
-}
-
-function planToLightningClass(plan?: string) {
-  if (plan === 'PREMIUM') return 'text-[#00FFA3]'
-  if (plan === 'PRO') return 'text-[#00C8FF]'
-  return 'text-[#7e7e89]'
 }
 
 type TrackingStatsPillsProps = {
@@ -157,13 +151,7 @@ export default async function TrackingPage() {
                         <p className="truncate text-[24px] sm:text-2xl font-medium text-white">
                           {userFromAPI?.name ?? user.name}
                         </p>
-                        {['PRO', 'PREMIUM'].includes(String(userFromAPI?.plan ?? user.plan)) && (
-                          <Lightning
-                            size={18}
-                            weight="fill"
-                            className={planToLightningClass(userFromAPI?.plan ?? user.plan)}
-                          />
-                        )}
+                        <PlanBadge plan={userFromAPI?.plan ?? user.plan} />
                       </div>
                       <p className="mt-1 text-sm text-[#7e7e89]">Fullstack developer</p>
                     </div>
