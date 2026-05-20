@@ -7,7 +7,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@code-legends/shared-types"],
+  transpilePackages: ["@code-legends/shared-types", "@code-legends/video-providers"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "github.com", pathname: "/**" },
