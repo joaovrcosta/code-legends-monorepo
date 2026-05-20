@@ -122,7 +122,7 @@ function SkillXpProgressBar({
           style={{ width: `${currRatio * 100}%` }}
         >
           {hasGain ? (
-            <div className="skill-xp-gain-gradient h-full w-full min-w-0 shrink-0 rounded-full" />
+            <div className="bg-cyan-500/30 h-full w-full min-w-0 shrink-0 rounded-full" />
           ) : (
             <div className="aurora-gradient h-full w-full min-w-0 rounded-full" />
           )}
