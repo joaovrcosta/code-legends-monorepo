@@ -38,7 +38,7 @@ function hasWeeklyGain(skill: UserSkillTrackingItem) {
   return prev != null && prev !== curr
 }
 
-function getBarRatios(skill: UserSkillTrackingItem, axisMax: number) {
+function getSkillBarSegments(skill: UserSkillTrackingItem, axisMax: number) {
   const curr = skill.xp ?? 0
   const gained = skill.xpGainedThisWeek ?? 0
   const prev =
@@ -47,11 +47,25 @@ function getBarRatios(skill: UserSkillTrackingItem, axisMax: number) {
       : gained > 0
         ? Math.max(0, curr - gained)
         : curr
+
   const safeMax = axisMax > 0 ? axisMax : 1
-  const currRatio = Math.min(curr / safeMax, 1)
-  const prevRatio = Math.min(prev / safeMax, currRatio)
-  const showDelta = gained > 0 && currRatio > prevRatio
-  return { currRatio, prevRatio, showDelta }
+  const currRatio = curr > 0 ? Math.min(curr / safeMax, 1) : 0
+  const hasPrevious = prev > 0
+  const hasGain = gained > 0
+
+  const innerPrevShare = curr > 0 ? prev / curr : 0
+  const innerGainShare = curr > 0 ? gained / curr : 0
+
+  return {
+    curr,
+    prev,
+    gained,
+    currRatio,
+    hasPrevious,
+    hasGain,
+    innerPrevShare,
+    innerGainShare,
+  }
 }
 
 function SkillXpProgressBar({
@@ -63,35 +77,58 @@ function SkillXpProgressBar({
   axisMax: number
   heightClass?: string
 }) {
-  const { currRatio, prevRatio, showDelta } = getBarRatios(skill, axisMax)
-  const minWidth = showDelta ? 0 : 4
+  const {
+    curr,
+    currRatio,
+    hasPrevious,
+    hasGain,
+    innerPrevShare,
+    innerGainShare,
+  } = getSkillBarSegments(skill, axisMax)
 
-  if (!showDelta) {
+  if (curr <= 0 || currRatio <= 0) {
     return (
-      <div className={`relative w-full overflow-hidden rounded-full bg-[#25252A] ${heightClass}`}>
-        <div
-          className={`${heightClass} min-w-[8px] rounded-full aurora-gradient`}
-          style={{ width: `${Math.max(minWidth, currRatio * 100)}%` }}
-        />
-      </div>
+      <div className={`relative w-full overflow-hidden rounded-full bg-[#25252A] ${heightClass}`} />
     )
   }
+
+  const onlyGain = hasGain && !hasPrevious
+  const basePlusGain = hasGain && hasPrevious
 
   return (
     <div className={`relative w-full overflow-hidden rounded-full bg-[#25252A] ${heightClass}`}>
       <div
-        className={`absolute inset-y-0 left-0 rounded-full bg-[#00C8FF]/25`}
-        style={{ width: `${Math.max(minWidth, prevRatio * 100)}%` }}
-      />
-      <div
-        className={`absolute inset-y-0 rounded-full aurora-gradient min-w-[4px]`}
-        style={{
-          left: `${prevRatio * 100}%`,
-          width: `${Math.max(0, (currRatio - prevRatio) * 100)}%`,
-        }}
-      />
+        className={`flex h-full min-w-0 ${heightClass}`}
+        style={{ width: `${currRatio * 100}%` }}
+      >
+        {basePlusGain && (
+          <div
+            className="skill-xp-base-fill h-full shrink-0 rounded-l-full"
+            style={{ width: `${innerPrevShare * 100}%` }}
+          />
+        )}
+        {hasGain ? (
+          <div
+            className={`skill-xp-gain-gradient h-full min-w-0 shrink-0 ${onlyGain ? 'w-full rounded-full' : 'rounded-r-full'}`}
+            style={onlyGain ? undefined : { width: `${innerGainShare * 100}%` }}
+          />
+        ) : (
+          <div
+            className="aurora-gradient h-full w-full min-w-0 rounded-full"
+            style={{ width: '100%' }}
+          />
+        )}
+      </div>
     </div>
   )
+}
+
+function getDisplayPreviousXp(skill: UserSkillTrackingItem) {
+  const curr = skill.xp ?? 0
+  const gained = skill.xpGainedThisWeek ?? 0
+  if (skill.previousXp != null) return skill.previousXp
+  if (gained > 0) return Math.max(0, curr - gained)
+  return curr
 }
 
 export function SkillsTrackingCard({
@@ -168,7 +205,7 @@ export function SkillsTrackingCard({
       <div className="flex flex-col gap-3 md:hidden">
         {displayed.map((skill) => {
           const curr = skill.xp ?? 0
-          const prev = skill.previousXp ?? null
+          const prev = getDisplayPreviousXp(skill)
           const showComparison = hasWeeklyGain(skill)
 
           return (
@@ -195,7 +232,7 @@ export function SkillsTrackingCard({
                 </div>
 
                 <div className="max-w-[42%] shrink-0 text-right text-[12px] font-bold leading-tight tabular-nums sm:text-[13px]">
-                  {showComparison && prev != null ? (
+                  {showComparison ? (
                     <span className="inline-flex flex-wrap items-center justify-end gap-x-1 gap-y-0.5">
                       <span className="text-[#C4C4CC]">
                         <XPValue value={prev} /> XP
@@ -238,9 +275,8 @@ export function SkillsTrackingCard({
         <div className="flex flex-col gap-1">
           {displayed.map((skill, index) => {
             const curr = skill.xp ?? 0
-            const prev = skill.previousXp ?? null
+            const prev = getDisplayPreviousXp(skill)
             const showComparison = hasWeeklyGain(skill)
-            const { currRatio } = getBarRatios(skill, axisMax)
             const isEven = index % 2 === 0
 
             return (
@@ -260,24 +296,20 @@ export function SkillsTrackingCard({
                   <span className="truncate">{skill.name}</span>
                 </span>
 
-                <div className="relative flex h-8 items-center">
+                <div className="relative flex h-8 w-full items-center">
                   <div className="absolute inset-0 flex justify-between">
                     {ticks.map((t, i) => (
                       <div key={`${t}-${i}`} className="h-full w-px bg-[#202024]" />
                     ))}
                   </div>
 
-                  <div
-                    className="relative w-full"
-                    style={{ width: `${Math.max(18, currRatio * 100)}%` }}
-                  >
+                  <div className="relative z-10 w-full">
                     <SkillXpProgressBar skill={skill} axisMax={axisMax} />
-                    <div className="pointer-events-none absolute inset-x-1.5 top-[2px] h-[3px] rounded-full bg-white/25" />
                   </div>
                 </div>
 
                 <div className="text-right text-[14px] font-bold tabular-nums">
-                  {showComparison && prev != null ? (
+                  {showComparison ? (
                     <div className="flex items-center justify-end gap-2">
                       <span className="text-[#7e7e89]">
                         <XPValue value={prev} /> XP
