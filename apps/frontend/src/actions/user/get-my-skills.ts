@@ -8,6 +8,8 @@ export type UserSkillTrackingItem = {
   slug: string;
   imageUrl?: string | null;
   xp: number;
+  previousXp?: number;
+  xpGainedThisWeek?: number;
 };
 
 type UserSkillsApiResponse = {

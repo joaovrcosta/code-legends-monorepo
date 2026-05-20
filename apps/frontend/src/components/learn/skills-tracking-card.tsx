@@ -10,6 +10,7 @@ export type UserSkillTrackingItem = {
   name: string
   xp: number
   previousXp?: number | null
+  xpGainedThisWeek?: number
 }
 
 export type SkillsTrackingCardProps = {
@@ -27,6 +28,70 @@ function planToLightningClass(plan?: string | null) {
   if (plan === 'PREMIUM') return 'text-[#00FFA3]'
   if (plan === 'PRO') return 'text-[#00C8FF]'
   return 'text-[#7e7e89]'
+}
+
+function hasWeeklyGain(skill: UserSkillTrackingItem) {
+  const gained = skill.xpGainedThisWeek ?? 0
+  if (gained > 0) return true
+  const prev = skill.previousXp
+  const curr = skill.xp ?? 0
+  return prev != null && prev !== curr
+}
+
+function getBarRatios(skill: UserSkillTrackingItem, axisMax: number) {
+  const curr = skill.xp ?? 0
+  const gained = skill.xpGainedThisWeek ?? 0
+  const prev =
+    skill.previousXp != null
+      ? skill.previousXp
+      : gained > 0
+        ? Math.max(0, curr - gained)
+        : curr
+  const safeMax = axisMax > 0 ? axisMax : 1
+  const currRatio = Math.min(curr / safeMax, 1)
+  const prevRatio = Math.min(prev / safeMax, currRatio)
+  const showDelta = gained > 0 && currRatio > prevRatio
+  return { currRatio, prevRatio, showDelta }
+}
+
+function SkillXpProgressBar({
+  skill,
+  axisMax,
+  heightClass = 'h-3',
+}: {
+  skill: UserSkillTrackingItem
+  axisMax: number
+  heightClass?: string
+}) {
+  const { currRatio, prevRatio, showDelta } = getBarRatios(skill, axisMax)
+  const minWidth = showDelta ? 0 : 4
+
+  if (!showDelta) {
+    return (
+      <div className={`relative w-full overflow-hidden rounded-full bg-[#25252A] ${heightClass}`}>
+        <div
+          className={`${heightClass} min-w-[8px] rounded-full aurora-gradient`}
+          style={{ width: `${Math.max(minWidth, currRatio * 100)}%` }}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className={`relative w-full overflow-hidden rounded-full bg-[#25252A] ${heightClass}`}>
+      <div
+        className={`absolute inset-y-0 left-0 rounded-full bg-[#00C8FF]/25`}
+        style={{ width: `${Math.max(minWidth, prevRatio * 100)}%` }}
+      />
+      <div
+        className={`absolute inset-y-0 rounded-full aurora-gradient min-w-[4px]`}
+        style={{
+          left: `${prevRatio * 100}%`,
+          width: `${Math.max(0, (currRatio - prevRatio) * 100)}%`,
+        }}
+      />
+    </div>
+  )
 }
 
 export function SkillsTrackingCard({
@@ -104,7 +169,7 @@ export function SkillsTrackingCard({
         {displayed.map((skill) => {
           const curr = skill.xp ?? 0
           const prev = skill.previousXp ?? null
-          const ratio = Math.min(curr / axisMax, 1)
+          const showComparison = hasWeeklyGain(skill)
 
           return (
             <div
@@ -126,16 +191,11 @@ export function SkillsTrackingCard({
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#25252A]">
-                    <div
-                      className="h-full min-w-[8px] rounded-full aurora-gradient"
-                      style={{ width: `${Math.max(4, ratio * 100)}%` }}
-                    />
-                  </div>
+                  <SkillXpProgressBar skill={skill} axisMax={axisMax} heightClass="h-2.5" />
                 </div>
 
                 <div className="max-w-[42%] shrink-0 text-right text-[12px] font-bold leading-tight tabular-nums sm:text-[13px]">
-                  {prev != null && prev !== curr ? (
+                  {showComparison && prev != null ? (
                     <span className="inline-flex flex-wrap items-center justify-end gap-x-1 gap-y-0.5">
                       <span className="text-[#C4C4CC]">
                         <XPValue value={prev} /> XP
@@ -179,7 +239,8 @@ export function SkillsTrackingCard({
           {displayed.map((skill, index) => {
             const curr = skill.xp ?? 0
             const prev = skill.previousXp ?? null
-            const ratio = Math.min(curr / axisMax, 1)
+            const showComparison = hasWeeklyGain(skill)
+            const { currRatio } = getBarRatios(skill, axisMax)
             const isEven = index % 2 === 0
 
             return (
@@ -207,16 +268,16 @@ export function SkillsTrackingCard({
                   </div>
 
                   <div
-                    className="relative h-3 min-w-[18px] rounded-full aurora-gradient"
-                    style={{ width: `${ratio * 100}%` }}
+                    className="relative w-full"
+                    style={{ width: `${Math.max(18, currRatio * 100)}%` }}
                   >
-                    <div className="absolute inset-x-1.5 top-[2px] h-[3px] rounded-full bg-white/25" />
-                    <div className="absolute inset-0 rounded-full shadow-[inset_0_-2px_4px_rgba(0,0,0,0.2)]" />
+                    <SkillXpProgressBar skill={skill} axisMax={axisMax} />
+                    <div className="pointer-events-none absolute inset-x-1.5 top-[2px] h-[3px] rounded-full bg-white/25" />
                   </div>
                 </div>
 
                 <div className="text-right text-[14px] font-bold tabular-nums">
-                  {prev != null && prev !== curr ? (
+                  {showComparison && prev != null ? (
                     <div className="flex items-center justify-end gap-2">
                       <span className="text-[#7e7e89]">
                         <XPValue value={prev} /> XP

@@ -4,6 +4,7 @@ import { prisma } from "../../../lib/prisma";
 import { sanitizeUser } from "../../utils/sanitize";
 import { Role } from "@prisma/client";
 import { canViewUserSkills } from "../../utils/skill-visibility";
+import { getRollingWeekBounds } from "../../../utils/rolling-week-bounds";
 
 export async function getUserSkills(request: FastifyRequest, reply: FastifyReply) {
   const paramsSchema = z.object({
@@ -53,6 +54,19 @@ export async function getUserSkills(request: FastifyRequest, reply: FastifyReply
       },
     });
 
+    const { from, toExclusive } = getRollingWeekBounds();
+    const weeklyGains = await prisma.userSkillXpHistory.groupBy({
+      by: ["skillId"],
+      where: {
+        userId,
+        createdAt: { gte: from, lt: toExclusive },
+      },
+      _sum: { xpAmount: true },
+    });
+    const gainedBySkill = new Map(
+      weeklyGains.map((row) => [row.skillId, row._sum.xpAmount ?? 0]),
+    );
+
     const sanitizedUser = sanitizeUser(user, {
       requestingUserId: request.user.id,
       requestingUserRole: request.user.role as Role,
@@ -61,13 +75,18 @@ export async function getUserSkills(request: FastifyRequest, reply: FastifyReply
 
     return reply.status(200).send({
       user: sanitizedUser,
-      skills: skills.map((item) => ({
-        skillId: item.skillId,
-        name: item.skill.name,
-        slug: item.skill.slug,
-        imageUrl: item.skill.imageUrl,
-        xp: item.xp,
-      })),
+      skills: skills.map((item) => {
+        const xpGainedThisWeek = gainedBySkill.get(item.skillId) ?? 0;
+        return {
+          skillId: item.skillId,
+          name: item.skill.name,
+          slug: item.skill.slug,
+          imageUrl: item.skill.imageUrl,
+          xp: item.xp,
+          previousXp: Math.max(0, item.xp - xpGainedThisWeek),
+          xpGainedThisWeek,
+        };
+      }),
     });
   } catch (error) {
     console.error("Erro ao buscar skills do usuário:", error);
