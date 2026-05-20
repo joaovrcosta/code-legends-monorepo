@@ -94,31 +94,40 @@ function SkillXpProgressBar({
 
   const onlyGain = hasGain && !hasPrevious
   const basePlusGain = hasGain && hasPrevious
+  /** Sobreposição do ganho sob a ponta arredondada do XP anterior (≈ raio da barra h-3). */
+  const gainUnderlapPx = 6
 
   return (
     <div className={`relative w-full overflow-hidden rounded-full bg-[#25252A] ${heightClass}`}>
-      <div
-        className={`flex h-full min-w-0 ${heightClass}`}
-        style={{ width: `${currRatio * 100}%` }}
-      >
-        {basePlusGain && (
+      {basePlusGain ? (
+        <div
+          className={`relative ${heightClass}`}
+          style={{ width: `${currRatio * 100}%` }}
+        >
           <div
-            className="skill-xp-base-fill h-full shrink-0 rounded-l-full"
+            className="skill-xp-base-fill absolute inset-y-0 left-0 z-10 rounded-full"
             style={{ width: `${innerPrevShare * 100}%` }}
           />
-        )}
-        {hasGain ? (
           <div
-            className={`skill-xp-gain-gradient h-full min-w-0 shrink-0 ${onlyGain ? 'w-full rounded-full' : 'rounded-r-full'}`}
-            style={onlyGain ? undefined : { width: `${innerGainShare * 100}%` }}
+            className="bg-cyan-500/30 absolute inset-y-0 z-0 rounded-full"
+            style={{
+              left: `calc(${innerPrevShare * 100}% - ${gainUnderlapPx}px)`,
+              width: `calc(${innerGainShare * 100}% + ${gainUnderlapPx}px)`,
+            }}
           />
-        ) : (
-          <div
-            className="aurora-gradient h-full w-full min-w-0 rounded-full"
-            style={{ width: '100%' }}
-          />
-        )}
-      </div>
+        </div>
+      ) : (
+        <div
+          className={`flex h-full min-w-0 ${heightClass}`}
+          style={{ width: `${currRatio * 100}%` }}
+        >
+          {hasGain ? (
+            <div className="skill-xp-gain-gradient h-full w-full min-w-0 shrink-0 rounded-full" />
+          ) : (
+            <div className="aurora-gradient h-full w-full min-w-0 rounded-full" />
+          )}
+        </div>
+      )}
     </div>
   )
 }
