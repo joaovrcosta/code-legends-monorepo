@@ -972,7 +972,7 @@ export default function EditCoursePage() {
                   ) : (
                     <CourseProductionKanban
                       courseId={courseId}
-                      courseTitle={formData.title}
+                      courseTitle={formData.title || ""}
                       modules={modules}
                       onModulesChange={setModules}
                     />
