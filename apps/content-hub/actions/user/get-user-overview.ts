@@ -14,6 +14,7 @@ export interface UserOverview {
         plan?: string;
         createdAt: string;
         updatedAt: string;
+        lastLogin: string | null;
         email: string;
         onboardingCompleted: boolean;
         onboardingGoal: string | null;

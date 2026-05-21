@@ -42,6 +42,7 @@ export function toUserPrivateDTO(user: User): UserPrivateDTO {
 export function toUserFullDTO(user: User & { Address?: Address | null }): UserFullDTO {
   return {
     ...toUserPrivateDTO(user),
+    lastLogin: user.lastLogin,
     birth_date: user.birth_date,
     born_in: user.born_in,
     document: user.document,

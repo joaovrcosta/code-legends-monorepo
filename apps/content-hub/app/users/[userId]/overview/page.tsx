@@ -830,6 +830,14 @@ function UserOverviewPageContent() {
                 </p>
               </div>
               <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Último login</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100 mt-1">
+                  {overview.user.lastLogin
+                    ? formatDate(overview.user.lastLogin)
+                    : "Nunca registrado"}
+                </p>
+              </div>
+              <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Atualizado em</p>
                 <p className="font-medium text-gray-900 dark:text-gray-100 mt-1">
                   {formatDate(overview.user.updatedAt)}

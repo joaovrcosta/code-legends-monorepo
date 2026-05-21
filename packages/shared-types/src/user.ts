@@ -25,6 +25,7 @@ export interface UserPrivateDTO extends UserPublicDTO {
 }
 
 export interface UserFullDTO extends UserPrivateDTO {
+    lastLogin: Date | null;
     birth_date: Date | null;
     born_in: string | null;
     document: string | null;
