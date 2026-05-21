@@ -18,6 +18,64 @@ import { getAuthTokenFromClient } from "@/lib/auth";
 import { generateSlug } from "@/lib/utils";
 import { toast } from "sonner";
 
+interface ImportLessonData {
+  title: string;
+  description?: string;
+  type?: string;
+  slug?: string;
+  url?: string;
+  video_url?: string;
+  video_duration?: string;
+  isFree?: boolean;
+  locked?: boolean;
+  order?: number;
+  body?: string;
+  quiz_content?: unknown[];
+  project_description?: string;
+  project_specs?: unknown;
+}
+
+interface ImportGroupData {
+  title: string;
+  orderIndex?: number;
+  lessons: ImportLessonData[];
+}
+
+interface ImportModuleData {
+  title: string;
+  slug?: string;
+  orderIndex?: number;
+  groups: ImportGroupData[];
+}
+
+function countImportSteps(
+  data: ImportModuleData[],
+  existingModuleCount: number,
+  clearBefore: boolean,
+): number {
+  let steps = clearBefore ? existingModuleCount : 0;
+  for (const module of data) {
+    if (!module?.title) continue;
+    steps += 1;
+    for (const group of module.groups || []) {
+      if (!group?.title) continue;
+      steps += 1;
+      for (const lesson of group.lessons || []) {
+        if (lesson?.title) steps += 1;
+      }
+    }
+  }
+  return Math.max(steps, 1);
+}
+
+function formatImportEta(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "quase pronto";
+  if (seconds < 60) return `~${Math.ceil(seconds)} s`;
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.ceil(seconds % 60);
+  return secs > 0 ? `~${minutes} min ${secs} s` : `~${minutes} min`;
+}
+
 interface CourseBuilderProps {
   courseId: string;
   courseTitle: string;
@@ -55,6 +113,8 @@ export function CourseBuilder({
   const [importJson, setImportJson] = useState("");
   const [clearBeforeImport, setClearBeforeImport] = useState(true);
   const [importLoading, setImportLoading] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
+  const [importEtaSeconds, setImportEtaSeconds] = useState<number | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [exportIncludeContent, setExportIncludeContent] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -209,36 +269,6 @@ export function CourseBuilder({
     }
   };
 
-  interface ImportLessonData {
-    title: string;
-    description?: string;
-    type?: string;
-    slug?: string;
-    url?: string;
-    video_url?: string;
-    video_duration?: string;
-    isFree?: boolean;
-    locked?: boolean;
-    order?: number;
-    body?: string;
-    quiz_content?: unknown[];
-    project_description?: string;
-    project_specs?: unknown;
-  }
-
-  interface ImportGroupData {
-    title: string;
-    orderIndex?: number;
-    lessons: ImportLessonData[];
-  }
-
-  interface ImportModuleData {
-    title: string;
-    slug?: string;
-    orderIndex?: number;
-    groups: ImportGroupData[];
-  }
-
   const handleImportStructure = async () => {
     if (!importJson.trim()) {
       setImportError("Por favor, insira o JSON com a estrutura do curso");
@@ -264,8 +294,32 @@ export function CourseBuilder({
       return;
     }
 
+    const totalSteps = countImportSteps(
+      data,
+      modules.length,
+      clearBeforeImport,
+    );
+    let completedSteps = 0;
+    const importStartedAt = Date.now();
+
+    const tickImportProgress = () => {
+      completedSteps += 1;
+      const percent = Math.min(
+        100,
+        Math.round((completedSteps / totalSteps) * 100),
+      );
+      setImportProgress(percent);
+      if (completedSteps > 0) {
+        const elapsedSec = (Date.now() - importStartedAt) / 1000;
+        const avgSecPerStep = elapsedSec / completedSteps;
+        setImportEtaSeconds((totalSteps - completedSteps) * avgSecPerStep);
+      }
+    };
+
     try {
       setImportLoading(true);
+      setImportProgress(0);
+      setImportEtaSeconds(null);
       setImportError(null);
 
       if (clearBeforeImport && modules.length > 0) {
@@ -276,6 +330,7 @@ export function CourseBuilder({
             console.error("Erro ao excluir módulo:", error);
             // continua para tentar importar o restante
           }
+          tickImportProgress();
         }
       }
 
@@ -294,6 +349,7 @@ export function CourseBuilder({
         );
 
         const moduleId = createdModule.module.id;
+        tickImportProgress();
         const groups = module.groups || [];
 
         for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
@@ -307,6 +363,7 @@ export function CourseBuilder({
           );
 
           const groupId = createdGroup.group.id;
+          tickImportProgress();
           const lessons = group.lessons || [];
 
           for (let lessonIndex = 0; lessonIndex < lessons.length; lessonIndex++) {
@@ -364,10 +421,13 @@ export function CourseBuilder({
             }
 
             await createLesson(groupId, lessonData, token);
+            tickImportProgress();
           }
         }
       }
 
+      setImportProgress(100);
+      setImportEtaSeconds(0);
       toast.success("Estrutura do curso importada com sucesso!");
       setShowStructureModal(false);
       setImportJson("");
@@ -382,6 +442,8 @@ export function CourseBuilder({
       );
     } finally {
       setImportLoading(false);
+      setImportProgress(0);
+      setImportEtaSeconds(null);
     }
   };
 
@@ -522,6 +584,8 @@ export function CourseBuilder({
                   onClick={() => {
                     setShowStructureModal(false);
                     setImportError(null);
+                    setImportProgress(0);
+                    setImportEtaSeconds(null);
                   }}
                 >
                   <X className="h-4 w-4" />
@@ -616,6 +680,7 @@ export function CourseBuilder({
                       type="button"
                       variant="outline"
                       size="sm"
+                      disabled={importLoading}
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Upload className="mr-2 h-4 w-4" />
@@ -628,6 +693,7 @@ export function CourseBuilder({
                     onChange={(e) => setImportJson(e.target.value)}
                     rows={12}
                     className="font-mono text-xs"
+                    disabled={importLoading}
                   />
                   <div className="flex items-center gap-2">
                     <input
@@ -635,6 +701,7 @@ export function CourseBuilder({
                       type="checkbox"
                       className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       checked={clearBeforeImport}
+                      disabled={importLoading}
                       onChange={(e) => setClearBeforeImport(e.target.checked)}
                     />
                     <label
@@ -644,6 +711,35 @@ export function CourseBuilder({
                       Apagar estrutura atual antes de importar
                     </label>
                   </div>
+
+                  {importLoading && (
+                    <div
+                      className="mt-2 space-y-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-900/50"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                          Importando estrutura…
+                        </span>
+                        <span className="tabular-nums text-gray-600 dark:text-gray-400">
+                          {importProgress}%
+                        </span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
+                        <div
+                          className="h-full rounded-full bg-blue-600 transition-[width] duration-300 ease-out"
+                          style={{ width: `${importProgress}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        Tempo restante estimado:{" "}
+                        {importProgress < 3 || importEtaSeconds === null
+                          ? "calculando…"
+                          : formatImportEta(importEtaSeconds)}
+                      </p>
+                    </div>
+                  )}
 
                   {importError && (
                     <div className="mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 whitespace-pre-line">
@@ -657,13 +753,15 @@ export function CourseBuilder({
                       onClick={() => {
                         setShowStructureModal(false);
                         setImportError(null);
+                        setImportProgress(0);
+                        setImportEtaSeconds(null);
                       }}
                       disabled={importLoading}
                     >
                       Cancelar
                     </Button>
                     <Button onClick={handleImportStructure} disabled={importLoading}>
-                      {importLoading ? "Importando..." : "Importar Estrutura"}
+                      {importLoading ? "Importando…" : "Importar Estrutura"}
                     </Button>
                   </div>
                 </div>
