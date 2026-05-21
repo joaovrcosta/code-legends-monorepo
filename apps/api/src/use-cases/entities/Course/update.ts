@@ -7,6 +7,11 @@ import { CategoryNotFoundError } from '../../errors/category-not-found'
 import { NotificationBuilder } from '../../../utils/notification-builder'
 import { createNotificationsBatch } from '../../../utils/create-notification'
 import { prisma } from '../../../lib/prisma'
+import {
+  type LessonFreeSync,
+  resolveLessonFreeSyncAction,
+  syncCourseLessonsIsFree,
+} from './sync-course-lessons-is-free'
 
 interface UpdateCourseRequest {
   id: string
@@ -22,10 +27,12 @@ interface UpdateCourseRequest {
   isFree?: boolean
   active?: boolean
   releaseAt?: Date | null
+  lessonFreeSync?: LessonFreeSync
 }
 
 interface UpdateCourseResponse {
   course: Course
+  lessonsSynced: number
 }
 
 export class UpdateCourseUseCase {
@@ -35,14 +42,12 @@ export class UpdateCourseUseCase {
   ) {}
 
   async execute(data: UpdateCourseRequest): Promise<UpdateCourseResponse> {
-    // Verificar se o curso existe
     const course = await this.courseRepository.findById(data.id)
 
     if (!course) {
       throw new CourseNotFoundError()
     }
 
-    // Se está alterando o slug, verificar se não existe outro curso com o mesmo slug
     if (data.slug && data.slug !== course.slug) {
       const courseWithSameSlug = await this.courseRepository.findBySlug(
         data.slug,
@@ -79,52 +84,22 @@ export class UpdateCourseUseCase {
       releaseAt: data.releaseAt,
     })
 
-    // Se o curso passou de pago para gratuito, marcar todas as aulas como gratuitas
-    if (!wasFree && updatedCourse.isFree) {
-      const modulesWithLessons = await prisma.module.findMany({
-        where: { courseId: updatedCourse.id },
-        select: {
-          id: true,
-          submodules: {
-            select: {
-              id: true,
-              lessons: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-        },
-      })
+    const syncAction = resolveLessonFreeSyncAction({
+      wasFree,
+      isFreeNow: updatedCourse.isFree,
+      explicit: data.lessonFreeSync,
+    })
 
-      const lessonIds = modulesWithLessons.flatMap((module) =>
-        module.submodules.flatMap((group) =>
-          group.lessons.map((lesson) => lesson.id),
-        ),
-      )
-
-      if (lessonIds.length > 0) {
-        await prisma.lesson.updateMany({
-          where: {
-            id: {
-              in: lessonIds,
-            },
-          },
-          data: {
-            isFree: true,
-          },
-        })
-      }
+    let lessonsSynced = 0
+    if (syncAction === 'all_free') {
+      lessonsSynced = await syncCourseLessonsIsFree(updatedCourse.id, true)
+    } else if (syncAction === 'all_paid') {
+      lessonsSynced = await syncCourseLessonsIsFree(updatedCourse.id, false)
     }
 
-    // Criar notificações se o curso foi ativado (de false para true)
-    // Fazemos isso de forma assíncrona para não bloquear a resposta
     if (!wasActive && updatedCourse.active) {
-      // Não aguardamos a conclusão - executa em background
       setImmediate(async () => {
         try {
-          // Buscar instrutor do curso
           const instructor = await prisma.user.findUnique({
             where: { id: course.instructorId },
             select: { name: true },
@@ -133,7 +108,6 @@ export class UpdateCourseUseCase {
           const thirtyDaysAgo = new Date()
           thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-          // Buscar apenas usuários ativos (fizeram login nos últimos 30 dias)
           const users = await prisma.user.findMany({
             where: {
               lastLogin: {
@@ -156,7 +130,6 @@ export class UpdateCourseUseCase {
             await createNotificationsBatch(notifications)
           }
         } catch (error) {
-          // Não quebra o fluxo se a notificação falhar
           console.error('Erro ao criar notificações de novo curso:', {
             courseId: updatedCourse.id,
             error: error instanceof Error ? error.message : 'Unknown error',
@@ -168,6 +141,7 @@ export class UpdateCourseUseCase {
 
     return {
       course: updatedCourse,
+      lessonsSynced,
     }
   }
 }

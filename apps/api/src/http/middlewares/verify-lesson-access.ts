@@ -114,14 +114,14 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         select: { plan: true },
       });
       const isPaidUser = user?.plan === "PRO" || user?.plan === "PREMIUM";
-      if (!isPaidUser && !lessonIsFree) {
+      if (!isPaidUser && !lessonIsFree && !courseIsFree) {
         return reply.status(403).send({
           message:
             "Conteúdo exclusivo para assinantes. Faça upgrade para acessar.",
         });
       }
 
-      if (!lessonIsFree) {
+      if (!lessonIsFree && !courseIsFree) {
         const userCourseRepository = new PrismaUserCourseRepository();
         const userCourse = await userCourseRepository.findByUserAndCourse(
           userId,

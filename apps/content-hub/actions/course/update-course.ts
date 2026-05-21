@@ -3,6 +3,8 @@
 import { buildApiHeaders } from "@/actions/auth";
 import type { Course } from "./list-courses";
 
+export type LessonFreeSync = "all_free" | "all_paid" | "keep";
+
 export interface UpdateCourseData {
   title?: string;
   slug?: string;
@@ -17,10 +19,12 @@ export interface UpdateCourseData {
   isFree?: boolean;
   active?: boolean;
   releaseAt?: string;
+  lessonFreeSync?: LessonFreeSync;
 }
 
 export interface UpdateCourseResponse {
   course: Course;
+  lessonsSynced?: number;
 }
 
 /**

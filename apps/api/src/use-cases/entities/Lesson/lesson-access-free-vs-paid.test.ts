@@ -11,10 +11,14 @@ import { describe, it, expect } from "vitest";
  * do curso solicitado (paga em curso A). Agora a busca usa courseId quando
  * a rota é /courses/:courseId/lessons/:lessonSlug.
  */
-function canAccessPaidLesson(userPlan: "FREE" | "PRO" | "PREMIUM", lessonIsFree: boolean): boolean {
+function canAccessPaidLesson(
+  userPlan: "FREE" | "PRO" | "PREMIUM",
+  lessonIsFree: boolean,
+  courseIsFree = false,
+): boolean {
   const isPaidUser = userPlan === "PRO" || userPlan === "PREMIUM";
   if (isPaidUser) return true;
-  return lessonIsFree === true;
+  return lessonIsFree === true || courseIsFree === true;
 }
 
 describe("Lesson access: free user must not access paid lessons", () => {
@@ -24,6 +28,10 @@ describe("Lesson access: free user must not access paid lessons", () => {
 
   it("FREE acessa aula gratuita (lessonIsFree = true)", () => {
     expect(canAccessPaidLesson("FREE", true)).toBe(true);
+  });
+
+  it("FREE acessa qualquer aula quando o curso é gratuito", () => {
+    expect(canAccessPaidLesson("FREE", false, true)).toBe(true);
   });
 
   it("PRO acessa qualquer aula", () => {

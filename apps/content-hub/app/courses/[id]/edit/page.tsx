@@ -14,6 +14,7 @@ import {
   getCourseById,
   updateCourse,
   type UpdateCourseData,
+  type LessonFreeSync,
   getCourseWithStructure,
   publishCourse,
   unpublishCourse,
@@ -68,6 +69,8 @@ export default function EditCoursePage() {
     Array<{ skillId: string; name: string; slug: string; weight: number }>
   >([]);
   const [selectedSkillId, setSelectedSkillId] = useState("");
+  const [initialIsFree, setInitialIsFree] = useState(false);
+  const [showLessonFreeSyncModal, setShowLessonFreeSyncModal] = useState(false);
   const [formData, setFormData] = useState<UpdateCourseData>({
     title: "",
     slug: "",
@@ -209,6 +212,7 @@ export default function EditCoursePage() {
         isFree: course.isFree,
         active: course.active,
       });
+      setInitialIsFree(course.isFree);
       setCourseStatus(course.status || "DRAFT");
       setSlugManuallyEdited(true);
     } catch (error) {
@@ -239,63 +243,112 @@ export default function EditCoursePage() {
     }
   };
 
+  const persistCourse = async (lessonFreeSync?: LessonFreeSync) => {
+    const token = getAuthTokenFromClient();
+    if (!token) {
+      toast.error("Token de autenticação não encontrado");
+      return;
+    }
+
+    const skillFromSelect =
+      selectedSkillId &&
+      !courseSkills.some((cs) => cs.skillId === selectedSkillId)
+        ? availableSkills.find((s) => s.id === selectedSkillId)
+        : null;
+
+    const skillsToPersist = [
+      ...courseSkills,
+      ...(skillFromSelect
+        ? [
+            {
+              skillId: skillFromSelect.id,
+              name: skillFromSelect.name,
+              slug: skillFromSelect.slug,
+              weight: 100,
+            },
+          ]
+        : []),
+    ];
+
+    let sync: LessonFreeSync | undefined = lessonFreeSync;
+    if (sync === undefined) {
+      if (!initialIsFree && formData.isFree) {
+        sync = "all_free";
+      }
+    }
+
+    const { lessonsSynced } = await updateCourse(
+      courseId,
+      { ...formData, lessonFreeSync: sync },
+      token,
+    );
+
+    const updatedConfig = await updateCourseSkillsConfig(
+      courseId,
+      skillsToPersist.map((item) => ({
+        skillId: item.skillId,
+        weight: item.weight,
+      })),
+      token,
+    );
+    if (!updatedConfig) {
+      throw new Error("Erro ao atualizar skills do curso");
+    }
+
+    if (skillFromSelect) {
+      setCourseSkills(skillsToPersist);
+      setSelectedSkillId("");
+    }
+
+    setInitialIsFree(formData.isFree ?? false);
+
+    if (
+      (lessonFreeSync === "all_paid" || lessonFreeSync === "all_free") &&
+      (lessonsSynced ?? 0) > 0
+    ) {
+      await loadCourseStructure();
+    }
+
+    const successMessage =
+      lessonFreeSync === "all_paid" && (lessonsSynced ?? 0) > 0
+        ? `Curso atualizado. ${lessonsSynced} aula(s) marcada(s) como pagas.`
+        : lessonFreeSync === "all_free" && (lessonsSynced ?? 0) > 0
+          ? `Curso atualizado. ${lessonsSynced} aula(s) marcada(s) como gratuitas.`
+          : "Curso atualizado com sucesso!";
+    toast.success(successMessage);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (initialIsFree && !formData.isFree) {
+      setShowLessonFreeSyncModal(true);
+      return;
+    }
+
     try {
       setLoading(true);
-      const token = getAuthTokenFromClient();
-      if (!token) {
-        toast.error("Token de autenticação não encontrado");
-        return;
-      }
-
-      // UX: se o admin selecionou uma skill mas esqueceu de clicar em "Adicionar",
-      // incluímos automaticamente no payload de save.
-      const skillFromSelect =
-        selectedSkillId &&
-        !courseSkills.some((cs) => cs.skillId === selectedSkillId)
-          ? availableSkills.find((s) => s.id === selectedSkillId)
-          : null;
-
-      const skillsToPersist = [
-        ...courseSkills,
-        ...(skillFromSelect
-          ? [
-              {
-                skillId: skillFromSelect.id,
-                name: skillFromSelect.name,
-                slug: skillFromSelect.slug,
-                weight: 100,
-              },
-            ]
-          : []),
-      ];
-
-      await updateCourse(courseId, formData, token);
-
-      // Atualizar configuração de skills do curso
-      const updatedConfig = await updateCourseSkillsConfig(
-        courseId,
-        skillsToPersist.map((item) => ({
-          skillId: item.skillId,
-          weight: item.weight,
-        })),
-        token
-      );
-      if (!updatedConfig) {
-        throw new Error("Erro ao atualizar skills do curso");
-      }
-
-      if (skillFromSelect) {
-        setCourseSkills(skillsToPersist);
-        setSelectedSkillId("");
-      }
-
-      // Não redireciona, apenas mostra sucesso
-      toast.success("Curso atualizado com sucesso!");
-    } catch (error: any) {
+      await persistCourse();
+    } catch (error: unknown) {
       console.error("Erro ao atualizar curso:", error);
-      toast.error(error.message || "Erro ao atualizar curso");
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao atualizar curso",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLessonFreeSyncChoice = async (choice: LessonFreeSync) => {
+    setShowLessonFreeSyncModal(false);
+    try {
+      setLoading(true);
+      await persistCourse(choice);
+    } catch (error: unknown) {
+      console.error("Erro ao atualizar curso:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao atualizar curso",
+      );
     } finally {
       setLoading(false);
     }
@@ -995,6 +1048,54 @@ export default function EditCoursePage() {
                     className="bg-emerald-600 hover:bg-emerald-700"
                   >
                     {verifyingPassword ? "Verificando..." : "Confirmar Publicação"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {showLessonFreeSyncModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <Card className="w-full max-w-lg">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Curso deixou de ser gratuito</CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowLessonFreeSyncModal(false)}
+                    disabled={loading}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  O curso não está mais marcado como gratuito. O que fazer com
+                  as aulas que ainda estão como gratuitas?
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowLessonFreeSyncModal(false)}
+                    disabled={loading}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleLessonFreeSyncChoice("keep")}
+                    disabled={loading}
+                  >
+                    Manter aulas gratuitas
+                  </Button>
+                  <Button
+                    onClick={() => handleLessonFreeSyncChoice("all_paid")}
+                    disabled={loading}
+                  >
+                    Marcar todas como pagas
                   </Button>
                 </div>
               </CardContent>

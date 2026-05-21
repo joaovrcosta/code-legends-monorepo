@@ -23,6 +23,7 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
     isFree: z.boolean().optional(),
     active: z.boolean().optional(),
     releaseAt: z.string().datetime().nullable().optional(),
+    lessonFreeSync: z.enum(['all_free', 'all_paid', 'keep']).optional(),
   });
 
   const { id } = updateCourseParamsSchema.parse(request.params);
@@ -39,12 +40,13 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
     isFree,
     active,
     releaseAt,
+    lessonFreeSync,
   } = updateCourseBodySchema.parse(request.body);
 
   try {
     const updateCourseUseCase = makeUpdateCourseUseCase();
 
-    const { course } = await updateCourseUseCase.execute({
+    const { course, lessonsSynced } = await updateCourseUseCase.execute({
       id,
       title,
       slug,
@@ -58,9 +60,10 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
       isFree,
       active,
       releaseAt: releaseAt ? new Date(releaseAt) : undefined,
+      lessonFreeSync,
     });
 
-    return reply.status(200).send({ course });
+    return reply.status(200).send({ course, lessonsSynced });
   } catch (error) {
     if (error instanceof CourseNotFoundError) {
       return reply.status(404).send({ message: error.message });
