@@ -15,6 +15,8 @@ import { updateLessonProduction } from "@/actions/lesson/update-lesson-productio
 import type { LessonProductionStatus } from "@/actions/lesson/get-lesson-production-by-course";
 import { Input } from "@/components/ui/input";
 import { updateLesson } from "@/actions/lesson/update-lesson";
+import { lessonProductionStatusLabel } from "@/lib/lesson-production-labels";
+import type { LessonBreadcrumbContext } from "@/lib/course-structure";
 
 function lessonTypeLabel(type: string): string {
   const key = type.trim().toLowerCase();
@@ -60,23 +62,6 @@ function lessonTypeBadgeClass(type: string): string {
   }
 }
 
-function productionStatusLabel(status: LessonProductionStatus): string {
-  switch (status) {
-    case "TODO":
-      return "A fazer";
-    case "IN_PROGRESS":
-      return "Em produção";
-    case "REVIEW":
-      return "Em revisão";
-    case "DONE":
-      return "Feita";
-    case "BLOCKED":
-      return "Bloqueada";
-    default:
-      return status;
-  }
-}
-
 function productionStatusBadgeClass(status: LessonProductionStatus): string {
   switch (status) {
     case "DONE":
@@ -98,6 +83,7 @@ interface LessonNodeProps {
   onUpdate: (lesson: LessonWithStructure) => void;
   onDelete: () => void;
   courseSkillIds?: string[];
+  breadcrumb: LessonBreadcrumbContext;
 }
 
 export function LessonNode({
@@ -105,6 +91,7 @@ export function LessonNode({
   onUpdate,
   onDelete,
   courseSkillIds,
+  breadcrumb,
 }: LessonNodeProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -274,7 +261,7 @@ export function LessonNode({
             className={`${productionStatusBadgeClass(productionStatus)} font-normal`}
             title="Status editorial"
           >
-            {productionStatusLabel(productionStatus)}
+            {lessonProductionStatusLabel(productionStatus)}
           </Badge>
           <select
             className="h-8 rounded-md border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
@@ -323,6 +310,7 @@ export function LessonNode({
       <LessonEditModal
         lesson={lesson}
         courseSkillIds={courseSkillIds}
+        breadcrumb={breadcrumb}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={(updatedLesson) => {

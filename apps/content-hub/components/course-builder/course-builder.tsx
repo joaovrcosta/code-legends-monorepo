@@ -564,6 +564,7 @@ export function CourseBuilder({
                 onDelete={() => handleModuleDelete(module.id)}
                 onReloadStructure={onReloadStructure}
                 courseSkillIds={courseSkillIds}
+                courseTitle={courseTitle}
               />
             ))
         )}

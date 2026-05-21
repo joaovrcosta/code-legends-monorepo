@@ -14,7 +14,16 @@ import type { Challenge } from '@/actions/lesson/list-lessons'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { updateLesson } from '@/actions/lesson/update-lesson'
 import { updateLessonProduction } from '@/actions/lesson/update-lesson-production'
-import type { LessonProductionPriority } from '@/actions/lesson/get-lesson-production-by-course'
+import type {
+  LessonProductionPriority,
+  LessonProductionStatus,
+} from '@/actions/lesson/get-lesson-production-by-course'
+import type { UpdateLessonProductionInput } from '@/actions/lesson/update-lesson-production'
+import {
+  LESSON_PRODUCTION_STATUSES,
+  lessonProductionStatusLabel,
+  normalizeLessonProductionStatus,
+} from '@/lib/lesson-production-labels'
 import {
   getLessonSkillsConfig,
   updateLessonSkillsConfig,
@@ -30,6 +39,8 @@ import {
   getLessonVideoProviderId,
   mapLessonVideoForState,
 } from '@/lib/lesson-video'
+import type { LessonBreadcrumbContext } from '@/lib/course-structure'
+import { LessonContextBreadcrumb } from './lesson-context-breadcrumb'
 
 const PRIORITIES: LessonProductionPriority[] = [
   'NONE',
@@ -61,21 +72,25 @@ function normalizeLessonPriority(
   return p && PRIORITIES.includes(p) ? p : 'NONE'
 }
 
-interface LessonEditModalProps {
+export interface LessonEditViewProps {
   lesson: LessonWithStructure
   courseSkillIds?: string[]
-  isOpen: boolean
-  onClose: () => void
   onSave: (updatedLesson: LessonWithStructure) => void
+  onCancel: () => void
+  variant?: 'modal' | 'page'
+  active?: boolean
+  breadcrumb?: LessonBreadcrumbContext
 }
 
-export function LessonEditModal({
+export function LessonEditView({
   lesson,
   courseSkillIds,
-  isOpen,
-  onClose,
   onSave,
-}: LessonEditModalProps) {
+  onCancel,
+  variant = 'modal',
+  active = true,
+  breadcrumb,
+}: LessonEditViewProps) {
   const [loading, setLoading] = useState(false)
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
   const [metadadosOpen, setMetadadosOpen] = useState(false)
@@ -88,6 +103,9 @@ export function LessonEditModal({
   const [selectedSkillId, setSelectedSkillId] = useState('')
   const [productionPriority, setProductionPriority] =
     useState<LessonProductionPriority>('NONE')
+  const [productionStatus, setProductionStatus] =
+    useState<LessonProductionStatus>('TODO')
+  const [productionNotes, setProductionNotes] = useState('')
 
   const normalizeType = (type: string | null | undefined) => {
     const allowed = [
@@ -134,7 +152,7 @@ export function LessonEditModal({
   )
 
   useEffect(() => {
-    if (isOpen) {
+    if (active) {
       setFormData({
         title: lesson.title,
         description: lesson.description,
@@ -158,14 +176,18 @@ export function LessonEditModal({
       setProductionPriority(
         normalizeLessonPriority(lesson.production?.priority),
       )
+      setProductionStatus(
+        normalizeLessonProductionStatus(lesson.production?.status),
+      )
+      setProductionNotes(lesson.production?.notes ?? '')
     }
-  }, [lesson, isOpen])
+  }, [lesson, active])
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!active) return
     // Mantém o JSON em sync quando o usuário edita pelo editor visual.
     setQuizJson(JSON.stringify(quizContent ?? [], null, 2))
-  }, [quizContent, isOpen])
+  }, [quizContent, active])
 
   function tryApplyQuizJson(raw: string): boolean {
     try {
@@ -187,7 +209,7 @@ export function LessonEditModal({
 
   useEffect(() => {
     const loadLessonSkills = async () => {
-      if (!isOpen) return
+      if (!active) return
       const token = getAuthTokenFromClient()
       if (!token) return
 
@@ -212,7 +234,7 @@ export function LessonEditModal({
     }
 
     void loadLessonSkills()
-  }, [isOpen, lesson.id])
+  }, [active, lesson.id])
 
   useEffect(() => {
     if (formData.title && !slugManuallyEdited) {
@@ -307,14 +329,31 @@ export function LessonEditModal({
         token,
       )
 
+      const prevStatus = normalizeLessonProductionStatus(
+        lesson.production?.status,
+      )
+      const prevNotes = (lesson.production?.notes ?? '').trim()
+      const nextNotes = productionNotes.trim()
       const prevP = normalizeLessonPriority(lesson.production?.priority)
       const nextP = normalizeLessonPriority(productionPriority)
-      let nextProduction = lesson.production ?? null
+
+      const productionPatch: UpdateLessonProductionInput = {}
+      if (prevStatus !== productionStatus) {
+        productionPatch.status = productionStatus
+      }
+      if (prevNotes !== nextNotes) {
+        productionPatch.notes = nextNotes || null
+      }
       if (prevP !== nextP) {
+        productionPatch.priority = nextP
+      }
+
+      let nextProduction = lesson.production ?? null
+      if (Object.keys(productionPatch).length > 0) {
         try {
           const { item } = await updateLessonProduction(
             lesson.id,
-            { priority: nextP },
+            productionPatch,
             token,
           )
           nextProduction = {
@@ -327,7 +366,7 @@ export function LessonEditModal({
         } catch (prodErr) {
           console.error(prodErr)
           toast.error(
-            'Aula salva, mas não foi possível atualizar a prioridade no Kanban.',
+            'Aula salva, mas não foi possível atualizar a produção editorial.',
           )
           nextProduction = lesson.production ?? null
         }
@@ -383,7 +422,7 @@ export function LessonEditModal({
             : null,
         production: nextProduction,
       })
-      onClose()
+      toast.success('Aula salva com sucesso')
     } catch (error) {
       console.error('Erro ao atualizar aula:', error)
       toast.error(error instanceof Error ? error.message : 'Erro ao atualizar aula')
@@ -392,37 +431,69 @@ export function LessonEditModal({
     }
   }
 
-  if (!isOpen) return null
+  if (variant === 'modal' && !active) return null
 
+  const isPage = variant === 'page'
   const isArticle = formData.type === 'article'
-  const isFullScreen = formData.type === 'quiz' || formData.type === 'multi_quiz'
+  const isQuizType =
+    formData.type === 'quiz' || formData.type === 'multi_quiz'
+  const isFullScreen = !isPage && isQuizType
 
-  return (
-    <div
-      className={[
-        'cb-modal-overlay',
-        isFullScreen ? 'items-stretch justify-stretch' : '',
-      ].join(' ')}
-    >
+  const card = (
       <Card
         className={
-          isFullScreen
-            ? 'flex h-full max-h-dvh w-full max-w-none flex-col overflow-hidden rounded-none border-0 shadow-none sm:border sm:shadow-sm'
-            : isArticle
-              ? 'cb-modal-card-lg'
-              : 'cb-modal-card'
+          isPage
+            ? 'w-full'
+            : isFullScreen
+              ? 'flex h-full max-h-dvh w-full max-w-none flex-col overflow-hidden rounded-none border-0 shadow-none sm:border sm:shadow-sm'
+              : isArticle
+                ? 'cb-modal-card-lg'
+                : 'cb-modal-card'
         }
       >
-        <CardHeader className="shrink-0">
-          <div className="flex items-center justify-between">
-            <CardTitle>Editar Aula</CardTitle>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
+        <CardHeader className="shrink-0 space-y-0">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <CardTitle>
+                {isPage ? 'Informações da Aula' : 'Editar Aula'}
+              </CardTitle>
+              {breadcrumb && (
+                <LessonContextBreadcrumb
+                  context={breadcrumb}
+                  className="mt-2"
+                />
+              )}
+            </div>
+            {variant === 'modal' && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0"
+                onClick={onCancel}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </CardHeader>
-        <CardContent className={isFullScreen ? "flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-6 pt-0" : "cb-modal-body"}>
-          <div className={isFullScreen ? "min-h-0 flex-1 space-y-4 overflow-y-auto pr-1" : "cb-modal-scroll space-y-4"}>
+        <CardContent
+          className={
+            isFullScreen
+              ? 'flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-6 pt-0'
+              : isPage
+                ? 'space-y-6'
+                : 'cb-modal-body'
+          }
+        >
+          <div
+            className={
+              isFullScreen
+                ? 'min-h-0 flex-1 space-y-4 overflow-y-auto pr-1'
+                : isPage
+                  ? `space-y-4${isQuizType ? ' min-h-[60vh]' : ''}`
+                  : 'cb-modal-scroll space-y-4'
+            }
+          >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title">Título *</Label>
@@ -736,6 +807,67 @@ export function LessonEditModal({
               </div>
             )}
 
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Produção editorial
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Status, prioridade no Kanban e anotações internas da equipe.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="lesson-production-status">Status</Label>
+                  <Select
+                    id="lesson-production-status"
+                    value={productionStatus}
+                    onChange={(e) =>
+                      setProductionStatus(
+                        e.target.value as LessonProductionStatus,
+                      )
+                    }
+                  >
+                    {LESSON_PRODUCTION_STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {lessonProductionStatusLabel(s)}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lesson-production-priority">
+                    Prioridade no Kanban
+                  </Label>
+                  <Select
+                    id="lesson-production-priority"
+                    value={productionPriority}
+                    onChange={(e) =>
+                      setProductionPriority(
+                        e.target.value as LessonProductionPriority,
+                      )
+                    }
+                  >
+                    {PRIORITIES.map((p) => (
+                      <option key={p} value={p}>
+                        {priorityLabel(p)}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lesson-production-notes">Anotações</Label>
+                <Textarea
+                  id="lesson-production-notes"
+                  value={productionNotes}
+                  onChange={(e) => setProductionNotes(e.target.value)}
+                  rows={4}
+                  placeholder="Escreva suas anotações sobre esta aula…"
+                />
+              </div>
+            </div>
+
             <div className="rounded-lg border border-gray-200 dark:border-gray-700">
               <button
                 type="button"
@@ -792,29 +924,6 @@ export function LessonEditModal({
                       }
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lesson-production-priority">
-                      Prioridade no Kanban
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Etiqueta no quadro editorial; salve a aula para aplicar.
-                    </p>
-                    <Select
-                      id="lesson-production-priority"
-                      value={productionPriority}
-                      onChange={(e) =>
-                        setProductionPriority(
-                          e.target.value as LessonProductionPriority,
-                        )
-                      }
-                    >
-                      {PRIORITIES.map((p) => (
-                        <option key={p} value={p}>
-                          {priorityLabel(p)}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
                   <div className="flex flex-wrap items-center gap-4">
                     <label className="flex items-center gap-2">
                       <input
@@ -858,16 +967,65 @@ export function LessonEditModal({
               </p>
             )}
             <div className="flex justify-end gap-4">
-              <Button variant="outline" onClick={onClose} disabled={loading}>
+              <Button variant="outline" onClick={onCancel} disabled={loading}>
                 Cancelar
               </Button>
               <Button onClick={handleSave} disabled={loading}>
-                {loading ? 'Salvando...' : 'Salvar'}
+                {loading
+                  ? 'Salvando...'
+                  : isPage
+                    ? 'Salvar Alterações'
+                    : 'Salvar'}
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
+  )
+
+  if (isPage) return card
+
+  return (
+    <div
+      className={[
+        'cb-modal-overlay',
+        isFullScreen ? 'items-stretch justify-stretch' : '',
+      ].join(' ')}
+    >
+      {card}
     </div>
+  )
+}
+
+interface LessonEditModalProps {
+  lesson: LessonWithStructure
+  courseSkillIds?: string[]
+  breadcrumb?: LessonBreadcrumbContext
+  isOpen: boolean
+  onClose: () => void
+  onSave: (updatedLesson: LessonWithStructure) => void
+}
+
+export function LessonEditModal({
+  lesson,
+  courseSkillIds,
+  breadcrumb,
+  isOpen,
+  onClose,
+  onSave,
+}: LessonEditModalProps) {
+  return (
+    <LessonEditView
+      lesson={lesson}
+      courseSkillIds={courseSkillIds}
+      breadcrumb={breadcrumb}
+      active={isOpen}
+      variant="modal"
+      onCancel={onClose}
+      onSave={(updated) => {
+        onSave(updated)
+        onClose()
+      }}
+    />
   )
 }

@@ -65,7 +65,7 @@ body {
 .cb-modal-card {
   display: flex;
   width: 100%;
-  max-width: 42rem; /* ~ max-w-2xl */
+  max-width: 48rem; /* ~ max-w-3xl */
   max-height: 90vh;
   flex-direction: column;
   overflow: hidden;
@@ -74,7 +74,7 @@ body {
 .cb-modal-card-lg {
   display: flex;
   width: 100%;
-  max-width: 56rem; /* ~ max-w-4xl */
+  max-width: 64rem; /* ~ max-w-5xl */
   max-height: 90vh;
   flex-direction: column;
   overflow: hidden;

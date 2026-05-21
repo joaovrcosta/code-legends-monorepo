@@ -34,6 +34,7 @@ import { parseSkillWeightInput } from "@/lib/parse-skill-weight";
 import { generateSlug } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { mergeProductionIntoModules } from "@/lib/course-structure";
 import { CourseBuilder } from "@/components/course-builder/course-builder";
 import { CourseProductionKanban } from "@/components/course-builder/course-production-kanban";
 import { toast } from "sonner";
@@ -228,19 +229,9 @@ export default function EditCoursePage() {
       ]);
       if (!structure) return;
 
-      const byLessonId = new Map(production.items.map((i) => [i.lessonId, i]));
-      const mergedModules = structure.modules.map((m) => ({
-        ...m,
-        groups: m.groups.map((g) => ({
-          ...g,
-          lessons: g.lessons.map((l) => ({
-            ...l,
-            production: byLessonId.get(l.id) ?? null,
-          })),
-        })),
-      }));
-
-      setModules(mergedModules);
+      setModules(
+        mergeProductionIntoModules(structure.modules, production.items),
+      );
     } catch (error) {
       console.error("Erro ao carregar estrutura do curso:", error);
     } finally {
@@ -928,6 +919,7 @@ export default function EditCoursePage() {
                   ) : (
                     <CourseProductionKanban
                       courseId={courseId}
+                      courseTitle={formData.title}
                       modules={modules}
                       onModulesChange={setModules}
                     />

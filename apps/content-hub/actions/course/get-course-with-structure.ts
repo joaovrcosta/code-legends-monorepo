@@ -110,6 +110,7 @@ export async function getCourseWithStructure(
                 video: lesson.video ?? null,
                 article: lesson.article ?? null,
                 quiz: lesson.quiz ?? null,
+                project: lesson.project ?? null,
                 locked: lesson.locked,
                 completed: false,
                 submoduleId: lesson.submoduleId,

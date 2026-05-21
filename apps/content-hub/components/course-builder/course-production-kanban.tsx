@@ -28,6 +28,11 @@ import { Button } from "@/components/ui/button";
 import { CourseProductionLogs } from "./course-production-logs";
 import { LessonEditModal } from "./lesson-edit-modal";
 import type { LessonWithStructure } from "@/actions/course/get-course-with-structure";
+import {
+  buildLessonBreadcrumbFromContext,
+  findLessonContext,
+  type LessonBreadcrumbContext,
+} from "@/lib/course-structure";
 import { StickyNote, X } from "lucide-react";
 
 type KanbanStatus = LessonProductionStatus;
@@ -292,10 +297,12 @@ function SortableCard({
 
 export function CourseProductionKanban({
   courseId,
+  courseTitle,
   modules,
   onModulesChange,
 }: {
   courseId: string;
+  courseTitle: string;
   modules: ModuleWithStructure[];
   onModulesChange: (next: ModuleWithStructure[]) => void;
 }) {
@@ -306,6 +313,8 @@ export function CourseProductionKanban({
   const [busyLessonIds, setBusyLessonIds] = useState<Set<number>>(new Set());
   const [refreshLogsKey, setRefreshLogsKey] = useState(0);
   const [editingLesson, setEditingLesson] = useState<LessonWithStructure | null>(null);
+  const [editingBreadcrumb, setEditingBreadcrumb] =
+    useState<LessonBreadcrumbContext | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [notesModalLessonId, setNotesModalLessonId] = useState<number | null>(null);
   const [notesDraftByLessonId, setNotesDraftByLessonId] = useState<Map<number, string>>(
@@ -470,12 +479,15 @@ export function CourseProductionKanban({
   };
 
   const openLessonEditor = (lessonId: number) => {
-    const lesson = findLessonById(lessonId);
-    if (!lesson) {
+    const ctx = findLessonContext(modules, lessonId);
+    if (!ctx) {
       toast.error("Aula não encontrada na estrutura carregada.");
       return;
     }
-    setEditingLesson(lesson);
+    setEditingLesson(ctx.lesson);
+    setEditingBreadcrumb(
+      buildLessonBreadcrumbFromContext(ctx, courseTitle),
+    );
     setEditOpen(true);
   };
 
@@ -684,13 +696,15 @@ export function CourseProductionKanban({
         onEditLesson={openLessonEditor}
       />
 
-      {editingLesson && (
+      {editingLesson && editingBreadcrumb && (
         <LessonEditModal
           lesson={editingLesson}
+          breadcrumb={editingBreadcrumb}
           isOpen={editOpen}
           onClose={() => {
             setEditOpen(false);
             setEditingLesson(null);
+            setEditingBreadcrumb(null);
           }}
           onSave={(updatedLesson) => {
             replaceLessonInModules(updatedLesson);

@@ -22,6 +22,7 @@ interface ModuleNodeProps {
     onDelete: () => void;
     onReloadStructure?: () => void;
     courseSkillIds?: string[];
+    courseTitle: string;
 }
 
 export function ModuleNode({
@@ -34,6 +35,7 @@ export function ModuleNode({
     onDelete,
     onReloadStructure,
     courseSkillIds,
+    courseTitle,
 }: ModuleNodeProps) {
     const storageKey = `cb:${module.courseId}:expandedGroups:${module.id}`;
     const [isEditing, setIsEditing] = useState(false);
@@ -268,6 +270,8 @@ export function ModuleNode({
                                 onDelete={() => handleGroupDelete(group.id)}
                                 onReloadStructure={onReloadStructure}
                                 courseSkillIds={courseSkillIds}
+                                courseTitle={courseTitle}
+                                moduleTitle={module.title}
                             />
                         ))
                     )}
