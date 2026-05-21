@@ -198,17 +198,17 @@ export function LessonNode({
       <div
         ref={setNodeRef}
         style={style}
-        className="flex items-center gap-2 p-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded ml-4"
+        className="lesson-node-row grid items-center gap-x-2 gap-y-1 p-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded ml-4"
       >
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+          className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded justify-self-start"
           aria-label="Arrastar para reordenar"
         >
           <GripVertical className="h-4 w-4 text-gray-400" />
         </button>
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0">
           {isEditingTitle ? (
             <div className="flex items-center gap-2">
               <Input
@@ -249,22 +249,25 @@ export function LessonNode({
         <Button
           size="sm"
           variant="ghost"
+          className="justify-self-center"
           onClick={() => setIsEditingTitle((v) => !v)}
           disabled={loading || productionLoading}
           title="Editar nome"
         >
           <Edit className="h-4 w-4" />
         </Button>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="lesson-node-col-status flex items-center">
           <Badge
             variant="outline"
-            className={`${productionStatusBadgeClass(productionStatus)} font-normal`}
+            className={`${productionStatusBadgeClass(productionStatus)} w-full justify-center text-center font-normal whitespace-nowrap`}
             title="Status editorial"
           >
             {lessonProductionStatusLabel(productionStatus)}
           </Badge>
+        </div>
+        <div className="lesson-node-col-select">
           <select
-            className="h-8 rounded-md border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+            className="h-8 w-full rounded-md border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
             value={productionStatus}
             onChange={(e) => handleProductionStatusChange(e.target.value as LessonProductionStatus)}
             disabled={productionLoading || loading}
@@ -276,21 +279,26 @@ export function LessonNode({
             <option value="DONE">Feita</option>
             <option value="BLOCKED">Bloqueada</option>
           </select>
+        </div>
+        <div className="lesson-node-col-type flex items-center">
           <Badge
             variant="outline"
-            className={`${lessonTypeBadgeClass(lesson.type)} font-normal`}
+            className={`${lessonTypeBadgeClass(lesson.type)} w-full justify-center font-normal`}
           >
             {lessonTypeLabel(lesson.type)}
           </Badge>
-          {lesson.isFree && (
-            <Badge className="bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400">
+        </div>
+        <div className="lesson-node-col-free flex items-center">
+          {lesson.isFree ? (
+            <Badge className="w-full justify-center bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400">
               Grátis
             </Badge>
-          )}
+          ) : null}
         </div>
         <Button
           size="sm"
           variant="ghost"
+          className="justify-self-center"
           onClick={() => setIsModalOpen(true)}
           disabled={loading}
           title="Editar detalhes"
@@ -300,6 +308,7 @@ export function LessonNode({
         <Button
           size="sm"
           variant="ghost"
+          className="justify-self-center"
           onClick={handleDelete}
           disabled={loading}
         >
