@@ -58,7 +58,7 @@ export default function EditCourseLessonPage() {
         getLessonProductionByCourse(courseId, token),
       ]);
 
-      if (!structure) {
+      if (!structure?.course) {
         toast.error("Curso não encontrado");
         router.push("/courses");
         return;
