@@ -39,7 +39,12 @@ export async function updateLessonProduction(
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data.message ?? "Erro ao atualizar status editorial da aula");
+    const notesIssue = data.issues?.notes?._errors?.[0];
+    const message =
+      data.message === "Invalid body" && notesIssue
+        ? notesIssue
+        : (data.message ?? "Erro ao atualizar status editorial da aula");
+    throw new Error(message);
   }
   return data as { item: LessonProductionItem };
 }

@@ -13,7 +13,7 @@ const paramsSchema = z.object({
 const bodySchema = z
   .object({
     status: z.nativeEnum(LessonProductionStatus).optional(),
-    notes: z.union([z.string().trim().max(4000), z.null()]).optional(),
+    notes: z.union([z.string().trim().max(10000), z.null()]).optional(),
     priority: z.nativeEnum(LessonProductionPriority).optional(),
   })
   .superRefine((data, ctx) => {

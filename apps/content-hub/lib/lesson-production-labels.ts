@@ -1,5 +1,8 @@
 import type { LessonProductionStatus } from "@/actions/lesson/get-lesson-production-by-course";
 
+/** Alinhado ao limite da API (`patch-lesson-production.controller.ts`). */
+export const MAX_LESSON_PRODUCTION_NOTES_LENGTH = 50_000;
+
 export const LESSON_PRODUCTION_STATUSES: LessonProductionStatus[] = [
   "TODO",
   "IN_PROGRESS",
@@ -32,4 +35,12 @@ export function normalizeLessonProductionStatus(
 ): LessonProductionStatus {
   const s = raw as LessonProductionStatus | undefined;
   return s && LESSON_PRODUCTION_STATUSES.includes(s) ? s : "TODO";
+}
+
+export function validateLessonProductionNotesLength(notes: string): string | null {
+  const trimmed = notes.trim();
+  if (trimmed.length > MAX_LESSON_PRODUCTION_NOTES_LENGTH) {
+    return `As anotações podem ter no máximo ${MAX_LESSON_PRODUCTION_NOTES_LENGTH.toLocaleString("pt-BR")} caracteres (atual: ${trimmed.length.toLocaleString("pt-BR")}).`;
+  }
+  return null;
 }

@@ -34,6 +34,7 @@ import {
   type LessonBreadcrumbContext,
 } from "@/lib/course-structure";
 import { StickyNote, X } from "lucide-react";
+import { validateLessonProductionNotesLength } from "@/lib/lesson-production-labels";
 
 type KanbanStatus = LessonProductionStatus;
 
@@ -520,6 +521,12 @@ export function CourseProductionKanban({
     const nextNotes = normalizeNotes(notesDraftByLessonId.get(lessonId));
     const prevNotes = normalizeNotes(currentCard.notes ?? "");
     if (nextNotes === prevNotes) return;
+
+    const notesLengthError = validateLessonProductionNotesLength(nextNotes);
+    if (notesLengthError) {
+      toast.error(notesLengthError);
+      return;
+    }
 
     setLessonNotesInModules(lessonId, nextNotes.trim() ? nextNotes : null);
     setBusyLessonIds((prev) => new Set(prev).add(lessonId));

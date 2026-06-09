@@ -23,6 +23,7 @@ import {
   LESSON_PRODUCTION_STATUSES,
   lessonProductionStatusLabel,
   normalizeLessonProductionStatus,
+  validateLessonProductionNotesLength,
 } from '@/lib/lesson-production-labels'
 import {
   getLessonSkillsConfig,
@@ -456,6 +457,12 @@ exemplo()
         })),
         token,
       )
+
+      const notesLengthError = validateLessonProductionNotesLength(productionNotes)
+      if (notesLengthError) {
+        toast.error(notesLengthError)
+        return
+      }
 
       const prevStatus = normalizeLessonProductionStatus(
         lesson.production?.status,
