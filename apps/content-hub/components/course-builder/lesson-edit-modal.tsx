@@ -245,6 +245,134 @@ export function LessonEditView({
     }
   }, [formData.title, slugManuallyEdited])
 
+  const buildVideoScriptPrompt = () => {
+    const title = formData.title?.trim() || lesson.title || 'Tema da aula'
+    const description =
+      formData.description?.trim() ||
+      lesson.description?.trim() ||
+      'Explique o conceito principal desta aula de forma clara e prática.'
+    const duration = formData.video_duration?.trim() || '5–10 minutos'
+    const breadcrumbInfo = breadcrumb as
+      | {
+        courseTitle?: string
+        moduleTitle?: string
+        sectionTitle?: string
+        groupTitle?: string
+        submoduleTitle?: string
+        previousLessonTitle?: string
+        nextLessonTitle?: string
+      }
+      | undefined
+    const submoduleTitle =
+      breadcrumbInfo?.submoduleTitle ||
+      breadcrumbInfo?.sectionTitle ||
+      breadcrumbInfo?.groupTitle
+    const contextParts = [
+      breadcrumbInfo?.courseTitle ? `Curso: ${breadcrumbInfo.courseTitle}` : null,
+      breadcrumbInfo?.moduleTitle ? `Módulo: ${breadcrumbInfo.moduleTitle}` : null,
+      submoduleTitle ? `Submódulo: ${submoduleTitle}` : null,
+      breadcrumbInfo?.previousLessonTitle
+        ? `Aula anterior: ${breadcrumbInfo.previousLessonTitle}`
+        : null,
+      breadcrumbInfo?.nextLessonTitle
+        ? `Próxima aula: ${breadcrumbInfo.nextLessonTitle}`
+        : null,
+    ].filter(Boolean)
+
+    return `Você é um especialista em ensino de programação e criação de roteiros para videoaulas educacionais, inspirado no estilo de explicação clara, fluida e envolvente (como “The Joy of React”, mas adaptado para vídeo).
+
+Crie um roteiro de videoaula com linguagem natural, didática e fácil de acompanhar ouvindo.
+
+Tema da aula:
+${title}
+
+Objetivo da aula:
+${description}
+
+Duração estimada:
+${`5 minutos`}
+${contextParts.length ? `
+Contexto da aula:
+${contextParts.join('\n')}
+` : ''}
+---
+
+ESTRUTURA DO ROTEIRO
+
+1. Abertura (hook)
+   - Comece com uma pergunta, situação ou observação curiosa
+   - Deve prender atenção nos primeiros segundos
+   - Evite histórias longas
+
+2. Contextualização rápida
+   - Explique por que isso importa
+   - Mostre onde o conceito aparece na prática
+
+3. Explicação principal (progressiva)
+   - Vá do simples ao mais técnico
+   - Use linguagem clara e ritmo de fala natural
+   - Quebre ideias em blocos curtos (como alguém explicando oralmente)
+
+4. Demonstração / exemplo
+   - Use código quando fizer sentido
+   - Explique enquanto “mostra”
+   - Evite apenas ler código
+
+5. Insight importante
+   - Destaque um erro comum ou confusão frequente
+   - Mostre o “pulo do gato”
+
+6. Recap rápido
+   - Reforce o que foi aprendido
+
+7. Encerramento
+   - Conecte com a próxima aula quando ela existir
+   - Não explique conteúdos que pertencem à próxima aula; apenas crie uma transição natural
+
+---
+
+IMPORTANTE
+
+- Considere a sequência do curso ao escrever o roteiro
+- Faça uma breve conexão com a aula anterior quando ela existir
+- Use o submódulo como contexto para manter a aula alinhada com a jornada do aluno
+- Ao finalizar, crie uma ponte natural para a próxima aula quando ela existir
+- Não mencione informações ausentes no contexto
+
+---
+
+FORMATO DO ROTEIRO
+
+- Escreva como fala natural (não como texto formal)
+- Use frases curtas e médias (fáceis de falar em voz alta)
+- Inclua pausas com “...” quando fizer sentido
+- Separe o roteiro em blocos de fala
+- Gere apenas o roteiro da videoaula, sem explicar o processo
+
+Exemplo de formatação:
+
+[FALA]
+Explicação aqui...
+
+[PAUSA]
+...
+
+[CÓDIGO NA TELA]
+\`\`\`python
+exemplo()
+\`\`\``
+  }
+
+  const handleCopyVideoScriptPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(buildVideoScriptPrompt())
+      toast.success('Prompt do roteiro copiado')
+    } catch (error) {
+      console.error('Erro ao copiar prompt do roteiro:', error)
+      toast.error('Não foi possível copiar o prompt do roteiro')
+    }
+  }
+
   const handleSave = async () => {
     try {
       setLoading(true)
@@ -258,8 +386,8 @@ export function LessonEditView({
       // tentamos incluir automaticamente antes de persistir.
       const pendingSkill =
         selectedSkillId &&
-        !lessonSkills.some((ls) => ls.skillId === selectedSkillId) &&
-        !(courseSkillIds ?? []).includes(selectedSkillId)
+          !lessonSkills.some((ls) => ls.skillId === selectedSkillId) &&
+          !(courseSkillIds ?? []).includes(selectedSkillId)
           ? availableSkills.find((s) => s.id === selectedSkillId)
           : null
 
@@ -267,13 +395,13 @@ export function LessonEditView({
         ...lessonSkills,
         ...(pendingSkill
           ? [
-              {
-                skillId: pendingSkill.id,
-                name: pendingSkill.name,
-                slug: pendingSkill.slug,
-                weight: 100,
-              },
-            ]
+            {
+              skillId: pendingSkill.id,
+              name: pendingSkill.name,
+              slug: pendingSkill.slug,
+              weight: 100,
+            },
+          ]
           : []),
       ]
 
@@ -294,23 +422,23 @@ export function LessonEditView({
           ? { ...basePayload, quiz_content: quizContent }
           : formData.type === 'project'
             ? {
-                ...basePayload,
-                project_description: formData.project_description,
-                project_specs: (() => {
-                  try {
-                    return JSON.parse(formData.project_specs || '{}')
-                  } catch {
-                    return {}
-                  }
-                })(),
-              }
+              ...basePayload,
+              project_description: formData.project_description,
+              project_specs: (() => {
+                try {
+                  return JSON.parse(formData.project_specs || '{}')
+                } catch {
+                  return {}
+                }
+              })(),
+            }
             : formData.type === 'video'
               ? {
-                  ...basePayload,
-                  video_url: formData.video_url,
-                  video_duration: formData.video_duration,
-                  video_provider_id: formData.video_provider_id || undefined,
-                }
+                ...basePayload,
+                video_url: formData.video_url,
+                video_duration: formData.video_duration,
+                video_provider_id: formData.video_provider_id || undefined,
+              }
               : formData.type === 'article' || formData.type === 'text'
                 ? { ...basePayload, body: String(formData.body ?? '') }
                 : basePayload
@@ -387,20 +515,20 @@ export function LessonEditView({
         video:
           formData.type === 'video'
             ? mapLessonVideoForState(
-                savedVideo ?? {
-                  url: formData.video_url || null,
-                  duration: formData.video_duration || null,
-                  provider: formData.video_provider_id
-                    ? { id: formData.video_provider_id }
-                    : null,
-                },
-                formData.video_url,
-                formData.video_duration,
-              )
+              savedVideo ?? {
+                url: formData.video_url || null,
+                duration: formData.video_duration || null,
+                provider: formData.video_provider_id
+                  ? { id: formData.video_provider_id }
+                  : null,
+              },
+              formData.video_url,
+              formData.video_duration,
+            )
             : null,
         article:
           (formData.type === 'article' || formData.type === 'text') &&
-          formData.body
+            formData.body
             ? { body: formData.body }
             : null,
         quiz:
@@ -410,15 +538,15 @@ export function LessonEditView({
         project:
           formData.type === 'project'
             ? {
-                description: formData.project_description,
-                specs: (() => {
-                  try {
-                    return JSON.parse(formData.project_specs || '{}')
-                  } catch {
-                    return {}
-                  }
-                })(),
-              }
+              description: formData.project_description,
+              specs: (() => {
+                try {
+                  return JSON.parse(formData.project_specs || '{}')
+                } catch {
+                  return {}
+                }
+              })(),
+            }
             : null,
         production: nextProduction,
       })
@@ -440,30 +568,44 @@ export function LessonEditView({
   const isFullScreen = !isPage && isQuizType
 
   const card = (
-      <Card
-        className={
-          isPage
-            ? 'w-full'
-            : isFullScreen
-              ? 'flex h-full max-h-dvh w-full max-w-none flex-col overflow-hidden rounded-none border-0 shadow-none sm:border sm:shadow-sm'
-              : isArticle
-                ? 'cb-modal-card-lg'
-                : 'cb-modal-card'
-        }
-      >
-        <CardHeader className="shrink-0 space-y-0">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <CardTitle>
-                {isPage ? 'Informações da Aula' : 'Editar Aula'}
-              </CardTitle>
-              {breadcrumb && (
-                <LessonContextBreadcrumb
-                  context={breadcrumb}
-                  className="mt-2"
-                />
-              )}
-            </div>
+    <Card
+      className={
+        isPage
+          ? 'w-full'
+          : isFullScreen
+            ? 'flex h-full max-h-dvh w-full max-w-none flex-col overflow-hidden rounded-none border-0 shadow-none sm:border sm:shadow-sm'
+            : isArticle
+              ? 'cb-modal-card-lg'
+              : 'cb-modal-card'
+      }
+    >
+      <CardHeader className="shrink-0 space-y-0">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <CardTitle>
+              {isPage ? 'Informações da Aula' : 'Editar Aula'}
+            </CardTitle>
+
+            {breadcrumb && (
+              <LessonContextBreadcrumb
+                context={breadcrumb}
+                className="mt-2"
+              />
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {formData.type === 'video' && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyVideoScriptPrompt}
+              >
+                📋 Copiar roteiro
+              </Button>
+            )}
+
             {variant === 'modal' && (
               <Button
                 variant="ghost"
@@ -475,82 +617,84 @@ export function LessonEditView({
               </Button>
             )}
           </div>
-        </CardHeader>
-        <CardContent
+        </div>
+      </CardHeader>
+      <CardContent
+        className={
+          isFullScreen
+            ? 'flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-6 pt-0'
+            : isPage
+              ? 'space-y-6'
+              : 'cb-modal-body'
+        }
+      >
+        <div
           className={
             isFullScreen
-              ? 'flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-6 pt-0'
+              ? 'min-h-0 flex-1 space-y-4 overflow-y-auto pr-1'
               : isPage
-                ? 'space-y-6'
-                : 'cb-modal-body'
+                ? `space-y-4${isQuizType ? ' min-h-[60vh]' : ''}`
+                : 'cb-modal-scroll space-y-4'
           }
         >
-          <div
-            className={
-              isFullScreen
-                ? 'min-h-0 flex-1 space-y-4 overflow-y-auto pr-1'
-                : isPage
-                  ? `space-y-4${isQuizType ? ' min-h-[60vh]' : ''}`
-                  : 'cb-modal-scroll space-y-4'
-            }
-          >
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="title">Título *</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="type">Tipo *</Label>
-                <Select
-                  id="type"
-                  value={formData.type}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      type: e.target.value as
-                        | 'article'
-                        | 'video'
-                        | 'text'
-                        | 'quiz'
-                        | 'multi_quiz'
-                        | 'project',
-                    })
-                  }
-                  required
-                >
-                  <option value="video">Vídeo</option>
-                  <option value="article">Leitura</option>
-                  <option value="text">Texto</option>
-                  <option value="quiz">Quiz</option>
-                  <option value="multi_quiz">Multi quiz</option>
-                  <option value="project">Projeto</option>
-                </Select>
-              </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="title">Título *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+                required
+              />
             </div>
 
-            {(formData.type !== 'article' && formData.type !== 'text') && (
-              <div className="space-y-2">
-                <Label htmlFor="url">URL</Label>
-                <Input
-                  id="url"
-                  value={formData.url}
-                  onChange={(e) =>
-                    setFormData({ ...formData, url: e.target.value })
-                  }
-                  placeholder="https://..."
-                />
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="type">Tipo *</Label>
+              <Select
+                id="type"
+                value={formData.type}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    type: e.target.value as
+                      | 'article'
+                      | 'video'
+                      | 'text'
+                      | 'quiz'
+                      | 'multi_quiz'
+                      | 'project',
+                  })
+                }
+                required
+              >
+                <option value="video">Vídeo</option>
+                <option value="article">Leitura</option>
+                <option value="text">Texto</option>
+                <option value="quiz">Quiz</option>
+                <option value="multi_quiz">Multi quiz</option>
+                <option value="project">Projeto</option>
+              </Select>
+            </div>
+          </div>
 
-            {formData.type === 'video' && (
+          {(formData.type !== 'article' && formData.type !== 'text') && (
+            <div className="space-y-2">
+              <Label htmlFor="url">URL</Label>
+              <Input
+                id="url"
+                value={formData.url}
+                onChange={(e) =>
+                  setFormData({ ...formData, url: e.target.value })
+                }
+                placeholder="https://..."
+              />
+            </div>
+          )}
+
+          {formData.type === 'video' && (
+            <div className="space-y-3">
               <VideoProviderFields
                 videoProviderId={formData.video_provider_id}
                 videoUrl={formData.video_url}
@@ -565,422 +709,440 @@ export function LessonEditView({
                   setFormData({ ...formData, video_duration })
                 }
               />
-            )}
 
-            {(formData.type === 'article' || formData.type === 'text') && (
-              <ArticleBodyEditor
-                id="body"
-                value={formData.body}
-                onChange={(body) => setFormData({ ...formData, body })}
-                rows={12}
-                isArticle={formData.type === 'article'}
-                onSaveRequested={handleSave}
-              />
-            )}
-
-            {(formData.type === 'quiz' || formData.type === 'multi_quiz') && (
-              <div className="space-y-2">
-                <Label>Desafios do Quiz</Label>
-                <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                <div>
+                  <p className="text-sm font-medium">Roteiro da videoaula</p>
                   <p className="text-xs text-muted-foreground">
-                    Você pode cadastrar pelo editor visual ou colar um JSON (array de challenges).
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant={quizMode === 'editor' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setQuizMode('editor')}
-                    >
-                      Editor
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={quizMode === 'json' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setQuizMode('json')}
-                    >
-                      JSON
-                    </Button>
-                  </div>
-                </div>
-
-                {quizMode === 'editor' ? (
-                  <QuizEditor
-                    challenges={quizContent}
-                    onChange={setQuizContent}
-                  />
-                ) : (
-                  <div className="space-y-2">
-                    <Textarea
-                      value={quizJson}
-                      onChange={(e) => setQuizJson(e.target.value)}
-                      rows={14}
-                      className="font-mono text-xs"
-                      placeholder='[{"type":"block_slots","question":"...","pieces":[{"id":"p0","content":"..."}],"solution":["p0"]}]'
-                    />
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="default"
-                        onClick={() => {
-                          const ok = tryApplyQuizJson(quizJson)
-                          if (ok) setQuizMode('editor')
-                        }}
-                      >
-                        Aplicar JSON
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() =>
-                          setQuizJson(JSON.stringify(quizContent ?? [], null, 2))
-                        }
-                      >
-                        Recarregar do editor
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {formData.type === 'project' && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="project_description">Descrição do projeto (Boss)</Label>
-                  <Textarea
-                    id="project_description"
-                    value={formData.project_description}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        project_description: e.target.value,
-                      })
-                    }
-                    rows={4}
-                    placeholder="Descreva o desafio do módulo..."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="project_specs">Configuração do playground (JSON)</Label>
-                  <Textarea
-                    id="project_specs"
-                    value={formData.project_specs}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        project_specs: e.target.value,
-                      })
-                    }
-                    rows={12}
-                    className="font-mono text-sm"
-                    placeholder='{"files": {"/App.js": "..."}, "template": "react", "testFile": "..."}'
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Objeto com files, template (vanilla|react), testFile (código do teste) ou tests (Record path - conteúdo).
+                    Copia um prompt preenchido com os dados desta aula para gerar o roteiro.
                   </p>
                 </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyVideoScriptPrompt}
+                >
+                  Copiar roteiro
+                </Button>
               </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="lesson-description">Descrição *</Label>
-              <Textarea
-                id="lesson-description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    description: e.target.value,
-                  })
-                }
-                rows={4}
-                required
-              />
             </div>
+          )}
 
-            {formData.type !== 'article' && (
-              <div className="space-y-2">
-                <Label>Skills desta aula (opcional)</Label>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Essas skills recebem XP adicional quando o aluno conclui esta aula.
+          {(formData.type === 'article' || formData.type === 'text') && (
+            <ArticleBodyEditor
+              id="body"
+              value={formData.body}
+              onChange={(body) => setFormData({ ...formData, body })}
+              rows={12}
+              isArticle={formData.type === 'article'}
+              onSaveRequested={handleSave}
+            />
+          )}
+
+          {(formData.type === 'quiz' || formData.type === 'multi_quiz') && (
+            <div className="space-y-2">
+              <Label>Desafios do Quiz</Label>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">
+                  Você pode cadastrar pelo editor visual ou colar um JSON (array de challenges).
                 </p>
-                <div className="flex gap-2">
-                  <Select
-                    value={selectedSkillId}
-                    onChange={(e) => setSelectedSkillId(e.target.value)}
-                  >
-                    <option value="">Selecione uma skill</option>
-                    {availableSkills
-                      .filter((skill) => {
-                        const alreadyInLesson = lessonSkills.some(
-                          (ls) => ls.skillId === skill.id,
-                        )
-                        const alreadyInCourse = (courseSkillIds ?? []).includes(skill.id)
-                        return !alreadyInLesson && !alreadyInCourse
-                      })
-                      .map((skill) => (
-                        <option key={skill.id} value={skill.id}>
-                          {skill.name} ({skill.slug})
-                        </option>
-                      ))}
-                  </Select>
+                <div className="flex items-center gap-2">
                   <Button
                     type="button"
-                    variant="outline"
-                    onClick={() => {
-                      if (!selectedSkillId) return
-                      const skill = availableSkills.find((s) => s.id === selectedSkillId)
-                      if (!skill) return
-                      setLessonSkills((prev) => [
-                        ...prev,
-                        {
-                          skillId: skill.id,
-                          name: skill.name,
-                          slug: skill.slug,
-                          weight: 100,
-                        },
-                      ])
-                      setSelectedSkillId('')
-                    }}
+                    variant={quizMode === 'editor' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setQuizMode('editor')}
                   >
-                    Adicionar
+                    Editor
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={quizMode === 'json' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setQuizMode('json')}
+                  >
+                    JSON
                   </Button>
                 </div>
+              </div>
 
-                {lessonSkills.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    {lessonSkills.map((item) => (
-                      <div
-                        key={item.skillId}
-                        className="flex items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm"
-                      >
-                        <div>
-                          <div className="font-medium">{item.name}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            slug: {item.slug}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            min={0}
-                            max={100}
-                            value={item.weight}
-                            onChange={(e) => {
-                              const value = parseSkillWeightInput(
-                                e.target.value,
-                              )
-                              setLessonSkills((prev) =>
-                                prev.map((ls) =>
-                                  ls.skillId === item.skillId
-                                    ? { ...ls, weight: value }
-                                    : ls,
-                                ),
-                              )
-                            }}
-                            className="w-20"
-                          />
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            %
-                          </span>
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            onClick={() =>
-                              setLessonSkills((prev) =>
-                                prev.filter((ls) => ls.skillId !== item.skillId),
-                              )
-                            }
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Produção editorial
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Status, prioridade no Kanban e anotações internas da equipe.
-                </p>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="lesson-production-status">Status</Label>
-                  <Select
-                    id="lesson-production-status"
-                    value={productionStatus}
-                    onChange={(e) =>
-                      setProductionStatus(
-                        e.target.value as LessonProductionStatus,
-                      )
-                    }
-                  >
-                    {LESSON_PRODUCTION_STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {lessonProductionStatusLabel(s)}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lesson-production-priority">
-                    Prioridade no Kanban
-                  </Label>
-                  <Select
-                    id="lesson-production-priority"
-                    value={productionPriority}
-                    onChange={(e) =>
-                      setProductionPriority(
-                        e.target.value as LessonProductionPriority,
-                      )
-                    }
-                  >
-                    {PRIORITIES.map((p) => (
-                      <option key={p} value={p}>
-                        {priorityLabel(p)}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lesson-production-notes">Anotações</Label>
-                <Textarea
-                  id="lesson-production-notes"
-                  value={productionNotes}
-                  onChange={(e) => setProductionNotes(e.target.value)}
-                  rows={4}
-                  placeholder="Escreva suas anotações sobre esta aula…"
+              {quizMode === 'editor' ? (
+                <QuizEditor
+                  challenges={quizContent}
+                  onChange={setQuizContent}
                 />
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-gray-200 dark:border-gray-700">
-              <button
-                type="button"
-                className="flex w-full items-center justify-between gap-2 rounded-t-lg px-4 py-3 text-left font-medium hover:bg-muted/50"
-                onClick={() => setMetadadosOpen((o) => !o)}
-              >
-                <span>Metadados</span>
-                {metadadosOpen ? (
-                  <ChevronUp className="h-4 w-4 shrink-0" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 shrink-0" />
-                )}
-              </button>
-              {metadadosOpen && (
-                <div className="space-y-4 border-t px-4 pb-4 pt-0">
-                  <div className="space-y-2 pt-4">
-                    <Label htmlFor="lesson-slug">Slug *</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="lesson-slug"
-                        value={formData.slug}
-                        onChange={(e) => {
-                          setFormData({ ...formData, slug: e.target.value })
-                          setSlugManuallyEdited(true)
-                        }}
-                        required
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const newSlug = generateSlug(formData.title)
-                          setFormData({ ...formData, slug: newSlug })
-                          setSlugManuallyEdited(true)
-                        }}
-                      >
-                        Gerar
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lesson-order">Ordem</Label>
-                    <Input
-                      id="lesson-order"
-                      type="number"
-                      value={formData.order}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          order: parseInt(e.target.value, 10) || 0,
-                        })
+              ) : (
+                <div className="space-y-2">
+                  <Textarea
+                    value={quizJson}
+                    onChange={(e) => setQuizJson(e.target.value)}
+                    rows={14}
+                    className="font-mono text-xs"
+                    placeholder='[{"type":"block_slots","question":"...","pieces":[{"id":"p0","content":"..."}],"solution":["p0"]}]'
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="default"
+                      onClick={() => {
+                        const ok = tryApplyQuizJson(quizJson)
+                        if (ok) setQuizMode('editor')
+                      }}
+                    >
+                      Aplicar JSON
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        setQuizJson(JSON.stringify(quizContent ?? [], null, 2))
                       }
-                    />
-                  </div>
-                  <div className="flex flex-wrap items-center gap-4">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.isFree}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            isFree: e.target.checked,
-                          })
-                        }
-                        className="rounded"
-                      />
-                      <span>Aula gratuita</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.locked}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            locked: e.target.checked,
-                          })
-                        }
-                        className="rounded"
-                      />
-                      <span>Bloqueada</span>
-                    </label>
+                    >
+                      Recarregar do editor
+                    </Button>
                   </div>
                 </div>
               )}
             </div>
+          )}
+
+          {formData.type === 'project' && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="project_description">Descrição do projeto (Boss)</Label>
+                <Textarea
+                  id="project_description"
+                  value={formData.project_description}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      project_description: e.target.value,
+                    })
+                  }
+                  rows={4}
+                  placeholder="Descreva o desafio do módulo..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="project_specs">Configuração do playground (JSON)</Label>
+                <Textarea
+                  id="project_specs"
+                  value={formData.project_specs}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      project_specs: e.target.value,
+                    })
+                  }
+                  rows={12}
+                  className="font-mono text-sm"
+                  placeholder='{"files": {"/App.js": "..."}, "template": "react", "testFile": "..."}'
+                />
+                <p className="text-xs text-muted-foreground">
+                  Objeto com files, template (vanilla|react), testFile (código do teste) ou tests (Record path - conteúdo).
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="lesson-description">Descrição *</Label>
+            <Textarea
+              id="lesson-description"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  description: e.target.value,
+                })
+              }
+              rows={4}
+              required
+            />
           </div>
 
-          <div className="mt-4 flex shrink-0 flex-col gap-2 border-t border-border bg-card pt-4">
-            {isFullScreen && (
-              <p className="text-center text-xs text-muted-foreground">
-                As alterações no editor só são gravadas no servidor ao clicar em{' '}
-                <strong>Salvar</strong> (ou Ctrl+Enter no modo texto).
+          {formData.type !== 'article' && (
+            <div className="space-y-2">
+              <Label>Skills desta aula (opcional)</Label>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Essas skills recebem XP adicional quando o aluno conclui esta aula.
               </p>
-            )}
-            <div className="flex justify-end gap-4">
-              <Button variant="outline" onClick={onCancel} disabled={loading}>
-                Cancelar
-              </Button>
-              <Button onClick={handleSave} disabled={loading}>
-                {loading
-                  ? 'Salvando...'
-                  : isPage
-                    ? 'Salvar Alterações'
-                    : 'Salvar'}
-              </Button>
+              <div className="flex gap-2">
+                <Select
+                  value={selectedSkillId}
+                  onChange={(e) => setSelectedSkillId(e.target.value)}
+                >
+                  <option value="">Selecione uma skill</option>
+                  {availableSkills
+                    .filter((skill) => {
+                      const alreadyInLesson = lessonSkills.some(
+                        (ls) => ls.skillId === skill.id,
+                      )
+                      const alreadyInCourse = (courseSkillIds ?? []).includes(skill.id)
+                      return !alreadyInLesson && !alreadyInCourse
+                    })
+                    .map((skill) => (
+                      <option key={skill.id} value={skill.id}>
+                        {skill.name} ({skill.slug})
+                      </option>
+                    ))}
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    if (!selectedSkillId) return
+                    const skill = availableSkills.find((s) => s.id === selectedSkillId)
+                    if (!skill) return
+                    setLessonSkills((prev) => [
+                      ...prev,
+                      {
+                        skillId: skill.id,
+                        name: skill.name,
+                        slug: skill.slug,
+                        weight: 100,
+                      },
+                    ])
+                    setSelectedSkillId('')
+                  }}
+                >
+                  Adicionar
+                </Button>
+              </div>
+
+              {lessonSkills.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {lessonSkills.map((item) => (
+                    <div
+                      key={item.skillId}
+                      className="flex items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm"
+                    >
+                      <div>
+                        <div className="font-medium">{item.name}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          slug: {item.slug}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={item.weight}
+                          onChange={(e) => {
+                            const value = parseSkillWeightInput(
+                              e.target.value,
+                            )
+                            setLessonSkills((prev) =>
+                              prev.map((ls) =>
+                                ls.skillId === item.skillId
+                                  ? { ...ls, weight: value }
+                                  : ls,
+                              ),
+                            )
+                          }}
+                          className="w-20"
+                        />
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          %
+                        </span>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          onClick={() =>
+                            setLessonSkills((prev) =>
+                              prev.filter((ls) => ls.skillId !== item.skillId),
+                            )
+                          }
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                Produção editorial
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Status, prioridade no Kanban e anotações internas da equipe.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="lesson-production-status">Status</Label>
+                <Select
+                  id="lesson-production-status"
+                  value={productionStatus}
+                  onChange={(e) =>
+                    setProductionStatus(
+                      e.target.value as LessonProductionStatus,
+                    )
+                  }
+                >
+                  {LESSON_PRODUCTION_STATUSES.map((s) => (
+                    <option key={s} value={s}>
+                      {lessonProductionStatusLabel(s)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lesson-production-priority">
+                  Prioridade no Kanban
+                </Label>
+                <Select
+                  id="lesson-production-priority"
+                  value={productionPriority}
+                  onChange={(e) =>
+                    setProductionPriority(
+                      e.target.value as LessonProductionPriority,
+                    )
+                  }
+                >
+                  {PRIORITIES.map((p) => (
+                    <option key={p} value={p}>
+                      {priorityLabel(p)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lesson-production-notes">Anotações</Label>
+              <Textarea
+                id="lesson-production-notes"
+                value={productionNotes}
+                onChange={(e) => setProductionNotes(e.target.value)}
+                rows={4}
+                placeholder="Escreva suas anotações sobre esta aula…"
+              />
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between gap-2 rounded-t-lg px-4 py-3 text-left font-medium hover:bg-muted/50"
+              onClick={() => setMetadadosOpen((o) => !o)}
+            >
+              <span>Metadados</span>
+              {metadadosOpen ? (
+                <ChevronUp className="h-4 w-4 shrink-0" />
+              ) : (
+                <ChevronDown className="h-4 w-4 shrink-0" />
+              )}
+            </button>
+            {metadadosOpen && (
+              <div className="space-y-4 border-t px-4 pb-4 pt-0">
+                <div className="space-y-2 pt-4">
+                  <Label htmlFor="lesson-slug">Slug *</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="lesson-slug"
+                      value={formData.slug}
+                      onChange={(e) => {
+                        setFormData({ ...formData, slug: e.target.value })
+                        setSlugManuallyEdited(true)
+                      }}
+                      required
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newSlug = generateSlug(formData.title)
+                        setFormData({ ...formData, slug: newSlug })
+                        setSlugManuallyEdited(true)
+                      }}
+                    >
+                      Gerar
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lesson-order">Ordem</Label>
+                  <Input
+                    id="lesson-order"
+                    type="number"
+                    value={formData.order}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        order: parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.isFree}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          isFree: e.target.checked,
+                        })
+                      }
+                      className="rounded"
+                    />
+                    <span>Aula gratuita</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.locked}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          locked: e.target.checked,
+                        })
+                      }
+                      className="rounded"
+                    />
+                    <span>Bloqueada</span>
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-4 flex shrink-0 flex-col gap-2 border-t border-border bg-card pt-4">
+          {isFullScreen && (
+            <p className="text-center text-xs text-muted-foreground">
+              As alterações no editor só são gravadas no servidor ao clicar em{' '}
+              <strong>Salvar</strong> (ou Ctrl+Enter no modo texto).
+            </p>
+          )}
+          <div className="flex justify-end gap-4">
+            <Button variant="outline" onClick={onCancel} disabled={loading}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSave} disabled={loading}>
+              {loading
+                ? 'Salvando...'
+                : isPage
+                  ? 'Salvar Alterações'
+                  : 'Salvar'}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 
   if (isPage) return card
