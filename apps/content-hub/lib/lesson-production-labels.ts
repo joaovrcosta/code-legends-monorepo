@@ -1,4 +1,7 @@
-import type { LessonProductionStatus } from "@/actions/lesson/get-lesson-production-by-course";
+import type {
+  LessonProductionPriority,
+  LessonProductionStatus,
+} from "@/actions/lesson/get-lesson-production-by-course";
 
 /** Alinhado ao limite da API (`patch-lesson-production.controller.ts`). */
 export const MAX_LESSON_PRODUCTION_NOTES_LENGTH = 50_000;
@@ -9,6 +12,14 @@ export const LESSON_PRODUCTION_STATUSES: LessonProductionStatus[] = [
   "REVIEW",
   "DONE",
   "BLOCKED",
+];
+
+export const LESSON_PRODUCTION_PRIORITIES: LessonProductionPriority[] = [
+  "NONE",
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "URGENT",
 ];
 
 export function lessonProductionStatusLabel(
@@ -35,6 +46,13 @@ export function normalizeLessonProductionStatus(
 ): LessonProductionStatus {
   const s = raw as LessonProductionStatus | undefined;
   return s && LESSON_PRODUCTION_STATUSES.includes(s) ? s : "TODO";
+}
+
+export function normalizeLessonPriority(
+  raw: string | null | undefined,
+): LessonProductionPriority {
+  const p = raw as LessonProductionPriority | undefined;
+  return p && LESSON_PRODUCTION_PRIORITIES.includes(p) ? p : "NONE";
 }
 
 export function validateLessonProductionNotesLength(notes: string): string | null {

@@ -14,7 +14,16 @@ import {
   type CreateLessonData,
 } from "@/actions/lesson/create-lesson";
 import { deleteModule } from "@/actions/module/delete-module";
+import {
+  updateLessonProduction,
+  type UpdateLessonProductionInput,
+} from "@/actions/lesson/update-lesson-production";
 import { getAuthTokenFromClient } from "@/lib/auth";
+import {
+  normalizeLessonPriority,
+  normalizeLessonProductionStatus,
+  validateLessonProductionNotesLength,
+} from "@/lib/lesson-production-labels";
 import { generateSlug } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -33,6 +42,9 @@ interface ImportLessonData {
   quiz_content?: unknown[];
   project_description?: string;
   project_specs?: unknown;
+  production_status?: string;
+  production_priority?: string;
+  production_notes?: string | null;
 }
 
 interface ImportGroupData {
@@ -48,6 +60,50 @@ interface ImportModuleData {
   groups: ImportGroupData[];
 }
 
+function hasImportProductionFields(lesson: ImportLessonData): boolean {
+  return (
+    lesson.production_status !== undefined ||
+    lesson.production_priority !== undefined ||
+    lesson.production_notes !== undefined
+  );
+}
+
+function buildImportProductionInput(
+  lesson: ImportLessonData,
+): UpdateLessonProductionInput | null {
+  const input: UpdateLessonProductionInput = {};
+
+  if (lesson.production_status !== undefined) {
+    input.status = normalizeLessonProductionStatus(lesson.production_status);
+  }
+  if (lesson.production_priority !== undefined) {
+    input.priority = normalizeLessonPriority(lesson.production_priority);
+  }
+  if (lesson.production_notes !== undefined) {
+    const notesLengthError = validateLessonProductionNotesLength(
+      lesson.production_notes ?? "",
+    );
+    if (notesLengthError) {
+      throw new Error(notesLengthError);
+    }
+    input.notes = lesson.production_notes;
+  }
+
+  return Object.keys(input).length > 0 ? input : null;
+}
+
+function buildExportDownloadSuffix(
+  includeContent: boolean,
+  includeKanban: boolean,
+  includeNotes: boolean,
+): string {
+  const parts = ["estrutura"];
+  if (includeContent) parts.push("conteudo");
+  if (includeKanban) parts.push("kanban");
+  if (includeNotes) parts.push("anotacoes");
+  return parts.join("-");
+}
+
 function countImportSteps(
   data: ImportModuleData[],
   existingModuleCount: number,
@@ -61,7 +117,9 @@ function countImportSteps(
       if (!group?.title) continue;
       steps += 1;
       for (const lesson of group.lessons || []) {
-        if (lesson?.title) steps += 1;
+        if (!lesson?.title) continue;
+        steps += 1;
+        if (hasImportProductionFields(lesson)) steps += 1;
       }
     }
   }
@@ -117,6 +175,8 @@ export function CourseBuilder({
   const [importEtaSeconds, setImportEtaSeconds] = useState<number | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [exportIncludeContent, setExportIncludeContent] = useState(false);
+  const [exportIncludeKanban, setExportIncludeKanban] = useState(false);
+  const [exportIncludeNotes, setExportIncludeNotes] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleModule = (moduleId: string) => {
@@ -195,58 +255,83 @@ export function CourseBuilder({
     });
   };
 
-  const buildExportJson = useCallback((includeContent: boolean) => {
-    const exportModules = modules.map((module) => ({
-      title: module.title,
-      slug: module.slug,
-      orderIndex: module.orderIndex,
-      groups: module.groups.map((group) => ({
-        title: group.title,
-        orderIndex: group.orderIndex,
-        lessons: group.lessons.map((lesson) => {
-          const base: Record<string, unknown> = {
-            title: lesson.title,
-            description: lesson.description,
-            type: lesson.type,
-            slug: lesson.slug,
-            url: lesson.url ?? undefined,
-            video_url: lesson.video_url ?? undefined,
-            video_duration: lesson.video_duration ?? undefined,
-            isFree: lesson.isFree,
-            locked: lesson.locked,
-            order: lesson.order,
-          };
-          if (includeContent) {
-            const t = (lesson.type ?? "").toString().trim().toLowerCase();
-            const body = lesson.article?.body?.trim();
-            if ((t === "article" || t === "text") && body) {
-              base.body = lesson.article!.body;
-            }
-            if (
-              (t === "quiz" || t === "multi_quiz") &&
-              Array.isArray(lesson.quiz?.content)
-            ) {
-              base.quiz_content = lesson.quiz!.content;
-            }
-            if (t === "project" && lesson.project) {
-              const desc = lesson.project.description?.trim();
-              if (desc) base.project_description = lesson.project.description;
-              if (lesson.project.specs != null) {
-                base.project_specs = lesson.project.specs;
+  const buildExportJson = useCallback(
+    (
+      includeContent: boolean,
+      includeKanban: boolean,
+      includeNotes: boolean,
+    ) => {
+      const exportModules = modules.map((module) => ({
+        title: module.title,
+        slug: module.slug,
+        orderIndex: module.orderIndex,
+        groups: module.groups.map((group) => ({
+          title: group.title,
+          orderIndex: group.orderIndex,
+          lessons: group.lessons.map((lesson) => {
+            const base: Record<string, unknown> = {
+              title: lesson.title,
+              description: lesson.description,
+              type: lesson.type,
+              slug: lesson.slug,
+              url: lesson.url ?? undefined,
+              video_url: lesson.video_url ?? undefined,
+              video_duration: lesson.video_duration ?? undefined,
+              isFree: lesson.isFree,
+              locked: lesson.locked,
+              order: lesson.order,
+            };
+            if (includeContent) {
+              const t = (lesson.type ?? "").toString().trim().toLowerCase();
+              const body = lesson.article?.body?.trim();
+              if ((t === "article" || t === "text") && body) {
+                base.body = lesson.article!.body;
+              }
+              if (
+                (t === "quiz" || t === "multi_quiz") &&
+                Array.isArray(lesson.quiz?.content)
+              ) {
+                base.quiz_content = lesson.quiz!.content;
+              }
+              if (t === "project" && lesson.project) {
+                const desc = lesson.project.description?.trim();
+                if (desc) base.project_description = lesson.project.description;
+                if (lesson.project.specs != null) {
+                  base.project_specs = lesson.project.specs;
+                }
               }
             }
-          }
-          return base;
-        }),
-      })),
-    }));
+            if (includeKanban) {
+              base.production_status = normalizeLessonProductionStatus(
+                lesson.production?.status,
+              );
+              base.production_priority = normalizeLessonPriority(
+                lesson.production?.priority,
+              );
+            }
+            if (includeNotes) {
+              const notes = lesson.production?.notes?.trim() ?? "";
+              if (notes) {
+                base.production_notes = lesson.production!.notes;
+              }
+            }
+            return base;
+          }),
+        })),
+      }));
 
-    return JSON.stringify(exportModules, null, 2);
-  }, [modules]);
+      return JSON.stringify(exportModules, null, 2);
+    },
+    [modules],
+  );
 
   const handleDownloadJson = () => {
     try {
-      const json = buildExportJson(exportIncludeContent);
+      const json = buildExportJson(
+        exportIncludeContent,
+        exportIncludeKanban,
+        exportIncludeNotes,
+      );
       const safeTitle =
         courseTitle && courseTitle.trim().length > 0
           ? generateSlug(courseTitle)
@@ -255,9 +340,11 @@ export function CourseBuilder({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const suffix = exportIncludeContent
-        ? "estrutura-e-conteudo"
-        : "estrutura";
+      const suffix = buildExportDownloadSuffix(
+        exportIncludeContent,
+        exportIncludeKanban,
+        exportIncludeNotes,
+      );
       a.download = `curso-${safeTitle}-${courseId}-${suffix}.json`;
       document.body.appendChild(a);
       a.click();
@@ -420,8 +507,17 @@ export function CourseBuilder({
               }
             }
 
-            await createLesson(groupId, lessonData, token);
+            const createdLesson = await createLesson(groupId, lessonData, token);
             tickImportProgress();
+
+            if (hasImportProductionFields(lesson)) {
+              const productionInput = buildImportProductionInput(lesson);
+              if (productionInput) {
+                const lessonId = parseInt(createdLesson.lesson.id, 10);
+                await updateLessonProduction(lessonId, productionInput, token);
+                tickImportProgress();
+              }
+            }
           }
         }
       }
@@ -448,8 +544,18 @@ export function CourseBuilder({
   };
 
   const exportJson = useMemo(
-    () => buildExportJson(exportIncludeContent),
-    [buildExportJson, exportIncludeContent],
+    () =>
+      buildExportJson(
+        exportIncludeContent,
+        exportIncludeKanban,
+        exportIncludeNotes,
+      ),
+    [
+      buildExportJson,
+      exportIncludeContent,
+      exportIncludeKanban,
+      exportIncludeNotes,
+    ],
   );
 
   const typeCounts = useMemo(() => {
@@ -600,28 +706,65 @@ export function CourseBuilder({
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Use esta ferramenta para copiar a estrutura completa de
                     módulos, grupos e aulas de um curso, ou importar a estrutura
-                    em outro curso. Marque a opção abaixo para incluir no JSON o
-                    conteúdo das aulas (corpo de artigo/texto, quiz e projeto),
-                    permitindo importação completa quando o arquivo contiver
-                    esses campos.
+                    em outro curso. Marque as opções abaixo para incluir no JSON
+                    o conteúdo das aulas, informações do Kanban (status e
+                    prioridade) e anotações editoriais. Na importação, esses
+                    campos são restaurados automaticamente quando presentes no
+                    arquivo.
                   </p>
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="exportIncludeContent"
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      checked={exportIncludeContent}
-                      onChange={(e) =>
-                        setExportIncludeContent(e.target.checked)
-                      }
-                    />
-                    <label
-                      htmlFor="exportIncludeContent"
-                      className="text-sm text-gray-700 dark:text-gray-300"
-                    >
-                      Incluir conteúdo das aulas (corpo, quiz, projeto) para
-                      importação completa
-                    </label>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="exportIncludeContent"
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        checked={exportIncludeContent}
+                        onChange={(e) =>
+                          setExportIncludeContent(e.target.checked)
+                        }
+                      />
+                      <label
+                        htmlFor="exportIncludeContent"
+                        className="text-sm text-gray-700 dark:text-gray-300"
+                      >
+                        Incluir conteúdo das aulas (corpo, quiz, projeto) para
+                        importação completa
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="exportIncludeKanban"
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        checked={exportIncludeKanban}
+                        onChange={(e) =>
+                          setExportIncludeKanban(e.target.checked)
+                        }
+                      />
+                      <label
+                        htmlFor="exportIncludeKanban"
+                        className="text-sm text-gray-700 dark:text-gray-300"
+                      >
+                        Incluir informações do Kanban (status e prioridade)
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="exportIncludeNotes"
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        checked={exportIncludeNotes}
+                        onChange={(e) =>
+                          setExportIncludeNotes(e.target.checked)
+                        }
+                      />
+                      <label
+                        htmlFor="exportIncludeNotes"
+                        className="text-sm text-gray-700 dark:text-gray-300"
+                      >
+                        Incluir anotações
+                      </label>
+                    </div>
                   </div>
                   <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     Estrutura atual (somente leitura)

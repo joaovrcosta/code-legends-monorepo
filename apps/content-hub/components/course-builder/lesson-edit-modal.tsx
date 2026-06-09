@@ -23,8 +23,10 @@ import type {
 } from '@/actions/lesson/get-lesson-production-by-course'
 import type { UpdateLessonProductionInput } from '@/actions/lesson/update-lesson-production'
 import {
+  LESSON_PRODUCTION_PRIORITIES,
   LESSON_PRODUCTION_STATUSES,
   lessonProductionStatusLabel,
+  normalizeLessonPriority,
   normalizeLessonProductionStatus,
   validateLessonProductionNotesLength,
 } from '@/lib/lesson-production-labels'
@@ -50,14 +52,6 @@ import {
 } from '@/lib/course-structure'
 import { LessonContextBreadcrumb } from './lesson-context-breadcrumb'
 
-const PRIORITIES: LessonProductionPriority[] = [
-  'NONE',
-  'LOW',
-  'MEDIUM',
-  'HIGH',
-  'URGENT',
-]
-
 function priorityLabel(p: LessonProductionPriority): string {
   switch (p) {
     case 'NONE':
@@ -71,13 +65,6 @@ function priorityLabel(p: LessonProductionPriority): string {
     case 'URGENT':
       return 'Urgente'
   }
-}
-
-function normalizeLessonPriority(
-  raw: string | null | undefined,
-): LessonProductionPriority {
-  const p = raw as LessonProductionPriority | undefined
-  return p && PRIORITIES.includes(p) ? p : 'NONE'
 }
 
 export interface LessonEditViewProps {
@@ -1052,7 +1039,7 @@ exemplo()
                     )
                   }
                 >
-                  {PRIORITIES.map((p) => (
+                  {LESSON_PRODUCTION_PRIORITIES.map((p) => (
                     <option key={p} value={p}>
                       {priorityLabel(p)}
                     </option>
