@@ -393,7 +393,7 @@ Explicação aqui...
 [PAUSA]
 ...
 
-[CÓDIGO NA TELA]
+[CÓDIGO NA TELA][caso precise]
 \`\`\`javascript
 exemplo()
 \`\`\``
