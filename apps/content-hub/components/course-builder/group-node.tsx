@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import {
   GroupWithStructure,
   LessonWithStructure,
+  ModuleWithStructure,
 } from '@/actions/course/get-course-with-structure'
 import { LessonNode } from './lesson-node'
 import { Button } from '@/components/ui/button'
@@ -52,6 +53,7 @@ export interface GroupNodeProps {
   courseSkillIds?: string[]
   courseTitle: string
   moduleTitle: string
+  modules: ModuleWithStructure[]
 }
 
 export function GroupNode({
@@ -65,6 +67,7 @@ export function GroupNode({
   courseSkillIds,
   courseTitle,
   moduleTitle,
+  modules,
 }: GroupNodeProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState(group.title)
@@ -386,6 +389,7 @@ export function GroupNode({
                     }
                     onDelete={() => handleLessonDelete(lesson.id)}
                     courseSkillIds={courseSkillIds}
+                    modules={modules}
                     breadcrumb={{
                       courseTitle,
                       moduleTitle,

@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LessonWithStructure } from "@/actions/course/get-course-with-structure";
+import {
+  LessonWithStructure,
+  ModuleWithStructure,
+} from "@/actions/course/get-course-with-structure";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, GripVertical, Save, X, SlidersHorizontal } from "lucide-react";
@@ -83,6 +86,7 @@ interface LessonNodeProps {
   onUpdate: (lesson: LessonWithStructure) => void;
   onDelete: () => void;
   courseSkillIds?: string[];
+  modules?: ModuleWithStructure[];
   breadcrumb: LessonBreadcrumbContext;
 }
 
@@ -91,6 +95,7 @@ export function LessonNode({
   onUpdate,
   onDelete,
   courseSkillIds,
+  modules,
   breadcrumb,
 }: LessonNodeProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -319,6 +324,7 @@ export function LessonNode({
       <LessonEditModal
         lesson={lesson}
         courseSkillIds={courseSkillIds}
+        modules={modules}
         breadcrumb={breadcrumb}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

@@ -11,6 +11,7 @@ import { LessonContextBreadcrumb } from "@/components/course-builder/lesson-cont
 import {
   getCourseWithStructure,
   type LessonWithStructure,
+  type ModuleWithStructure,
 } from "@/actions/course/get-course-with-structure";
 import { getLessonProductionByCourse } from "@/actions/lesson/get-lesson-production-by-course";
 import { getCourseSkillsConfig } from "@/actions/skill/get-course-skills";
@@ -36,6 +37,7 @@ export default function EditCourseLessonPage() {
     null,
   );
   const [courseSkillIds, setCourseSkillIds] = useState<string[]>([]);
+  const [modules, setModules] = useState<ModuleWithStructure[]>([]);
 
   const load = useCallback(async () => {
     if (!courseId || !Number.isFinite(lessonId)) {
@@ -75,6 +77,7 @@ export default function EditCourseLessonPage() {
         return;
       }
 
+      setModules(modules);
       setLesson(ctx.lesson);
       setBreadcrumb(
         buildLessonBreadcrumbFromContext(ctx, structure.course.title),
@@ -132,6 +135,8 @@ export default function EditCourseLessonPage() {
         <LessonEditView
           lesson={lesson}
           courseSkillIds={courseSkillIds}
+          modules={modules}
+          breadcrumb={breadcrumb}
           variant="page"
           active
           onCancel={() => router.push(backHref)}

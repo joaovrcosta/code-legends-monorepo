@@ -108,6 +108,82 @@ function toLessonProduction(
   };
 }
 
+export function isVideoLesson(
+  lesson: Pick<LessonWithStructure, "type">,
+): boolean {
+  return (lesson.type ?? "").trim().toLowerCase() === "video";
+}
+
+export function flattenCourseLessons(
+  modules: ModuleWithStructure[],
+): LessonWithStructure[] {
+  const sortedModules = [...modules].sort(
+    (a, b) => a.orderIndex - b.orderIndex,
+  );
+
+  return sortedModules.flatMap((module) =>
+    [...module.groups]
+      .sort((a, b) => a.orderIndex - b.orderIndex)
+      .flatMap((group) =>
+        [...group.lessons].sort((a, b) => a.order - b.order),
+      ),
+  );
+}
+
+export interface VideoLessonNeighbor {
+  lesson: LessonWithStructure;
+  moduleTitle: string;
+  groupTitle: string;
+}
+
+export interface AdjacentVideoLessons {
+  previous: VideoLessonNeighbor | null;
+  next: VideoLessonNeighbor | null;
+}
+
+function toVideoLessonNeighbor(
+  modules: ModuleWithStructure[],
+  lesson: LessonWithStructure,
+): VideoLessonNeighbor | null {
+  const ctx = findLessonContext(modules, lesson.id);
+  if (!ctx) return null;
+
+  return {
+    lesson,
+    moduleTitle: ctx.module.title,
+    groupTitle: ctx.group.title,
+  };
+}
+
+export function findAdjacentVideoLessons(
+  modules: ModuleWithStructure[],
+  lessonId: number,
+): AdjacentVideoLessons {
+  const all = flattenCourseLessons(modules);
+  const currentIndex = all.findIndex((l) => l.id === lessonId);
+  if (currentIndex === -1) {
+    return { previous: null, next: null };
+  }
+
+  let previous: VideoLessonNeighbor | null = null;
+  for (let i = currentIndex - 1; i >= 0; i--) {
+    if (isVideoLesson(all[i])) {
+      previous = toVideoLessonNeighbor(modules, all[i]);
+      break;
+    }
+  }
+
+  let next: VideoLessonNeighbor | null = null;
+  for (let i = currentIndex + 1; i < all.length; i++) {
+    if (isVideoLesson(all[i])) {
+      next = toVideoLessonNeighbor(modules, all[i]);
+      break;
+    }
+  }
+
+  return { previous, next };
+}
+
 export function mergeProductionIntoModules(
   modules: ModuleWithStructure[],
   items: LessonProductionItem[],

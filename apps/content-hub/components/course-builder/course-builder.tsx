@@ -565,6 +565,7 @@ export function CourseBuilder({
                 onReloadStructure={onReloadStructure}
                 courseSkillIds={courseSkillIds}
                 courseTitle={courseTitle}
+                modules={modules}
               />
             ))
         )}

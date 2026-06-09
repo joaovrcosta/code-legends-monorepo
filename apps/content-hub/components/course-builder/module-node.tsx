@@ -23,6 +23,7 @@ interface ModuleNodeProps {
     onReloadStructure?: () => void;
     courseSkillIds?: string[];
     courseTitle: string;
+    modules: ModuleWithStructure[];
 }
 
 export function ModuleNode({
@@ -36,6 +37,7 @@ export function ModuleNode({
     onReloadStructure,
     courseSkillIds,
     courseTitle,
+    modules,
 }: ModuleNodeProps) {
     const storageKey = `cb:${module.courseId}:expandedGroups:${module.id}`;
     const [isEditing, setIsEditing] = useState(false);
@@ -272,6 +274,7 @@ export function ModuleNode({
                                 courseSkillIds={courseSkillIds}
                                 courseTitle={courseTitle}
                                 moduleTitle={module.title}
+                                modules={modules}
                             />
                         ))
                     )}

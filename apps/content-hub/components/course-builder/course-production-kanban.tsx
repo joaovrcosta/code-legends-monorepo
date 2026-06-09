@@ -706,6 +706,7 @@ export function CourseProductionKanban({
       {editingLesson && editingBreadcrumb && (
         <LessonEditModal
           lesson={editingLesson}
+          modules={modules}
           breadcrumb={editingBreadcrumb}
           isOpen={editOpen}
           onClose={() => {

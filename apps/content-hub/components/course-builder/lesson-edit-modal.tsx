@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { LessonWithStructure } from '@/actions/course/get-course-with-structure'
+import {
+  LessonWithStructure,
+  ModuleWithStructure,
+} from '@/actions/course/get-course-with-structure'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { VideoProviderFields } from '@/components/lesson/video-provider-fields'
@@ -40,7 +43,11 @@ import {
   getLessonVideoProviderId,
   mapLessonVideoForState,
 } from '@/lib/lesson-video'
-import type { LessonBreadcrumbContext } from '@/lib/course-structure'
+import {
+  findAdjacentVideoLessons,
+  type LessonBreadcrumbContext,
+  type VideoLessonNeighbor,
+} from '@/lib/course-structure'
 import { LessonContextBreadcrumb } from './lesson-context-breadcrumb'
 
 const PRIORITIES: LessonProductionPriority[] = [
@@ -76,6 +83,7 @@ function normalizeLessonPriority(
 export interface LessonEditViewProps {
   lesson: LessonWithStructure
   courseSkillIds?: string[]
+  modules?: ModuleWithStructure[]
   onSave: (updatedLesson: LessonWithStructure) => void
   onCancel: () => void
   variant?: 'modal' | 'page'
@@ -83,9 +91,28 @@ export interface LessonEditViewProps {
   breadcrumb?: LessonBreadcrumbContext
 }
 
+function formatVideoNeighborBlock(
+  label: string,
+  neighbor: VideoLessonNeighbor,
+): string {
+  const duration =
+    neighbor.lesson.video_duration?.trim() ||
+    neighbor.lesson.video?.duration?.trim() ||
+    'não informada'
+  const objective =
+    neighbor.lesson.description?.trim() || 'não informado'
+
+  return `${label}:
+- Título: ${neighbor.lesson.title}
+- Objetivo: ${objective}
+- Duração: ${duration}
+- Local: ${neighbor.moduleTitle} → ${neighbor.groupTitle}`
+}
+
 export function LessonEditView({
   lesson,
   courseSkillIds,
+  modules,
   onSave,
   onCancel,
   variant = 'modal',
@@ -253,32 +280,30 @@ export function LessonEditView({
       lesson.description?.trim() ||
       'Explique o conceito principal desta aula de forma clara e prática.'
     const duration = formData.video_duration?.trim() || '5–10 minutos'
-    const breadcrumbInfo = breadcrumb as
-      | {
-        courseTitle?: string
-        moduleTitle?: string
-        sectionTitle?: string
-        groupTitle?: string
-        submoduleTitle?: string
-        previousLessonTitle?: string
-        nextLessonTitle?: string
-      }
-      | undefined
-    const submoduleTitle =
-      breadcrumbInfo?.submoduleTitle ||
-      breadcrumbInfo?.sectionTitle ||
-      breadcrumbInfo?.groupTitle
+
     const contextParts = [
-      breadcrumbInfo?.courseTitle ? `Curso: ${breadcrumbInfo.courseTitle}` : null,
-      breadcrumbInfo?.moduleTitle ? `Módulo: ${breadcrumbInfo.moduleTitle}` : null,
-      submoduleTitle ? `Submódulo: ${submoduleTitle}` : null,
-      breadcrumbInfo?.previousLessonTitle
-        ? `Aula anterior: ${breadcrumbInfo.previousLessonTitle}`
-        : null,
-      breadcrumbInfo?.nextLessonTitle
-        ? `Próxima aula: ${breadcrumbInfo.nextLessonTitle}`
-        : null,
+      breadcrumb?.courseTitle ? `Curso: ${breadcrumb.courseTitle}` : null,
+      breadcrumb?.moduleTitle ? `Módulo: ${breadcrumb.moduleTitle}` : null,
+      breadcrumb?.groupTitle ? `Submódulo: ${breadcrumb.groupTitle}` : null,
     ].filter(Boolean)
+
+    const adjacentVideoLessons = modules
+      ? findAdjacentVideoLessons(modules, lesson.id)
+      : null
+
+    const videoNeighborsBlock = adjacentVideoLessons
+      ? `
+VIDEOAULAS VIZINHAS
+
+${adjacentVideoLessons.previous
+        ? formatVideoNeighborBlock('Videoaula anterior', adjacentVideoLessons.previous)
+        : 'Videoaula anterior: não há videoaula anterior neste curso.'}
+
+${adjacentVideoLessons.next
+        ? formatVideoNeighborBlock('Próxima videoaula', adjacentVideoLessons.next)
+        : 'Próxima videoaula: não há próxima videoaula neste curso.'}
+`
+      : ''
 
     return `Você é um especialista em ensino de programação e criação de roteiros para videoaulas educacionais, inspirado no estilo de explicação clara, fluida e envolvente (como “The Joy of React”, mas adaptado para vídeo).
 
@@ -291,11 +316,11 @@ Objetivo da aula:
 ${description}
 
 Duração estimada:
-${`5 minutos`}
+${duration}
 ${contextParts.length ? `
 Contexto da aula:
 ${contextParts.join('\n')}
-` : ''}
+` : ''}${videoNeighborsBlock}
 ---
 
 ESTRUTURA DO ROTEIRO
@@ -327,17 +352,19 @@ ESTRUTURA DO ROTEIRO
    - Reforce o que foi aprendido
 
 7. Encerramento
-   - Conecte com a próxima aula quando ela existir
-   - Não explique conteúdos que pertencem à próxima aula; apenas crie uma transição natural
+   - Conecte com a próxima videoaula quando ela existir
+   - Não explique conteúdos que pertencem à próxima videoaula; apenas crie uma transição natural
 
 ---
 
 IMPORTANTE
 
 - Considere a sequência do curso ao escrever o roteiro
-- Faça uma breve conexão com a aula anterior quando ela existir
+- Conecte a abertura com a videoaula anterior (se existir)
 - Use o submódulo como contexto para manter a aula alinhada com a jornada do aluno
-- Ao finalizar, crie uma ponte natural para a próxima aula quando ela existir
+- Ao finalizar, crie uma ponte natural para a próxima videoaula (se existir)
+- Ignore quizzes, artigos e projetos entre as videoaulas
+- Não invente conteúdo além do informado acima
 - Não mencione informações ausentes no contexto
 
 ---
@@ -1169,6 +1196,7 @@ exemplo()
 interface LessonEditModalProps {
   lesson: LessonWithStructure
   courseSkillIds?: string[]
+  modules?: ModuleWithStructure[]
   breadcrumb?: LessonBreadcrumbContext
   isOpen: boolean
   onClose: () => void
@@ -1178,6 +1206,7 @@ interface LessonEditModalProps {
 export function LessonEditModal({
   lesson,
   courseSkillIds,
+  modules,
   breadcrumb,
   isOpen,
   onClose,
@@ -1187,6 +1216,7 @@ export function LessonEditModal({
     <LessonEditView
       lesson={lesson}
       courseSkillIds={courseSkillIds}
+      modules={modules}
       breadcrumb={breadcrumb}
       active={isOpen}
       variant="modal"
