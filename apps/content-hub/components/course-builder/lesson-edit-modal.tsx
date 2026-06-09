@@ -279,7 +279,7 @@ export function LessonEditView({
       formData.description?.trim() ||
       lesson.description?.trim() ||
       'Explique o conceito principal desta aula de forma clara e prática.'
-    const duration = formData.video_duration?.trim() || '5–10 minutos'
+    const duration = '5–10 minutos'
 
     const contextParts = [
       breadcrumb?.courseTitle ? `Curso: ${breadcrumb.courseTitle}` : null,
@@ -308,6 +308,14 @@ ${adjacentVideoLessons.next
     return `Você é um especialista em ensino de programação e criação de roteiros para videoaulas educacionais, inspirado no estilo de explicação clara, fluida e envolvente (como “The Joy of React”, mas adaptado para vídeo).
 
 Crie um roteiro de videoaula com linguagem natural, didática e fácil de acompanhar ouvindo.
+
+### 💡 DIRETRIZES DE ESTILO E ENGAJAMENTO
+
+- **Analogias Poderosas:** Use metáforas do mundo real para explicar conceitos abstratos de código. A analogia deve enriquecer a explicação técnica de forma sutil, sem desviar do foco principal.
+- **Ritmo Confortável:** Escreva exatamente como uma pessoa fala naturalmente. Alterne frases curtas com pausas estratégicas para o aluno absorver o conteúdo.
+- **Abordagem Visual:** Em vez de apenas listar o código, descreva o que está acontecendo conceitualmente na tela enquanto o código aparece.
+
+---
 
 Tema da aula:
 ${title}
@@ -386,7 +394,7 @@ Explicação aqui...
 ...
 
 [CÓDIGO NA TELA]
-\`\`\`python
+\`\`\`javascript
 exemplo()
 \`\`\``
   }
