@@ -27,6 +27,7 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { CourseProductionLogs } from "./course-production-logs";
 import { LessonEditModal } from "./lesson-edit-modal";
+import { ScriptBlocksPanel } from "./script-blocks-panel";
 import type { LessonWithStructure } from "@/actions/course/get-course-with-structure";
 import {
   buildLessonBreadcrumbFromContext,
@@ -318,9 +319,13 @@ export function CourseProductionKanban({
     useState<LessonBreadcrumbContext | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [notesModalLessonId, setNotesModalLessonId] = useState<number | null>(null);
+  const [notesViewMode, setNotesViewMode] = useState<"editor" | "blocks">("editor");
   const [notesDraftByLessonId, setNotesDraftByLessonId] = useState<Map<number, string>>(
     new Map(),
   );
+  const [recordedBlocksByLessonId, setRecordedBlocksByLessonId] = useState<
+    Map<number, Set<string>>
+  >(new Map());
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -501,7 +506,38 @@ export function CourseProductionKanban({
         return next;
       });
     }
+    setNotesViewMode("editor");
     setNotesModalLessonId(lessonId);
+  };
+
+  const toggleRecordedBlock = (lessonId: number, blockId: string) => {
+    setRecordedBlocksByLessonId((prev) => {
+      const next = new Map(prev);
+      const current = new Set(next.get(lessonId) ?? []);
+      if (current.has(blockId)) {
+        current.delete(blockId);
+      } else {
+        current.add(blockId);
+      }
+      next.set(lessonId, current);
+      return next;
+    });
+  };
+
+  const markAllRecordedBlocks = (lessonId: number, blockIds: string[]) => {
+    setRecordedBlocksByLessonId((prev) => {
+      const next = new Map(prev);
+      next.set(lessonId, new Set(blockIds));
+      return next;
+    });
+  };
+
+  const clearRecordedBlocks = (lessonId: number) => {
+    setRecordedBlocksByLessonId((prev) => {
+      const next = new Map(prev);
+      next.set(lessonId, new Set());
+      return next;
+    });
   };
 
   const changeNotes = (lessonId: number, nextValue: string) => {
@@ -560,6 +596,15 @@ export function CourseProductionKanban({
   const modalNotesValue = notesModalLessonId
     ? notesDraftByLessonId.get(notesModalLessonId) ?? normalizeNotes(modalCard?.notes ?? "")
     : "";
+
+  const modalRecordedBlockIds =
+    notesModalLessonId != null
+      ? recordedBlocksByLessonId.get(notesModalLessonId) ?? new Set<string>()
+      : new Set<string>();
+
+  const modalBreadcrumb = modalCard
+    ? `${modalCard.moduleTitle} • ${modalCard.groupTitle}`
+    : undefined;
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const activeId = String(event.active.id);
@@ -739,28 +784,80 @@ export function CourseProductionKanban({
                     </div>
                   )}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setNotesModalLessonId(null)}
-                  title="Fechar"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="inline-flex rounded-lg border border-white/10 bg-black/20 p-0.5"
+                    role="tablist"
+                    aria-label="Modo de visualização"
+                  >
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={notesViewMode === "editor"}
+                      className={[
+                        "rounded-md px-3 py-1 text-xs font-medium transition-colors",
+                        notesViewMode === "editor"
+                          ? "bg-white/10 text-zinc-100"
+                          : "text-zinc-400 hover:text-zinc-200",
+                      ].join(" ")}
+                      onClick={() => setNotesViewMode("editor")}
+                    >
+                      Editor
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={notesViewMode === "blocks"}
+                      className={[
+                        "rounded-md px-3 py-1 text-xs font-medium transition-colors",
+                        notesViewMode === "blocks"
+                          ? "bg-white/10 text-zinc-100"
+                          : "text-zinc-400 hover:text-zinc-200",
+                      ].join(" ")}
+                      onClick={() => setNotesViewMode("blocks")}
+                    >
+                      Blocos
+                    </button>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setNotesModalLessonId(null)}
+                    title="Fechar"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="cb-modal-body">
               <div className="cb-modal-scroll space-y-3">
-                <textarea
-                  value={modalNotesValue}
-                  onChange={(e) => {
-                    const id = notesModalLessonId;
-                    if (id == null) return;
-                    changeNotes(id, e.target.value);
-                  }}
-                  placeholder="Escreva suas anotações…"
-                  className="min-h-[min(60vh,520px)] w-full resize-y rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-lime-400/20"
-                />
+                {notesViewMode === "editor" ? (
+                  <textarea
+                    value={modalNotesValue}
+                    onChange={(e) => {
+                      const id = notesModalLessonId;
+                      if (id == null) return;
+                      changeNotes(id, e.target.value);
+                    }}
+                    placeholder="Escreva suas anotações…"
+                    className="min-h-[min(60vh,520px)] w-full resize-y rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-lime-400/20"
+                  />
+                ) : notesModalLessonId != null && modalCard ? (
+                  <ScriptBlocksPanel
+                    notes={modalNotesValue}
+                    lessonTitle={modalCard.title}
+                    breadcrumb={modalBreadcrumb}
+                    recordedIds={modalRecordedBlockIds}
+                    onToggleRecorded={(blockId) =>
+                      toggleRecordedBlock(notesModalLessonId, blockId)
+                    }
+                    onMarkAllRecorded={(blockIds) =>
+                      markAllRecordedBlocks(notesModalLessonId, blockIds)
+                    }
+                    onClearRecorded={() => clearRecordedBlocks(notesModalLessonId)}
+                  />
+                ) : null}
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"

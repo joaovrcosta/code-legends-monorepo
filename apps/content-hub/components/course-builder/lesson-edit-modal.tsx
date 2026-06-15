@@ -348,7 +348,7 @@ Crie um roteiro de videoaula com linguagem natural, didática e fácil de acompa
 ### 💡 DIRETRIZES DE ESTILO E ENGAJAMENTO
 
 - **Analogias Poderosas:** Use metáforas do mundo real para explicar conceitos abstratos de código. A analogia deve enriquecer a explicação técnica de forma sutil, sem desviar do foco principal.
-- **Ritmo Confortável:** Escreva exatamente como uma pessoa fala naturalmente. Alterne frases curtas com pausas estratégicas para o aluno absorver o conteúdo.
+- **Ritmo Confortável:** Escreva exatamente como uma pessoa fala naturalmente. Alterne frases curtas; use "..." dentro de [FALA] para pausas retóricas. Use [PAUSA] só para silêncio real na gravação.
 - **Abordagem Visual:** Em vez de apenas listar o código, descreva o que está acontecendo conceitualmente na tela enquanto o código aparece.
 
 ---
@@ -413,26 +413,74 @@ IMPORTANTE
 
 ---
 
+REGRAS DAS TAGS (obrigatório)
+
+- [FALA]: TODO texto que será falado em voz alta. Nenhuma frase falada pode ficar fora de [FALA].
+- [PAUSA]: APENAS silêncio na gravação. Conteúdo permitido: linha vazia, "..." ou no máximo "(respira)" / "(pausa curta)".
+  - PROIBIDO: colocar frases, explicações ou parágrafos depois de [PAUSA].
+- [CÓDIGO NA TELA]: somente o que aparece na tela (listas, pseudocódigo, etc.).
+
+Se houver mais fala depois de uma pausa, SEMPRE reabra com [FALA]:
+
+Correto:
+[FALA]
+Primeira parte...
+
+[PAUSA]
+
+[FALA]
+Segunda parte...
+
+Incorreto:
+[FALA]
+Primeira parte...
+
+[PAUSA]
+
+Segunda parte sem tag...
+
+Outras regras:
+- Pausas retóricas no meio da fala → use "..." dentro do mesmo [FALA], não crie [PAUSA].
+- Use [PAUSA] no máximo 1 vez a cada 3–5 blocos [FALA], só em transições fortes na gravação.
+- Não use "---" ou linhas separadoras; mude de assunto com parágrafo em branco dentro de [FALA] ou com [PAUSA] + novo [FALA].
+
+Antes de entregar, verifique:
+1. Toda linha com texto falado está dentro de um bloco [FALA]?
+2. Nenhum bloco [PAUSA] tem parágrafos de fala?
+3. Depois de cada [PAUSA] vem imediatamente [FALA] ou [CÓDIGO NA TELA] se houver mais conteúdo?
+
+---
+
 FORMATO DO ROTEIRO
 
 - Escreva como fala natural (não como texto formal)
 - Use frases curtas e médias (fáceis de falar em voz alta)
-- Inclua pausas com “...” quando fizer sentido
-- Separe o roteiro em blocos de fala
+- Separe o roteiro em blocos [FALA], [PAUSA] e [CÓDIGO NA TELA]
 - Gere apenas o roteiro da videoaula, sem explicar o processo
 
 Exemplo de formatação:
 
 [FALA]
-Explicação aqui...
+Na aula passada a gente viu o conceito... e hoje vamos praticar.
 
 [PAUSA]
-...
 
-[CÓDIGO NA TELA][caso precise]
-\`\`\`javascript
-exemplo()
-\`\`\``
+[FALA]
+Então agora a gente faz isso de verdade. Você vai criar o seu primeiro algoritmo.
+
+[PAUSA]
+
+[FALA]
+Antes de começar, preciso te dizer uma coisa importante...
+
+[CÓDIGO NA TELA]
+\`\`\`
+1. Receber um número
+2. Dividir esse número por 2
+\`\`\`
+
+[FALA]
+Vamos passar por cada linha juntos...`
   }
 
   const handleCopyVideoScriptPrompt = async () => {
