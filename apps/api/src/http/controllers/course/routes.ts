@@ -29,6 +29,7 @@ import {
 import { updateSkillsConfig } from "./update-skills-config.controller";
 import { getSkillsProgress } from "./get-skills-progress.controller";
 import { updateCourseStatus } from "./update-status.controller";
+import { getStructureEditor } from "./get-structure-editor.controller";
 import { verifyJWT } from "../../middlewares/verify-jwt";
 import { verifyJWTOptional } from "../../middlewares/verify-jwt-optional";
 import { verifyAdmin } from "../../middlewares/verify-admin";
@@ -55,6 +56,11 @@ export async function courseRoutes(app: FastifyInstance) {
     "/courses/:id/skills-config/editor",
     { onRequest: [verifyInstructorOrAdmin] },
     getSkillsConfigEditor,
+  );
+  app.get(
+    "/courses/:courseId/structure/editor",
+    { onRequest: [verifyInstructorOrAdmin] },
+    getStructureEditor,
   );
   /** Público: só curso PUBLISHED */
   app.get("/courses/:id/skills-config", getSkillsConfig);

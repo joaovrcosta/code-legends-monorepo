@@ -15,6 +15,7 @@ import { QuizEditor } from './quiz-editor'
 import { Select } from '@/components/ui/select'
 import type { Challenge } from '@/actions/lesson/list-lessons'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getLessonById } from '@/actions/lesson/get-lesson-by-id'
 import { updateLesson } from '@/actions/lesson/update-lesson'
 import { updateLessonProduction } from '@/actions/lesson/update-lesson-production'
 import type {
@@ -47,6 +48,8 @@ import {
 } from '@/lib/lesson-video'
 import {
   findAdjacentVideoLessons,
+  lessonNeedsContentLoad,
+  mergeLessonDetailIntoLesson,
   type LessonBreadcrumbContext,
   type VideoLessonNeighbor,
 } from '@/lib/course-structure'
@@ -73,6 +76,7 @@ export interface LessonEditViewProps {
   modules?: ModuleWithStructure[]
   onSave: (updatedLesson: LessonWithStructure) => void
   onCancel: () => void
+  onLessonContentLoaded?: (updatedLesson: LessonWithStructure) => void
   variant?: 'modal' | 'page'
   active?: boolean
   breadcrumb?: LessonBreadcrumbContext
@@ -102,10 +106,13 @@ export function LessonEditView({
   modules,
   onSave,
   onCancel,
+  onLessonContentLoaded,
   variant = 'modal',
   active = true,
   breadcrumb,
 }: LessonEditViewProps) {
+  const [resolvedLesson, setResolvedLesson] = useState(lesson)
+  const [loadingContent, setLoadingContent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
   const [metadadosOpen, setMetadadosOpen] = useState(false)
@@ -147,56 +154,98 @@ export function LessonEditView({
   }
 
   const [formData, setFormData] = useState(() => ({
-    title: lesson.title,
-    description: lesson.description,
-    type: normalizeType(lesson.type),
-    slug: lesson.slug,
-    url: lesson.url || '',
-    video_url: lesson.video_url || lesson.video?.url || '',
-    video_duration: lesson.video_duration || lesson.video?.duration || '',
-    video_provider_id: getLessonVideoProviderId(lesson.video),
-    body: lesson.article?.body ?? '',
-    project_description: lesson.project?.description ?? '',
-    project_specs: JSON.stringify(lesson.project?.specs ?? {}, null, 2),
+    title: resolvedLesson.title,
+    description: resolvedLesson.description,
+    type: normalizeType(resolvedLesson.type),
+    slug: resolvedLesson.slug,
+    url: resolvedLesson.url || '',
+    video_url: resolvedLesson.video_url || resolvedLesson.video?.url || '',
+    video_duration:
+      resolvedLesson.video_duration || resolvedLesson.video?.duration || '',
+    video_provider_id: getLessonVideoProviderId(resolvedLesson.video),
+    body: resolvedLesson.article?.body ?? '',
+    project_description: resolvedLesson.project?.description ?? '',
+    project_specs: JSON.stringify(resolvedLesson.project?.specs ?? {}, null, 2),
     isFree: false,
-    locked: lesson.locked,
-    order: lesson.order,
+    locked: resolvedLesson.locked,
+    order: resolvedLesson.order,
   }))
   const [quizContent, setQuizContent] = useState<Challenge[]>(
-    lesson.quiz?.content ?? [],
+    resolvedLesson.quiz?.content ?? [],
   )
+
+  useEffect(() => {
+    setResolvedLesson(lesson)
+  }, [lesson])
+
+  useEffect(() => {
+    if (!active || !lessonNeedsContentLoad(lesson)) {
+      return
+    }
+
+    let cancelled = false
+
+    const loadLessonContent = async () => {
+      setLoadingContent(true)
+      try {
+        const token = getAuthTokenFromClient()
+        if (!token) return
+
+        const detail = await getLessonById(lesson.id, token)
+        if (cancelled || !detail) return
+
+        const merged = mergeLessonDetailIntoLesson(lesson, detail)
+        setResolvedLesson(merged)
+        onLessonContentLoaded?.(merged)
+      } catch (error) {
+        console.error('Erro ao carregar conteúdo da aula:', error)
+        toast.error('Erro ao carregar conteúdo da aula')
+      } finally {
+        if (!cancelled) {
+          setLoadingContent(false)
+        }
+      }
+    }
+
+    void loadLessonContent()
+
+    return () => {
+      cancelled = true
+    }
+  }, [active, lesson, onLessonContentLoaded])
 
   useEffect(() => {
     if (active) {
       setFormData({
-        title: lesson.title,
-        description: lesson.description,
-        type: normalizeType(lesson.type),
-        slug: lesson.slug,
-        url: lesson.url || '',
-        video_url: lesson.video_url || lesson.video?.url || '',
-        video_duration: lesson.video_duration || lesson.video?.duration || '',
-        video_provider_id: getLessonVideoProviderId(lesson.video),
-        body: lesson.article?.body ?? '',
-        project_description: lesson.project?.description ?? '',
-        project_specs: JSON.stringify(lesson.project?.specs ?? {}, null, 2),
-        isFree: lesson.isFree,
-        locked: lesson.locked,
-        order: lesson.order,
+        title: resolvedLesson.title,
+        description: resolvedLesson.description,
+        type: normalizeType(resolvedLesson.type),
+        slug: resolvedLesson.slug,
+        url: resolvedLesson.url || '',
+        video_url: resolvedLesson.video_url || resolvedLesson.video?.url || '',
+        video_duration:
+          resolvedLesson.video_duration || resolvedLesson.video?.duration || '',
+        video_provider_id: getLessonVideoProviderId(resolvedLesson.video),
+        body: resolvedLesson.article?.body ?? '',
+        project_description: resolvedLesson.project?.description ?? '',
+        project_specs: JSON.stringify(resolvedLesson.project?.specs ?? {}, null, 2),
+        isFree: resolvedLesson.isFree,
+        locked: resolvedLesson.locked,
+        order: resolvedLesson.order,
       })
-      setQuizContent(lesson.quiz?.content ?? [])
+      setQuizContent(resolvedLesson.quiz?.content ?? [])
       setQuizMode('editor')
-      setQuizJson(JSON.stringify(lesson.quiz?.content ?? [], null, 2))
+      setQuizJson(JSON.stringify(resolvedLesson.quiz?.content ?? [], null, 2))
       setSlugManuallyEdited(false)
       setProductionPriority(
-        normalizeLessonPriority(lesson.production?.priority),
+        normalizeLessonPriority(resolvedLesson.production?.priority),
       )
       setProductionStatus(
-        normalizeLessonProductionStatus(lesson.production?.status),
+        normalizeLessonProductionStatus(resolvedLesson.production?.status),
       )
-      setProductionNotes(lesson.production?.notes ?? '')
+      setProductionNotes(resolvedLesson.production?.notes ?? '')
     }
-  }, [lesson, active])
+  }, [resolvedLesson, active])
 
   useEffect(() => {
     if (!active) return
@@ -231,7 +280,7 @@ export function LessonEditView({
       try {
         const [{ skills }, config] = await Promise.all([
           listSkills(),
-          getLessonSkillsConfig(lesson.id, token),
+          getLessonSkillsConfig(resolvedLesson.id, token),
         ])
 
         setAvailableSkills(
@@ -249,7 +298,7 @@ export function LessonEditView({
     }
 
     void loadLessonSkills()
-  }, [active, lesson.id])
+  }, [active, resolvedLesson.id])
 
   useEffect(() => {
     if (formData.title && !slugManuallyEdited) {
@@ -261,10 +310,10 @@ export function LessonEditView({
   }, [formData.title, slugManuallyEdited])
 
   const buildVideoScriptPrompt = () => {
-    const title = formData.title?.trim() || lesson.title || 'Tema da aula'
+    const title = formData.title?.trim() || resolvedLesson.title || 'Tema da aula'
     const description =
       formData.description?.trim() ||
-      lesson.description?.trim() ||
+      resolvedLesson.description?.trim() ||
       'Explique o conceito principal desta aula de forma clara e prática.'
     const duration = '5–10 minutos'
 
@@ -275,7 +324,7 @@ export function LessonEditView({
     ].filter(Boolean)
 
     const adjacentVideoLessons = modules
-      ? findAdjacentVideoLessons(modules, lesson.id)
+      ? findAdjacentVideoLessons(modules, resolvedLesson.id)
       : null
 
     const videoNeighborsBlock = adjacentVideoLessons
@@ -467,12 +516,12 @@ exemplo()
                 : basePayload
 
       const { lesson: savedLesson } = await updateLesson(
-        lesson.id.toString(),
+        resolvedLesson.id.toString(),
         payload,
         token,
       )
       await updateLessonSkillsConfig(
-        lesson.id,
+        resolvedLesson.id,
         lessonSkillsToPersist.map((item) => ({
           skillId: item.skillId,
           weight: item.weight,
@@ -487,11 +536,11 @@ exemplo()
       }
 
       const prevStatus = normalizeLessonProductionStatus(
-        lesson.production?.status,
+        resolvedLesson.production?.status,
       )
-      const prevNotes = (lesson.production?.notes ?? '').trim()
+      const prevNotes = (resolvedLesson.production?.notes ?? '').trim()
       const nextNotes = productionNotes.trim()
-      const prevP = normalizeLessonPriority(lesson.production?.priority)
+      const prevP = normalizeLessonPriority(resolvedLesson.production?.priority)
       const nextP = normalizeLessonPriority(productionPriority)
 
       const productionPatch: UpdateLessonProductionInput = {}
@@ -505,11 +554,11 @@ exemplo()
         productionPatch.priority = nextP
       }
 
-      let nextProduction = lesson.production ?? null
+      let nextProduction = resolvedLesson.production ?? null
       if (Object.keys(productionPatch).length > 0) {
         try {
           const { item } = await updateLessonProduction(
-            lesson.id,
+            resolvedLesson.id,
             productionPatch,
             token,
           )
@@ -525,7 +574,7 @@ exemplo()
           toast.error(
             'Aula salva, mas não foi possível atualizar a produção editorial.',
           )
-          nextProduction = lesson.production ?? null
+          nextProduction = resolvedLesson.production ?? null
         }
       }
 
@@ -536,7 +585,7 @@ exemplo()
       const savedVideo = (savedLesson as { video?: Parameters<typeof mapLessonVideoForState>[0] })
         .video
       onSave({
-        ...lesson,
+        ...resolvedLesson,
         ...formData,
         url: formData.url || null,
         video_url: formData.video_url || null,
@@ -614,6 +663,11 @@ exemplo()
             <CardTitle>
               {isPage ? 'Informações da Aula' : 'Editar Aula'}
             </CardTitle>
+            {loadingContent && (
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Carregando conteúdo da aula…
+              </p>
+            )}
 
             {breadcrumb && (
               <LessonContextBreadcrumb
@@ -1196,6 +1250,7 @@ interface LessonEditModalProps {
   isOpen: boolean
   onClose: () => void
   onSave: (updatedLesson: LessonWithStructure) => void
+  onLessonContentLoaded?: (updatedLesson: LessonWithStructure) => void
 }
 
 export function LessonEditModal({
@@ -1206,6 +1261,7 @@ export function LessonEditModal({
   isOpen,
   onClose,
   onSave,
+  onLessonContentLoaded,
 }: LessonEditModalProps) {
   return (
     <LessonEditView
@@ -1216,6 +1272,7 @@ export function LessonEditModal({
       active={isOpen}
       variant="modal"
       onCancel={onClose}
+      onLessonContentLoaded={onLessonContentLoaded}
       onSave={(updated) => {
         onSave(updated)
         onClose()

@@ -10,12 +10,15 @@ export interface LessonResponse {
 /**
  * Busca uma aula pelo ID com todos os detalhes (author, submodule, etc.)
  */
-export async function getLessonById(id: string | number, token: string): Promise<LessonDetail | null> {
+export async function getLessonById(
+  id: string | number,
+  token?: string,
+): Promise<LessonDetail | null> {
   if (!id) return null;
 
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/lessons/${id}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/lessons/id/${id}`,
       {
         method: "GET",
         headers: await buildApiHeaders(undefined, token),

@@ -65,13 +65,23 @@ export interface LessonsListResponse {
   lessons: Lesson[];
 }
 
+export interface ListLessonsOptions {
+  includeContent?: boolean;
+}
+
 /**
  * Lista todas as aulas de um grupo
  */
-export async function listLessons(groupId: number): Promise<LessonsListResponse> {
+export async function listLessons(
+  groupId: number,
+  options?: ListLessonsOptions,
+): Promise<LessonsListResponse> {
+  const includeContent = options?.includeContent !== false;
+  const query = `includeContent=${includeContent ? "true" : "false"}`;
+
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/groups/${groupId}/lessons`,
+      `${process.env.NEXT_PUBLIC_API_URL}/groups/${groupId}/lessons?${query}`,
       {
         method: "GET",
         headers: {
@@ -93,4 +103,3 @@ export async function listLessons(groupId: number): Promise<LessonsListResponse>
     return { lessons: [] };
   }
 }
-

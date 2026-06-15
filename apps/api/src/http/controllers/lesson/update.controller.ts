@@ -35,12 +35,15 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
   try {
     const updateLessonUseCase = makeUpdateLessonUseCase();
 
-    const { lesson } = await updateLessonUseCase.execute({
+    const { lesson, videoWarnings } = await updateLessonUseCase.execute({
       id,
       ...bodyData,
     });
 
-    return reply.status(200).send({ lesson });
+    return reply.status(200).send({
+      lesson,
+      ...(videoWarnings?.length ? { videoWarnings } : {}),
+    });
   } catch (error) {
     if (error instanceof LessonNotFoundError) {
       return reply.status(404).send({ message: error.message });

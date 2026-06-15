@@ -7,7 +7,7 @@ import {
 } from "@/actions/course/get-course-with-structure";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, GripVertical, Save, X, SlidersHorizontal } from "lucide-react";
+import { Edit, Trash2, GripVertical, Save, X, SlidersHorizontal, AlertTriangle } from "lucide-react";
 import { deleteLesson } from "@/actions/lesson/delete-lesson";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { LessonEditModal } from "./lesson-edit-modal";
@@ -19,6 +19,10 @@ import type { LessonProductionStatus } from "@/actions/lesson/get-lesson-product
 import { Input } from "@/components/ui/input";
 import { updateLesson } from "@/actions/lesson/update-lesson";
 import { lessonProductionStatusLabel } from "@/lib/lesson-production-labels";
+import {
+  formatVideoIssueLabel,
+  getLessonVideoIssue,
+} from "@/lib/lesson-video-issue";
 import type { LessonBreadcrumbContext } from "@/lib/course-structure";
 
 function lessonTypeLabel(type: string): string {
@@ -112,6 +116,8 @@ export function LessonNode({
 
   const productionStatus: LessonProductionStatus =
     (lesson.production?.status as LessonProductionStatus | undefined) ?? "TODO";
+
+  const videoIssue = getLessonVideoIssue(lesson);
 
   const {
     attributes,
@@ -251,6 +257,18 @@ export function LessonNode({
             </span>
           )}
         </div>
+        <div className="lesson-node-col-video flex items-center justify-center">
+          {videoIssue ? (
+            <span
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-amber-600 dark:text-amber-400"
+              title={formatVideoIssueLabel(videoIssue)}
+              aria-label={formatVideoIssueLabel(videoIssue)}
+              role="img"
+            >
+              <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
+            </span>
+          ) : null}
+        </div>
         <Button
           size="sm"
           variant="ghost"
@@ -328,6 +346,7 @@ export function LessonNode({
         breadcrumb={breadcrumb}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onLessonContentLoaded={onUpdate}
         onSave={(updatedLesson) => {
           onUpdate(updatedLesson);
           setIsModalOpen(false);

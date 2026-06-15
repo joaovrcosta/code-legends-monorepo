@@ -114,6 +114,7 @@ body {
     auto
     minmax(0, 1fr)
     2rem
+    2rem
     6.5rem
     7.75rem
     5.75rem
@@ -124,6 +125,7 @@ body {
 
 .lesson-node-col-status,
 .lesson-node-col-type,
-.lesson-node-col-free {
+.lesson-node-col-free,
+.lesson-node-col-video {
   min-width: 0;
 }

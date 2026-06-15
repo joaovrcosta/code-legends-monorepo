@@ -5,6 +5,7 @@ import { IUsersRepository } from "../../../repositories/users-repository";
 import { IVideoRepository } from "../../../repositories/video-repository";
 import { IVideoProviderRepository } from "../../../repositories/video-provider-repository";
 import { resolveLessonVideoInput } from "../../../lib/resolve-lesson-video";
+import { InvalidVideoUrlForProviderError } from "../../errors/invalid-video-url-for-provider";
 import { IArticleRepository } from "../../../repositories/article-repository";
 import { IQuizRepository } from "../../../repositories/quiz-repository";
 import { IProjectRepository } from "../../../repositories/project-repository";
@@ -34,6 +35,7 @@ interface CreateLessonRequest {
 
 interface CreateLessonResponse {
   lesson: Lesson;
+  videoWarnings?: string[];
 }
 
 export class CreateLessonUseCase {
@@ -79,19 +81,31 @@ export class CreateLessonUseCase {
     } = data;
     const lesson = await this.lessonRepository.create(lessonData);
 
+    let videoWarnings: string[] | undefined;
+
     if (data.type === "video" && (video_url != null || video_duration != null || video_provider_id != null)) {
-      const resolved = await resolveLessonVideoInput({
-        videoUrl: video_url,
-        videoProviderId: video_provider_id,
-        videoProviderRepository: this.videoProviderRepository,
-        requireUrl: false,
-      });
-      await this.videoRepository.create({
-        lessonId: lesson.id,
-        url: resolved.url,
-        duration: video_duration,
-        providerId: resolved.provider.id,
-      });
+      try {
+        const resolved = await resolveLessonVideoInput({
+          videoUrl: video_url,
+          videoProviderId: video_provider_id,
+          videoProviderRepository: this.videoProviderRepository,
+          requireUrl: false,
+        });
+        if (resolved.url) {
+          await this.videoRepository.create({
+            lessonId: lesson.id,
+            url: resolved.url,
+            duration: video_duration,
+            providerId: resolved.provider.id,
+          });
+        }
+      } catch (error) {
+        if (error instanceof InvalidVideoUrlForProviderError) {
+          videoWarnings = error.details;
+        } else {
+          throw error;
+        }
+      }
     }
     if (data.type === "article" && body != null && body.trim() !== "") {
       await this.articleRepository.create({
@@ -115,6 +129,7 @@ export class CreateLessonUseCase {
     const lessonWithContent = await this.lessonRepository.findById(lesson.id);
     return {
       lesson: lessonWithContent ?? lesson,
+      ...(videoWarnings?.length ? { videoWarnings } : {}),
     };
   }
 }

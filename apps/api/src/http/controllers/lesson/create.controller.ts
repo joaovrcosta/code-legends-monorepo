@@ -36,13 +36,16 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
   try {
     const createLessonUseCase = makeCreateLessonUseCase();
 
-    const { lesson } = await createLessonUseCase.execute({
+    const { lesson, videoWarnings } = await createLessonUseCase.execute({
       ...bodyData,
       submoduleId: groupId,
       authorId: request.user.id,
     });
 
-    return reply.status(201).send({ lesson });
+    return reply.status(201).send({
+      lesson,
+      ...(videoWarnings?.length ? { videoWarnings } : {}),
+    });
   } catch (error) {
     if (error instanceof LessonAlreadyExistsError) {
       return reply.status(409).send({ message: error.message });

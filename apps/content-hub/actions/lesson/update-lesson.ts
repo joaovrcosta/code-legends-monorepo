@@ -25,6 +25,7 @@ export interface UpdateLessonData {
 
 export interface UpdateLessonResponse {
   lesson: Lesson;
+  videoWarnings?: string[];
 }
 
 /**

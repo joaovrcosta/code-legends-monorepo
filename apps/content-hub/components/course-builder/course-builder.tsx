@@ -1,7 +1,11 @@
 "use client";
 
-import { useMemo, useState, useRef, useCallback } from "react";
-import { ModuleWithStructure } from "@/actions/course/get-course-with-structure";
+import { useMemo, useState, useRef, useCallback, useEffect } from "react";
+import {
+  getCourseWithStructure,
+  ModuleWithStructure,
+} from "@/actions/course/get-course-with-structure";
+import { mergeProductionFromModules } from "@/lib/course-structure";
 import { ModuleNode } from "./module-node";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +28,11 @@ import {
   normalizeLessonProductionStatus,
   validateLessonProductionNotesLength,
 } from "@/lib/lesson-production-labels";
-import { generateSlug } from "@/lib/utils";
+import { generateSlug, allocateUniqueSlug, allocateUniqueTitle } from "@/lib/utils";
+import {
+  appendVideoIssueNote,
+  formatVideoIssueNote,
+} from "@/lib/lesson-video-issue";
 import { toast } from "sonner";
 
 interface ImportLessonData {
@@ -70,6 +78,7 @@ function hasImportProductionFields(lesson: ImportLessonData): boolean {
 
 function buildImportProductionInput(
   lesson: ImportLessonData,
+  videoWarnings?: string[],
 ): UpdateLessonProductionInput | null {
   const input: UpdateLessonProductionInput = {};
 
@@ -79,14 +88,25 @@ function buildImportProductionInput(
   if (lesson.production_priority !== undefined) {
     input.priority = normalizeLessonPriority(lesson.production_priority);
   }
-  if (lesson.production_notes !== undefined) {
-    const notesLengthError = validateLessonProductionNotesLength(
-      lesson.production_notes ?? "",
-    );
+
+  let notes = lesson.production_notes;
+  if (videoWarnings?.length) {
+    notes = appendVideoIssueNote(notes, videoWarnings);
+  }
+
+  if (notes !== undefined) {
+    const notesLengthError = validateLessonProductionNotesLength(notes ?? "");
     if (notesLengthError) {
       throw new Error(notesLengthError);
     }
-    input.notes = lesson.production_notes;
+    input.notes = notes;
+  } else if (videoWarnings?.length) {
+    const note = formatVideoIssueNote(videoWarnings);
+    const notesLengthError = validateLessonProductionNotesLength(note);
+    if (notesLengthError) {
+      throw new Error(notesLengthError);
+    }
+    input.notes = note;
   }
 
   return Object.keys(input).length > 0 ? input : null;
@@ -134,6 +154,56 @@ function formatImportEta(seconds: number): string {
   return secs > 0 ? `~${minutes} min ${secs} s` : `~${minutes} min`;
 }
 
+async function fetchCourseModules(
+  courseId: string,
+  token: string,
+): Promise<ModuleWithStructure[]> {
+  const structure = await getCourseWithStructure(courseId, {
+    includeContent: false,
+    token,
+  });
+  return structure?.modules ?? [];
+}
+
+async function clearCourseStructureForImport(
+  courseId: string,
+  token: string,
+  onModuleDeleted?: () => void,
+): Promise<{ ok: true; deletedCount: number } | { ok: false; error: string }> {
+  const deleteErrors: string[] = [];
+  let deletedCount = 0;
+
+  const existing = await fetchCourseModules(courseId, token);
+  for (const module of existing) {
+    try {
+      await deleteModule(module.id, token);
+      deletedCount += 1;
+      onModuleDeleted?.();
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Erro desconhecido";
+      deleteErrors.push(`"${module.title}": ${message}`);
+    }
+  }
+
+  if (deleteErrors.length > 0) {
+    return {
+      ok: false,
+      error: `Não foi possível apagar a estrutura atual:\n${deleteErrors.join("\n")}\n\nImportação cancelada para evitar conflito de slug.`,
+    };
+  }
+
+  const remaining = await fetchCourseModules(courseId, token);
+  if (remaining.length > 0) {
+    return {
+      ok: false,
+      error: `Ainda restam ${remaining.length} módulo(s) após a limpeza. Importação cancelada para evitar conflito de slug.`,
+    };
+  }
+
+  return { ok: true, deletedCount };
+}
+
 interface CourseBuilderProps {
   courseId: string;
   courseTitle: string;
@@ -177,7 +247,56 @@ export function CourseBuilder({
   const [exportIncludeContent, setExportIncludeContent] = useState(false);
   const [exportIncludeKanban, setExportIncludeKanban] = useState(false);
   const [exportIncludeNotes, setExportIncludeNotes] = useState(false);
+  const [exportModulesWithContent, setExportModulesWithContent] =
+    useState<ModuleWithStructure[] | null>(null);
+  const [exportContentLoading, setExportContentLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!showStructureModal || !exportIncludeContent) {
+      setExportModulesWithContent(null);
+      setExportContentLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadExportContent = async () => {
+      setExportContentLoading(true);
+      try {
+        const token = getAuthTokenFromClient();
+        const structure = await getCourseWithStructure(courseId, {
+          includeContent: true,
+          token: token ?? undefined,
+        });
+        if (cancelled || !structure) {
+          if (!cancelled) {
+            toast.error("Erro ao carregar conteúdo para exportação");
+          }
+          return;
+        }
+
+        setExportModulesWithContent(
+          mergeProductionFromModules(structure.modules, modules),
+        );
+      } catch (error) {
+        console.error("Erro ao carregar conteúdo para exportação:", error);
+        if (!cancelled) {
+          toast.error("Erro ao carregar conteúdo para exportação");
+        }
+      } finally {
+        if (!cancelled) {
+          setExportContentLoading(false);
+        }
+      }
+    };
+
+    void loadExportContent();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showStructureModal, exportIncludeContent, courseId, modules]);
 
   const toggleModule = (moduleId: string) => {
     const newExpanded = new Set(expandedModules);
@@ -255,13 +374,19 @@ export function CourseBuilder({
     });
   };
 
+  const modulesForExport =
+    exportIncludeContent && exportModulesWithContent
+      ? exportModulesWithContent
+      : modules;
+
   const buildExportJson = useCallback(
     (
+      sourceModules: ModuleWithStructure[],
       includeContent: boolean,
       includeKanban: boolean,
       includeNotes: boolean,
     ) => {
-      const exportModules = modules.map((module) => ({
+      const exportModules = sourceModules.map((module) => ({
         title: module.title,
         slug: module.slug,
         orderIndex: module.orderIndex,
@@ -322,12 +447,18 @@ export function CourseBuilder({
 
       return JSON.stringify(exportModules, null, 2);
     },
-    [modules],
+    [],
   );
 
   const handleDownloadJson = () => {
+    if (exportIncludeContent && exportContentLoading) {
+      toast.error("Aguarde o carregamento do conteúdo para exportação");
+      return;
+    }
+
     try {
       const json = buildExportJson(
+        modulesForExport,
         exportIncludeContent,
         exportIncludeKanban,
         exportIncludeNotes,
@@ -381,12 +512,23 @@ export function CourseBuilder({
       return;
     }
 
+    let modulesToDeleteCount = 0;
+    if (clearBeforeImport) {
+      const existingModules = await fetchCourseModules(courseId, token);
+      modulesToDeleteCount = existingModules.length;
+    }
+
     const totalSteps = countImportSteps(
       data,
-      modules.length,
+      modulesToDeleteCount,
       clearBeforeImport,
     );
     let completedSteps = 0;
+    let videoIssueCount = 0;
+    let renamedModuleCount = 0;
+    let renamedGroupCount = 0;
+    let renamedLessonCount = 0;
+    const importErrors: string[] = [];
     const importStartedAt = Date.now();
 
     const tickImportProgress = () => {
@@ -409,15 +551,22 @@ export function CourseBuilder({
       setImportEtaSeconds(null);
       setImportError(null);
 
-      if (clearBeforeImport && modules.length > 0) {
-        for (const module of modules) {
-          try {
-            await deleteModule(module.id, token);
-          } catch (error: any) {
-            console.error("Erro ao excluir módulo:", error);
-            // continua para tentar importar o restante
-          }
-          tickImportProgress();
+      const usedModuleSlugs = new Set<string>();
+
+      if (clearBeforeImport) {
+        const clearResult = await clearCourseStructureForImport(
+          courseId,
+          token,
+          tickImportProgress,
+        );
+        if (!clearResult.ok) {
+          setImportError(clearResult.error);
+          return;
+        }
+      } else {
+        const existingModules = await fetchCourseModules(courseId, token);
+        for (const module of existingModules) {
+          usedModuleSlugs.add(module.slug.toLowerCase());
         }
       }
 
@@ -425,109 +574,213 @@ export function CourseBuilder({
         const module = data[moduleIndex];
         if (!module?.title) continue;
 
-        const moduleSlug = module.slug || generateSlug(module.title);
-        const createdModule = await createModule(
-          courseId,
-          {
-            title: module.title,
-            slug: moduleSlug,
-          },
-          token,
-        );
+        try {
+          const baseModuleSlug = module.slug || generateSlug(module.title);
+          const moduleSlug = allocateUniqueSlug(baseModuleSlug, usedModuleSlugs);
+          if (moduleSlug !== baseModuleSlug.toLowerCase()) {
+            renamedModuleCount += 1;
+          }
 
-        const moduleId = createdModule.module.id;
-        tickImportProgress();
-        const groups = module.groups || [];
-
-        for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
-          const group = groups[groupIndex];
-          if (!group?.title) continue;
-
-          const createdGroup = await createGroup(
-            moduleId,
-            { title: group.title },
+          const createdModule = await createModule(
+            courseId,
+            {
+              title: module.title,
+              slug: moduleSlug,
+            },
             token,
           );
 
-          const groupId = createdGroup.group.id;
+          const moduleId = createdModule.module.id;
           tickImportProgress();
-          const lessons = group.lessons || [];
+          const groups = module.groups || [];
+          const usedGroupTitles = new Set<string>();
 
-          for (let lessonIndex = 0; lessonIndex < lessons.length; lessonIndex++) {
-            const lesson = lessons[lessonIndex];
-            if (!lesson?.title) continue;
+          for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
+            const group = groups[groupIndex];
+            if (!group?.title) continue;
 
-            const slug = lesson.slug || generateSlug(lesson.title);
-            const rawDescription = (lesson.description ?? "").toString();
-            const description = rawDescription;
-            const rawType = (lesson.type ?? "video").toString().toLowerCase();
-            const allowedTypes = [
-              "video",
-              "article",
-              "text",
-              "quiz",
-              "multi_quiz",
-              "project",
-            ];
-            const normalizedType = allowedTypes.includes(rawType)
-              ? rawType
-              : "video";
-            const lessonData: CreateLessonData = {
-              title: lesson.title,
-              description,
-              type: normalizedType,
-              slug,
-              url: lesson.url,
-              video_url: lesson.video_url,
-              video_duration: lesson.video_duration,
-              isFree: lesson.isFree ?? false,
-              locked: lesson.locked ?? false,
-              order: lesson.order ?? lessonIndex + 1,
-            };
-
-            if (
-              (normalizedType === "article" || normalizedType === "text") &&
-              typeof lesson.body === "string"
-            ) {
-              lessonData.body = lesson.body;
-            }
-            if (
-              (normalizedType === "quiz" ||
-                normalizedType === "multi_quiz") &&
-              Array.isArray(lesson.quiz_content)
-            ) {
-              lessonData.quiz_content = lesson.quiz_content;
-            }
-            if (normalizedType === "project") {
-              if (typeof lesson.project_description === "string") {
-                lessonData.project_description = lesson.project_description;
+            try {
+              const baseGroupTitle = group.title;
+              const groupTitle = allocateUniqueTitle(
+                baseGroupTitle,
+                usedGroupTitles,
+              );
+              if (groupTitle !== baseGroupTitle) {
+                renamedGroupCount += 1;
               }
-              if (lesson.project_specs !== undefined) {
-                lessonData.project_specs = lesson.project_specs;
-              }
-            }
 
-            const createdLesson = await createLesson(groupId, lessonData, token);
-            tickImportProgress();
+              const createdGroup = await createGroup(
+                moduleId,
+                { title: groupTitle },
+                token,
+              );
 
-            if (hasImportProductionFields(lesson)) {
-              const productionInput = buildImportProductionInput(lesson);
-              if (productionInput) {
-                const lessonId = parseInt(createdLesson.lesson.id, 10);
-                await updateLessonProduction(lessonId, productionInput, token);
-                tickImportProgress();
+              const groupId = createdGroup.group.id;
+              tickImportProgress();
+              const lessons = group.lessons || [];
+              const usedLessonSlugs = new Set<string>();
+
+              for (let lessonIndex = 0; lessonIndex < lessons.length; lessonIndex++) {
+                const lesson = lessons[lessonIndex];
+                if (!lesson?.title) continue;
+
+                try {
+                  const baseLessonSlug =
+                    lesson.slug || generateSlug(lesson.title);
+                  const slug = allocateUniqueSlug(baseLessonSlug, usedLessonSlugs);
+                  if (slug !== baseLessonSlug.toLowerCase()) {
+                    renamedLessonCount += 1;
+                  }
+
+                  const rawDescription = (lesson.description ?? "").toString();
+                  const description = rawDescription;
+                  const rawType = (lesson.type ?? "video").toString().toLowerCase();
+                  const allowedTypes = [
+                    "video",
+                    "article",
+                    "text",
+                    "quiz",
+                    "multi_quiz",
+                    "project",
+                  ];
+                  const normalizedType = allowedTypes.includes(rawType)
+                    ? rawType
+                    : "video";
+                  const lessonData: CreateLessonData = {
+                    title: lesson.title,
+                    description,
+                    type: normalizedType,
+                    slug,
+                    url: lesson.url,
+                    video_url: lesson.video_url,
+                    video_duration: lesson.video_duration,
+                    isFree: lesson.isFree ?? false,
+                    locked: lesson.locked ?? false,
+                    order: lesson.order ?? lessonIndex + 1,
+                  };
+
+                  if (
+                    (normalizedType === "article" || normalizedType === "text") &&
+                    typeof lesson.body === "string"
+                  ) {
+                    lessonData.body = lesson.body;
+                  }
+                  if (
+                    (normalizedType === "quiz" ||
+                      normalizedType === "multi_quiz") &&
+                    Array.isArray(lesson.quiz_content)
+                  ) {
+                    lessonData.quiz_content = lesson.quiz_content;
+                  }
+                  if (normalizedType === "project") {
+                    if (typeof lesson.project_description === "string") {
+                      lessonData.project_description = lesson.project_description;
+                    }
+                    if (lesson.project_specs !== undefined) {
+                      lessonData.project_specs = lesson.project_specs;
+                    }
+                  }
+
+                  const createdLesson = await createLesson(
+                    groupId,
+                    lessonData,
+                    token,
+                  );
+                  tickImportProgress();
+
+                  if (createdLesson.videoWarnings?.length) {
+                    videoIssueCount += 1;
+                  }
+
+                  if (
+                    hasImportProductionFields(lesson) ||
+                    createdLesson.videoWarnings?.length
+                  ) {
+                    const productionInput = buildImportProductionInput(
+                      lesson,
+                      createdLesson.videoWarnings,
+                    );
+                    if (productionInput) {
+                      const lessonId = parseInt(createdLesson.lesson.id, 10);
+                      await updateLessonProduction(
+                        lessonId,
+                        productionInput,
+                        token,
+                      );
+                      tickImportProgress();
+                    }
+                  }
+                } catch (error: unknown) {
+                  const message =
+                    error instanceof Error ? error.message : "Erro desconhecido";
+                  importErrors.push(
+                    `Aula "${lesson.title ?? `Aula ${lessonIndex + 1}`}": ${message}`,
+                  );
+                  tickImportProgress();
+                }
               }
+            } catch (error: unknown) {
+              const message =
+                error instanceof Error ? error.message : "Erro desconhecido";
+              importErrors.push(
+                `Grupo "${group.title ?? `Grupo ${groupIndex + 1}`}" (módulo "${module.title}"): ${message}`,
+              );
+              tickImportProgress();
             }
           }
+        } catch (error: unknown) {
+          const message =
+            error instanceof Error ? error.message : "Erro desconhecido";
+          importErrors.push(`Módulo "${module.title}": ${message}`);
+          tickImportProgress();
         }
       }
 
       setImportProgress(100);
       setImportEtaSeconds(0);
-      toast.success("Estrutura do curso importada com sucesso!");
-      setShowStructureModal(false);
-      setImportJson("");
-      setImportError(null);
+
+      if (importErrors.length > 0) {
+        setImportError(
+          `${importErrors.length} item(ns) não importado(s):\n${importErrors.slice(0, 5).join("\n")}${
+            importErrors.length > 5
+              ? `\n... e mais ${importErrors.length - 5} erro(s)`
+              : ""
+          }`,
+        );
+      } else {
+        setImportError(null);
+      }
+
+      if (renamedModuleCount > 0) {
+        toast.info(
+          `${renamedModuleCount} módulo(s) importado(s) com slug ajustado para evitar duplicata.`,
+        );
+      }
+      if (renamedGroupCount > 0) {
+        toast.info(
+          `${renamedGroupCount} grupo(s) importado(s) com título ajustado para evitar duplicata.`,
+        );
+      }
+      if (renamedLessonCount > 0) {
+        toast.info(
+          `${renamedLessonCount} aula(s) importada(s) com slug ajustado para evitar duplicata.`,
+        );
+      }
+
+      if (videoIssueCount > 0) {
+        toast.warning(
+          `${videoIssueCount} aula(s) importada(s) com problema no vídeo. Veja o aviso ao lado do título.`,
+        );
+      }
+
+      if (importErrors.length === 0) {
+        toast.success("Estrutura do curso importada com sucesso!");
+        setShowStructureModal(false);
+        setImportJson("");
+      } else {
+        toast.success("Importação concluída com avisos.");
+      }
+
       if (onReloadStructure) {
         onReloadStructure();
       }
@@ -543,20 +796,25 @@ export function CourseBuilder({
     }
   };
 
-  const exportJson = useMemo(
-    () =>
-      buildExportJson(
-        exportIncludeContent,
-        exportIncludeKanban,
-        exportIncludeNotes,
-      ),
-    [
-      buildExportJson,
+  const exportJson = useMemo(() => {
+    if (exportIncludeContent && exportContentLoading) {
+      return "Carregando conteúdo para exportação…";
+    }
+
+    return buildExportJson(
+      modulesForExport,
       exportIncludeContent,
       exportIncludeKanban,
       exportIncludeNotes,
-    ],
-  );
+    );
+  }, [
+    buildExportJson,
+    modulesForExport,
+    exportIncludeContent,
+    exportIncludeKanban,
+    exportIncludeNotes,
+    exportContentLoading,
+  ]);
 
   const typeCounts = useMemo(() => {
     const counts = {
@@ -853,7 +1111,8 @@ export function CourseBuilder({
                       htmlFor="clearBeforeImport"
                       className="text-sm text-gray-700 dark:text-gray-300"
                     >
-                      Apagar estrutura atual antes de importar
+                      Apagar estrutura atual antes de importar (substituição
+                      completa)
                     </label>
                   </div>
 

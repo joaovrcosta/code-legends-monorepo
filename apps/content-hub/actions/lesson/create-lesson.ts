@@ -23,6 +23,7 @@ export interface CreateLessonData {
 
 export interface CreateLessonResponse {
   lesson: Lesson;
+  videoWarnings?: string[];
 }
 
 /**

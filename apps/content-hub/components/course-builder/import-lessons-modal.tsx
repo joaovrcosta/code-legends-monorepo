@@ -6,6 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createLesson, type CreateLessonData } from "@/actions/lesson/create-lesson";
+import { updateLessonProduction } from "@/actions/lesson/update-lesson-production";
+import { formatVideoIssueNote } from "@/lib/lesson-video-issue";
+import { allocateUniqueSlug, generateSlug } from "@/lib/utils";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { X, FileJson } from "lucide-react";
 
@@ -78,6 +81,9 @@ export function ImportLessonsModal({
 
             const errors: string[] = [];
             let successCount = 0;
+            let videoIssueCount = 0;
+            let renamedLessonCount = 0;
+            const usedLessonSlugs = new Set<string>();
 
             // Criar cada aula
             for (let i = 0; i < lessonsData.length; i++) {
@@ -89,15 +95,11 @@ export function ImportLessonsModal({
                         continue;
                     }
 
-                    // Gerar slug se não fornecido
-                    const slug =
-                        lesson.slug ||
-                        lesson.title
-                            .toLowerCase()
-                            .normalize("NFD")
-                            .replace(/[\u0300-\u036f]/g, "")
-                            .replace(/[^a-z0-9]+/g, "-")
-                            .replace(/^-+|-+$/g, "");
+                    const baseSlug = lesson.slug || generateSlug(lesson.title);
+                    const slug = allocateUniqueSlug(baseSlug, usedLessonSlugs);
+                    if (slug !== baseSlug.toLowerCase()) {
+                        renamedLessonCount += 1;
+                    }
 
                     const lessonData: CreateLessonData = {
                         title: lesson.title,
@@ -112,7 +114,18 @@ export function ImportLessonsModal({
                         order: lesson.order ?? i + 1,
                     };
 
-                    await createLesson(groupId, lessonData, token);
+                    const createdLesson = await createLesson(groupId, lessonData, token);
+
+                    if (createdLesson.videoWarnings?.length) {
+                        videoIssueCount += 1;
+                        const lessonId = parseInt(createdLesson.lesson.id, 10);
+                        await updateLessonProduction(
+                            lessonId,
+                            { notes: formatVideoIssueNote(createdLesson.videoWarnings) },
+                            token,
+                        );
+                    }
+
                     successCount++;
                 } catch (error: any) {
                     errors.push(
@@ -126,6 +139,14 @@ export function ImportLessonsModal({
                 setError(
                     `${errors.length} erro(s) ao importar:\n${errors.slice(0, 5).join("\n")}${errors.length > 5 ? `\n... e mais ${errors.length - 5} erro(s)` : ""
                     }`
+                );
+            } else if (videoIssueCount > 0) {
+                setError(
+                    `${videoIssueCount} aula(s) importada(s) com problema no vídeo. Veja o aviso ao lado do título.`,
+                );
+            } else if (renamedLessonCount > 0) {
+                setError(
+                    `${renamedLessonCount} aula(s) importada(s) com slug ajustado para evitar duplicata.`,
                 );
             } else {
                 setError(null);

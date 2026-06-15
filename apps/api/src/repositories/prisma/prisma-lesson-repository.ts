@@ -1,5 +1,5 @@
 import { Lesson } from '@prisma/client'
-import { ILessonRepository } from '../lesson-repository'
+import { FindAllLessonsOptions, ILessonRepository } from '../lesson-repository'
 import { prisma } from '../../lib/prisma'
 
 interface CreateLessonData {
@@ -76,8 +76,12 @@ export class PrismaLessonRepository implements ILessonRepository {
     return lesson
   }
 
-  async findAll(groupId?: number): Promise<Lesson[]> {
+  async findAll(
+    groupId?: number,
+    options?: FindAllLessonsOptions,
+  ): Promise<Lesson[]> {
     const where: any = {}
+    const includeContent = options?.includeContent !== false
 
     if (groupId !== undefined) {
       where.submoduleId = groupId
@@ -87,9 +91,9 @@ export class PrismaLessonRepository implements ILessonRepository {
       where,
       include: {
         video: { include: { provider: true } },
-        article: true,
-        quiz: true,
-        project: true,
+        ...(includeContent
+          ? { article: true, quiz: true, project: true }
+          : {}),
       },
       orderBy: {
         order: 'asc',

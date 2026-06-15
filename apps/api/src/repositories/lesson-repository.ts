@@ -24,9 +24,13 @@ interface UpdateLessonData {
   order?: number
 }
 
+export interface FindAllLessonsOptions {
+  includeContent?: boolean
+}
+
 export interface ILessonRepository {
   create(data: CreateLessonData): Promise<Lesson>
-  findAll(groupId?: number): Promise<Lesson[]>
+  findAll(groupId?: number, options?: FindAllLessonsOptions): Promise<Lesson[]>
   findById(id: number): Promise<Lesson | null>
   findCourseIdByLessonId(id: number): Promise<string | null>
   findBySlug(slug: string): Promise<Lesson | null>

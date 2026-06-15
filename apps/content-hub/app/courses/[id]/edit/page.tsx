@@ -96,11 +96,8 @@ export default function EditCoursePage() {
   }, [formData.title, slugManuallyEdited]);
 
   useEffect(() => {
-    loadCategories();
-    loadInstructors();
     loadCourse();
     loadCourseStructure();
-    loadSkills();
     loadCourseSkills();
   }, [courseId]);
 
@@ -228,7 +225,7 @@ export default function EditCoursePage() {
       setLoadingStructure(true);
       const token = getAuthTokenFromClient();
       const [structure, production] = await Promise.all([
-        getCourseWithStructure(courseId),
+        getCourseWithStructure(courseId, { includeContent: false, token: token ?? undefined }),
         token ? getLessonProductionByCourse(courseId, token) : Promise.resolve({ items: [] }),
       ]);
       if (!structure) return;
@@ -240,6 +237,9 @@ export default function EditCoursePage() {
       console.error("Erro ao carregar estrutura do curso:", error);
     } finally {
       setLoadingStructure(false);
+      void loadCategories();
+      void loadInstructors();
+      void loadSkills();
     }
   };
 

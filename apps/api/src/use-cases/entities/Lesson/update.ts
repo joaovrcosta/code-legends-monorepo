@@ -3,6 +3,7 @@ import { ILessonRepository } from "../../../repositories/lesson-repository";
 import { IVideoRepository } from "../../../repositories/video-repository";
 import { IVideoProviderRepository } from "../../../repositories/video-provider-repository";
 import { resolveLessonVideoInput } from "../../../lib/resolve-lesson-video";
+import { InvalidVideoUrlForProviderError } from "../../errors/invalid-video-url-for-provider";
 import { IArticleRepository } from "../../../repositories/article-repository";
 import { IQuizRepository } from "../../../repositories/quiz-repository";
 import { IProjectRepository } from "../../../repositories/project-repository";
@@ -30,6 +31,7 @@ interface UpdateLessonRequest {
 
 interface UpdateLessonResponse {
   lesson: Lesson;
+  videoWarnings?: string[];
 }
 
 export class UpdateLessonUseCase {
@@ -70,6 +72,8 @@ export class UpdateLessonUseCase {
     } = data;
     const updatedLesson = await this.lessonRepository.update(data.id, updateData);
 
+    let videoWarnings: string[] | undefined;
+
     const lessonType = String(data.type ?? lesson.type).toLowerCase();
     const touchesVideoFields =
       video_url !== undefined ||
@@ -85,20 +89,28 @@ export class UpdateLessonUseCase {
           ? video_provider_id
           : existingVideo?.providerId ?? undefined;
 
-      const resolved = await resolveLessonVideoInput({
-        videoUrl: urlToValidate,
-        videoProviderId: providerIdToUse,
-        videoProviderRepository: this.videoProviderRepository,
-        requireUrl: false,
-      });
-      await this.videoRepository.upsert(lesson.id, {
-        url: resolved.url ?? existingVideo?.url ?? null,
-        duration:
-          video_duration !== undefined
-            ? video_duration
-            : existingVideo?.duration ?? undefined,
-        providerId: resolved.provider.id,
-      });
+      try {
+        const resolved = await resolveLessonVideoInput({
+          videoUrl: urlToValidate,
+          videoProviderId: providerIdToUse,
+          videoProviderRepository: this.videoProviderRepository,
+          requireUrl: false,
+        });
+        await this.videoRepository.upsert(lesson.id, {
+          url: resolved.url ?? existingVideo?.url ?? null,
+          duration:
+            video_duration !== undefined
+              ? video_duration
+              : existingVideo?.duration ?? undefined,
+          providerId: resolved.provider.id,
+        });
+      } catch (error) {
+        if (error instanceof InvalidVideoUrlForProviderError) {
+          videoWarnings = error.details;
+        } else {
+          throw error;
+        }
+      }
     }
     if (data.type === "article" && body != null) {
       await this.articleRepository.upsert(lesson.id, {
@@ -121,6 +133,7 @@ export class UpdateLessonUseCase {
     const lessonWithContent = await this.lessonRepository.findById(data.id);
     return {
       lesson: lessonWithContent ?? updatedLesson,
+      ...(videoWarnings?.length ? { videoWarnings } : {}),
     };
   }
 }

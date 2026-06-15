@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { create } from "./create.controller";
 import { list } from "./list.controller";
 import { getBySlug } from "./get-by-slug.controller";
+import { getById as getLessonById } from "./get-by-id.controller";
 import { update } from "./update.controller";
 import { remove } from "./delete.controller";
 import { complete } from "./complete.controller";
@@ -20,6 +21,12 @@ export async function lessonRoutes(app: FastifyInstance) {
     "/groups/:groupId/lessons",
     { onRequest: [verifyInstructorOrAdmin] },
     create
+  );
+
+  app.get(
+    "/lessons/id/:lessonId",
+    { onRequest: [verifyInstructorOrAdmin] },
+    getLessonById,
   );
 
   // Rotas protegidas de lições - requer autenticação e verificação de acesso

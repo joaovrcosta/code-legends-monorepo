@@ -3,6 +3,7 @@ import type {
   LessonWithStructure,
   ModuleWithStructure,
 } from "@/actions/course/get-course-with-structure";
+import type { LessonDetail } from "@/actions/lesson/get-lesson-by-slug";
 import type { LessonProductionItem } from "@/actions/lesson/get-lesson-production-by-course";
 
 export function courseLessonEditPath(
@@ -201,6 +202,85 @@ export function mergeProductionIntoModules(
           production: item ? toLessonProduction(item) : null,
         };
       }),
+    })),
+  }));
+}
+
+export function lessonNeedsContentLoad(
+  lesson: Pick<LessonWithStructure, "type" | "article" | "quiz" | "project">,
+): boolean {
+  const lessonType = (lesson.type ?? "").trim().toLowerCase();
+
+  if (lessonType === "article" || lessonType === "text") {
+    return !(lesson.article?.body ?? "").trim();
+  }
+
+  if (lessonType === "quiz" || lessonType === "multi_quiz") {
+    return !Array.isArray(lesson.quiz?.content) || lesson.quiz.content.length === 0;
+  }
+
+  if (lessonType === "project") {
+    return !lesson.project;
+  }
+
+  return false;
+}
+
+export function mergeLessonDetailIntoLesson(
+  lesson: LessonWithStructure,
+  detail: LessonDetail,
+): LessonWithStructure {
+  const detailId =
+    typeof detail.id === "number"
+      ? detail.id
+      : parseInt(String(detail.id ?? lesson.id), 10);
+
+  return {
+    ...lesson,
+    id: detailId,
+    title: detail.title ?? lesson.title,
+    description: detail.description ?? lesson.description,
+    type: detail.type ?? lesson.type,
+    slug: detail.slug ?? lesson.slug,
+    url: detail.url ?? lesson.url,
+    isFree: detail.isFree ?? lesson.isFree,
+    video_url: detail.video?.url ?? detail.video_url ?? lesson.video_url,
+    video_duration:
+      detail.video?.duration ?? detail.video_duration ?? lesson.video_duration,
+    video: detail.video ?? lesson.video ?? null,
+    article: detail.article ?? lesson.article ?? null,
+    quiz: detail.quiz ?? lesson.quiz ?? null,
+    project: detail.project ?? lesson.project ?? null,
+    locked: detail.locked ?? lesson.locked,
+    order: detail.order ?? lesson.order,
+    submoduleId: detail.submoduleId ?? lesson.submoduleId,
+    authorId: detail.authorId ?? lesson.authorId,
+    createdAt: detail.createdAt ?? lesson.createdAt,
+    updatedAt: detail.updatedAt ?? lesson.updatedAt,
+  };
+}
+
+export function mergeProductionFromModules(
+  target: ModuleWithStructure[],
+  source: ModuleWithStructure[],
+): ModuleWithStructure[] {
+  const productionByLessonId = new Map<
+    number,
+    LessonWithStructure["production"]
+  >();
+
+  for (const lesson of flattenCourseLessons(source)) {
+    productionByLessonId.set(lesson.id, lesson.production ?? null);
+  }
+
+  return target.map((module) => ({
+    ...module,
+    groups: module.groups.map((group) => ({
+      ...group,
+      lessons: group.lessons.map((lesson) => ({
+        ...lesson,
+        production: productionByLessonId.get(lesson.id) ?? lesson.production ?? null,
+      })),
     })),
   }));
 }

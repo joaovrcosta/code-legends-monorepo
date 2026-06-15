@@ -13,12 +13,14 @@ import {
   type LessonWithStructure,
   type ModuleWithStructure,
 } from "@/actions/course/get-course-with-structure";
+import { getLessonById } from "@/actions/lesson/get-lesson-by-id";
 import { getLessonProductionByCourse } from "@/actions/lesson/get-lesson-production-by-course";
 import { getCourseSkillsConfig } from "@/actions/skill/get-course-skills";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import {
   buildLessonBreadcrumbFromContext,
   findLessonContext,
+  mergeLessonDetailIntoLesson,
   mergeProductionIntoModules,
   type LessonBreadcrumbContext,
 } from "@/lib/course-structure";
@@ -54,15 +56,26 @@ export default function EditCourseLessonPage() {
         return;
       }
 
-      const [structure, skillsConfig, production] = await Promise.all([
-        getCourseWithStructure(courseId),
-        getCourseSkillsConfig(courseId, token),
-        getLessonProductionByCourse(courseId, token),
-      ]);
+      const [structure, lessonDetail, skillsConfig, production] =
+        await Promise.all([
+          getCourseWithStructure(courseId, {
+            includeContent: false,
+            token,
+          }),
+          getLessonById(lessonId, token),
+          getCourseSkillsConfig(courseId, token),
+          getLessonProductionByCourse(courseId, token),
+        ]);
 
       if (!structure?.course) {
         toast.error("Curso não encontrado");
         router.push("/courses");
+        return;
+      }
+
+      if (!lessonDetail) {
+        toast.error("Aula não encontrada");
+        router.push(backHref);
         return;
       }
 
@@ -78,7 +91,7 @@ export default function EditCourseLessonPage() {
       }
 
       setModules(modules);
-      setLesson(ctx.lesson);
+      setLesson(mergeLessonDetailIntoLesson(ctx.lesson, lessonDetail));
       setBreadcrumb(
         buildLessonBreadcrumbFromContext(ctx, structure.course.title),
       );
