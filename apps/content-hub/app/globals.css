@@ -59,7 +59,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgb(0 0 0 / 0.5);
+  background: rgb(0 0 0 / 0.38);
+  backdrop-filter: blur(27px) saturate(102%);
+  -webkit-backdrop-filter: blur(27px) saturate(102%);
 }
 
 .cb-modal-card {

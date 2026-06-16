@@ -983,7 +983,7 @@ export default function EditCoursePage() {
         </Card>
 
         {showPublishModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="cb-modal-overlay p-4">
             <Card className="w-full max-w-md">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Confirmar Publicação</CardTitle>
@@ -1056,7 +1056,7 @@ export default function EditCoursePage() {
         )}
 
         {showLessonFreeSyncModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="cb-modal-overlay">
             <Card className="w-full max-w-lg">
               <CardHeader>
                 <div className="flex items-center justify-between">

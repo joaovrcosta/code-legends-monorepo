@@ -936,7 +936,7 @@ export function CourseBuilder({
       </div>
 
       {showStructureModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="cb-modal-overlay">
           <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <div className="flex items-center justify-between">
