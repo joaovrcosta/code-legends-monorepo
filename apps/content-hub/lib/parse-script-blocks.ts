@@ -131,3 +131,38 @@ export function scriptBlockTypeLabel(type: ScriptBlockType): string {
       return "Outro";
   }
 }
+
+function normalizeCodeLanguage(lang: string | undefined): string {
+  const value = (lang ?? "text").trim().toLowerCase();
+  if (!value) return "text";
+  if (value === "js") return "javascript";
+  if (value === "ts") return "typescript";
+  return value;
+}
+
+/** Extrai código e linguagem de blocos [CÓDIGO NA TELA], com ou sem cercas ``` */
+export function extractCodeBlockContent(raw: string): {
+  code: string;
+  language: string;
+} {
+  const trimmed = raw.trim();
+  if (!trimmed) return { code: "", language: "text" };
+
+  const fullFence = trimmed.match(/^```(\w+)?\s*\n([\s\S]*?)```\s*$/);
+  if (fullFence) {
+    return {
+      language: normalizeCodeLanguage(fullFence[1]),
+      code: fullFence[2].trimEnd(),
+    };
+  }
+
+  const openFence = trimmed.match(/^```(\w+)?\s*\n([\s\S]*)$/);
+  if (openFence) {
+    return {
+      language: normalizeCodeLanguage(openFence[1]),
+      code: openFence[2].trimEnd(),
+    };
+  }
+
+  return { code: trimmed, language: "text" };
+}

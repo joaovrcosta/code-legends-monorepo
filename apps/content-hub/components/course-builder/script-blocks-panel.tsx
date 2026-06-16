@@ -1,8 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Button } from "@/components/ui/button";
 import {
+  extractCodeBlockContent,
   parseScriptBlocks,
   scriptBlockTypeLabel,
   type ScriptBlock,
@@ -32,6 +35,60 @@ function truncatePreview(text: string, maxLen = 120): string {
   const oneLine = text.replace(/\s+/g, " ").trim();
   if (oneLine.length <= maxLen) return oneLine;
   return `${oneLine.slice(0, maxLen)}…`;
+}
+
+function TeleprompterCodeView({ content }: { content: string }) {
+  const { code, language } = useMemo(
+    () => extractCodeBlockContent(content),
+    [content],
+  );
+  const lineCount = code.split("\n").length;
+
+  if (!code.trim()) {
+    return (
+      <span className="text-zinc-500">(código vazio)</span>
+    );
+  }
+
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-white/10 bg-[#1a1b26] shadow-lg shadow-black/40">
+      <div className="flex items-center justify-between border-b border-white/10 bg-[#13141c] px-4 py-2">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
+        </div>
+        <span className="font-mono text-[11px] uppercase tracking-wide text-zinc-500">
+          {language}
+        </span>
+      </div>
+      <div className="overflow-x-auto p-1 sm:p-2">
+        <SyntaxHighlighter
+          language={language}
+          style={oneDark}
+          PreTag="div"
+          customStyle={{
+            margin: 0,
+            padding: "1rem 1.25rem",
+            background: "transparent",
+            fontSize: "1.05rem",
+            lineHeight: 1.65,
+            textAlign: "left",
+          }}
+          codeTagProps={{
+            style: {
+              fontFamily:
+                '"JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace',
+            },
+          }}
+          showLineNumbers={lineCount > 1}
+          wrapLongLines
+        >
+          {code}
+        </SyntaxHighlighter>
+      </div>
+    </div>
+  );
 }
 
 interface ScriptTeleprompterProps {
@@ -138,18 +195,23 @@ function ScriptTeleprompter({
         ref={scrollRef}
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
       >
-        <div
-          className={[
-            "mx-auto w-full max-w-4xl px-6 pt-10 pb-16 sm:px-12 sm:pt-12 sm:pb-20",
-            "whitespace-pre-wrap text-center leading-relaxed",
-            activeBlock.type === "CODIGO"
-              ? "font-mono text-xl sm:text-2xl"
-              : "text-2xl sm:text-3xl md:text-4xl",
-            activeBlock.type === "PAUSA" ? "text-zinc-400 italic" : "text-zinc-100",
-          ].join(" ")}
-        >
-          {activeBlock.content.trim() || (
-            <span className="text-zinc-500">(pausa — sem texto)</span>
+        <div className="mx-auto w-full max-w-5xl px-6 pt-10 pb-16 sm:px-12 sm:pt-12 sm:pb-20">
+          {activeBlock.type === "CODIGO" ? (
+            <TeleprompterCodeView content={activeBlock.content} />
+          ) : (
+            <div
+              className={[
+                "whitespace-pre-wrap text-center leading-relaxed",
+                "text-2xl sm:text-3xl md:text-4xl",
+                activeBlock.type === "PAUSA"
+                  ? "text-zinc-400 italic"
+                  : "text-zinc-100",
+              ].join(" ")}
+            >
+              {activeBlock.content.trim() || (
+                <span className="text-zinc-500">(pausa — sem texto)</span>
+              )}
+            </div>
           )}
         </div>
       </main>
