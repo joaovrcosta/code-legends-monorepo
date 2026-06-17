@@ -18,7 +18,7 @@ export type CareerTrack = {
 
 export function CareerTracksSection({ tracks }: { tracks: CareerTrack[] }) {
   return (
-    <div className="relative">
+    <div className="relative min-w-0 overflow-x-hidden">
       <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
 
       <Carousel opts={{ align: 'start' }}>

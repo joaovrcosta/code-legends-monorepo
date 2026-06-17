@@ -7,7 +7,7 @@ import { NewContentCard } from './new-content-card'
 
 export function NewContentCaroussel() {
   return (
-    <div className="relative">
+    <div className="relative min-w-0 overflow-x-hidden">
       {/* Fade esquerda */}
       <div className="pointer-events-none absolute left-0 top-0 h-full xl:w-12 w-0 bg-gradient-to-r from-surface to-transparent z-10" />
 
@@ -20,7 +20,7 @@ export function NewContentCaroussel() {
             <CarouselItem
               key={index}
               className={`lg:basis-[90%] basis-[85%] lg:pr-4 pr-2 ${
-                index === 0 ? 'lg:pl-[100px] pl-4' : 'pl-4'
+                index === 0 ? 'lg:pl-20 pl-4' : 'pl-4'
               }`}
             >
               <NewContentCard />

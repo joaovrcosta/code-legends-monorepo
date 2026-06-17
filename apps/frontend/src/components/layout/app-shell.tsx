@@ -51,7 +51,7 @@ export function AppShell({
         )}
 
         <div className="min-h-0 flex-1 overflow-y-auto pt-0 pb-20 lg:pb-4">
-          <main className="w-full">{children}</main>
+          <main className="w-full min-w-0">{children}</main>
           <FooterFixed
             initialUserCourses={initialUserCourses}
             initialActiveCourse={initialActiveCourse}

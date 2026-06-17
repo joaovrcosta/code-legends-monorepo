@@ -50,7 +50,7 @@ export function CarouselSection({
           ? false
           : undefined
   return (
-    <div className="relative">
+    <div className="relative min-w-0 overflow-x-hidden overflow-y-visible">
       <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-surface to-transparent z-10" />
 
       <Carousel>

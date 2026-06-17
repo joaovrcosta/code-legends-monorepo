@@ -137,6 +137,7 @@ interface RecomendationCardProps {
     position?: 'first' | 'middle' | 'last'
     isFreeUser?: boolean
     progress?: number
+    variant?: 'carousel' | 'grid'
 }
 
 export function CatalogCard({
@@ -153,8 +154,10 @@ export function CatalogCard({
     position = 'middle',
     isFreeUser,
     progress = 0,
+    variant = 'carousel',
 }: RecomendationCardProps) {
     const { label, className: statusClass } = getStatusInfo(status)
+    const isGrid = variant === 'grid'
     const transformOriginClass =
         position === 'first'
             ? 'origin-left'
@@ -164,10 +167,12 @@ export function CatalogCard({
     return (
         <Link href={url} className="block h-full group">
             <div
-                className={`relative z-0 overflow-hidden w-full md:w-[314px] md:max-w-[314px] h-full flex flex-col rounded-[16px] border shadow-2xl cursor-pointer
+                className={`relative z-0 overflow-hidden w-full h-full flex flex-col rounded-[16px] border shadow-2xl cursor-pointer
     transition-transform duration-300 ease-out
-    md:hover:z-20 md:hover:-translate-y-3 md:hover:scale-[1.08] md:hover:border-[#3f3f48]
-    md:hover:shadow-[0_30px_60px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06),inset_0_-24px_24px_rgba(255,255,255,0.03)]
+    ${isGrid
+        ? 'md:hover:-translate-y-1 md:hover:border-[#3f3f48]'
+        : `md:w-[314px] md:max-w-[314px] md:hover:z-20 md:hover:-translate-y-3 md:hover:scale-[1.08] md:hover:border-[#3f3f48]
+    md:hover:shadow-[0_30px_60px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06),inset_0_-24px_24px_rgba(255,255,255,0.03)]`}
     ${isCurrent
                         ? 'bg-blue-gradient-second border-[#35BED5]'
                         : 'bg-gray-gradient border-[#25252A]'
