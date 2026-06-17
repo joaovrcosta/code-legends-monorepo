@@ -9,11 +9,11 @@ import { Plus } from "lucide-react";
 export function NewContentCard() {
   return (
     <>
-      <div className="bg-gray-gradient border border-[#25252A] rounded-[16px] mb-4 flex max-h-[400px] lg:h-full overflow-hidden shadow-xl min-w-0 w-full">
+      <div className="bg-gray-gradient border border-[#25252A] rounded-[16px] flex max-h-[400px] lg:h-full overflow-hidden shadow-lg min-w-0 w-full">
         {/* Lado esquerdo */}
         <div className="relative lg:px-8 px-4 lg:pb-8 pb-4 lg:pt-4 pt-2 flex flex-col justify-between">
-          {/* Fade direito */}
-          <div className="pointer-events-none absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-surface to-transparent z-10" />
+          {/* Fade entre texto e imagem — só no desktop */}
+          <div className="pointer-events-none absolute top-0 right-0 hidden h-full w-12 bg-gradient-to-l from-[#151518] to-transparent lg:block" />
 
           <div>
             <Image src={genesisIcon} alt="" className="-ml-5" />
@@ -53,9 +53,8 @@ export function NewContentCard() {
 
         {/* Lado direito */}
 
-        <div className="flex-shrink-0 lg:w-[50%] w-[0%] h-full relative">
-          {/* Fade esquerda */}
-          <div className="pointer-events-none absolute left-0 top-0 h-full w-12 bg-gradient-to-r from-surface to-transparent z-10" />
+        <div className="relative hidden h-full w-[50%] flex-shrink-0 lg:block">
+          <div className="pointer-events-none absolute left-0 top-0 h-full w-12 bg-gradient-to-r from-[#151518] to-transparent" />
 
           <Image
             src={genesisBackground}

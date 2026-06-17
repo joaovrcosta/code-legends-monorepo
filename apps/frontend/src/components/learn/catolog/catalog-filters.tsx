@@ -115,6 +115,7 @@ export function CatalogFilters({
             className="flex cursor-pointer items-center gap-3"
           >
             <Checkbox
+              className="h-5 w-5"
               id={`level-${option.value}`}
               checked={filters.levels.includes(option.value)}
               onCheckedChange={() => toggleLevel(option.value)}
@@ -142,6 +143,7 @@ export function CatalogFilters({
             className="flex cursor-pointer items-center gap-3"
           >
             <Checkbox
+              className="h-5 w-5"
               id={`price-${option.value}`}
               checked={filters.prices.includes(option.value)}
               onCheckedChange={() => togglePrice(option.value)}
@@ -159,6 +161,7 @@ export function CatalogFilters({
             className="flex cursor-pointer items-center gap-3"
           >
             <Checkbox
+              className="h-5 w-5"
               id={`type-${option.value}`}
               checked={filters.types.includes(option.value)}
               onCheckedChange={() => toggleType(option.value)}

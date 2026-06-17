@@ -69,7 +69,7 @@ export function CatalogPageClient({ courses, tracks }: CatalogPageClientProps) {
   }
 
   return (
-    <div className="w-full min-w-0 lg:pl-20 pl-4 pr-4 lg:pr-6">
+    <div className="w-full min-w-0">
       {/* Mobile filter trigger */}
       <div className="mb-4 flex items-center justify-between lg:hidden">
         <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>

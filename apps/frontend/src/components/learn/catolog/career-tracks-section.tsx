@@ -18,15 +18,13 @@ export type CareerTrack = {
 
 export function CareerTracksSection({ tracks }: { tracks: CareerTrack[] }) {
   return (
-    <div className="relative min-w-0 overflow-x-hidden">
-      <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
-
+    <div className="relative min-w-0">
       <Carousel opts={{ align: 'start' }}>
-        <CarouselContent className="w-full ml-0 gap-4">
+        <CarouselContent className="-ml-4">
           {tracks.map((t) => (
             <CarouselItem
               key={t.id}
-              className="pl-0 basis-[92%] sm:basis-[420px] lg:basis-[520px]"
+              className="basis-[92%] pl-4 sm:basis-[420px] lg:basis-[520px]"
             >
               <CareerTrackCard
                 title={t.title}
