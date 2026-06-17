@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   LessonWithStructure,
   ModuleWithStructure,
@@ -80,6 +80,25 @@ export interface LessonEditViewProps {
   variant?: 'modal' | 'page'
   active?: boolean
   breadcrumb?: LessonBreadcrumbContext
+}
+
+function mergeLessonPropPreservingContent(
+  prev: LessonWithStructure,
+  next: LessonWithStructure,
+): LessonWithStructure {
+  if (prev.id !== next.id) return next
+
+  const nextHasArticleBody = Boolean((next.article?.body ?? '').trim())
+  const nextHasQuiz =
+    Array.isArray(next.quiz?.content) && next.quiz.content.length > 0
+  const nextHasProject = Boolean(next.project)
+
+  return {
+    ...next,
+    article: nextHasArticleBody ? next.article : (prev.article ?? next.article),
+    quiz: nextHasQuiz ? next.quiz : (prev.quiz ?? next.quiz),
+    project: nextHasProject ? next.project : (prev.project ?? next.project),
+  }
 }
 
 function formatVideoNeighborBlock(
@@ -174,12 +193,29 @@ export function LessonEditView({
     resolvedLesson.quiz?.content ?? [],
   )
 
+  const lessonRef = useRef(lesson)
+  lessonRef.current = lesson
+
+  const onLessonContentLoadedRef = useRef(onLessonContentLoaded)
+  onLessonContentLoadedRef.current = onLessonContentLoaded
+
+  const fetchedContentLessonIdRef = useRef<number | null>(null)
+
   useEffect(() => {
-    setResolvedLesson(lesson)
+    setResolvedLesson((prev) => mergeLessonPropPreservingContent(prev, lesson))
   }, [lesson])
 
   useEffect(() => {
-    if (!active || !lessonNeedsContentLoad(lesson)) {
+    if (!active) return
+
+    const lessonId = lesson.id
+
+    if (fetchedContentLessonIdRef.current === lessonId) {
+      return
+    }
+
+    if (!lessonNeedsContentLoad(lesson)) {
+      fetchedContentLessonIdRef.current = lessonId
       return
     }
 
@@ -191,12 +227,15 @@ export function LessonEditView({
         const token = getAuthTokenFromClient()
         if (!token) return
 
-        const detail = await getLessonById(lesson.id, token)
+        const currentLesson = lessonRef.current
+        const detail = await getLessonById(lessonId, token)
         if (cancelled || !detail) return
 
-        const merged = mergeLessonDetailIntoLesson(lesson, detail)
+        fetchedContentLessonIdRef.current = lessonId
+
+        const merged = mergeLessonDetailIntoLesson(currentLesson, detail)
         setResolvedLesson(merged)
-        onLessonContentLoaded?.(merged)
+        onLessonContentLoadedRef.current?.(merged)
       } catch (error) {
         console.error('Erro ao carregar conteúdo da aula:', error)
         toast.error('Erro ao carregar conteúdo da aula')
@@ -212,7 +251,7 @@ export function LessonEditView({
     return () => {
       cancelled = true
     }
-  }, [active, lesson, onLessonContentLoaded])
+  }, [active, lesson.id])
 
   useEffect(() => {
     if (active) {
