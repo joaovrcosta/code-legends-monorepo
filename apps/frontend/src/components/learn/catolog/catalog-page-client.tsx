@@ -15,7 +15,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import {
-  DEFAULT_CATALOG_FILTERS,
   countActiveFilters,
   filterCareerTracks,
   filterCourses,
@@ -28,6 +27,8 @@ import {
 type CatalogPageClientProps = {
   courses: CourseWithCount[]
   tracks: CareerTrack[]
+  filters: CatalogFiltersState
+  onFiltersChange: (filters: CatalogFiltersState) => void
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -40,10 +41,12 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function CatalogPageClient({ courses, tracks }: CatalogPageClientProps) {
-  const [filters, setFilters] = useState<CatalogFiltersState>(
-    DEFAULT_CATALOG_FILTERS,
-  )
+export function CatalogPageClient({
+  courses,
+  tracks,
+  filters,
+  onFiltersChange,
+}: CatalogPageClientProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
   const activeFilterCount = countActiveFilters(filters)
@@ -65,7 +68,7 @@ export function CatalogPageClient({ courses, tracks }: CatalogPageClientProps) {
   const resultCount = filteredCourses.length + filteredTracks.length
 
   const handleFiltersChange = (next: CatalogFiltersState) => {
-    setFilters(next)
+    onFiltersChange(next)
   }
 
   return (

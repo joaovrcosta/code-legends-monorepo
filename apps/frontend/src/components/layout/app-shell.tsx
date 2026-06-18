@@ -42,7 +42,7 @@ export function AppShell({
 
       <div
         // O seu calc() está perfeito aqui, desde que o CSS esteja usando 0px nas variáveis!
-        className="flex min-h-0 flex-1 pt-[calc(var(--header-height-mobile)+var(--top-banner-height)+var(--header-top-offset))] lg:pt-[calc(var(--header-height-desktop)+var(--top-banner-height)+var(--header-top-offset))]"
+        className="flex min-h-0 min-w-0 flex-1 pt-[calc(var(--header-height-mobile)+var(--top-banner-height)+var(--header-top-offset))] lg:pt-[calc(var(--header-height-desktop)+var(--top-banner-height)+var(--header-top-offset))]"
       >
         {showSidebar && (
           <div className="hidden h-full min-h-0 max-w-64 flex-shrink-0 overflow-hidden lg:block">
@@ -50,7 +50,7 @@ export function AppShell({
           </div>
         )}
 
-        <div className="min-h-0 flex-1 overflow-y-auto pt-0 pb-20 lg:pb-4">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto pt-0 pb-20 lg:pb-4">
           <main className="w-full min-w-0">{children}</main>
           <FooterFixed
             initialUserCourses={initialUserCourses}
