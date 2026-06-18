@@ -9,6 +9,10 @@ import { NewContentCard } from './new-content-card'
 
 const SLIDES = [1, 2, 3, 4, 5]
 
+/** Largura do 1º slide — manter em sync com o header de filtros */
+export const NOVIDADES_FIRST_SLIDE_WIDTH_CLASS = 'max-w-[92.5%]' as const
+export const NOVIDADES_SLIDE_BASIS_CLASS = 'basis-[92.5%]' as const
+
 export function NewContentCaroussel() {
   return (
     <div className="relative w-full min-w-0">
@@ -27,7 +31,7 @@ export function NewContentCaroussel() {
             {SLIDES.map((item) => (
               <CarouselItem
                 key={item}
-                className="basis-[92.5%] pl-4 sm:basis-[92.5%] lg:basis-[92.5%]"
+                className={`${NOVIDADES_SLIDE_BASIS_CLASS} pl-4`}
               >
                 <NewContentCard />
               </CarouselItem>

@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useCallback, useRef, useState } from 'react'
-import { NewContentCaroussel } from '@/components/learn/catolog/new-content-caroussel'
+import { NewContentCaroussel, NOVIDADES_FIRST_SLIDE_WIDTH_CLASS } from '@/components/learn/catolog/new-content-caroussel'
 import { CategoriesCarousel } from '@/components/learn/catolog/categories-carousel'
 import {
   CareerTracksSection,
@@ -68,10 +68,10 @@ export function CatalogPageContent({ courses, tracks }: CatalogPageContentProps)
         filters={filters}
         onFiltersChange={setFilters}
         tracks={tracks}
-        className="pr-4 lg:pr-6"
+        className={NOVIDADES_FIRST_SLIDE_WIDTH_CLASS}
       />
 
-      <div ref={novidadesRef} className="w-full">
+      <div ref={novidadesRef} className="w-full mb-12">
         <CatalogSectionLabel>Novidades</CatalogSectionLabel>
         <div className="relative w-full min-w-0">
           <NewContentCaroussel />
@@ -80,7 +80,7 @@ export function CatalogPageContent({ courses, tracks }: CatalogPageContentProps)
 
       <div className="w-full">
         <CatalogSectionLabel>Categorias</CatalogSectionLabel>
-        <div className="relative w-full min-w-0 overflow-hidden pb-4">
+        <div className="relative w-full min-w-0 overflow-hidden pb-12">
           <CategoriesCarousel />
         </div>
       </div>

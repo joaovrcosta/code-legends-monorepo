@@ -20,7 +20,7 @@ export function NewContentCard() {
 
       <div className="relative z-10 flex h-full flex-1 flex-col justify-between px-5 py-6 lg:px-8 lg:py-8">
         <div>
-          <h3 className="text-[24px] font-semibold text-white lg:text-[22px]">
+          <h3 className="text-[24px] font-semibold text-white lg:text-[24px]">
             Code Genesis
           </h3>
           <p className="mt-2 max-w-[480px] text-base leading-relaxed text-[#a1a1aa] line-clamp-2 lg:line-clamp-none">
