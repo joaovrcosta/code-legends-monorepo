@@ -3,6 +3,11 @@ import { Button } from '@/components/ui/button'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
+import { ClassroomSidebarAside } from '@/components/classroom/classroom-sidebar-aside'
+import {
+  classroomContentOffset,
+  classroomFooterOffset,
+} from '@/lib/classroom-sidebar-layout'
 import { Menu, X } from 'lucide-react'
 import { LessonContent } from '@/components/classroom/lesson-content'
 import { LevelProgressBar } from '@/components/learn/level-progress-bar'
@@ -370,34 +375,26 @@ export default function ClassroomPage() {
 
     return (
       <div className="flex h-[100dvh] w-full">
-        <aside
-          className={`hidden lg:block fixed left-0 top-[78px] bg-surface border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
-            }`}
+        <ClassroomSidebarAside
+          title="Aulas"
+          titleClassName="text-sm font-semibold text-[#C4C4CC]"
+          headerClassName="border-b border-[#25252A] bg-[#060607]"
+          showBorder
         >
-          {isSidebarOpen && (
-            <div className="h-full flex flex-col w-[378px]">
-              <div className="p-4 border-b border-[#25252A] bg-[#060607]">
-                <h2 className="text-sm font-semibold text-[#C4C4CC]">Aulas</h2>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                <LessonsList
-                  lessons={
-                    allLessonsFromRoadmap.length > 0
-                      ? allLessonsFromRoadmap
-                      : lessons
-                  }
-                  currentLessonId={undefined}
-                  roadmap={roadmap}
-                />
-              </div>
-            </div>
-          )}
-        </aside>
+          <LessonsList
+            lessons={
+              allLessonsFromRoadmap.length > 0
+                ? allLessonsFromRoadmap
+                : lessons
+            }
+            currentLessonId={undefined}
+            roadmap={roadmap}
+          />
+        </ClassroomSidebarAside>
 
         <div
           className={`flex-1 w-full bg-blue-aurora
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-[margin-left] duration-300 ease-in-out pt-[111px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
-            }`}
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col pt-[111px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
             <div className="flex items-center justify-between w-full px-4">
@@ -424,32 +421,23 @@ export default function ClassroomPage() {
 
   return (
     <div className="flex h-[100dvh] w-full">
-      {/* Sidebar com lista de aulas - apenas no desktop */}
-      <aside
-        className={`hidden lg:block fixed left-0 top-[78px] bg-surface border-r border-[#25252A] flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
-          }`}
+      <ClassroomSidebarAside
+        title="Aulas"
+        titleClassName="text-sm font-semibold text-[#C4C4CC]"
+        headerClassName="border-b border-[#25252A] bg-[#060607]"
+        showBorder
       >
-        {isSidebarOpen && (
-          <div className="h-full flex flex-col w-[378px]">
-            <div className="p-4 border-b border-[#25252A] bg-[#060607]">
-              <h2 className="text-sm font-semibold text-[#C4C4CC]">Aulas</h2>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <LessonsList
-                lessons={lessons}
-                currentLessonId={currentLesson?.id}
-                roadmap={roadmap}
-              />
-            </div>
-          </div>
-        )}
-      </aside>
+        <LessonsList
+          lessons={lessons}
+          currentLessonId={currentLesson?.id}
+          roadmap={roadmap}
+        />
+      </ClassroomSidebarAside>
 
       {/* Conteúdo principal */}
       <div
         className={`flex-1 w-full bg-blue-aurora
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-[margin-left] duration-300 ease-in-out pt-[110px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
-          }`}
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
       >
 
         {/* Conteúdo */}
@@ -464,8 +452,7 @@ export default function ClassroomPage() {
         )}
 
         <footer
-          className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 transition-[margin-left] duration-300 ease-in-out ${isSidebarOpen ? 'lg:left-[378px]' : 'lg:left-0'
-            }`}
+          className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 ${classroomFooterOffset(isSidebarOpen)}`}
         >
           <div className="flex justify-between w-full m-0 p-0">
             <Button

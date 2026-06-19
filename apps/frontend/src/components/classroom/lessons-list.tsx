@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/accordion'
 import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { Skeleton } from '@/components/skeleton'
-import { CheckCircleIcon, CheckFatIcon } from '@phosphor-icons/react/dist/ssr'
 import { CheckIcon } from '@phosphor-icons/react'
 
 function getLessonMeta(lesson: Lesson) {
@@ -208,18 +207,18 @@ export const LessonsList = memo(function LessonsList({
               className="border-b border-zinc-900 last:border-b-0"
             >
               <AccordionTrigger className="sticky top-0 z-10 bg-surface py-4 hover:no-underline border-b border-transparent [&[data-state=open]]:border-zinc-800 [&[data-state=open]>svg]:rotate-180">
-                <div className="flex items-center gap-3 text-left">
+                <div className="flex min-w-0 flex-1 items-center gap-3 text-left">
                   <ProgressRing
                     progress={progress}
                     moduleNumber={moduleIndex + 1}
                     isCurrent={isCurrentModule}
                   />
-                  <div className="flex flex-col items-start gap-0.5">
+                  <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
                     <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
                       Level {String(moduleIndex + 1).padStart(2, '0')}
                     </span>
                     <span
-                      className={`font-bold text-[16px] ${isCurrentModule
+                      className={`w-full truncate font-bold text-[16px] ${isCurrentModule
                         ? 'bg-blue-gradient-500 bg-clip-text text-transparent'
                         : 'text-zinc-200'
                         }`}
@@ -242,11 +241,11 @@ export const LessonsList = memo(function LessonsList({
                           <div className="absolute left-[11px] top-8 bottom-[-24px] w-[2px] bg-zinc-800/50 z-0" />
                         )}
 
-                        <div className="relative z-10 flex items-center gap-4 mb-2">
-                          <div className="relative flex items-center justify-center w-6 h-6 rounded-full bg-zinc-900 border-2 border-zinc-700 shadow-sm shrink-0">
-                            <div className="w-2 h-2 rounded-full bg-zinc-500" />
+                        <div className="relative z-10 mb-2 flex min-w-0 items-center gap-4">
+                          <div className="relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-zinc-700 bg-zinc-900">
+                            <div className="h-2 w-2 rounded-full bg-zinc-500" />
                           </div>
-                          <h3 className="text-base font-semibold text-zinc-200">
+                          <h3 className="min-w-0 flex-1 truncate text-base font-semibold text-zinc-200">
                             {group.title}
                           </h3>
                         </div>
@@ -280,14 +279,17 @@ export const LessonsList = memo(function LessonsList({
 
                                   <button
                                     onClick={() => handleLessonClick(lesson, lessonIndexInAll)}
-                                    className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${isActive ? 'bg-zinc-800/50 shadow-xl' : 'hover:bg-zinc-800/30'
+                                    className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${isActive ? 'bg-zinc-800/50' : 'hover:bg-zinc-800/30'
                                       } ${isFreePlan && isPaidLesson ? 'opacity-50' : ''}`}
                                   >
                                     {lesson.status === 'completed' ? (
-                                      <CheckIcon
-                                        size={20}
-                                        className="shrink-0 text-[#278b4d]"
-                                      />
+                                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#278b4d]">
+                                        <CheckIcon
+                                          size={12}
+                                          weight="bold"
+                                          className="text-white"
+                                        />
+                                      </span>
                                     ) : (
                                       <Circle
                                         size={20}
@@ -309,7 +311,7 @@ export const LessonsList = memo(function LessonsList({
                                         {lesson.title}
                                       </span>
                                       <span
-                                        className={`text-xs tabular-nums ${isActive ? 'text-cyan-400/80' : 'text-zinc-500'
+                                        className={`truncate text-xs tabular-nums ${isActive ? 'text-slate-500' : 'text-zinc-500'
                                           }`}
                                       >
                                         {getLessonMeta(lesson)}
@@ -319,8 +321,8 @@ export const LessonsList = memo(function LessonsList({
                                     {userPlan === 'FREE' && (
                                       <span
                                         className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide rounded-full h-[24px] w-[24px] flex items-center justify-center ${lesson.isFree
-                                          ? 'bg-lime-500/10 text-lime-400 border border-lime-500/20'
-                                          : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                          ? 'bg-lime-500/10 text-lime-400'
+                                          : 'bg-purple-500/10 text-purple-400'
                                           }`}
                                       >
                                         {lesson.isFree ? 'G' : 'P'}

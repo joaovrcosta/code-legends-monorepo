@@ -3,8 +3,6 @@
 import Image from 'next/image'
 import codeLegendsLogo from '../../../public/code-legends-logo.svg'
 import Link from 'next/link'
-import { Menu } from 'lucide-react'
-import useClassroomSidebarStore from '@/stores/classroom-sidebar'
 import { Lightning, SkipBack, SkipForward } from '@phosphor-icons/react/dist/ssr'
 import codeLegendsLogoMobile from '../../../public/logo-mobile.png'
 import { UserDropdown } from '../user-dropdown'
@@ -48,7 +46,6 @@ export default function ClassroomHeader({
   const userPlan = (session?.user as { plan?: string } | undefined)?.plan
   const showLessonLightning = userPlan === 'FREE'
 
-  const { toggleSidebar } = useClassroomSidebarStore()
   const { activeCourse, setActiveCourse } = useActiveCourseStore()
   const { currentLesson, exclusiveAccessBlocked } = useCourseModalStore()
   const pathname = usePathname()
@@ -176,13 +173,6 @@ export default function ClassroomHeader({
       <header className="fixed top-0 left-0 w-full z-40 bg-surface shadow-lg lg:py-0 pb-0">
         <ul className="relative z-10 mx-auto flex w-full items-center justify-between px-4 py-2 lg:pt-4 lg:pb-4">
           <li className="flex items-center lg:space-x-6">
-            <button
-              onClick={toggleSidebar}
-              className="text-white p-1 border border-[#25252a] rounded-lg lg:block hidden hover:bg-[#25252a] transition-colors duration-150 ease-in-out"
-            >
-              <Menu size={24} />
-            </button>
-
             <div className="flex items-center space-x-4">
               <div>
                 <Link href="/">

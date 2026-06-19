@@ -25,6 +25,8 @@ import { LessonsAccordion } from '@/components/learn/lessons-accordion'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
+import { ClassroomSidebarAside } from '@/components/classroom/classroom-sidebar-aside'
+import { classroomContentOffset } from '@/lib/classroom-sidebar-layout'
 import type { RoadmapResponse } from '@/types/roadmap'
 import { appendCourseIdToClassroomHref } from '@/utils/lesson-url'
 import { useClassroomAutoplayStore } from '@/stores/classroom-autoplay-store'
@@ -385,18 +387,91 @@ export default function DynamicLessonPage() {
   if (isLoading) {
     return (
       <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-78px)]">
-        <aside
-          className={`hidden lg:block fixed left-0 top-[78px] bg-surface flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
-            }`}
-        >
-          {isSidebarOpen && (
-            <div className="h-full flex flex-col w-[378px]">
-              <div className="p-4 bg-surface">
-                <h2 className="text-[20px] font-semibold text-[#C4C4CC]">
-                  Trilha
-                </h2>
+        <ClassroomSidebarAside>
+          <div className="space-y-4 px-4 py-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="space-y-3 border-b border-zinc-900 pb-4 last:border-b-0"
+              >
+                <div className="flex items-center gap-3">
+                  <Skeleton
+                    variant="circular"
+                    width={44}
+                    height={44}
+                    className="shrink-0 dark:bg-zinc-800"
+                  />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton
+                      variant="text"
+                      width="30%"
+                      className="h-3 dark:bg-zinc-800"
+                    />
+                    <Skeleton
+                      variant="text"
+                      width="70%"
+                      className="h-4 dark:bg-zinc-800"
+                    />
+                  </div>
+                </div>
+                <div className="pl-11 space-y-2">
+                  <Skeleton
+                    variant="text"
+                    width="100%"
+                    className="h-3 dark:bg-zinc-800"
+                  />
+                  <Skeleton
+                    variant="text"
+                    width="90%"
+                    className="h-3 dark:bg-zinc-800"
+                  />
+                  <Skeleton
+                    variant="text"
+                    width="95%"
+                    className="h-3 dark:bg-zinc-800"
+                  />
+                </div>
               </div>
-              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+            ))}
+          </div>
+        </ClassroomSidebarAside>
+        <div
+          className={`flex-1 w-full min-h-[calc(100dvh-63px)] lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)] bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)] text-white flex flex-col pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
+        >
+          <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
+            <div className="flex items-center justify-between w-full px-4">
+              <Link href="/learn">
+                <X size={32} className="text-white cursor-pointer" />
+              </Link>
+            </div>
+          </header>
+          <div className="flex flex-1 items-center justify-center">
+            <Loading className="flex-1" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const isUpgradeRequired =
+    upgradeRequired ||
+    (error?.toLowerCase().includes('exclusivo') ?? false) ||
+    (error?.toLowerCase().includes('assinantes') ?? false) ||
+    (error?.toLowerCase().includes('upgrade') ?? false)
+
+  if (isUpgradeRequired && (activeCourse || courseIdFromUrl)) {
+    return (
+      <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-78px)]">
+        <ClassroomSidebarAside>
+          {roadmap ? (
+            <LessonsList
+              lessons={allLessons}
+              roadmap={roadmap}
+              courseId={classroomCourseId}
+            />
+          ) : (
+            <div className="flex items-center justify-center p-4">
+              <div className="w-full space-y-4 px-2">
                 {[1, 2, 3].map((i) => (
                   <div
                     key={i}
@@ -444,113 +519,12 @@ export default function DynamicLessonPage() {
               </div>
             </div>
           )}
-        </aside>
-        <div
-          className={`flex-1 w-full min-h-[calc(100dvh-63px)] lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)] bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)] text-white flex flex-col transition-all duration-300 ease-in-out pt-[110px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
-            }`}
-        >
-          <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
-            <div className="flex items-center justify-between w-full px-4">
-              <Link href="/learn">
-                <X size={32} className="text-white cursor-pointer" />
-              </Link>
-            </div>
-          </header>
-          <div className="flex flex-1 items-center justify-center">
-            <Loading className="flex-1" />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const isUpgradeRequired =
-    upgradeRequired ||
-    (error?.toLowerCase().includes('exclusivo') ?? false) ||
-    (error?.toLowerCase().includes('assinantes') ?? false) ||
-    (error?.toLowerCase().includes('upgrade') ?? false)
-
-  if (isUpgradeRequired && (activeCourse || courseIdFromUrl)) {
-    return (
-      <div className="flex h-[100dvh] w-full min-h-[calc(100dvh-78px)]">
-        <aside
-          className={`hidden lg:block fixed left-0 top-[78px] bg-surface flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
-            }`}
-        >
-          {isSidebarOpen && (
-            <div className="h-full flex flex-col w-[378px]">
-              <div className="p-4 bg-surface">
-                <h2 className="text-[20px] font-semibold text-[#C4C4CC]">
-                  Trilha
-                </h2>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                {roadmap ? (
-                  <LessonsList
-                    lessons={allLessons}
-                    roadmap={roadmap}
-                    courseId={classroomCourseId}
-                  />
-                ) : (
-                  <div className="flex items-center justify-center p-4">
-                    <div className="w-full space-y-4 px-2">
-                      {[1, 2, 3].map((i) => (
-                        <div
-                          key={i}
-                          className="space-y-3 border-b border-zinc-900 pb-4 last:border-b-0"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Skeleton
-                              variant="circular"
-                              width={44}
-                              height={44}
-                              className="shrink-0 dark:bg-zinc-800"
-                            />
-                            <div className="flex-1 space-y-2">
-                              <Skeleton
-                                variant="text"
-                                width="30%"
-                                className="h-3 dark:bg-zinc-800"
-                              />
-                              <Skeleton
-                                variant="text"
-                                width="70%"
-                                className="h-4 dark:bg-zinc-800"
-                              />
-                            </div>
-                          </div>
-                          <div className="pl-11 space-y-2">
-                            <Skeleton
-                              variant="text"
-                              width="100%"
-                              className="h-3 dark:bg-zinc-800"
-                            />
-                            <Skeleton
-                              variant="text"
-                              width="90%"
-                              className="h-3 dark:bg-zinc-800"
-                            />
-                            <Skeleton
-                              variant="text"
-                              width="95%"
-                              className="h-3 dark:bg-zinc-800"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </aside>
+        </ClassroomSidebarAside>
 
         <div
           className={`flex-1 w-full min-h-0 flex flex-col lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)]
-             text-white shadow-2xl shadow-[#00C8FF]/10 transition-all duration-300 ease-in-out pt-[110px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
-            }`}
+             text-white shadow-2xl shadow-[#00C8FF]/10 pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
             <div className="flex items-center justify-between w-full px-4">
@@ -603,34 +577,19 @@ export default function DynamicLessonPage() {
 
   return (
     <div className="flex h-[100dvh] w-full">
-      <aside
-        className={`hidden lg:block fixed left-0 top-[78px] bg-surface flex-shrink-0 h-[calc(100dvh-63px)] overflow-hidden z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[378px]' : 'w-0'
-          }`}
-      >
-        {isSidebarOpen && (
-          <div className="h-full flex flex-col w-[378px]">
-            <div className="p-4 bg-surface">
-              <h2 className="text-[20px] font-semibold text-[#C4C4CC]">
-                Trilha
-              </h2>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <LessonsList
-                lessons={allLessons}
-                currentLessonId={lessonData.lesson.id}
-                roadmap={roadmap}
-                courseId={classroomCourseId}
-              />
-            </div>
-          </div>
-        )}
-      </aside>
+      <ClassroomSidebarAside>
+        <LessonsList
+          lessons={allLessons}
+          currentLessonId={lessonData.lesson.id}
+          roadmap={roadmap}
+          courseId={classroomCourseId}
+        />
+      </ClassroomSidebarAside>
 
       <div
         className={`flex-1 w-full min-h-0 max-w-full overflow-x-hidden lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)]
              bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)]
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col transition-all duration-300 ease-in-out pt-[110px] lg:pt-0 ${isSidebarOpen ? 'lg:ml-[378px]' : 'lg:ml-0'
-          }`}
+             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
       >
         <header className="h-[78px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none mb-0 flex-shrink-0 lg:block hidden">
           <div className="flex items-center justify-between w-full px-4">
