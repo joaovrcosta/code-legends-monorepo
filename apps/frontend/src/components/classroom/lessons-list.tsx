@@ -124,7 +124,7 @@ export const LessonsList = memo(function LessonsList({
 
   if (!roadmap || organizedLessons.length === 0 || !currentModule) {
     return (
-      <div className="px-4 py-4 space-y-4">
+      <div className="py-4 space-y-4">
         {[1, 2, 3].map((i) => (
           <div
             key={i}
@@ -185,7 +185,7 @@ export const LessonsList = memo(function LessonsList({
       <Accordion
         type="multiple"
         defaultValue={defaultOpenModuleValue ? [defaultOpenModuleValue] : []}
-        className="px-4 pt-0 pb-4"
+        className="pt-0 pb-4"
       >
         {organizedLessons.map((moduleItem, moduleIndex) => {
           const moduleValue = `module-${moduleItem.id}`
