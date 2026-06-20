@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
 import {
@@ -25,6 +26,8 @@ type ClassroomSidebarAsideProps = {
 const PANEL_TRANSITION =
   'transition-[width,border-radius,box-shadow] duration-300 ease-in-out' as const
 
+const SCROLL_FADE_THRESHOLD = 8
+
 export function ClassroomSidebarAside({
   children,
   title = 'Conteúdo',
@@ -33,6 +36,22 @@ export function ClassroomSidebarAside({
   showBorder = false,
 }: ClassroomSidebarAsideProps) {
   const { isOpen, toggleSidebar } = useClassroomSidebarStore()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [showScrollFade, setShowScrollFade] = useState(false)
+
+  const updateScrollFade = useCallback(() => {
+    const scrollTop = scrollRef.current?.scrollTop ?? 0
+    setShowScrollFade(scrollTop > SCROLL_FADE_THRESHOLD)
+  }, [])
+
+  useEffect(() => {
+    if (!isOpen) {
+      setShowScrollFade(false)
+      return
+    }
+
+    updateScrollFade()
+  }, [isOpen, updateScrollFade])
 
   return (
     <aside
@@ -67,7 +86,7 @@ export function ClassroomSidebarAside({
         >
           <div
             className={cn(
-              'relative flex h-14 shrink-0 items-center bg-surface',
+              'relative z-20 flex h-14 shrink-0 items-center bg-surface',
               isOpen
                 ? cn(
                   'justify-end',
@@ -80,14 +99,23 @@ export function ClassroomSidebarAside({
             )}
           >
             {isOpen ? (
-              <h2
-                className={cn(
-                  titleClassName,
-                  'pointer-events-none absolute inset-y-0 left-3 flex items-center truncate opacity-100 transition-opacity duration-150 delay-300',
-                )}
-              >
-                {title}
-              </h2>
+              <>
+                <h2
+                  className={cn(
+                    titleClassName,
+                    'pointer-events-none absolute inset-y-0 left-3 flex items-center truncate opacity-100 transition-opacity duration-150 delay-300',
+                  )}
+                >
+                  {title}
+                </h2>
+                <div
+                  aria-hidden
+                  className={cn(
+                    'pointer-events-none absolute inset-x-0 top-full h-10 bg-gradient-to-b from-surface to-transparent transition-opacity duration-200',
+                    showScrollFade ? 'opacity-100' : 'opacity-0',
+                  )}
+                />
+              </>
             ) : null}
             <button
               type="button"
@@ -113,6 +141,8 @@ export function ClassroomSidebarAside({
             aria-hidden={!isOpen}
           >
             <div
+              ref={scrollRef}
+              onScroll={updateScrollFade}
               className={cn(
                 'h-full w-full min-w-0 scrollbar-thin',
                 CLASSROOM_SIDEBAR_SCROLL_CLASS,
