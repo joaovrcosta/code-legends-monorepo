@@ -15,6 +15,7 @@ import {
   isStreamableUrl,
   type VideoProviderHandlerKey,
 } from '@code-legends/video-providers'
+import { cn } from '@/lib/utils'
 
 interface VideoComponentProps {
   src?: string | null
@@ -247,7 +248,10 @@ export default function VideoComponent({
       {/* Player: container 16:9 com fundo preto; vídeo com object-contain para letterbox/pillarbox */}
       <div
         ref={containerRef}
-        className="relative w-full max-h-[570px] rounded-[20px] aspect-[16/9] overflow-hidden bg-black group shrink-0"
+        className={cn(
+          'relative w-full max-h-[570px] aspect-[16/9] overflow-hidden bg-black group shrink-0',
+          'rounded-[20px] lg:rounded-[12px]',
+        )}
       >
         {embedSrc ? (
           isDirectPlaybackUrl(src, handlerKey) ? (

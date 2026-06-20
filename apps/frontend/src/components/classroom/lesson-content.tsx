@@ -8,6 +8,11 @@ import type { Lesson } from '@/types/roadmap'
 import { memo } from 'react'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { SkillStatsOverview } from '@/components/classroom/skill-stats-overview'
+import {
+  CLASSROOM_CONTENT_INSET_CLASS,
+  CLASSROOM_CONTENT_PANEL_FULL_RADIUS_CLASS,
+  CLASSROOM_CONTENT_PANEL_TOP_RADIUS_CLASS,
+} from '@/lib/classroom-content-layout'
 
 interface LessonContentProps {
   lesson: Lesson
@@ -34,8 +39,12 @@ export const LessonContent = memo(function LessonContent({
   if (shouldShowStats) {
     return (
       <div className="mx-0 flex min-h-full w-full min-w-0 flex-1 flex-col">
-        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col border border-[#25252A] rounded-[20px] bg-surface px-0">
-          <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col px-3 pt-3 lg:px-4 lg:pt-4 pb-4 lg:pb-5">
+        <div
+          className={`flex min-h-0 w-full min-w-0 flex-1 flex-col border border-[#25252A] ${CLASSROOM_CONTENT_PANEL_FULL_RADIUS_CLASS} bg-surface px-0`}
+        >
+          <div
+            className={`flex min-h-0 w-full min-w-0 flex-1 flex-col px-3 pt-3 ${CLASSROOM_CONTENT_INSET_CLASS} pb-4 lg:pb-5`}
+          >
             <SkillStatsOverview />
           </div>
         </div>
@@ -45,8 +54,12 @@ export const LessonContent = memo(function LessonContent({
 
   return (
     <div className="mx-0 flex min-h-full w-full min-w-0 flex-1 flex-col">
-      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col border-0 bg-surface px-0 lg:rounded-t-[20px] lg:border lg:border-[#25252A] lg:border-b-0">
-        <div className="relative flex min-h-0 w-full min-w-0 flex-1 flex-col px-0 pt-0 lg:px-4 lg:pt-4 pb-3 lg:pb-4">
+      <div
+        className={`flex min-h-0 w-full min-w-0 flex-1 flex-col border-0 bg-surface px-0 ${CLASSROOM_CONTENT_PANEL_TOP_RADIUS_CLASS} lg:border lg:border-[#25252A] lg:border-b-0`}
+      >
+        <div
+          className={`relative flex min-h-0 w-full min-w-0 flex-1 flex-col px-0 pt-0 ${CLASSROOM_CONTENT_INSET_CLASS} pb-3 lg:pb-4`}
+        >
           {lesson?.type === 'video' && (
             <VideoComponent
               description={lesson.description}

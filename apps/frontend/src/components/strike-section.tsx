@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
 import { Skeleton } from './ui/skeleton'
+import { cn } from '@/lib/utils'
 
 const SAO_PAULO_TZ = 'America/Sao_Paulo'
 
@@ -66,6 +67,8 @@ type StrikeSectionProps = {
   current?: number
   best?: number
   totalActiveDays?: number
+  /** Sem borda no pill — usado no header da classroom */
+  variant?: 'default' | 'classroom'
 }
 
 type StreakState = {
@@ -87,7 +90,9 @@ export function StrikeSection({
   current: initialCurrent,
   best: initialBest,
   totalActiveDays: initialTotalActiveDays,
+  variant = 'default',
 }: StrikeSectionProps) {
+  const isClassroom = variant === 'classroom'
   const [isOpen, setIsOpen] = useState(false)
   const { data: session, status } = useSession()
   const [streak, setStreak] = useState<StreakState>(() => ({
@@ -290,14 +295,22 @@ export function StrikeSection({
       >
         <DropdownMenuTrigger asChild>
           <div
-            className={`flex items-center space-x-3 lg:border py-2 px-3 rounded-[20px] transition-colors ${showSkeleton
-              ? 'border-transparent lg:border-[#25252A] pointer-events-none select-none'
-              : isOpen
-                ? 'bg-[#25252A] border-sky-400/75'
-                : streak.current > 0
-                  ? 'lg:border-[#25252A] hover:bg-[#25252A] hover:border-sky-400/65'
-                  : 'lg:border-[#25252A] hover:bg-[#25252A] hover:border-sky-400/65'
-              }`}
+            className={cn(
+              'flex items-center space-x-3 py-2 px-3 rounded-[20px] transition-colors',
+              !isClassroom && 'lg:border',
+              showSkeleton
+                ? cn(
+                    'pointer-events-none select-none',
+                    !isClassroom && 'border-transparent lg:border-[#25252A]',
+                  )
+                : isOpen
+                  ? cn('bg-[#25252A]', !isClassroom && 'border-sky-400/75')
+                  : cn(
+                      'hover:bg-[#25252A]',
+                      !isClassroom &&
+                        'lg:border-[#25252A] hover:border-sky-400/65',
+                    ),
+            )}
             aria-busy={showSkeleton}
             aria-hidden={showSkeleton}
           >

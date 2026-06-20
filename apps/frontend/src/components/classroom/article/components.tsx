@@ -6,6 +6,7 @@ import { ArticlePlaygroundProvider, useArticlePlayground } from '@/contexts/arti
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
 import { useCompleteLesson } from '@/hooks/use-complete-lesson'
 import type { Lesson } from '@/types/roadmap'
+import { CLASSROOM_CONTENT_NESTED_RADIUS_CLASS } from '@/lib/classroom-content-layout'
 
 const ArticleMarkdownInner = dynamic(
   () =>
@@ -46,7 +47,9 @@ export function ComponentsArticle({
   return (
     <ArticlePlaygroundProvider>
       <div className="min-h-screen font-wotfard">
-        <header className="bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.15)] px-6 py-20 flex flex-col justify-center items-center lg:rounded-[16px]">
+        <header
+          className={`bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.15)] px-6 py-20 flex flex-col justify-center items-center ${CLASSROOM_CONTENT_NESTED_RADIUS_CLASS}`}
+        >
           <div className="max-w-5xl w-full space-y-2">
             {moduleTitle && (
               <span className="text-xs font-bold uppercase tracking-widest text-gray-400">

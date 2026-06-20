@@ -190,7 +190,7 @@ export default function ClassroomHeader({
             </div>
             {currentActiveCourse && (
               <Link href={coursePath}>
-                <div className="border rounded-full border-[#25252a] py-2 lg:flex hidden items-center gap-2 px-3 hover:bg-[#25252a] cursor-pointer transition-colors duration-150 ease-in-out">
+                <div className="rounded-full py-2 lg:flex hidden items-center gap-2 px-3 cursor-pointer transition-colors duration-150 ease-in-out">
                   {currentActiveCourse?.icon ? (
                     <div className="w-6 h-6 rounded-full overflow-hidden">
                       <Image
@@ -268,7 +268,7 @@ export default function ClassroomHeader({
 
           <li className="flex lg:space-x-2 space-x-1 items-center ">
             <div className="flex items-center lg:space-x-4 space-x-4">
-              <StrikeSection />
+              <StrikeSection variant="classroom" />
               <UserDropdown />
             </div>
           </li>

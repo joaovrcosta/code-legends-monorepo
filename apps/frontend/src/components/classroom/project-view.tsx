@@ -9,6 +9,7 @@ import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
+import { CLASSROOM_CONTENT_NESTED_RADIUS_CLASS } from '@/lib/classroom-content-layout'
 
 interface ProjectViewProps {
   lesson: Lesson
@@ -87,7 +88,9 @@ export function ProjectView({ lesson, moduleTitle }: ProjectViewProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.25)] px-6 py-5 lg:h-64 h-56 flex flex-col justify-center items-center lg:rounded-[20px] rounded-none">
+      <div
+        className={`bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.25)] px-6 py-5 lg:h-64 h-56 flex flex-col justify-center items-center ${CLASSROOM_CONTENT_NESTED_RADIUS_CLASS}`}
+      >
         <div className="text-start space-y-1 max-w-5xl w-full p-4">
           {moduleTitle && (
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9ca3af]">
