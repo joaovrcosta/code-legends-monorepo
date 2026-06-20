@@ -43,7 +43,7 @@ export function ClassroomSidebarAside({
     >
       <div
         className={cn(
-          'absolute inset-y-0 left-0 pt-0 pb-4 pl-3 pr-3',
+          'absolute inset-y-0 left-0 pt-0 pb-4 pl-3 pr-2',
           isOpen ? 'w-[378px]' : 'w-20',
         )}
       >
@@ -64,7 +64,7 @@ export function ClassroomSidebarAside({
               'relative flex h-14 shrink-0 items-center bg-surface',
               isOpen
                 ? cn(
-                  'justify-end px-4',
+                  'justify-end px-3',
                   showBorder && 'border-b border-[#25252A]',
                   headerClassName,
                 )
@@ -76,7 +76,7 @@ export function ClassroomSidebarAside({
               <h2
                 className={cn(
                   titleClassName,
-                  'pointer-events-none absolute inset-y-0 left-4 flex items-center truncate opacity-100 transition-opacity duration-150 delay-300',
+                  'pointer-events-none absolute inset-y-0 left-3 flex items-center truncate opacity-100 transition-opacity duration-150 delay-300',
                 )}
               >
                 {title}
@@ -105,7 +105,7 @@ export function ClassroomSidebarAside({
             )}
             aria-hidden={!isOpen}
           >
-            <div className="h-full w-[346px] max-w-none overflow-x-hidden overflow-y-auto px-4">
+            <div className="h-full w-full min-w-0 overflow-x-hidden overflow-y-auto px-3 scrollbar-thin [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-zinc-700/40 [&::-webkit-scrollbar-thumb:hover]:bg-zinc-600">
               {children}
             </div>
           </div>

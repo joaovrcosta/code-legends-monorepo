@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/skeleton'
 
 export function ClassroomSidebarSkeleton() {
   return (
-    <div className="space-y-4 px-4 py-4">
+    <div className="space-y-4 px-3 py-4">
       {[1, 2, 3].map((i) => (
         <div
           key={i}

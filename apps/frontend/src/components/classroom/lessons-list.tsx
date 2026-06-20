@@ -177,14 +177,7 @@ export const LessonsList = memo(function LessonsList({
   }
 
   return (
-    <div
-      className="h-full overflow-y-scroll bg-surface scrollbar-thin [&::-webkit-scrollbar]:w-2
-        [&::-webkit-scrollbar-track]:bg-transparent
-        [&::-webkit-scrollbar-thumb]:bg-transparent
-        [&::-webkit-scrollbar-thumb]:rounded-full
-        hover:[&::-webkit-scrollbar-thumb]:bg-zinc-700/40
-        [&::-webkit-scrollbar-thumb:hover]:bg-zinc-600"
-    >
+    <div className="bg-surface">
       <Accordion
         type="multiple"
         value={openModuleIds}
