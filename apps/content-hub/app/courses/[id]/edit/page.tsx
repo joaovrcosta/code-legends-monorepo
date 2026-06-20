@@ -38,6 +38,8 @@ import Link from "next/link";
 import { mergeProductionIntoModules } from "@/lib/course-structure";
 import { CourseBuilder } from "@/components/course-builder/course-builder";
 import { CourseProductionKanban } from "@/components/course-builder/course-production-kanban";
+import { CourseMetricsTab } from "@/components/courses/course-metrics-tab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { verifyPassword } from "@/actions/user/verify-password";
 import { X } from "lucide-react";
@@ -71,6 +73,7 @@ export default function EditCoursePage() {
   const [selectedSkillId, setSelectedSkillId] = useState("");
   const [initialIsFree, setInitialIsFree] = useState(false);
   const [showLessonFreeSyncModal, setShowLessonFreeSyncModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("editor");
   const [formData, setFormData] = useState<UpdateCourseData>({
     title: "",
     slug: "",
@@ -550,6 +553,13 @@ export default function EditCoursePage() {
           </div>
         </div>
 
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="editor">Editor</TabsTrigger>
+            <TabsTrigger value="metrics">Métricas</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="editor" className="space-y-6 mt-0">
         {/* Seção 1: Dados do Curso */}
         <Card>
           <CardHeader>
@@ -981,6 +991,15 @@ export default function EditCoursePage() {
               )}
             </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="metrics" className="mt-0">
+            <CourseMetricsTab
+              courseId={courseId}
+              enabled={activeTab === "metrics"}
+            />
+          </TabsContent>
+        </Tabs>
 
         {showPublishModal && (
           <div className="cb-modal-overlay p-4">

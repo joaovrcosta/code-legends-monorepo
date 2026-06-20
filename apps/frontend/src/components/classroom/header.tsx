@@ -146,19 +146,6 @@ export default function ClassroomHeader({
     return 'text-purple-400'
   }, [currentLesson, exclusiveAccessBlocked, isLessonNavLoading])
 
-  const lessonXpReward = useMemo(() => {
-    if (exclusiveAccessBlocked || !currentLesson) return null
-    if (
-      currentLesson.status === 'completed' ||
-      currentLesson.status === 'locked'
-    ) {
-      return null
-    }
-    const xp = currentLesson.xpReward
-    if (typeof xp !== 'number' || xp <= 0) return null
-    return xp
-  }, [currentLesson, exclusiveAccessBlocked])
-
   return (
     <div className="fixed top-0 left-0 w-full z-40">
       <header className="fixed top-0 left-0 w-full z-40 overflow-hidden bg-surface shadow-none lg:py-0 pb-0">
@@ -246,22 +233,6 @@ export default function ClassroomHeader({
                 >
                   {displayLessonTitle}
                 </p>
-              )}
-              {lessonXpReward != null && !showLessonTitleSkeleton && (
-                <span
-                  className="ml-2 shrink-0 flex items-center gap-1 text-sm font-thin text-white tabular-nums"
-                  title={`+${lessonXpReward.toLocaleString('pt-BR')} XP ao concluir esta aula`}
-                >
-                  {lessonXpReward.toLocaleString('pt-BR')}XP
-                  <Image
-                    src="/xp-icon.svg"
-                    alt=""
-                    width={11}
-                    height={20}
-                    className="h-3.5 w-auto object-contain"
-                    aria-hidden
-                  />
-                </span>
               )}
             </div>
           </li>

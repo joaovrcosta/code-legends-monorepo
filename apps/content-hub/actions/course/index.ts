@@ -10,4 +10,10 @@ export { deleteCourse } from "./delete-course";
 export { getCourseWithStructure, type CourseWithStructure, type ModuleWithStructure, type GroupWithStructure, type LessonWithStructure } from "./get-course-with-structure";
 export { publishCourse } from "./publish-course";
 export { unpublishCourse } from "./unpublish-course";
+export { getCourseMetrics } from "./get-course-metrics";
+export type {
+  CourseMetricsResponse,
+  CourseMetricsSummary,
+  CourseLessonReaction,
+} from "./get-course-metrics";
 

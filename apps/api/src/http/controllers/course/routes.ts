@@ -30,6 +30,7 @@ import { updateSkillsConfig } from "./update-skills-config.controller";
 import { getSkillsProgress } from "./get-skills-progress.controller";
 import { updateCourseStatus } from "./update-status.controller";
 import { getStructureEditor } from "./get-structure-editor.controller";
+import { getCourseMetrics } from "./get-metrics.controller";
 import { getCourseLikes } from "./get-likes.controller";
 import { addCourseLike } from "./add-like.controller";
 import { removeCourseLike } from "./remove-like.controller";
@@ -89,6 +90,11 @@ export async function courseRoutes(app: FastifyInstance) {
     getLessonBySlug
   );
   app.get("/courses/:id/roadmap", { onRequest: [verifyJWT] }, getRoadmap);
+  app.get(
+    "/courses/:id/metrics",
+    { onRequest: [verifyInstructorOrAdmin] },
+    getCourseMetrics,
+  );
   app.get(
     "/courses/:id/likes",
     { onRequest: [verifyJWTOptional] },
