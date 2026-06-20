@@ -169,8 +169,12 @@ export default function ClassroomHeader({
   }, [currentLesson, exclusiveAccessBlocked])
 
   return (
-    <div className="fixed top-0 left-0 w-full z-40 bg-white shadow-md">
-      <header className="fixed top-0 left-0 w-full z-40 bg-surface shadow-lg lg:py-0 pb-0">
+    <div className="fixed top-0 left-0 w-full z-40">
+      <header className="fixed top-0 left-0 w-full z-40 overflow-hidden bg-surface shadow-none lg:py-0 pb-0">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-primary/25 bg-dots-pattern bg-repeat-x bg-[length:auto_100%] bg-[position:center_top] [mask-image:linear-gradient(180deg,rgba(255,255,255,0.4)_0%,rgba(255,255,255,0)_100%)] [mask-type:alpha] after:pointer-events-none after:absolute after:inset-0 after:bg-brand-seagull-950/90 after:content-['']"
+        />
         <ul className="relative z-10 mx-auto flex w-full items-center justify-between px-4 py-2 lg:pt-4 lg:pb-4">
           <li className="flex items-center lg:space-x-6">
             <div className="flex items-center space-x-4">
@@ -279,8 +283,8 @@ export default function ClassroomHeader({
           </li>
         </ul>
 
-        <div className="relative z-0 lg:hidden block border-t border-[#25252A]">
-          <div className="bg-surface/90">
+        <div className="relative z-10 lg:hidden block border-t border-[#25252A]/60">
+          <div className="bg-transparent">
             <div className="flex items-center justify-between px-4 py-2">
               {/* Lado esquerdo */}
               <div className="flex items-center gap-3 flex-1 min-w-0 mr-3">

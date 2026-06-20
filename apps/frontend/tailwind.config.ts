@@ -20,6 +20,9 @@ export default {
         blueGradient500:
           "linear-gradient(267deg, rgba(0,78,99,1) 0%, #00c8ff 100%)",
         gray500: "#1a1a1e",
+        "brand-seagull": {
+          950: "#082f49",
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -113,6 +116,7 @@ export default {
           "linear-gradient(267deg, #FFBF00 0%, #FF5900 100%)",
         "yellow-gradient-first":
           "linear-gradient(0deg, rgba(15,15,16, 0.05) 0%, rgba(255,204,0,0.39) 100%)",
+        "dots-pattern": "url('/backdrop-header.png')",
       },
       borderRadius: {
         lg: "var(--radius)",

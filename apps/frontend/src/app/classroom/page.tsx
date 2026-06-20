@@ -393,8 +393,7 @@ export default function ClassroomPage() {
         </ClassroomSidebarAside>
 
         <div
-          className={`flex-1 w-full bg-blue-aurora
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col pt-[111px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
+          className={`flex-1 w-full bg-surface text-white flex flex-col pt-[111px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
             <div className="flex items-center justify-between w-full px-4">
@@ -436,8 +435,7 @@ export default function ClassroomPage() {
 
       {/* Conteúdo principal */}
       <div
-        className={`flex-1 w-full bg-blue-aurora
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
+        className={`flex-1 w-full bg-surface text-white flex flex-col pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
       >
 
         {/* Conteúdo */}

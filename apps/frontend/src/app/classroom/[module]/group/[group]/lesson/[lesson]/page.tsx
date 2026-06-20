@@ -436,7 +436,7 @@ export default function DynamicLessonPage() {
           </div>
         </ClassroomSidebarAside>
         <div
-          className={`flex-1 w-full min-h-[calc(100dvh-63px)] lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)] bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)] text-white flex flex-col pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
+          className={`flex-1 w-full min-h-[calc(100dvh-63px)] bg-surface text-white flex flex-col pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
             <div className="flex items-center justify-between w-full px-4">
@@ -522,9 +522,7 @@ export default function DynamicLessonPage() {
         </ClassroomSidebarAside>
 
         <div
-          className={`flex-1 w-full min-h-0 flex flex-col lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)]
-             bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)]
-             text-white shadow-2xl shadow-[#00C8FF]/10 pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
+          className={`flex-1 w-full min-h-0 flex flex-col bg-surface text-white pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
         >
           <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
             <div className="flex items-center justify-between w-full px-4">
@@ -587,9 +585,7 @@ export default function DynamicLessonPage() {
       </ClassroomSidebarAside>
 
       <div
-        className={`flex-1 w-full min-h-0 max-w-full overflow-x-hidden lg:bg-[radial-gradient(circle_at_center,_#627fa1_0%,_var(--color-surface)_70%)]
-             bg-[radial-gradient(circle_at_center,_#344c68_0%,_var(--color-surface)_70%)]
-             text-white shadow-2xl shadow-[#00C8FF]/10 flex flex-col pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
+        className={`flex-1 w-full min-h-0 max-w-full overflow-x-hidden bg-surface text-white flex flex-col pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
       >
         <header className="h-[78px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none mb-0 flex-shrink-0 lg:block hidden">
           <div className="flex items-center justify-between w-full px-4">
