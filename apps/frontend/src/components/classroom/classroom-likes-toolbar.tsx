@@ -67,6 +67,19 @@ function ReactionControl({
   )
 }
 
+const shellClass =
+  'inline-flex items-stretch overflow-hidden rounded-full border border-[#25252A] bg-white/5 shrink-0 transition-colors hover:border-[#00b3e4]/40'
+
+function ReactionsPlaceholder({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(shellClass, 'h-[42px] min-w-[5.75rem] animate-pulse', className)}
+      aria-label="Carregando reações desta aula"
+      aria-busy="true"
+    />
+  )
+}
+
 export function ClassroomLessonReactions({
   lessonId,
   className,
@@ -78,21 +91,37 @@ export function ClassroomLessonReactions({
     disliked: false,
   })
   const [isLoading, setIsLoading] = useState(true)
+  const [loadedLessonId, setLoadedLessonId] = useState<number | null>(null)
   const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
     if (!lessonId) {
       setIsLoading(false)
+      setLoadedLessonId(null)
+      return
+    }
+
+    setIsLoading(true)
+    setLoadedLessonId(null)
+
+    if (sessionStatus === 'loading') {
+      return
+    }
+
+    if (sessionStatus === 'unauthenticated') {
+      setReaction({ liked: false, disliked: false })
+      setLoadedLessonId(lessonId)
+      setIsLoading(false)
       return
     }
 
     let cancelled = false
-    setIsLoading(true)
 
     void (async () => {
       const status = await getLessonReactionStatus(lessonId)
       if (!cancelled) {
         setReaction(status)
+        setLoadedLessonId(lessonId)
         setIsLoading(false)
       }
     })()
@@ -100,7 +129,7 @@ export function ClassroomLessonReactions({
     return () => {
       cancelled = true
     }
-  }, [lessonId])
+  }, [lessonId, sessionStatus])
 
   const requireAuth = useCallback(
     (event: React.MouseEvent) => {
@@ -139,12 +168,20 @@ export function ClassroomLessonReactions({
     [requireAuth, lessonId, reaction.disliked],
   )
 
-  const disabled = isLoading || isPending || !lessonId
+  const disabled = isPending || !lessonId
+  const showPlaceholder =
+    isLoading ||
+    sessionStatus === 'loading' ||
+    (lessonId != null && loadedLessonId !== lessonId)
+
+  if (showPlaceholder) {
+    return <ReactionsPlaceholder className={className} />
+  }
 
   return (
     <div
       className={cn(
-        'inline-flex items-stretch overflow-hidden rounded-full border border-[#25252A] bg-white/5 shrink-0 transition-colors hover:border-[#00b3e4]/40',
+        shellClass,
         disabled && 'opacity-50',
         className,
       )}
