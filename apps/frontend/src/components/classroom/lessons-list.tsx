@@ -177,12 +177,12 @@ export const LessonsList = memo(function LessonsList({
   }
 
   return (
-    <div className="bg-surface">
+    <div className="min-w-0 bg-surface">
       <Accordion
         type="multiple"
         value={openModuleIds}
         onValueChange={setOpenModuleIds}
-        className="pt-0 pb-4"
+        className="min-w-0 pt-0 pb-4"
       >
         {organizedLessons.map((moduleItem, moduleIndex) => {
           const moduleValue = `module-${moduleItem.id}`
@@ -201,10 +201,10 @@ export const LessonsList = memo(function LessonsList({
             <AccordionItem
               key={moduleItem.id}
               value={moduleValue}
-              className="border-b border-zinc-900 last:border-b-0"
+              className="min-w-0 border-b border-zinc-900 last:border-b-0"
             >
-              <AccordionTrigger className="sticky top-0 z-10 bg-surface py-4 hover:no-underline border-b border-transparent [&[data-state=open]]:border-zinc-800 [&[data-state=open]>svg]:rotate-180">
-                <div className="flex min-w-0 flex-1 items-center gap-3 text-left">
+              <AccordionTrigger className="sticky top-0 z-10 grid w-full min-w-0 grid-cols-[minmax(0,1fr)_1rem] items-center gap-x-2 bg-surface py-4 hover:no-underline border-b border-transparent [&[data-state=open]]:border-zinc-800 [&[data-state=open]>svg]:rotate-180">
+                <div className="col-start-1 flex min-w-0 items-center gap-3 text-left">
                   <ProgressRing
                     progress={progress}
                     moduleNumber={moduleIndex + 1}
@@ -224,7 +224,7 @@ export const LessonsList = memo(function LessonsList({
                     </span>
                   </div>
                 </div>
-                <ChevronDown className="h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 origin-center" />
+                <ChevronDown className="col-start-2 h-4 w-4 shrink-0 justify-self-center text-zinc-400 transition-transform duration-200 origin-center" />
               </AccordionTrigger>
               <AccordionContent className="pb-4 pt-6">
                 <div className="flex flex-col gap-6">

@@ -4,9 +4,13 @@ import type { ReactNode } from 'react'
 import { Menu, X } from 'lucide-react'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
 import {
+  CLASSROOM_SIDEBAR_COLLAPSED_INSET_CLASS,
   CLASSROOM_SIDEBAR_COLLAPSED_RAIL_CLASS,
   CLASSROOM_SIDEBAR_COLLAPSED_SLOT_CLASS,
+  CLASSROOM_SIDEBAR_OPEN_INSET_CLASS,
   CLASSROOM_SIDEBAR_OPEN_WIDTH_CLASS,
+  CLASSROOM_SIDEBAR_PANEL_INSET_CLASS,
+  CLASSROOM_SIDEBAR_SCROLL_CLASS,
 } from '@/lib/classroom-sidebar-layout'
 import { cn } from '@/lib/utils'
 
@@ -43,8 +47,10 @@ export function ClassroomSidebarAside({
     >
       <div
         className={cn(
-          'absolute inset-y-0 left-0 pt-0 pb-4 pl-3 pr-2',
-          isOpen ? 'w-[378px]' : 'w-20',
+          'absolute inset-y-0 left-0 pb-4 pt-0',
+          isOpen
+            ? cn('w-full', CLASSROOM_SIDEBAR_OPEN_INSET_CLASS)
+            : cn('w-full', CLASSROOM_SIDEBAR_COLLAPSED_INSET_CLASS),
         )}
       >
         <div
@@ -64,7 +70,8 @@ export function ClassroomSidebarAside({
               'relative flex h-14 shrink-0 items-center bg-surface',
               isOpen
                 ? cn(
-                  'justify-end px-3',
+                  'justify-end',
+                  CLASSROOM_SIDEBAR_PANEL_INSET_CLASS,
                   showBorder && 'border-b border-[#25252A]',
                   headerClassName,
                 )
@@ -105,7 +112,14 @@ export function ClassroomSidebarAside({
             )}
             aria-hidden={!isOpen}
           >
-            <div className="h-full w-full min-w-0 overflow-x-hidden overflow-y-auto px-3 scrollbar-thin [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-zinc-700/40 [&::-webkit-scrollbar-thumb:hover]:bg-zinc-600">
+            <div
+              className={cn(
+                'h-full w-full min-w-0 scrollbar-thin',
+                CLASSROOM_SIDEBAR_SCROLL_CLASS,
+                CLASSROOM_SIDEBAR_PANEL_INSET_CLASS,
+                '[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-zinc-700/40 [&::-webkit-scrollbar-thumb:hover]:bg-zinc-600',
+              )}
+            >
               {children}
             </div>
           </div>
