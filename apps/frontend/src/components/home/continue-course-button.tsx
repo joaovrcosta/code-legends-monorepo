@@ -7,6 +7,7 @@ import { useCourseEnrollment } from '@/hooks/use-course-enrollment'
 import { useState, useEffect } from 'react'
 import { getCourseRoadmapFresh } from '@/actions/course'
 import {
+  appendCourseIdToClassroomHref,
   findLessonContext,
   generateLessonUrl,
   pickContinueTargetLesson,
@@ -56,13 +57,13 @@ export function ContinueCourseButton({
               context.module,
               context.group,
             )
-            router.push(url)
+            router.push(appendCourseIdToClassroomHref(url, courseId))
             return
           }
         }
       }
 
-      router.push('/classroom')
+      router.push(appendCourseIdToClassroomHref('/classroom', courseId))
     } catch { }
   }
 

@@ -8,17 +8,16 @@ import {
 } from '../ui/accordion'
 import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { Skeleton } from '@/components/skeleton'
-import { useCourseModalStore } from '@/stores/course-modal-store'
-import { useActiveCourseStore } from '@/stores/active-course-store'
-import { useRoadmapUpdater } from '@/hooks/use-roadmap-updater'
-import { useState, useMemo, useCallback } from 'react'
-import type { Lesson, RoadmapResponse } from '@/types/roadmap'
+import { useClassroomRoadmap } from '@/components/classroom/classroom-roadmap-context'
+import useClassroomSidebarStore from '@/stores/classroom-sidebar'
+import { useMemo, useCallback, useEffect } from 'react'
+import type { Lesson } from '@/types/roadmap'
 import {
   appendCourseIdToClassroomHref,
   findLessonContext,
   generateLessonUrl,
 } from '@/utils/lesson-url'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { ChevronDown } from 'lucide-react'
 
@@ -42,23 +41,12 @@ function getLessonMeta(lesson: Lesson) {
 }
 
 export function LessonsAccordion() {
-  const { currentLesson } = useCourseModalStore()
-  const { activeCourse } = useActiveCourseStore()
-  const searchParams = useSearchParams()
-  const courseIdFromUrl = (searchParams.get('courseId') || '').trim()
-  const effectiveCourseId = courseIdFromUrl || activeCourse?.id
+  const { roadmap, courseId, currentLessonId, isLoading } = useClassroomRoadmap()
+  const { openModuleIds, setOpenModuleIds, ensureModuleOpen } =
+    useClassroomSidebarStore()
   const { data: session } = useSession()
   const userPlan = (session?.user as { plan?: string } | undefined)?.plan
-  const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
   const router = useRouter()
-
-  useRoadmapUpdater({
-    isOpen: true,
-    courseId: effectiveCourseId,
-    currentLessonId: currentLesson?.id,
-    lessonCompletedTimestamp: null,
-    onRoadmapUpdate: setRoadmap,
-  })
 
   const organizedLessons = useMemo(() => {
     if (!roadmap?.modules) return []
@@ -72,7 +60,7 @@ export function LessonsAccordion() {
   }, [roadmap])
 
   const handleLessonClick = useCallback(
-    (lesson: Lesson, _: number) => {
+    (lesson: Lesson) => {
       if (!roadmap?.modules) return
 
       const context = findLessonContext(lesson.id, roadmap.modules)
@@ -80,13 +68,11 @@ export function LessonsAccordion() {
       if (context) {
         const url = generateLessonUrl(lesson, context.module, context.group)
         router.push(
-          effectiveCourseId
-            ? appendCourseIdToClassroomHref(url, effectiveCourseId)
-            : url,
+          courseId ? appendCourseIdToClassroomHref(url, courseId) : url,
         )
       }
     },
-    [roadmap?.modules, router, effectiveCourseId],
+    [roadmap?.modules, router, courseId],
   )
 
   const currentModule = useMemo(() => {
@@ -94,33 +80,32 @@ export function LessonsAccordion() {
       return null
     }
 
-    if (!currentLesson?.id) {
+    if (!currentLessonId) {
       return organizedLessons[0]
     }
 
     for (const moduleItem of organizedLessons) {
       for (const group of moduleItem.groups) {
-        if (group.lessons.some((lesson) => lesson.id === currentLesson.id)) {
+        if (group.lessons.some((lesson) => lesson.id === currentLessonId)) {
           return moduleItem
         }
       }
     }
 
     return organizedLessons[0]
-  }, [organizedLessons, currentLesson?.id])
+  }, [organizedLessons, currentLessonId])
 
-  const defaultOpenModuleValue = useMemo(() => {
-    if (!currentModule) return undefined
-    return `module-${currentModule.id}`
-  }, [currentModule])
+  useEffect(() => {
+    if (!currentModule) return
+    ensureModuleOpen(`module-${currentModule.id}`)
+  }, [currentModule?.id, ensureModuleOpen])
 
-  const allLessons = useMemo(() => {
-    return organizedLessons.flatMap((m) => m.groups).flatMap((g) => g.lessons)
-  }, [organizedLessons])
+  const showLoading =
+    (isLoading && !roadmap) ||
+    organizedLessons.length === 0 ||
+    !currentModule
 
-  const isLoading = !roadmap || organizedLessons.length === 0 || !currentModule
-
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Accordion
         type="single"
@@ -169,7 +154,8 @@ export function LessonsAccordion() {
   return (
     <Accordion
       type="multiple"
-      defaultValue={defaultOpenModuleValue ? [defaultOpenModuleValue] : []}
+      value={openModuleIds}
+      onValueChange={setOpenModuleIds}
       className="lg:hidden block"
     >
       <div className="w-full mx-auto lg:rounded-[20px] rounded-none bg-[#0C0C0F] border border-[#2A2A2A] shadow-xl overflow-hidden">
@@ -246,12 +232,9 @@ export function LessonsAccordion() {
 
                           <div className="flex flex-col">
                             {group.lessons.map((lesson, lessonIndex) => {
-                              const isActive = currentLesson?.id === lesson.id
+                              const isActive = currentLessonId === lesson.id
                               const isLastLesson =
                                 lessonIndex === group.lessons.length - 1
-                              const lessonIndexInAll = allLessons.findIndex(
-                                (l) => l.id === lesson.id,
-                              )
                               const isPaidLesson = lesson.isFree === false
                               const isFreePlan = userPlan === 'FREE'
 
@@ -266,12 +249,7 @@ export function LessonsAccordion() {
                                   <div className="absolute left-0 top-0 h-[24px] w-[24px] border-b-2 border-l-2 border-zinc-800/50 rounded-bl-xl translate-y-[-50%]" />
 
                                   <button
-                                    onClick={() =>
-                                      handleLessonClick(
-                                        lesson,
-                                        lessonIndexInAll,
-                                      )
-                                    }
+                                    onClick={() => handleLessonClick(lesson)}
                                     className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${isActive
                                         ? 'bg-zinc-800/50 border border-cyan-400/50'
                                         : 'hover:bg-zinc-800/30 border border-transparent'

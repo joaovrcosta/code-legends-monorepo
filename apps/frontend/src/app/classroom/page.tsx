@@ -1,25 +1,19 @@
 'use client'
+
 import { Button } from '@/components/ui/button'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { useActiveCourseStore } from '@/stores/active-course-store'
-import useClassroomSidebarStore from '@/stores/classroom-sidebar'
-import { ClassroomSidebarAside } from '@/components/classroom/classroom-sidebar-aside'
-import {
-  classroomContentOffset,
-  classroomFooterOffset,
-} from '@/lib/classroom-sidebar-layout'
 import { Menu, X } from 'lucide-react'
 import { LessonContent } from '@/components/classroom/lesson-content'
 import { LevelProgressBar } from '@/components/learn/level-progress-bar'
 import { SkipForward } from '@phosphor-icons/react'
 import { SkipBack, LockOpen } from '@phosphor-icons/react/dist/ssr'
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { getCourseRoadmapFresh, unlockNextModule } from '@/actions/course'
+import { useEffect, useMemo, useCallback, useState } from 'react'
+import { unlockNextModule } from '@/actions/course'
 import { isLessonAccessibleForUser } from '@/utils/lesson-access'
-import type { RoadmapResponse, Lesson } from '@/types/roadmap'
-import { useRoadmapUpdater } from '@/hooks/use-roadmap-updater'
+import type { Lesson } from '@/types/roadmap'
+import { useClassroomRoadmap } from '@/components/classroom/classroom-roadmap-context'
 import Link from 'next/link'
-import { LessonsList } from '@/components/classroom/lessons-list'
 import { useRouter } from 'next/navigation'
 import {
   generateLessonUrl,
@@ -27,6 +21,8 @@ import {
   pickContinueTargetLesson,
 } from '@/utils/lesson-url'
 import { useSession } from 'next-auth/react'
+import { classroomFooterOffset } from '@/lib/classroom-sidebar-layout'
+import useClassroomSidebarStore from '@/stores/classroom-sidebar'
 
 export default function ClassroomPage() {
   const { data: session } = useSession()
@@ -37,27 +33,16 @@ export default function ClassroomPage() {
     currentLesson,
     lessons,
     currentIndex,
-    lessonCompletedTimestamp,
     setLessonsForPage,
     setModuleUnlockedTimestamp,
   } = useCourseModalStore()
 
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
   const { isOpen: isSidebarOpen } = useClassroomSidebarStore()
-  const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
+  const { roadmap, refreshRoadmap } = useClassroomRoadmap()
   const [isUnlocking, setIsUnlocking] = useState(false)
   const router = useRouter()
 
-  // Custom hook gerencia toda a lógica de atualização do roadmap
-  useRoadmapUpdater({
-    isOpen: true, // Sempre "aberto" na página
-    courseId: activeCourse?.id,
-    currentLessonId: currentLesson?.id,
-    lessonCompletedTimestamp,
-    onRoadmapUpdate: setRoadmap,
-  })
-
-  // Quando temos roadmap mas a store ainda não tem aulas, preenche para a sidebar e para redirecionar
   useEffect(() => {
     if (!roadmap?.modules || lessons.length > 0) return
     const all = roadmap.modules
@@ -71,110 +56,56 @@ export default function ClassroomPage() {
     setLessonsForPage(all, firstUnlockedIndex >= 0 ? firstUnlockedIndex : 0)
   }, [roadmap?.modules, lessons.length, setLessonsForPage, isPaidUser])
 
-  // Carrega as aulas quando a página é montada e redireciona para URL dinâmica
   useEffect(() => {
+    const redirectToTargetLesson = (
+      modules: NonNullable<typeof roadmap>['modules'],
+    ) => {
+      const allLessons = modules
+        .flatMap((module) => module?.groups || [])
+        .flatMap((group) => group?.lessons || [])
+
+      const targetLesson = pickContinueTargetLesson(
+        allLessons,
+        (l) => isLessonAccessibleForUser(l, isPaidUser),
+      )
+
+      if (targetLesson) {
+        const context = findLessonContext(targetLesson.id, modules)
+        if (context) {
+          const url = generateLessonUrl(
+            targetLesson,
+            context.module,
+            context.group,
+          )
+          router.push(url)
+          return
+        }
+      }
+
+      const startIndex = targetLesson
+        ? allLessons.findIndex((lesson) => lesson.id === targetLesson.id)
+        : 0
+      setLessonsForPage(allLessons, startIndex >= 0 ? startIndex : 0)
+    }
+
     const loadLessons = async () => {
-      // Se não há activeCourse, tenta buscar
       if (!activeCourse?.id) {
         await fetchActiveCourse()
-        // Aguarda um pouco para a store ser atualizada
         await new Promise((resolve) => setTimeout(resolve, 200))
-        // Verifica novamente após atualizar
         const updatedActiveCourse = useActiveCourseStore.getState().activeCourse
         if (!updatedActiveCourse?.id || lessons.length > 0) return
-
-        // Usa o activeCourse atualizado
-        const courseId = updatedActiveCourse.id
-        try {
-          const roadmapData = await getCourseRoadmapFresh(courseId)
-          if (roadmapData) {
-            setRoadmap(roadmapData)
-
-            // Coleta todas as aulas do roadmap
-            const allLessons = roadmapData.modules
-              .flatMap((module) => module?.groups || [])
-              .flatMap((group) => group?.lessons || [])
-
-            const targetLesson = pickContinueTargetLesson(
-              allLessons,
-              (l) => isLessonAccessibleForUser(l, isPaidUser),
-            )
-
-            if (targetLesson) {
-              // Encontra o contexto da aula e redireciona para URL dinâmica
-              const context = findLessonContext(
-                targetLesson.id,
-                roadmapData.modules,
-              )
-              if (context) {
-                const url = generateLessonUrl(
-                  targetLesson,
-                  context.module,
-                  context.group,
-                )
-                router.push(url)
-                return
-              }
-            }
-
-            // Fallback: usa a store se não conseguir gerar URL
-            const startIndex = targetLesson
-              ? allLessons.findIndex((lesson) => lesson.id === targetLesson.id)
-              : 0
-            setLessonsForPage(allLessons, startIndex >= 0 ? startIndex : 0)
-          }
-        } catch (error) {
-          console.error('Erro ao carregar aulas:', error)
-        }
+        if (!roadmap?.modules) return
+        redirectToTargetLesson(roadmap.modules)
         return
       }
 
       if (lessons.length > 0) return
+      if (!roadmap?.modules) return
 
-      try {
-        const roadmapData = await getCourseRoadmapFresh(activeCourse.id)
-        if (roadmapData) {
-          setRoadmap(roadmapData)
-
-          // Coleta todas as aulas do roadmap
-          const allLessons = roadmapData.modules
-            .flatMap((module) => module?.groups || [])
-            .flatMap((group) => group?.lessons || [])
-
-          const targetLesson = pickContinueTargetLesson(
-            allLessons,
-            (l) => isLessonAccessibleForUser(l, isPaidUser),
-          )
-
-          if (targetLesson) {
-            // Encontra o contexto da aula e redireciona para URL dinâmica
-            const context = findLessonContext(
-              targetLesson.id,
-              roadmapData.modules,
-            )
-            if (context) {
-              const url = generateLessonUrl(
-                targetLesson,
-                context.module,
-                context.group,
-              )
-              router.push(url)
-              return
-            }
-          }
-
-          // Fallback: usa a store se não conseguir gerar URL
-          const startIndex = targetLesson
-            ? allLessons.findIndex((lesson) => lesson.id === targetLesson.id)
-            : 0
-          setLessonsForPage(allLessons, startIndex >= 0 ? startIndex : 0)
-        }
-      } catch (error) {
-        console.error('Erro ao carregar aulas:', error)
-      }
+      redirectToTargetLesson(roadmap.modules)
     }
 
-    loadLessons()
+    void loadLessons()
   }, [
     activeCourse?.id,
     setLessonsForPage,
@@ -182,9 +113,9 @@ export default function ClassroomPage() {
     router,
     fetchActiveCourse,
     isPaidUser,
+    roadmap?.modules,
   ])
 
-  // Memoiza cálculos de navegação
   const {
     hasNextLesson,
     hasPreviousLesson,
@@ -207,7 +138,6 @@ export default function ClassroomPage() {
     }
   }, [currentIndex, lessons])
 
-  // Função para navegar para uma aula usando URL dinâmica
   const navigateToLesson = useCallback(
     (lesson: Lesson) => {
       if (!roadmap?.modules) return
@@ -222,7 +152,6 @@ export default function ClassroomPage() {
   )
 
   const handleNextLesson = useCallback(() => {
-    // Só permite ir para a próxima se a aula atual estiver concluída
     if (currentLesson?.status !== 'completed') {
       return
     }
@@ -237,12 +166,10 @@ export default function ClassroomPage() {
     }
   }, [previousLesson, navigateToLesson])
 
-  // Usa os valores diretamente do back-end
   const canUnlockNextModule = useMemo(() => {
     return roadmap?.course.canUnlockNextModule ?? false
   }, [roadmap?.course.canUnlockNextModule])
 
-  // Memoiza a busca de moduleTitle e groupTitle para evitar loop a cada render
   const { moduleTitle, groupTitle } = useMemo(() => {
     let moduleTitleValue: string | undefined
     let groupTitleValue: string | undefined
@@ -270,32 +197,20 @@ export default function ClassroomPage() {
     try {
       const result = await unlockNextModule(activeCourse.id)
       if (result.success) {
-        // Notifica que um módulo foi desbloqueado para atualizar a barra de progresso
         setModuleUnlockedTimestamp()
+        const updatedRoadmap = await refreshRoadmap({ fresh: true, delay: 300 })
 
-        // Aguarda um delay reduzido (300ms total) para garantir que o revalidateTag foi processado
-        // e a barra de progresso tenha tempo de atualizar
-        await new Promise((resolve) => setTimeout(resolve, 300))
-
-        // Atualiza o roadmap usando versão sem cache
-        const roadmapData = await getCourseRoadmapFresh(activeCourse.id)
-        if (roadmapData) {
-          setRoadmap(roadmapData)
-
-          // Coleta todas as aulas do roadmap atualizado
-          const allLessons = roadmapData.modules
+        if (updatedRoadmap?.modules) {
+          const allLessons = updatedRoadmap.modules
             .flatMap((module) => module?.groups || [])
             .flatMap((group) => group?.lessons || [])
 
-          // Encontra a primeira aula do próximo módulo desbloqueado
-          const nextModuleNumber = roadmapData.course.nextModule
+          const nextModuleNumber = updatedRoadmap.course.nextModule
           let nextLessonIndex = 0
 
-          if (nextModuleNumber && roadmapData.modules[nextModuleNumber - 1]) {
-            // Encontra o próximo módulo (1-based para 0-based)
-            const nextModule = roadmapData.modules[nextModuleNumber - 1]
+          if (nextModuleNumber && updatedRoadmap.modules[nextModuleNumber - 1]) {
+            const nextModule = updatedRoadmap.modules[nextModuleNumber - 1]
 
-            // Procura a primeira aula do próximo módulo acessível para o plano do usuário
             for (const group of nextModule.groups || []) {
               const firstUnlockedLesson = group.lessons?.find((lesson) =>
                 isLessonAccessibleForUser(lesson, isPaidUser),
@@ -309,34 +224,29 @@ export default function ClassroomPage() {
               }
             }
 
-            // Se não encontrou nenhuma aula acessível no próximo módulo,
-            // procura a primeira aula acessível em todo o roadmap
             if (nextLessonIndex === -1) {
               nextLessonIndex = allLessons.findIndex((lesson) =>
                 isLessonAccessibleForUser(lesson, isPaidUser),
               )
             }
           } else {
-            // Se não há próximo módulo definido, procura a primeira aula acessível
             nextLessonIndex = allLessons.findIndex((lesson) =>
               isLessonAccessibleForUser(lesson, isPaidUser),
             )
           }
 
-          // Garante que o índice seja válido
           if (nextLessonIndex === -1) {
             nextLessonIndex = 0
           }
 
-          // Atualiza a página com as novas aulas
           setLessonsForPage(allLessons, nextLessonIndex)
         }
       } else {
         console.error('Erro ao desbloquear módulo:', result.error)
         alert(result.error || 'Erro ao desbloquear módulo')
       }
-    } catch (error) {
-      console.error('Erro ao desbloquear módulo:', error)
+    } catch (unlockError) {
+      console.error('Erro ao desbloquear módulo:', unlockError)
       alert('Erro ao desbloquear módulo')
     } finally {
       setIsUnlocking(false)
@@ -344,14 +254,14 @@ export default function ClassroomPage() {
   }, [
     activeCourse?.id,
     setModuleUnlockedTimestamp,
+    refreshRoadmap,
     setLessonsForPage,
     isPaidUser,
   ])
 
-  // Se não há curso ativo ou aulas, mostra mensagem
   if (!activeCourse) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
+      <div className="flex flex-1 items-center justify-center w-full h-full">
         <div className="text-center text-white">
           <p className="text-muted-foreground mb-4">
             Nenhum curso ativo encontrado. Selecione um curso para começar.
@@ -364,142 +274,93 @@ export default function ClassroomPage() {
     )
   }
 
-  // Quando temos curso mas ainda não temos aula atual: mostra layout completo (sidebar + área central)
-  // para que a lista de aulas apareça assim que o roadmap carregar (incluindo para usuários FREE)
   if (!currentLesson) {
-    const allLessonsFromRoadmap = roadmap?.modules
-      ? roadmap.modules
-        .flatMap((module) => module?.groups || [])
-        .flatMap((group) => group?.lessons || [])
-      : []
-
     return (
-      <div className="flex h-[100dvh] w-full">
-        <ClassroomSidebarAside
-          title="Aulas"
-          titleClassName="text-sm font-semibold text-[#C4C4CC]"
-          headerClassName="border-b border-[#25252A] bg-[#060607]"
-          showBorder
-        >
-          <LessonsList
-            lessons={
-              allLessonsFromRoadmap.length > 0
-                ? allLessonsFromRoadmap
-                : lessons
-            }
-            currentLessonId={undefined}
-            roadmap={roadmap}
-          />
-        </ClassroomSidebarAside>
-
-        <div
-          className={`flex-1 w-full bg-surface text-white flex flex-col pt-[111px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
-        >
-          <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
-            <div className="flex items-center justify-between w-full px-4">
-              <div className="lg:hidden flex">
-                <Menu size={32} className="text-white" />
-              </div>
-              <Link href="/learn">
-                <X size={32} className="text-white cursor-pointer" />
-              </Link>
+      <div className="flex flex-1 flex-col pt-[111px] lg:pt-0">
+        <header className="h-[63px] py-4 pb-0 bg-transparent rounded-t-[20px] lg:border-b lg:border-[#25252A] border-none lg:mb-2 mb-0 flex-shrink-0 lg:block hidden">
+          <div className="flex items-center justify-between w-full px-4">
+            <div className="lg:hidden flex">
+              <Menu size={32} className="text-white" />
             </div>
-          </header>
-
-          <div className="flex flex-1 items-center justify-center">
-            <p className="text-muted-foreground">
-              {allLessonsFromRoadmap.length > 0
-                ? 'Selecione uma aula na lista ao lado'
-                : 'Carregando aulas...'}
-            </p>
+            <Link href="/learn">
+              <X size={32} className="text-white cursor-pointer" />
+            </Link>
           </div>
+        </header>
+
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-muted-foreground">
+            {roadmap?.modules?.length
+              ? 'Selecione uma aula na lista ao lado'
+              : 'Carregando aulas...'}
+          </p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex h-[100dvh] w-full">
-      <ClassroomSidebarAside
-        title="Aulas"
-        titleClassName="text-sm font-semibold text-[#C4C4CC]"
-        headerClassName="border-b border-[#25252A] bg-[#060607]"
-        showBorder
-      >
-        <LessonsList
-          lessons={lessons}
-          currentLessonId={currentLesson?.id}
-          roadmap={roadmap}
+    <div className="flex flex-1 flex-col pt-[110px] lg:pt-0">
+      {currentLesson && (
+        <LessonContent
+          lesson={currentLesson}
+          courseTitle={activeCourse?.title}
+          moduleTitle={moduleTitle}
+          groupTitle={groupTitle}
+          courseIcon={activeCourse?.icon}
         />
-      </ClassroomSidebarAside>
+      )}
 
-      {/* Conteúdo principal */}
-      <div
-        className={`flex-1 w-full bg-surface text-white flex flex-col pt-[110px] lg:pt-0 ${classroomContentOffset(isSidebarOpen)}`}
+      <footer
+        className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 ${classroomFooterOffset(isSidebarOpen)}`}
       >
-
-        {/* Conteúdo */}
-        {currentLesson && (
-          <LessonContent
-            lesson={currentLesson}
-            courseTitle={activeCourse?.title}
-            moduleTitle={moduleTitle}
-            groupTitle={groupTitle}
-            courseIcon={activeCourse?.icon}
-          />
-        )}
-
-        <footer
-          className={`fixed left-0 right-0 bottom-0 lg:bg-[#0C0C0F] bg-[#0C0C0F] lg:border-t lg:border-t-[#25252A] border-t border-t-[#25252A] lg:rounded-b-[20px] rounded-b-none p-0 z-50 ${classroomFooterOffset(isSidebarOpen)}`}
-        >
-          <div className="flex justify-between w-full m-0 p-0">
+        <div className="flex justify-between w-full m-0 p-0">
+          <Button
+            variant="outline"
+            className="h-[64px] lg:min-h-[84px] w-1/2 max-w-[320px] bg-black rounded-none text-base border-none 
+      lg:rounded-bl-[20px] rounded-bl-none disabled:opacity-50"
+            onClick={handlePreviousLesson}
+            disabled={!hasPreviousLesson}
+          >
+            <SkipBack weight="fill" size={16} />
+            Aula anterior
+          </Button>
+          <div className="w-full lg:flex items-center justify-center px-8 hidden">
+            <LevelProgressBar />
+          </div>
+          {canUnlockNextModule ? (
             <Button
               variant="outline"
-              className="h-[64px] lg:min-h-[84px] w-1/2 max-w-[320px] bg-black rounded-none text-base border-none 
-      lg:rounded-bl-[20px] rounded-bl-none disabled:opacity-50"
-              onClick={handlePreviousLesson}
-              disabled={!hasPreviousLesson}
+              onClick={handleUnlockNext}
+              disabled={isUnlocking}
+              className="h-[64px] lg:min-h-[84px] w-1/2 max-w-[320px] rounded-none text-base bg-blue-gradient-500 border-none
+      lg:rounded-br-[20px] rounded-br-none disabled:opacity-50"
             >
-              <SkipBack weight="fill" size={16} />
-              Aula anterior
+              {isUnlocking ? (
+                'Desbloqueando...'
+              ) : (
+                <>
+                  Desbloquear módulo <LockOpen weight="fill" size={16} />
+                </>
+              )}
             </Button>
-            <div className="w-full lg:flex items-center justify-center px-8 hidden">
-              <LevelProgressBar />
-            </div>
-            {canUnlockNextModule ? (
-              <Button
-                variant="outline"
-                onClick={handleUnlockNext}
-                disabled={isUnlocking}
-                className="h-[64px] lg:min-h-[84px] w-1/2 max-w-[320px] rounded-none text-base bg-blue-gradient-500 border-none
+          ) : (
+            <Button
+              variant="outline"
+              onClick={handleNextLesson}
+              disabled={
+                !hasNextLesson ||
+                isNextLessonLocked ||
+                currentLesson?.status !== 'completed'
+              }
+              className="h-[64px] lg:min-h-[84px] w-1/2 max-w-[320px] rounded-none text-base bg-black border-none
       lg:rounded-br-[20px] rounded-br-none disabled:opacity-50"
-              >
-                {isUnlocking ? (
-                  'Desbloqueando...'
-                ) : (
-                  <>
-                    Desbloquear módulo <LockOpen weight="fill" size={16} />
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={handleNextLesson}
-                disabled={
-                  !hasNextLesson ||
-                  isNextLessonLocked ||
-                  currentLesson?.status !== 'completed'
-                }
-                className="h-[64px] lg:min-h-[84px] w-1/2 max-w-[320px] rounded-none text-base bg-black border-none
-      lg:rounded-br-[20px] rounded-br-none disabled:opacity-50"
-              >
-                Próxima <SkipForward weight="fill" size={16} />
-              </Button>
-            )}
-          </div>
-        </footer>
-      </div>
+            >
+              Próxima <SkipForward weight="fill" size={16} />
+            </Button>
+          )}
+        </div>
+      </footer>
     </div>
   )
 }

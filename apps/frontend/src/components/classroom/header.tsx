@@ -10,13 +10,12 @@ import { StrikeSection } from '../strike-section'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import type { EnrolledCourse, ActiveCourse } from '@/types/user-course.ts'
-import { useState, useMemo, useEffect } from 'react'
+import { useMemo, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useClassroomAutoplayStore } from '@/stores/classroom-autoplay-store'
 import { usePathname } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { useRoadmapUpdater } from '@/hooks/use-roadmap-updater'
-import type { RoadmapResponse } from '@/types/roadmap'
+import { useClassroomRoadmap } from '@/components/classroom/classroom-roadmap-context'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/skeleton'
 
@@ -55,7 +54,7 @@ export default function ClassroomHeader({
     hydrate: hydrateAutoplay,
     setAutoplayEnabled,
   } = useClassroomAutoplayStore()
-  const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null)
+  const { roadmap } = useClassroomRoadmap()
 
   useEffect(() => {
     hydrateAutoplay()
@@ -83,14 +82,6 @@ export default function ClassroomHeader({
     initialActiveCourse?.currentTaskId,
     setActiveCourse,
   ])
-
-  useRoadmapUpdater({
-    isOpen: true,
-    courseId: activeCourse?.id,
-    currentLessonId: currentLesson?.id,
-    lessonCompletedTimestamp: null,
-    onRoadmapUpdate: setRoadmap,
-  })
 
   const currentActiveCourse = activeCourse || initialActiveCourse
 

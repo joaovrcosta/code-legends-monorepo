@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ClassroomHeader from "@/components/classroom/header";
+import { ClassroomLayoutClient } from "@/components/classroom/classroom-layout-client";
 import { getActiveCourse } from "@/actions/user/get-active-course";
 import { getUserEnrolledList } from "@/actions/progress";
 
@@ -22,12 +22,11 @@ export default async function ClassroomLayout({
   ]);
 
   return (
-    <>
-      <ClassroomHeader
-        initialUserCourses={enrolledCoursesData.userCourses || []}
-        initialActiveCourse={activeCourse}
-      />
+    <ClassroomLayoutClient
+      initialUserCourses={enrolledCoursesData.userCourses || []}
+      initialActiveCourse={activeCourse}
+    >
       {children}
-    </>
+    </ClassroomLayoutClient>
   );
 }

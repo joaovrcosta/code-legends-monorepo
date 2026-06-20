@@ -6,6 +6,10 @@ import {
 } from "@/actions/course";
 import type { RoadmapResponse } from "@/types/roadmap";
 
+/**
+ * Hook legado para modal de curso e telas fora da classroom shell.
+ * Na classroom, prefira `useClassroomRoadmap()` — não refaz fetch ao trocar de aula.
+ */
 interface UseRoadmapUpdaterOptions {
   isOpen: boolean;
   courseId: string | undefined;
@@ -21,10 +25,8 @@ export function useRoadmapUpdater({
   lessonCompletedTimestamp,
   onRoadmapUpdate,
 }: UseRoadmapUpdaterOptions) {
-  const lastLessonIdRef = useRef<number | null>(null);
   const lastCompletedTimestampRef = useRef<number | null>(null);
   const hasInitialFetchRef = useRef(false);
-
   // Memoiza a função de callback para evitar re-renderizações
   const stableOnRoadmapUpdate = useCallback(
     (roadmap: RoadmapResponse | null) => {
@@ -38,9 +40,7 @@ export function useRoadmapUpdater({
       // Reset refs quando o modal fecha
       if (!isOpen) {
         hasInitialFetchRef.current = false;
-        lastLessonIdRef.current = null;
-        lastCompletedTimestampRef.current = null;
-      }
+        lastCompletedTimestampRef.current = null;      }
       return;
     }
 
@@ -95,17 +95,9 @@ export function useRoadmapUpdater({
       fetchUpdatedRoadmap(true, 300);
       return;
     }
-
-    // 3. Atualiza quando muda de aula (sem delay, usa cache quando possível)
-    if (currentLessonId && currentLessonId !== lastLessonIdRef.current) {
-      lastLessonIdRef.current = currentLessonId;
-      // Usa cache para mudanças de aula (mais rápido)
-      fetchUpdatedRoadmap(false, 0);
-    }
   }, [
     isOpen,
     courseId,
-    currentLessonId,
     lessonCompletedTimestamp,
     stableOnRoadmapUpdate,
   ]);

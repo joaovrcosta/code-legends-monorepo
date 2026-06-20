@@ -54,9 +54,9 @@ export function ClassroomSidebarAside({
             isOpen
               ? 'w-full rounded-t-[20px] shadow-none'
               : cn(
-                  'rounded-3xl shadow-lg',
-                  CLASSROOM_SIDEBAR_COLLAPSED_RAIL_CLASS,
-                ),
+                'rounded-3xl shadow-lg',
+                CLASSROOM_SIDEBAR_COLLAPSED_RAIL_CLASS,
+              ),
           )}
         >
           <div
@@ -64,10 +64,10 @@ export function ClassroomSidebarAside({
               'relative flex h-14 shrink-0 items-center bg-surface',
               isOpen
                 ? cn(
-                    'justify-end px-4',
-                    showBorder && 'border-b border-[#25252A]',
-                    headerClassName,
-                  )
+                  'justify-end px-4',
+                  showBorder && 'border-b border-[#25252A]',
+                  headerClassName,
+                )
                 : 'justify-center px-2',
               !isOpen && 'rounded-t-3xl',
             )}
