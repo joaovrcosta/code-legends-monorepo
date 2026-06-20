@@ -43,7 +43,7 @@ export function ClassroomSidebarAside({
     >
       <div
         className={cn(
-          'absolute inset-y-0 left-0 py-4 pl-3 pr-3',
+          'absolute inset-y-0 left-0 pt-0 pb-4 pl-3 pr-3',
           isOpen ? 'w-[378px]' : 'w-20',
         )}
       >
