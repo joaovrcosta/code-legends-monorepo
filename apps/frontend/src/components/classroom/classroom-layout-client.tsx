@@ -5,6 +5,7 @@ import { Suspense } from 'react'
 import ClassroomHeader from '@/components/classroom/header'
 import { ClassroomRoadmapProvider } from '@/components/classroom/classroom-roadmap-context'
 import { ClassroomShell } from '@/components/classroom/classroom-shell'
+import { ClassroomDocumentTitle } from '@/components/classroom/classroom-document-title'
 import type { ActiveCourse, EnrolledCourse } from '@/types/user-course.ts'
 
 type ClassroomLayoutClientProps = {
@@ -20,6 +21,10 @@ function ClassroomLayoutInner({
 }: ClassroomLayoutClientProps) {
   return (
     <ClassroomRoadmapProvider>
+      <ClassroomDocumentTitle
+        initialActiveCourse={initialActiveCourse}
+        initialUserCourses={initialUserCourses}
+      />
       <ClassroomHeader
         initialUserCourses={initialUserCourses}
         initialActiveCourse={initialActiveCourse}
