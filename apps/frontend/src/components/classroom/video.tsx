@@ -247,7 +247,7 @@ export default function VideoComponent({
       {/* Player: container 16:9 com fundo preto; vídeo com object-contain para letterbox/pillarbox */}
       <div
         ref={containerRef}
-        className="relative w-full max-h-[570px] rounded-lg aspect-[16/9] overflow-hidden bg-black group shrink-0"
+        className="relative w-full max-h-[570px] rounded-[20px] aspect-[16/9] overflow-hidden bg-black group shrink-0"
       >
         {embedSrc ? (
           isDirectPlaybackUrl(src, handlerKey) ? (
