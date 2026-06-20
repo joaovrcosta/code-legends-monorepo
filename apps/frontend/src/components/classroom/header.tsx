@@ -141,7 +141,7 @@ export default function ClassroomHeader({
       return 'text-yellow-400'
     }
     if (currentLesson.isFree === true) {
-      return 'text-lime-400'
+      return 'text-[#6ee7b7]'
     }
     return 'text-purple-400'
   }, [currentLesson, exclusiveAccessBlocked, isLessonNavLoading])

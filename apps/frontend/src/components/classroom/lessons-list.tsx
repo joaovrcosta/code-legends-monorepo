@@ -318,7 +318,7 @@ export const LessonsList = memo(function LessonsList({
                                     {userPlan === 'FREE' && (
                                       <span
                                         className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide rounded-full h-[24px] w-[24px] flex items-center justify-center ${lesson.isFree
-                                          ? 'bg-lime-500/10 text-lime-400'
+                                          ? 'bg-green-500/10 text-[#6ee7b7]'
                                           : 'bg-purple-500/10 text-purple-400'
                                           }`}
                                       >

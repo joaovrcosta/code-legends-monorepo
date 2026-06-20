@@ -33,7 +33,7 @@ function LessonEducator() {
       </Avatar>
       <div className="flex flex-col">
         <p className="text-sm font-medium text-white">João Victor</p>
-        <p className="text-[11px] text-[#7e7e89] uppercase tracking-wider font-semibold">
+        <p className="text-[11px] text-[#7e7e89] tracking-wider font-semibold">
           Educator
         </p>
       </div>

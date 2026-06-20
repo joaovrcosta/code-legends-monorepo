@@ -191,8 +191,8 @@ export function LessonsAccordion() {
                     </span>
                     <span
                       className={`font-bold text-[14px] truncate w-full ${isCurrentModule
-                          ? 'bg-blue-gradient-500 bg-clip-text text-transparent'
-                          : 'text-zinc-200'
+                        ? 'bg-blue-gradient-500 bg-clip-text text-transparent'
+                        : 'text-zinc-200'
                         }`}
                     >
                       {moduleItem.title.length > 24
@@ -251,8 +251,8 @@ export function LessonsAccordion() {
                                   <button
                                     onClick={() => handleLessonClick(lesson)}
                                     className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${isActive
-                                        ? 'bg-zinc-800/50 border border-cyan-400/50'
-                                        : 'hover:bg-zinc-800/30 border border-transparent'
+                                      ? 'bg-zinc-800/50'
+                                      : 'hover:bg-zinc-800/30 border border-transparent'
                                       } ${isFreePlan && isPaidLesson
                                         ? 'opacity-50'
                                         : ''
@@ -260,24 +260,24 @@ export function LessonsAccordion() {
                                   >
                                     <div
                                       className={`w-2 h-2 rounded-full shrink-0 transition-colors ${isActive
-                                          ? 'bg-cyan-400'
-                                          : 'bg-cyan-400/50'
+                                        ? 'bg-cyan-400'
+                                        : 'bg-cyan-400/50'
                                         }`}
                                     />
 
                                     <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                                       <span
                                         className={`text-sm truncate transition-colors duration-200 ${isActive
-                                            ? 'text-cyan-50 font-semibold'
-                                            : 'text-zinc-400 font-medium group-hover:text-zinc-200'
+                                          ? 'text-cyan-50 font-semibold'
+                                          : 'text-zinc-400 font-medium group-hover:text-zinc-200'
                                           }`}
                                       >
                                         {lesson.title}
                                       </span>
                                       <span
                                         className={`text-xs tabular-nums ${isActive
-                                            ? 'text-cyan-400/80'
-                                            : 'text-zinc-500'
+                                          ? 'text-slate-200'
+                                          : 'text-zinc-500'
                                           }`}
                                       >
                                         {getLessonMeta(lesson)}
@@ -286,9 +286,9 @@ export function LessonsAccordion() {
 
                                     {userPlan === 'FREE' && (
                                       <span
-                                        className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${lesson.isFree
-                                            ? 'bg-lime-500/10 text-lime-400 border border-lime-500/20'
-                                            : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                        className={`shrink-0 text-[10px] h-[24px] w-[24px] flex items-center justify-center font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full ${lesson.isFree
+                                          ? 'bg-green-500/10 text-[#6ee7b7]'
+                                          : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
                                           }`}
                                       >
                                         {lesson.isFree ? 'G' : 'P'}

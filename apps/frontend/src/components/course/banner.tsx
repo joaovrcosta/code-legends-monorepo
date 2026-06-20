@@ -326,7 +326,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
                   className={cn(
                     'shrink-0 rounded-full border mb-4 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider',
                     course.isFree
-                      ? 'bg-lime-500/10 border border-lime-500/20 rounded-full px-2 py-1 text-lime-500'
+                      ? 'bg-green-500/10 text-[#6ee7b7] rounded-full px-2 py-1 border-none'
                       : 'shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-1 rounded-full bg-gradient-to-r from-purple-500/10 to-orange-400/20 text-purple-400 border border-purple-500/20',
                   )}
                 >
