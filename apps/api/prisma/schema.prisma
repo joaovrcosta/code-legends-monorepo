@@ -38,6 +38,8 @@ model Course {
   userCourses     UserCourse[]
   Certificate     Certificate[]
   favoriteCourses FavoriteCourse[]
+  courseLikes      CourseLike[]
+  courseDislikes   CourseDislike[]
   activeUsers     User[]           @relation("ActiveCourse")
   skills          CourseSkill[]
 
@@ -261,6 +263,10 @@ model User {
   userProgress             UserProgress[]
   Certificate              Certificate[]
   favoriteCourses          FavoriteCourse[]
+  courseLikes              CourseLike[]
+  courseDislikes           CourseDislike[]
+  lessonLikes              LessonLike[]
+  lessonDislikes           LessonDislike[]
   activeCourseId           String?
   activeCourse             Course?               @relation("ActiveCourse", fields: [activeCourseId], references: [id])
   coursesAsInstructor      Course[]              @relation("CourseInstructor")
@@ -362,6 +368,8 @@ model Lesson {
   skills         LessonSkill[]
   production     LessonProduction?
   productionLogs LessonProductionLog[]
+  lessonLikes    LessonLike[]
+  lessonDislikes LessonDislike[]
 
   @@unique([slug, submoduleId])
 }
@@ -722,6 +730,54 @@ model FavoriteCourse {
   course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
+}
+
+model CourseLike {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+model LessonLike {
+  id        String   @id @default(cuid())
+  userId    String
+  lessonId  Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([lessonId])
+}
+
+model CourseDislike {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+model LessonDislike {
+  id        String   @id @default(cuid())
+  userId    String
+  lessonId  Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([lessonId])
 }
 
 model UserXpHistory {

@@ -17,6 +17,7 @@ import { useCourseModalStore } from '@/stores/course-modal-store'
 import { cn } from '@/lib/utils'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
 import { ClassroomAutoplayToggle } from '@/components/classroom/classroom-autoplay-toggle'
+import { ClassroomLikesToolbar } from '@/components/classroom/classroom-likes-toolbar'
 
 interface TitleAccordionProps {
   title: string | undefined
@@ -92,8 +93,8 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
     }
   }
 
-  const actionButtons = (
-    <div className="flex items-center gap-3">
+  const completeAndAutoplay = (
+    <>
       <div
         onClick={(e) => e.stopPropagation()}
         className={cn(
@@ -116,6 +117,19 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
         />
       </div>
       {currentLesson?.type === 'video' && <ClassroomAutoplayToggle />}
+    </>
+  )
+
+  const desktopActionButtons = (
+    <div className="flex items-center gap-3 flex-wrap justify-end">
+      <ClassroomLikesToolbar lessonId={currentLesson?.id} />
+      {completeAndAutoplay}
+    </div>
+  )
+
+  const mobileActionButtons = (
+    <div className="mr-4 flex flex-col justify-between gap-4 w-full text-left">
+      {completeAndAutoplay}
     </div>
   )
 
@@ -128,7 +142,7 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
             <h1 className="bg-blue-gradient-500 bg-clip-text text-transparent text-2xl font-bold tracking-tight">
               {title}
             </h1>
-            {actionButtons}
+            {desktopActionButtons}
           </div>
         </div>
 
@@ -150,9 +164,7 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
         <AccordionItem value="lesson-info" className="border-none">
           <div className="w-full mx-auto rounded-none overflow-hidden border-y border-[#2A2A2A] bg-[#151518] shadow-2xl">
             <AccordionTrigger className="hover:no-underline bg-[#0C0C0F] group px-6 py-6 [&[data-state=open]>svg]:rotate-180">
-              <div className="flex flex-col justify-between gap-4 w-full text-left mr-4">
-                {actionButtons}
-              </div>
+              {mobileActionButtons}
               <ChevronDown className="h-5 w-5 shrink-0 text-[#7e7e89] transition-transform duration-200" />
             </AccordionTrigger>
 

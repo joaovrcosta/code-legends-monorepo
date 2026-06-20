@@ -7,12 +7,18 @@ import { update } from "./update.controller";
 import { remove } from "./delete.controller";
 import { complete } from "./complete.controller";
 import { awardChallengeXp } from "./award-challenge-xp.controller";
+import { getLessonLikes } from "./get-likes.controller";
+import { addLessonLike } from "./add-like.controller";
+import { removeLessonLike } from "./remove-like.controller";
+import { addLessonDislike } from "./add-dislike.controller";
+import { removeLessonDislike } from "./remove-dislike.controller";
 import { getLessonSkillsConfig } from "./get-skills-config.controller";
 import { updateLessonSkillsConfig } from "./update-skills-config.controller";
 import { verifyJWT } from "../../middlewares/verify-jwt";
 import { verifyAdmin } from "../../middlewares/verify-admin";
 import { verifyInstructorOrAdmin } from "../../middlewares/verify-instructor-or-admin";
 import { verifyLessonAccess } from "../../middlewares/verify-lesson-access";
+import { verifyJWTOptional } from "../../middlewares/verify-jwt-optional";
 
 export async function lessonRoutes(app: FastifyInstance) {
   // Rotas aninhadas em groups
@@ -27,6 +33,12 @@ export async function lessonRoutes(app: FastifyInstance) {
     "/lessons/id/:lessonId",
     { onRequest: [verifyInstructorOrAdmin] },
     getLessonById,
+  );
+
+  app.get(
+    "/lessons/:id/likes",
+    { onRequest: [verifyJWTOptional] },
+    getLessonLikes,
   );
 
   // Rotas protegidas de lições - requer autenticação e verificação de acesso
@@ -73,5 +85,49 @@ export async function lessonRoutes(app: FastifyInstance) {
       ],
     },
     awardChallengeXp
+  );
+
+  app.post(
+    "/lessons/:id/likes",
+    {
+      onRequest: [
+        verifyJWT,
+        verifyLessonAccess({ lessonIdParam: "id", allowInstructors: false }),
+      ],
+    },
+    addLessonLike,
+  );
+
+  app.delete(
+    "/lessons/:id/likes",
+    {
+      onRequest: [
+        verifyJWT,
+        verifyLessonAccess({ lessonIdParam: "id", allowInstructors: false }),
+      ],
+    },
+    removeLessonLike,
+  );
+
+  app.post(
+    "/lessons/:id/dislikes",
+    {
+      onRequest: [
+        verifyJWT,
+        verifyLessonAccess({ lessonIdParam: "id", allowInstructors: false }),
+      ],
+    },
+    addLessonDislike,
+  );
+
+  app.delete(
+    "/lessons/:id/dislikes",
+    {
+      onRequest: [
+        verifyJWT,
+        verifyLessonAccess({ lessonIdParam: "id", allowInstructors: false }),
+      ],
+    },
+    removeLessonDislike,
   );
 }

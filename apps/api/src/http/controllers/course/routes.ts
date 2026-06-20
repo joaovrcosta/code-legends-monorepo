@@ -30,6 +30,11 @@ import { updateSkillsConfig } from "./update-skills-config.controller";
 import { getSkillsProgress } from "./get-skills-progress.controller";
 import { updateCourseStatus } from "./update-status.controller";
 import { getStructureEditor } from "./get-structure-editor.controller";
+import { getCourseLikes } from "./get-likes.controller";
+import { addCourseLike } from "./add-like.controller";
+import { removeCourseLike } from "./remove-like.controller";
+import { addCourseDislike } from "./add-dislike.controller";
+import { removeCourseDislike } from "./remove-dislike.controller";
 import { verifyJWT } from "../../middlewares/verify-jwt";
 import { verifyJWTOptional } from "../../middlewares/verify-jwt-optional";
 import { verifyAdmin } from "../../middlewares/verify-admin";
@@ -84,6 +89,19 @@ export async function courseRoutes(app: FastifyInstance) {
     getLessonBySlug
   );
   app.get("/courses/:id/roadmap", { onRequest: [verifyJWT] }, getRoadmap);
+  app.get(
+    "/courses/:id/likes",
+    { onRequest: [verifyJWTOptional] },
+    getCourseLikes,
+  );
+  app.post("/courses/:id/likes", { onRequest: [verifyJWT] }, addCourseLike);
+  app.delete("/courses/:id/likes", { onRequest: [verifyJWT] }, removeCourseLike);
+  app.post("/courses/:id/dislikes", { onRequest: [verifyJWT] }, addCourseDislike);
+  app.delete(
+    "/courses/:id/dislikes",
+    { onRequest: [verifyJWT] },
+    removeCourseDislike,
+  );
   app.get("/courses/:courseIdentifier/progress", { onRequest: [verifyJWT] }, getCourseProgress);
   app.post("/courses/:id/enroll", { onRequest: [verifyJWT] }, enroll);
   app.post("/courses/:id/start", { onRequest: [verifyJWT] }, start);
