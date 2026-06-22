@@ -20,8 +20,12 @@ export default async function CoursesPage() {
     id: c.id,
     title: c.title,
     href: `/learn/careers/${c.slug}`,
-    badge: 'Carreira',
+    badge: 'Para assinantes',
     pills: [`${c.modulesCount} módulos`],
+    iconUrl: c.icon,
+    thumbnailUrl: c.thumbnail,
+    colorHex: c.colorHex,
+    modulesCount: c.modulesCount,
   }))
 
   return (

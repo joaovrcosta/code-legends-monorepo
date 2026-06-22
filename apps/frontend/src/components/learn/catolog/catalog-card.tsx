@@ -9,6 +9,7 @@ import { useState } from 'react'
 import { useEnrolledCoursesStore } from '@/stores/enrolled-courses-store'
 import coverBackground from '../../../../public/cover-background.png'
 import { LevelBars } from '@/components/course/level-bars'
+import { SubscriberBadge } from '@/components/ui/subscriber-badge'
 
 function EnrollButton({
     courseId,
@@ -202,9 +203,7 @@ export function CatalogCard({
                                     <p className="text-xs text-lime-400 font-semibold">Gratuito</p>
                                 </div>
                             ) : (
-                                <div className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-1 rounded-full bg-gradient-to-r from-purple-500/10 to-orange-400/20 text-purple-400 border border-purple-500/20">
-                                    Para assinantes
-                                </div>
+                                <SubscriberBadge />
                             ))}
                     </div>
                 )}

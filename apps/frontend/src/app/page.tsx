@@ -32,8 +32,12 @@ export default async function Home() {
     id: c.id,
     title: c.title,
     href: `/learn/careers/${c.slug}`,
-    badge: 'Carreira',
+    badge: 'Para assinantes',
     pills: [`${c.modulesCount} módulos`],
+    iconUrl: c.icon,
+    thumbnailUrl: c.thumbnail,
+    colorHex: c.colorHex,
+    modulesCount: c.modulesCount,
   }))
 
 
@@ -92,11 +96,10 @@ export default async function Home() {
                 </div>
 
                 <div className="mb-8">
-                  <SectionTitle
-                    className="mb-5"
-                    title="Trilhas de carreira"
+                  <CareerTracksSection
+                    tracks={tracks}
+                    sectionTitle="Trilhas de carreira"
                   />
-                  <CareerTracksSection tracks={tracks} />
                 </div>
 
                 <div className="relative w-full min-w-0 overflow-hidden px-0 mb-6">

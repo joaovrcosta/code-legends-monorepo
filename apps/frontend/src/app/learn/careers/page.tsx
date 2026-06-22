@@ -15,15 +15,18 @@ export default async function CareersPage() {
           </span>
         </div>
 
-        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {data.careers.map((c) => (
             <CareerTrackCard
               key={c.id}
               title={c.title}
               href={`/learn/careers/${c.slug}`}
-              badge="Carreira"
+              badge="Para assinantes"
               pills={[`${c.modulesCount} módulos`]}
-              iconUrl={c.icon ?? c.thumbnail}
+              iconUrl={c.icon}
+              thumbnailUrl={c.thumbnail}
+              colorHex={c.colorHex}
+              modulesCount={c.modulesCount}
             />
           ))}
         </div>
