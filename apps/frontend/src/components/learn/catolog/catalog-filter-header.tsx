@@ -131,8 +131,8 @@ export function CatalogFilterHeader({
               className={cn(
                 'shrink-0 rounded-full px-4 h-[42px] text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-blue-gradient-500 text-[#fff]'
-                  : 'bg-[#1a1a1e]/80 text-white hover:bg-[#25252A]',
+                  ? 'bg-blue-gradient-500 text-[#E0E0EE]'
+                  : 'bg-[#15151B] text-[#E0E0EE] hover:bg-[#25252A] font-light',
               )}
             >
               {tab.label}
@@ -148,7 +148,7 @@ export function CatalogFilterHeader({
               key={tech}
               checked={technologies.includes(tech)}
               onCheckedChange={() => toggleTechnology(tech)}
-              className="text-white focus:bg-[#25252A] focus:text-white"
+              className="text-[#E0E0EE] focus:bg-[#25252A] focus:text-[#E0E0EE]"
             >
               {tech}
             </DropdownMenuCheckboxItem>
@@ -161,7 +161,7 @@ export function CatalogFilterHeader({
               key={option.value}
               checked={filters.levels.includes(option.value)}
               onCheckedChange={() => toggleLevel(option.value)}
-              className="text-white focus:bg-[#25252A] focus:text-white"
+              className="text-[#E0E0EE] focus:bg-[#25252A] focus:text-white"
             >
               {option.label}
             </DropdownMenuCheckboxItem>
@@ -174,7 +174,7 @@ export function CatalogFilterHeader({
               key={option.value}
               checked={filters.prices.includes(option.value)}
               onCheckedChange={() => togglePrice(option.value)}
-              className="text-white focus:bg-[#25252A] focus:text-white"
+              className="text-[#E0E0EE] focus:bg-[#25252A] focus:text-[#E0E0EE]"
             >
               {option.label}
             </DropdownMenuCheckboxItem>
@@ -187,7 +187,7 @@ export function CatalogFilterHeader({
               key={option.value}
               checked={filters.types.includes(option.value)}
               onCheckedChange={() => toggleType(option.value)}
-              className="text-white focus:bg-[#25252A] focus:text-white"
+              className="text-[#E0E0EE] focus:bg-[#25252A] focus:text-[#E0E0EE]"
             >
               {option.label}
             </DropdownMenuCheckboxItem>
@@ -197,7 +197,7 @@ export function CatalogFilterHeader({
               key={track.id}
               checked={filters.types.includes('career')}
               onCheckedChange={() => toggleType('career')}
-              className="text-white focus:bg-[#25252A] focus:text-white"
+              className="text-[#E0E0EE] focus:bg-[#25252A] focus:text-[#E0E0EE]"
             >
               {track.title}
             </DropdownMenuCheckboxItem>
