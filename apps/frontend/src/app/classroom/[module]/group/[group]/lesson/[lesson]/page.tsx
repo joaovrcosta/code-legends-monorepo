@@ -185,15 +185,15 @@ export default function DynamicLessonPage() {
     if (activeCourse?.id === courseIdFromUrl) return
 
     let cancelled = false
-    ;(async () => {
-      try {
-        const { startCourse } = await import('@/actions/course/start')
-        await startCourse(courseIdFromUrl)
-        if (!cancelled) await fetchActiveCourse()
-      } catch (e) {
-        console.warn('[classroom] Não foi possível alinhar curso ativo:', e)
-      }
-    })()
+      ; (async () => {
+        try {
+          const { startCourse } = await import('@/actions/course/start')
+          await startCourse(courseIdFromUrl)
+          if (!cancelled) await fetchActiveCourse()
+        } catch (e) {
+          console.warn('[classroom] Não foi possível alinhar curso ativo:', e)
+        }
+      })()
 
     return () => {
       cancelled = true
@@ -347,7 +347,7 @@ export default function DynamicLessonPage() {
     return (
       <div className="flex min-h-0 flex-1 flex-col pt-[110px] lg:pt-0">
         <div className="flex flex-1 items-center justify-center">
-          <Loading className="flex-1" />
+          <Loading className="flex-1" width={64} />
         </div>
       </div>
     )
