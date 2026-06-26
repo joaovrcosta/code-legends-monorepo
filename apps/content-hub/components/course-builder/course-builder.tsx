@@ -230,7 +230,7 @@ export function CourseBuilder({
         if (!raw) return new Set(modules.map((m) => m.id));
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) return new Set(parsed.map(String));
-      } catch {}
+      } catch { }
       return new Set(modules.map((m) => m.id));
     },
   );
@@ -308,7 +308,7 @@ export function CourseBuilder({
     setExpandedModules(newExpanded);
     try {
       window.localStorage.setItem(storageKey, JSON.stringify([...newExpanded]));
-    } catch {}
+    } catch { }
   };
 
   const handleAddModule = async () => {
@@ -741,10 +741,9 @@ export function CourseBuilder({
 
       if (importErrors.length > 0) {
         setImportError(
-          `${importErrors.length} item(ns) não importado(s):\n${importErrors.slice(0, 5).join("\n")}${
-            importErrors.length > 5
-              ? `\n... e mais ${importErrors.length - 5} erro(s)`
-              : ""
+          `${importErrors.length} item(ns) não importado(s):\n${importErrors.slice(0, 5).join("\n")}${importErrors.length > 5
+            ? `\n... e mais ${importErrors.length - 5} erro(s)`
+            : ""
           }`,
         );
       } else {
@@ -888,7 +887,7 @@ export function CourseBuilder({
               setCollapseAllKey((k) => k + 1);
               try {
                 window.localStorage.setItem(storageKey, JSON.stringify([]));
-              } catch {}
+              } catch { }
             }}
           >
             Fechar tudo
@@ -1087,7 +1086,7 @@ export function CourseBuilder({
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Upload className="mr-2 h-4 w-4" />
-                      Selecionar arquivo .json
+                      Importar arquivo .json
                     </Button>
                   </div>
                   <Textarea

@@ -54,6 +54,7 @@ import {
   type VideoLessonNeighbor,
 } from '@/lib/course-structure'
 import { LessonContextBreadcrumb } from './lesson-context-breadcrumb'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 function priorityLabel(p: LessonProductionPriority): string {
   switch (p) {
@@ -137,6 +138,7 @@ export function LessonEditView({
   const [metadadosOpen, setMetadadosOpen] = useState(false)
   const [quizMode, setQuizMode] = useState<'editor' | 'json'>('editor')
   const [quizJson, setQuizJson] = useState('')
+  const [lessonTab, setLessonTab] = useState<'desafios' | 'informacoes'>('desafios')
   const [availableSkills, setAvailableSkills] = useState<
     Array<{ id: string; name: string; slug: string }>
   >([])
@@ -274,6 +276,7 @@ export function LessonEditView({
       })
       setQuizContent(resolvedLesson.quiz?.content ?? [])
       setQuizMode('editor')
+      setLessonTab('desafios')
       setQuizJson(JSON.stringify(resolvedLesson.quiz?.content ?? [], null, 2))
       setSlugManuallyEdited(false)
       setProductionPriority(
@@ -731,6 +734,329 @@ Vamos passar por cada linha juntos...`
   const isQuizType =
     formData.type === 'quiz' || formData.type === 'multi_quiz'
   const isFullScreen = !isPage && isQuizType
+  const useQuizWorkspaceLayout = isQuizType && (isFullScreen || isPage)
+
+  const lessonInformationFields = (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="title">Título *</Label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) =>
+              setFormData({ ...formData, title: e.target.value })
+            }
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="type">Tipo *</Label>
+          <Select
+            id="type"
+            value={formData.type}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                type: e.target.value as
+                  | 'article'
+                  | 'video'
+                  | 'text'
+                  | 'quiz'
+                  | 'multi_quiz'
+                  | 'project',
+              })
+            }
+            required
+          >
+            <option value="video">Vídeo</option>
+            <option value="article">Leitura</option>
+            <option value="text">Texto</option>
+            <option value="quiz">Quiz</option>
+            <option value="multi_quiz">Multi quiz</option>
+            <option value="project">Projeto</option>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="url">URL</Label>
+        <Input
+          id="url"
+          value={formData.url}
+          onChange={(e) =>
+            setFormData({ ...formData, url: e.target.value })
+          }
+          placeholder="https://..."
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="lesson-description">Descrição *</Label>
+        <Textarea
+          id="lesson-description"
+          value={formData.description}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              description: e.target.value,
+            })
+          }
+          rows={4}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Skills desta aula (opcional)</Label>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Essas skills recebem XP adicional quando o aluno conclui esta aula.
+        </p>
+        <div className="flex gap-2">
+          <Select
+            value={selectedSkillId}
+            onChange={(e) => setSelectedSkillId(e.target.value)}
+          >
+            <option value="">Selecione uma skill</option>
+            {availableSkills
+              .filter((skill) => {
+                const alreadyInLesson = lessonSkills.some(
+                  (ls) => ls.skillId === skill.id,
+                )
+                const alreadyInCourse = (courseSkillIds ?? []).includes(skill.id)
+                return !alreadyInLesson && !alreadyInCourse
+              })
+              .map((skill) => (
+                <option key={skill.id} value={skill.id}>
+                  {skill.name} ({skill.slug})
+                </option>
+              ))}
+          </Select>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              if (!selectedSkillId) return
+              const skill = availableSkills.find((s) => s.id === selectedSkillId)
+              if (!skill) return
+              setLessonSkills((prev) => [
+                ...prev,
+                {
+                  skillId: skill.id,
+                  name: skill.name,
+                  slug: skill.slug,
+                  weight: 100,
+                },
+              ])
+              setSelectedSkillId('')
+            }}
+          >
+            Adicionar
+          </Button>
+        </div>
+
+        {lessonSkills.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {lessonSkills.map((item) => (
+              <div
+                key={item.skillId}
+                className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm dark:border-gray-700"
+              >
+                <div>
+                  <div className="font-medium">{item.name}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    slug: {item.slug}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={item.weight}
+                    onChange={(e) => {
+                      const value = parseSkillWeightInput(e.target.value)
+                      setLessonSkills((prev) =>
+                        prev.map((ls) =>
+                          ls.skillId === item.skillId
+                            ? { ...ls, weight: value }
+                            : ls,
+                        ),
+                      )
+                    }}
+                    className="w-20"
+                  />
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    %
+                  </span>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() =>
+                      setLessonSkills((prev) =>
+                        prev.filter((ls) => ls.skillId !== item.skillId),
+                      )
+                    }
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-lg border border-gray-200 p-4 space-y-4 dark:border-gray-700">
+        <div>
+          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            Produção editorial
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Status, prioridade no Kanban e anotações internas da equipe.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="lesson-production-status">Status</Label>
+            <Select
+              id="lesson-production-status"
+              value={productionStatus}
+              onChange={(e) =>
+                setProductionStatus(e.target.value as LessonProductionStatus)
+              }
+            >
+              {LESSON_PRODUCTION_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {lessonProductionStatusLabel(s)}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lesson-production-priority">
+              Prioridade no Kanban
+            </Label>
+            <Select
+              id="lesson-production-priority"
+              value={productionPriority}
+              onChange={(e) =>
+                setProductionPriority(e.target.value as LessonProductionPriority)
+              }
+            >
+              {LESSON_PRODUCTION_PRIORITIES.map((p) => (
+                <option key={p} value={p}>
+                  {priorityLabel(p)}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="lesson-production-notes">Anotações</Label>
+          <Textarea
+            id="lesson-production-notes"
+            value={productionNotes}
+            onChange={(e) => setProductionNotes(e.target.value)}
+            rows={4}
+            placeholder="Escreva suas anotações sobre esta aula…"
+          />
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700">
+        <button
+          type="button"
+          className="flex w-full items-center justify-between gap-2 rounded-t-lg px-4 py-3 text-left font-medium hover:bg-muted/50"
+          onClick={() => setMetadadosOpen((o) => !o)}
+        >
+          <span>Metadados</span>
+          {metadadosOpen ? (
+            <ChevronUp className="h-4 w-4 shrink-0" />
+          ) : (
+            <ChevronDown className="h-4 w-4 shrink-0" />
+          )}
+        </button>
+        {metadadosOpen && (
+          <div className="space-y-4 border-t px-4 pb-4 pt-0">
+            <div className="space-y-2 pt-4">
+              <Label htmlFor="lesson-slug">Slug *</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="lesson-slug"
+                  value={formData.slug}
+                  onChange={(e) => {
+                    setFormData({ ...formData, slug: e.target.value })
+                    setSlugManuallyEdited(true)
+                  }}
+                  required
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const newSlug = generateSlug(formData.title)
+                    setFormData({ ...formData, slug: newSlug })
+                    setSlugManuallyEdited(true)
+                  }}
+                >
+                  Gerar
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lesson-order">Ordem</Label>
+              <Input
+                id="lesson-order"
+                type="number"
+                value={formData.order}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    order: parseInt(e.target.value, 10) || 0,
+                  })
+                }
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.isFree}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      isFree: e.target.checked,
+                    })
+                  }
+                  className="rounded"
+                />
+                <span>Aula gratuita</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.locked}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      locked: e.target.checked,
+                    })
+                  }
+                  className="rounded"
+                />
+                <span>Bloqueada</span>
+              </label>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 
   const card = (
     <Card
@@ -791,13 +1117,82 @@ Vamos passar por cada linha juntos...`
       </CardHeader>
       <CardContent
         className={
-          isFullScreen
-            ? 'flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-6 pt-0'
-            : isPage
-              ? 'space-y-6'
-              : 'cb-modal-body'
+          useQuizWorkspaceLayout
+            ? 'flex min-h-0 flex-1 flex-col overflow-hidden p-6 pt-0'
+            : isFullScreen
+              ? 'flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-6 pt-0'
+              : isPage
+                ? 'space-y-6'
+                : 'cb-modal-body'
         }
       >
+        {useQuizWorkspaceLayout ? (
+          <Tabs
+            value={lessonTab}
+            onValueChange={(value) =>
+              setLessonTab(value as 'desafios' | 'informacoes')
+            }
+            className="flex min-h-0 flex-1 flex-col overflow-hidden"
+          >
+            <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+              <TabsList>
+                <TabsTrigger value="desafios">Desafios</TabsTrigger>
+                <TabsTrigger value="informacoes">Informações</TabsTrigger>
+              </TabsList>
+              {lessonTab === 'desafios' && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant={quizMode === 'editor' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setQuizMode('editor')}
+                  >
+                    Editor
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={quizMode === 'json' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setQuizMode('json')}
+                  >
+                    JSON
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <TabsContent
+              value="desafios"
+              className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden data-[state=inactive]:hidden"
+            >
+              <div className="min-h-0 flex-1">
+                <QuizEditor
+                  variant="workspace"
+                  challenges={quizContent}
+                  onChange={setQuizContent}
+                  quizMode={quizMode}
+                  quizJson={quizJson}
+                  onQuizJsonChange={setQuizJson}
+                  onApplyJson={() => {
+                    const ok = tryApplyQuizJson(quizJson)
+                    if (ok) setQuizMode('editor')
+                    return ok
+                  }}
+                  onReloadJsonFromEditor={() =>
+                    setQuizJson(JSON.stringify(quizContent ?? [], null, 2))
+                  }
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent
+              value="informacoes"
+              className="mt-3 min-h-0 flex-1 overflow-y-auto pr-1 data-[state=inactive]:hidden"
+            >
+              {lessonInformationFields}
+            </TabsContent>
+          </Tabs>
+        ) : (
         <div
           className={
             isFullScreen
@@ -1290,9 +1685,10 @@ Vamos passar por cada linha juntos...`
             )}
           </div>
         </div>
+        )}
 
         <div className="mt-4 flex shrink-0 flex-col gap-2 border-t border-border bg-card pt-4">
-          {isFullScreen && (
+          {(isFullScreen || useQuizWorkspaceLayout) && (
             <p className="text-center text-xs text-muted-foreground">
               As alterações no editor só são gravadas no servidor ao clicar em{' '}
               <strong>Salvar</strong> (ou Ctrl+Enter no modo texto).
