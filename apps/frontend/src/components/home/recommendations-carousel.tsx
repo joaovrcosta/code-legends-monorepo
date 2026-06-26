@@ -109,21 +109,25 @@ export function RecommendationsCarousel({
           />
         )}
 
-        <div className="relative min-w-0">
-          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
-
           {!inlineHeader && (
-            <>
+            <div className="mb-4 flex items-center justify-end gap-2 pr-6 lg:pr-0">
               <CarouselPrevious
+                variant="ghost"
                 hideWhenDisabled
-                className="left-0 top-1/2 z-20 h-[42px] w-[42px] -translate-y-1/2 border-[#25252A] bg-surface/80 text-white hover:bg-[#25252A]"
+                aria-label="Anterior"
+                className={carouselHeaderNavButtonClassName}
               />
               <CarouselNext
+                variant="ghost"
                 hideWhenDisabled
-                className="right-0 top-1/2 z-20 h-[42px] w-[42px] -translate-y-1/2 border-[#25252A] bg-surface/80 text-white hover:bg-[#25252A]"
+                aria-label="Próximo"
+                className={carouselHeaderNavButtonClassName}
               />
-            </>
+            </div>
           )}
+
+        <div className="relative min-w-0">
+          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
 
           <CarouselContent>
             {courses.map((course, index) => {

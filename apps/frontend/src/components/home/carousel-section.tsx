@@ -8,6 +8,7 @@ import {
     CarouselItem,
     CarouselNext,
     CarouselPrevious,
+    carouselHeaderNavButtonClassName,
 } from '@/components/ui/carousel'
 import type { CourseWithCount } from '@/types/user-course.ts'
 import { cn } from '@/lib/utils'
@@ -39,11 +40,12 @@ const getColorByLevel = (level: string): string => {
 
 export type CarouselSectionProps = {
     courses: CourseWithCount[]
+    sectionTitle?: string
     /** Cabeçalho com título + ações (ex. setas), renderizado dentro do `Carousel`. */
     header?: ReactNode
 }
 
-export function CarouselSection({ courses, header }: CarouselSectionProps) {
+export function CarouselSection({ courses, header, sectionTitle }: CarouselSectionProps) {
     const { data, status } = useSession()
     const plan = (data?.user as { plan?: 'FREE' | 'PRO' | 'PREMIUM' } | undefined)
         ?.plan
@@ -57,12 +59,13 @@ export function CarouselSection({ courses, header }: CarouselSectionProps) {
                     : undefined
 
     const hasHeader = Boolean(header)
+    const showTopNav = !hasHeader
 
     return (
         <div
             className={cn(
                 'relative min-w-0',
-                hasHeader ? 'pt-0' : 'pt-6',
+                hasHeader || sectionTitle ? 'pt-0' : 'pt-6',
             )}
         >
             <Carousel
@@ -74,21 +77,37 @@ export function CarouselSection({ courses, header }: CarouselSectionProps) {
             >
                 {header}
 
-                <div className="relative min-w-0">
-                    <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
-
-                    {!hasHeader && (
-                        <>
+                {showTopNav ? (
+                    <div
+                        className={cn(
+                            'mb-4 flex items-center gap-4 pr-6 lg:pr-0',
+                            sectionTitle ? 'justify-between' : 'justify-end',
+                        )}
+                    >
+                        {sectionTitle ? (
+                            <span className="text-sm font-semibold text-[#666]">
+                                {sectionTitle}
+                            </span>
+                        ) : null}
+                        <div className="flex shrink-0 items-center gap-2">
                             <CarouselPrevious
+                                variant="ghost"
                                 hideWhenDisabled
-                                className="left-0 top-1/2 z-20 h-[42px] w-[42px] -translate-y-1/2 border-[#25252A] bg-surface/80 text-white hover:bg-[#25252A]"
+                                aria-label="Anterior"
+                                className={carouselHeaderNavButtonClassName}
                             />
                             <CarouselNext
+                                variant="ghost"
                                 hideWhenDisabled
-                                className="right-0 top-1/2 z-20 h-[42px] w-[42px] -translate-y-1/2 border-[#25252A] bg-surface/80 text-white hover:bg-[#25252A]"
+                                aria-label="Próximo"
+                                className={carouselHeaderNavButtonClassName}
                             />
-                        </>
-                    )}
+                        </div>
+                    </div>
+                ) : null}
+
+                <div className="relative min-w-0">
+                    <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
 
                     <CarouselContent className="-ml-4">
                         {courses.map((course, index) => {

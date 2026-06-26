@@ -49,7 +49,7 @@ export async function UserProfiler() {
     userPlan === 'PRO' ? 'pro' : userPlan === 'PREMIUM' ? 'premium' : 'free'
 
   return (
-    <div className="w-full lg:mb-0 mb-6 lg:max-w-[360px] flex-shrink-0 self-stretch lg:mt-9 mt-0 flex flex-col gap-8 lg:sticky lg:top-[32px] h-fit">
+    <div className="relative z-10 w-full lg:mb-0 mb-6 lg:max-w-[360px] flex-shrink-0 self-stretch lg:mt-9 mt-0 flex flex-col gap-8 lg:sticky lg:top-[32px] h-fit">
       <div className="bg-surface-2 p-6 border border-[#25252A] rounded-[20px] w-full">
         <div className=" flex justify-between">
           <h1 className="text-white text-xl font-medium">Olá, {firstName}</h1>

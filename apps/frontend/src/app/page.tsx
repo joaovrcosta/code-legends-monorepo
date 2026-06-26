@@ -45,7 +45,7 @@ export default async function Home() {
     <>
       <HomePageWrapper initialUserCourses={enrolledCoursesData.userCourses || []}>
         <div className="w-full lg:p-6 xl:pt-8 pt-6 pl-6 pr-0 pb-6">
-          <div className="flex flex-col lg:flex-row max-w-[1420px] pb-10 gap-8 md:gap-10 mx-auto">
+          <div className="flex flex-col lg:flex-row max-w-[1420px] pb-10 gap-8 md:gap-6 mx-auto">
             <div className="flex-1 flex flex-col items-start min-w-0 overflow-x-hidden">
               <div className="w-full">
                 <SectionTitle
@@ -59,7 +59,7 @@ export default async function Home() {
                 {hasContinueLearningCourses ? (
                   <div className="w-full mt-0">
                     <SectionTitle
-                      className="mb-4 mt-8"
+                      className="mb-4 mt-10"
                       title="Continuar aprendendo"
                     />
                     <CurrentCourses />
@@ -70,23 +70,21 @@ export default async function Home() {
                   <UserProfiler />
                 </div>
 
-                <div className="mb-8 pt-8">
-                  <SectionTitle
-                    className=""
-                    title="Em alta"
+                <div className="mb-12 pt-10">
+                  <CatalogCoursesCarousel
+                    courses={courses.courses}
+                    sectionTitle="Em alta"
                   />
-                  <CatalogCoursesCarousel courses={courses.courses} />
                 </div>
 
-                <div className="mb-8">
-                  <SectionTitle
-                    className=""
-                    title="Recomendações"
+                <div className="mb-10">
+                  <CatalogCoursesCarousel
+                    courses={courses.courses}
+                    sectionTitle="Recomendações"
                   />
-                  <CatalogCoursesCarousel courses={courses.courses} />
                 </div>
 
-                <div className="relative w-full min-w-0 overflow-hidden px-0 pb-4">
+                <div className="relative w-full min-w-0 overflow-hidden px-0 pb-10">
                   <SectionTitle
                     className="mb-5"
                     title="Categorias"
@@ -94,7 +92,7 @@ export default async function Home() {
                   <CategoriesCarousel />
                 </div>
 
-                <div className="mb-8">
+                <div className="mb-10">
                   <CareerTracksSection
                     tracks={tracks}
                     sectionTitle="Trilhas de carreira"
@@ -111,7 +109,7 @@ export default async function Home() {
               </div>
             </div>
 
-            <div className="hidden lg:block flex-shrink-0">
+            <div className="relative z-10 hidden lg:block flex-shrink-0">
               <UserProfiler />
             </div>
           </div>

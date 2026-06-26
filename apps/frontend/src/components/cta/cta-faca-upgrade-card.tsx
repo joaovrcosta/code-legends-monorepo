@@ -33,12 +33,17 @@ export function CtaFacaUpgradeCard({
   return (
     <div
       className={cn(
-        "border border-[#25252A] rounded-[20px] w-full overflow-hidden",
+        "relative z-[100] w-full rounded-[20px]",
         "shadow-[0_0_32px_rgba(0,200,255,0.12),0_0_64px_rgba(0,200,255,0.06)]",
-        "border-[#00C8FF]/20 bg-surface-2",
-        className
+        className,
       )}
     >
+      <div
+        className={cn(
+          "w-full overflow-hidden rounded-[20px]",
+          "border border-[#25252A] border-[#00C8FF]/20 bg-surface-2",
+        )}
+      >
       {/* Header com fundo escuro e imagem do raio */}
       <div
         className="relative min-h-[100px] flex items-center px-6 py-5 rounded-t-[20px] bg-black"
@@ -70,6 +75,7 @@ export function CtaFacaUpgradeCard({
             </CtaAssinarCursoButton>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

@@ -98,7 +98,7 @@ export default {
           "linear-gradient(267deg, rgba(153,41,0,1) 0%, #FF4500 100%)",
         "pro-plan-gradient":
           "linear-gradient(267deg, #5B21B6 0%, #8234E9 45%, #A855F7 100%)",
-        "subscriber-gradient": "linear-gradient(to right, #7b2ff7 0%, rgb(0 200 255 / 0.2) 100%)",
+        "subscriber-gradient": "linear-gradient(to right, rgb(144 0 255 / 0.5) 0%, rgb(0 200 255 / 0.2) 100%)",
         "red-gradient-500": "linear-gradient(267deg, #570D0D 0%, #BD1C1C 100%)",
         "lime-gradient-500":
           "linear-gradient(267deg, #365314 0%, #4d7c0f 28%, #84cc16 58%, #bef264 82%, #ecfccb 100%)",
