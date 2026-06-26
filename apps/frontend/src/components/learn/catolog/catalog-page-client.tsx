@@ -1,34 +1,15 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { ListFilter } from 'lucide-react'
+import { useMemo } from 'react'
 import type { CourseWithCount } from '@/types/user-course.ts'
-import type { CareerTrack } from '@/components/learn/catolog/career-tracks-section'
-import { CatalogFilters } from '@/components/learn/catolog/catalog-filters'
 import { CatalogCoursesGrid } from '@/components/learn/catolog/catalog-courses-grid'
-import { Button } from '@/components/ui/button'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
-import {
-  countActiveFilters,
-  filterCareerTracks,
-  filterCourses,
   getFreeCourses,
   getTrendingCourses,
-  hasActiveFilters,
-  type CatalogFiltersState,
 } from '@/lib/catalog-filter-utils'
 
 type CatalogPageClientProps = {
   courses: CourseWithCount[]
-  tracks: CareerTrack[]
-  filters: CatalogFiltersState
-  onFiltersChange: (filters: CatalogFiltersState) => void
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -41,110 +22,24 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function CatalogPageClient({
-  courses,
-  tracks,
-  filters,
-  onFiltersChange,
-}: CatalogPageClientProps) {
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-
-  const activeFilterCount = countActiveFilters(filters)
-  const filtersActive = hasActiveFilters(filters)
-
-  const filteredCourses = useMemo(
-    () => filterCourses(courses, filters),
-    [courses, filters],
-  )
-
-  const filteredTracks = useMemo(
-    () => filterCareerTracks(tracks, filters),
-    [tracks, filters],
-  )
-
+export function CatalogPageClient({ courses }: CatalogPageClientProps) {
   const trendingCourses = useMemo(() => getTrendingCourses(courses), [courses])
   const freeCourses = useMemo(() => getFreeCourses(courses), [courses])
 
-  const resultCount = filteredCourses.length + filteredTracks.length
-
-  const handleFiltersChange = (next: CatalogFiltersState) => {
-    onFiltersChange(next)
-  }
-
   return (
-    <div className="w-full min-w-0">
-      {/* Mobile filter trigger */}
-      <div className="mb-4 flex items-center justify-between lg:hidden">
-        <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              className="gap-2 border-[#25252A] bg-transparent text-white hover:bg-[#25252A]"
-            >
-              <ListFilter className="h-4 w-4" />
-              Filtros
-              {activeFilterCount > 0 ? (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#35BED5] px-1.5 text-xs font-semibold text-black">
-                  {activeFilterCount}
-                </span>
-              ) : null}
-            </Button>
-          </SheetTrigger>
-          <SheetContent
-            side="left"
-            className="w-[min(100vw,320px)] overflow-y-auto border-[#25252A] bg-[#0c0c0d]"
-          >
-            <SheetHeader className="mb-4">
-              <SheetTitle className="text-white">Filtros</SheetTitle>
-            </SheetHeader>
-            <CatalogFilters
-              filters={filters}
-              onChange={(next) => {
-                handleFiltersChange(next)
-              }}
-              className="border-0 bg-transparent p-0"
-              showHeader={false}
-            />
-          </SheetContent>
-        </Sheet>
-      </div>
+    <div className="w-full min-w-0 pb-8">
+      <section className="mb-8">
+        <SectionTitle>Em alta</SectionTitle>
+        <CatalogCoursesGrid courses={trendingCourses} />
+      </section>
 
-      <div className="flex min-w-0 gap-6 lg:gap-8">
-        {/* Desktop filters sidebar — coluna estica com o conteúdo; sticky no filho */}
-        <div className="hidden w-[280px] shrink-0 lg:block">
-          <div className="sticky top-6 z-10">
-            <CatalogFilters filters={filters} onChange={handleFiltersChange} />
-          </div>
-        </div>
-
-        {/* Content column */}
-        <div className="min-w-0 flex-1 overflow-x-hidden pb-8">
-          {filtersActive ? (
-            <section className="mb-8">
-              <SectionTitle>
-                Resultados ({resultCount})
-              </SectionTitle>
-              <CatalogCoursesGrid
-                courses={filteredCourses}
-                tracks={filteredTracks}
-              />
-            </section>
-          ) : null}
-
-          <section className="mb-8">
-            <SectionTitle>Em alta</SectionTitle>
-            <CatalogCoursesGrid courses={trendingCourses} />
-          </section>
-
-          <section>
-            <SectionTitle>Acesse gratuitamente</SectionTitle>
-            <CatalogCoursesGrid
-              courses={freeCourses}
-              emptyMessage="Nenhum curso gratuito disponível no momento."
-            />
-          </section>
-        </div>
-      </div>
+      <section>
+        <SectionTitle>Acesse gratuitamente</SectionTitle>
+        <CatalogCoursesGrid
+          courses={freeCourses}
+          emptyMessage="Nenhum curso gratuito disponível no momento."
+        />
+      </section>
     </div>
   )
 }
