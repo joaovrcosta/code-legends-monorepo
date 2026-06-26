@@ -4,7 +4,11 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  carouselHeaderNavButtonClassName,
 } from '@/components/ui/carousel'
+import { cn } from '@/lib/utils'
 import { NewContentCard } from './new-content-card'
 
 const SLIDES = [1, 2, 3, 4, 5]
@@ -13,7 +17,17 @@ const SLIDES = [1, 2, 3, 4, 5]
 export const NOVIDADES_FIRST_SLIDE_WIDTH_CLASS = 'max-w-[92.5%]' as const
 export const NOVIDADES_SLIDE_BASIS_CLASS = 'basis-[92.5%]' as const
 
-export function NewContentCaroussel() {
+type NewContentCarousselProps = {
+  sectionTitle?: string
+  titleRowClassName?: string
+}
+
+export function NewContentCaroussel({
+  sectionTitle,
+  titleRowClassName,
+}: NewContentCarousselProps) {
+  const showHeader = Boolean(sectionTitle)
+
   return (
     <div className="relative w-full min-w-0">
       <Carousel
@@ -26,6 +40,33 @@ export function NewContentCaroussel() {
         }}
         className="w-full"
       >
+        {showHeader ? (
+          <div
+            className={cn(
+              'mb-4 flex items-center justify-between gap-4 pr-6 lg:pr-0',
+              titleRowClassName,
+            )}
+          >
+            <span className="text-sm font-semibold text-[#E0E0EE]">
+              {sectionTitle}
+            </span>
+            <div className="flex shrink-0 items-center gap-2">
+              <CarouselPrevious
+                variant="ghost"
+                hideWhenDisabled
+                aria-label="Anterior"
+                className={carouselHeaderNavButtonClassName}
+              />
+              <CarouselNext
+                variant="ghost"
+                hideWhenDisabled
+                aria-label="Próximo"
+                className={carouselHeaderNavButtonClassName}
+              />
+            </div>
+          </div>
+        ) : null}
+
         <div className="relative min-w-0 w-full">
           <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
 

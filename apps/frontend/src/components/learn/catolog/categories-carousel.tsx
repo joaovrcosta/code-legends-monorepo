@@ -5,7 +5,11 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  carouselHeaderNavButtonClassName,
 } from '@/components/ui/carousel'
+import { cn } from '@/lib/utils'
 import Image from 'next/image'
 
 type CategorySlide = {
@@ -26,7 +30,17 @@ const CATEGORIES: CategorySlide[] = [
   { id: 'nodejs2', title: 'NodeJS', icon: "https://xesque.rocketseat.dev/platform/1724859305154.svg" },
 ]
 
-export function CategoriesCarousel() {
+type CategoriesCarouselProps = {
+  sectionTitle?: string
+  titleRowClassName?: string
+}
+
+export function CategoriesCarousel({
+  sectionTitle,
+  titleRowClassName,
+}: CategoriesCarouselProps) {
+  const showHeader = Boolean(sectionTitle)
+
   return (
     <div className="relative w-full min-w-0">
       <Carousel
@@ -36,6 +50,33 @@ export function CategoriesCarousel() {
         }}
         className="w-full"
       >
+        {showHeader ? (
+          <div
+            className={cn(
+              'mb-4 flex items-center justify-between gap-4 pr-6 lg:pr-0',
+              titleRowClassName,
+            )}
+          >
+            <span className="text-sm font-semibold text-[#E0E0EE]">
+              {sectionTitle}
+            </span>
+            <div className="flex shrink-0 items-center gap-2">
+              <CarouselPrevious
+                variant="ghost"
+                hideWhenDisabled
+                aria-label="Anterior"
+                className={carouselHeaderNavButtonClassName}
+              />
+              <CarouselNext
+                variant="ghost"
+                hideWhenDisabled
+                aria-label="Próximo"
+                className={carouselHeaderNavButtonClassName}
+              />
+            </div>
+          </div>
+        ) : null}
+
         <div className="relative min-w-0">
           <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
 

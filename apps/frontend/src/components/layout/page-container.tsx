@@ -30,7 +30,7 @@ export function PageContainer({
   innerClassName,
 }: PageContainerProps) {
   return (
-    <div className={cn('w-full pt-8 px-4 xl:px-0', className)}>
+    <div className={cn('w-full pt-12 px-4 xl:px-0', className)}>
       <div
         className={cn(
           'mx-auto w-full min-w-0 pb-10',
