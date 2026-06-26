@@ -218,7 +218,7 @@ export default function EditCareerPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 text-ch">
+              <h1 className="text-3xl font-bold text-ch">
                 {career.title}
               </h1>
               <p className="text-ch-muted mt-2">
@@ -655,14 +655,14 @@ function CareerModuleCard({
             )}
             aria-hidden
           />
-          <span className="truncate font-medium text-gray-900 text-ch">
+          <span className="truncate font-medium text-ch">
             {local.title || "Módulo sem título"}
           </span>
           <span className="shrink-0 rounded-md bg-ch-surface-raised/80 px-1.5 py-0.5 text-xs tabular-nums text-ch-muted bg-ch-surface-raised text-ch-muted">
             ordem {local.orderIndex}
           </span>
         </div>
-        <span className="shrink-0 text-xs text-gray-500 text-ch-muted">
+        <span className="shrink-0 text-xs text-ch-muted">
           {expanded ? "Recolher" : "Expandir"}
         </span>
       </button>
@@ -702,7 +702,7 @@ function CareerModuleCard({
         <div className="space-y-3">
           <div>
             <Label>Cursos vinculados a este módulo</Label>
-            <p className="mt-1 text-xs text-gray-500 text-ch-muted">
+            <p className="mt-1 text-xs text-ch-muted">
               Um mesmo curso não pode estar em dois módulos ao mesmo tempo. Use as setas para
               definir a ordem na trilha.
             </p>
@@ -710,7 +710,7 @@ function CareerModuleCard({
 
           <div className="min-h-20 space-y-1.5 rounded-lg border border-ch-border bg-ch-canvas/50 p-2 border-ch-border bg-ch-surface-raised/30">
             {selectedCourses.length === 0 ? (
-              <p className="px-2 py-4 text-center text-sm text-gray-500 text-ch-muted">
+              <p className="px-2 py-4 text-center text-sm text-ch-muted">
                 Nenhum curso vinculado. Adicione abaixo.
               </p>
             ) : (
@@ -719,7 +719,7 @@ function CareerModuleCard({
                   key={`${courseId}-${idx}`}
                   className="flex items-center gap-1 rounded-md border border-ch-border bg-ch-surface px-2 py-1.5 dark:border-ch-border bg-ch-canvas"
                 >
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900 text-ch">
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-ch">
                     {courseTitle(courseId)}
                   </span>
                   <div className="flex shrink-0 items-center gap-0.5">
@@ -784,7 +784,7 @@ function CareerModuleCard({
             </div>
             <div className="mt-2 max-h-52 overflow-y-auto rounded-lg border border-ch-border">
               {availableToAdd.length === 0 ? (
-                <p className="px-3 py-6 text-center text-sm text-gray-500 text-ch-muted">
+                <p className="px-3 py-6 text-center text-sm text-ch-muted">
                   {allCourses.length === 0
                     ? "Nenhum curso cadastrado na plataforma."
                     : "Nenhum curso disponível (todos já vinculados a este ou a outro módulo)."}
@@ -799,7 +799,7 @@ function CareerModuleCard({
                         onClick={() => addCourse(c.id)}
                         className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-ch-surface-raised/80 disabled:opacity-50"
                       >
-                        <span className="min-w-0 flex-1 truncate font-medium text-gray-900 text-ch">
+                        <span className="min-w-0 flex-1 truncate font-medium text-ch">
                           {c.title}
                         </span>
                         <span className="flex shrink-0 items-center gap-1 text-xs text-gray-500">
@@ -939,15 +939,15 @@ function CareerExamCard({
               )}
               aria-hidden
             />
-            <span className="truncate font-medium text-gray-900 text-ch">
+            <span className="truncate font-medium text-ch">
               {local.title || "Exame sem título"}
             </span>
           </div>
-          <span className="truncate pl-6 text-xs text-gray-500 text-ch-muted sm:pl-0">
+          <span className="truncate pl-6 text-xs text-ch-muted sm:pl-0">
             {local.slug}
           </span>
         </div>
-        <span className="shrink-0 text-xs text-gray-500 text-ch-muted">
+        <span className="shrink-0 text-xs text-ch-muted">
           {expanded ? "Recolher" : "Expandir"}
         </span>
       </button>

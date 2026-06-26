@@ -237,7 +237,7 @@ export default function EditLessonPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 text-ch">Editar Aula</h1>
+            <h1 className="text-3xl font-bold text-ch">Editar Aula</h1>
             <p className="text-ch-muted mt-2">Atualize as informações da aula</p>
           </div>
         </div>

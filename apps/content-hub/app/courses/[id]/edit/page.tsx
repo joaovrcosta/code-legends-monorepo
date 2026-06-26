@@ -528,7 +528,7 @@ export default function EditCoursePage() {
             </Link>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold text-gray-900 text-ch">
+                <h1 className="text-3xl font-bold text-ch">
                   {formData.title || "Editar Curso"}
                 </h1>
                 <span
@@ -783,7 +783,7 @@ export default function EditCoursePage() {
                       ))}
                     </div>
                   )}
-                  <p className="text-sm text-gray-500 text-ch-muted">
+                  <p className="text-sm text-ch-muted">
                     Pressione Enter para adicionar uma tag
                   </p>
                 </div>
@@ -791,7 +791,7 @@ export default function EditCoursePage() {
 
               <div className="space-y-2">
                 <Label>Skills deste curso</Label>
-                <p className="text-sm text-gray-500 text-ch-muted">
+                <p className="text-sm text-ch-muted">
                   As skills definem para onde o XP deste curso será distribuído
                   (por exemplo, JavaScript, Web development, IA).
                 </p>
@@ -828,7 +828,7 @@ export default function EditCoursePage() {
                       >
                         <div>
                           <div className="font-medium">{item.name}</div>
-                          <div className="text-xs text-gray-500 text-ch-muted">
+                          <div className="text-xs text-ch-muted">
                             slug: {item.slug}
                           </div>
                         </div>
@@ -852,7 +852,7 @@ export default function EditCoursePage() {
                             }}
                             className="w-20"
                           />
-                          <span className="text-xs text-gray-500 text-ch-muted">
+                          <span className="text-xs text-ch-muted">
                             %
                           </span>
                           <Button

@@ -119,7 +119,7 @@ export default function EditPlanPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 text-ch">
+            <h1 className="text-3xl font-bold text-ch">
               Editar Plano
             </h1>
             <p className="text-ch-muted mt-2">

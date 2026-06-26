@@ -121,7 +121,7 @@ export default function RequestDetailPage() {
         </div>
 
         {loading ? (
-          <div className="py-12 text-center text-gray-500 text-ch-muted">
+          <div className="py-12 text-center text-ch-muted">
             Carregando…
           </div>
         ) : request ? (
@@ -135,7 +135,7 @@ export default function RequestDetailPage() {
             updatingStatus={updatingStatus}
           />
         ) : (
-          <p className="text-center text-gray-500 text-ch-muted">
+          <p className="text-center text-ch-muted">
             Não foi possível carregar esta solicitação.
           </p>
         )}

@@ -83,7 +83,7 @@ export default function EditSubmodulePage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 text-ch">Editar Submódulo</h1>
+            <h1 className="text-3xl font-bold text-ch">Editar Submódulo</h1>
             <p className="text-ch-muted mt-2">Atualize as informações do submódulo</p>
           </div>
         </div>

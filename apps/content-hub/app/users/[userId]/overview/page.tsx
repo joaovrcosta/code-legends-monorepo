@@ -339,7 +339,7 @@ function UserOverviewPageContent() {
                   />
                 )}
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 text-ch">
+                  <h1 className="text-3xl font-bold text-ch">
                     {skillsProfile.user.name}
                   </h1>
                   <p className="text-ch-muted">{skillsProfile.user.email}</p>
@@ -371,7 +371,7 @@ function UserOverviewPageContent() {
                   <Award className="h-4 w-4 text-ch-muted" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-gray-900 text-ch">
+                  <div className="text-2xl font-bold text-ch">
                     {skillsProfile.skills.length}
                   </div>
                 </CardContent>
@@ -385,7 +385,7 @@ function UserOverviewPageContent() {
                   <TrendingUp className="h-4 w-4 text-ch-muted" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-gray-900 text-ch">
+                  <div className="text-2xl font-bold text-ch">
                     {totalSkillXp.toLocaleString("pt-BR")}
                   </div>
                 </CardContent>
@@ -399,10 +399,10 @@ function UserOverviewPageContent() {
                   <Target className="h-4 w-4 text-ch-muted" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-gray-900 text-ch">
+                  <div className="text-2xl font-bold text-ch">
                     Nível {skillsProfile.user.level}
                   </div>
-                  <p className="mt-1 text-xs text-gray-500 text-ch-muted">
+                  <p className="mt-1 text-xs text-ch-muted">
                     {skillsProfile.user.xpToNextLevel} XP para o próximo nível
                   </p>
                 </CardContent>
@@ -431,7 +431,7 @@ function UserOverviewPageContent() {
               </CardHeader>
               <CardContent>
                 {skillsProfile.skills.length === 0 ? (
-                  <p className="text-gray-500 text-ch-muted text-center py-4">
+                  <p className="text-ch-muted text-center py-4">
                     Nenhuma skill encontrada para este usuário
                   </p>
                 ) : (
@@ -447,7 +447,7 @@ function UserOverviewPageContent() {
                       {skillsProfile.skills.map((skill) => (
                         <TableRow key={skill.skillId}>
                           <TableCell>{skill.name}</TableCell>
-                          <TableCell className="text-sm text-gray-500 text-ch-muted">
+                          <TableCell className="text-sm text-ch-muted">
                             {skill.slug}
                           </TableCell>
                           <TableCell className="text-right">
@@ -494,7 +494,7 @@ function UserOverviewPageContent() {
               />
             )}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 text-ch">
+              <h1 className="text-3xl font-bold text-ch">
                 {overview.user.name}
               </h1>
               <p className="text-ch-muted">{overview.user.email}</p>
@@ -543,10 +543,10 @@ function UserOverviewPageContent() {
               <BookOpen className="h-4 w-4 text-ch-muted" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 text-ch">
+              <div className="text-2xl font-bold text-ch">
                 {overview.statistics.totalCourses}
               </div>
-              <p className="text-xs text-gray-500 text-ch-muted mt-1">
+              <p className="text-xs text-ch-muted mt-1">
                 {overview.statistics.completedCourses} completos, {overview.statistics.inProgressCourses} em progresso
               </p>
             </CardContent>
@@ -560,10 +560,10 @@ function UserOverviewPageContent() {
               <CheckCircle2 className="h-4 w-4 text-ch-muted" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 text-ch">
+              <div className="text-2xl font-bold text-ch">
                 {overview.statistics.totalLessonsCompleted}
               </div>
-              <p className="text-xs text-gray-500 text-ch-muted mt-1">
+              <p className="text-xs text-ch-muted mt-1">
                 Total de aulas finalizadas
               </p>
             </CardContent>
@@ -577,10 +577,10 @@ function UserOverviewPageContent() {
               <TrendingUp className="h-4 w-4 text-ch-muted" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 text-ch">
+              <div className="text-2xl font-bold text-ch">
                 Nível {overview.statistics.level}
               </div>
-              <p className="text-xs text-gray-500 text-ch-muted mt-1">
+              <p className="text-xs text-ch-muted mt-1">
                 {overview.statistics.xpToNextLevel} XP para próximo nível
               </p>
             </CardContent>
@@ -594,10 +594,10 @@ function UserOverviewPageContent() {
               <Award className="h-4 w-4 text-ch-muted" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 text-ch">
+              <div className="text-2xl font-bold text-ch">
                 {overview.statistics.totalXp.toLocaleString("pt-BR")}
               </div>
-              <p className="text-xs text-gray-500 text-ch-muted mt-1">
+              <p className="text-xs text-ch-muted mt-1">
                 Pontos de experiência
               </p>
             </CardContent>
@@ -634,7 +634,7 @@ function UserOverviewPageContent() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-gray-900 text-ch">
+                  <div className="text-2xl font-bold text-ch">
                     {overview.streak?.current ?? 0}
                   </div>
                 </CardContent>
@@ -646,7 +646,7 @@ function UserOverviewPageContent() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-gray-900 text-ch">
+                  <div className="text-2xl font-bold text-ch">
                     {overview.streak?.best ?? 0}
                   </div>
                 </CardContent>
@@ -658,10 +658,10 @@ function UserOverviewPageContent() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-gray-900 text-ch">
+                  <div className="text-2xl font-bold text-ch">
                     {overview.streak?.totalActiveDays ?? 0}
                   </div>
-                  <p className="text-xs text-gray-500 text-ch-muted mt-1">
+                  <p className="text-xs text-ch-muted mt-1">
                     Último dia ativo: {overview.streak?.lastActiveDate ?? "—"}
                   </p>
                 </CardContent>
@@ -692,7 +692,7 @@ function UserOverviewPageContent() {
         </CardHeader>
         <CardContent>
           {!overview.skills || overview.skills.length === 0 ? (
-            <p className="text-gray-500 text-ch-muted text-center py-4">
+            <p className="text-ch-muted text-center py-4">
               Nenhuma skill com XP para este usuário
             </p>
           ) : (
@@ -708,7 +708,7 @@ function UserOverviewPageContent() {
                 {overview.skills.map((skill) => (
                   <TableRow key={skill.skillId}>
                     <TableCell>{skill.name}</TableCell>
-                    <TableCell className="text-sm text-gray-500 text-ch-muted">
+                    <TableCell className="text-sm text-ch-muted">
                       {skill.slug}
                     </TableCell>
                     <TableCell className="text-right">
@@ -748,7 +748,7 @@ function UserOverviewPageContent() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <p className="text-sm text-gray-500 text-ch-muted">Função</p>
+                <p className="text-sm text-ch-muted">Função</p>
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mt-1 ${getRoleBadgeColor(
                     overview.user.role
@@ -763,7 +763,7 @@ function UserOverviewPageContent() {
                 </span>
               </div>
               <div>
-                <p className="text-sm text-gray-500 text-ch-muted">Plano</p>
+                <p className="text-sm text-ch-muted">Plano</p>
                 <Select
                   value={overview.user.plan ?? "FREE"}
                   onChange={async (e) => {
@@ -789,7 +789,7 @@ function UserOverviewPageContent() {
                 </Select>
               </div>
               <div>
-                <p className="text-sm text-gray-500 text-ch-muted">Onboarding</p>
+                <p className="text-sm text-ch-muted">Onboarding</p>
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mt-1 ${
                     overview.user.onboardingCompleted
@@ -809,50 +809,50 @@ function UserOverviewPageContent() {
               </div>
               {overview.user.onboardingGoal && (
                 <div>
-                  <p className="text-sm text-gray-500 text-ch-muted">Objetivo</p>
-                  <p className="font-medium text-gray-900 text-ch mt-1">
+                  <p className="text-sm text-ch-muted">Objetivo</p>
+                  <p className="font-medium text-ch mt-1">
                     {overview.user.onboardingGoal}
                   </p>
                 </div>
               )}
               {overview.user.onboardingCareer && (
                 <div>
-                  <p className="text-sm text-gray-500 text-ch-muted">Carreira</p>
-                  <p className="font-medium text-gray-900 text-ch mt-1">
+                  <p className="text-sm text-ch-muted">Carreira</p>
+                  <p className="font-medium text-ch mt-1">
                     {overview.user.onboardingCareer}
                   </p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-500 text-ch-muted">Criado em</p>
-                <p className="font-medium text-gray-900 text-ch mt-1">
+                <p className="text-sm text-ch-muted">Criado em</p>
+                <p className="font-medium text-ch mt-1">
                   {formatDate(overview.user.createdAt)}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 text-ch-muted">Último login</p>
-                <p className="font-medium text-gray-900 text-ch mt-1">
+                <p className="text-sm text-ch-muted">Último login</p>
+                <p className="font-medium text-ch mt-1">
                   {overview.user.lastLogin
                     ? formatDate(overview.user.lastLogin)
                     : "Nunca registrado"}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 text-ch-muted">Atualizado em</p>
-                <p className="font-medium text-gray-900 text-ch mt-1">
+                <p className="text-sm text-ch-muted">Atualizado em</p>
+                <p className="font-medium text-ch mt-1">
                   {formatDate(overview.user.updatedAt)}
                 </p>
               </div>
             </div>
             {overview.user.bio && (
               <div className="mt-4">
-                <p className="text-sm text-gray-500 text-ch-muted">Bio</p>
-                <p className="text-gray-900 text-ch mt-1">{overview.user.bio}</p>
+                <p className="text-sm text-ch-muted">Bio</p>
+                <p className="text-ch mt-1">{overview.user.bio}</p>
               </div>
             )}
             {overview.user.expertise && overview.user.expertise.length > 0 && (
               <div className="mt-4">
-                <p className="text-sm text-gray-500 text-ch-muted mb-2">Expertise</p>
+                <p className="text-sm text-ch-muted mb-2">Expertise</p>
                 <div className="flex flex-wrap gap-2">
                   {overview.user.expertise.map((exp, idx) => (
                     <span
@@ -897,7 +897,7 @@ function UserOverviewPageContent() {
                       <span className="text-ch-muted">
                         Total no período
                       </span>
-                      <span className="font-semibold text-gray-900 text-ch">
+                      <span className="font-semibold text-ch">
                         {xpLogsRows.reduce((acc, r) => acc + (r.xpAmount ?? 0), 0).toLocaleString("pt-BR")} XP
                       </span>
                     </div>
@@ -951,7 +951,7 @@ function UserOverviewPageContent() {
           </CardHeader>
           <CardContent>
             {payments.length === 0 ? (
-              <p className="text-gray-500 text-ch-muted text-center py-4">
+              <p className="text-ch-muted text-center py-4">
                 Nenhum pagamento registrado
               </p>
             ) : (
@@ -1012,7 +1012,7 @@ function UserOverviewPageContent() {
           </CardHeader>
           <CardContent>
             {subscriptions.length === 0 ? (
-              <p className="text-gray-500 text-ch-muted text-center py-4">
+              <p className="text-ch-muted text-center py-4">
                 Nenhuma assinatura registrada
               </p>
             ) : (
@@ -1066,7 +1066,7 @@ function UserOverviewPageContent() {
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold text-lg text-gray-900 text-ch">
+                  <h3 className="font-semibold text-lg text-ch">
                     {overview.activeCourse.title}
                   </h3>
                   <p className="text-sm text-ch-muted">
@@ -1076,7 +1076,7 @@ function UserOverviewPageContent() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-ch-muted">Progresso</span>
-                    <span className="text-sm font-medium text-gray-900 text-ch">
+                    <span className="text-sm font-medium text-ch">
                       {formatProgress(overview.activeCourse.progress)}
                     </span>
                   </div>
@@ -1090,14 +1090,14 @@ function UserOverviewPageContent() {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-ch-muted">Status</p>
-                    <p className="font-medium text-gray-900 text-ch">
+                    <p className="font-medium text-ch">
                       {overview.activeCourse.isCompleted ? "Completo" : "Em Progresso"}
                     </p>
                   </div>
                   {overview.activeCourse.currentTaskId && (
                     <div>
                       <p className="text-ch-muted">Tarefa Atual</p>
-                      <p className="font-medium text-gray-900 text-ch">
+                      <p className="font-medium text-ch">
                         ID: {overview.activeCourse.currentTaskId}
                       </p>
                     </div>
@@ -1118,7 +1118,7 @@ function UserOverviewPageContent() {
           </CardHeader>
           <CardContent>
             {overview.enrolledCourses.length === 0 ? (
-              <p className="text-gray-500 text-ch-muted text-center py-4">
+              <p className="text-ch-muted text-center py-4">
                 Nenhum curso matriculado
               </p>
             ) : (
@@ -1130,7 +1130,7 @@ function UserOverviewPageContent() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 text-ch">
+                        <h3 className="font-semibold text-ch">
                           {course.courseTitle}
                         </h3>
                         <p className="text-sm text-ch-muted mt-1">
@@ -1160,7 +1160,7 @@ function UserOverviewPageContent() {
                     <div className="mt-3 space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-ch-muted">Progresso</span>
-                        <span className="font-medium text-gray-900 text-ch">
+                        <span className="font-medium text-ch">
                           {formatProgress(course.progress)}
                         </span>
                       </div>
@@ -1174,13 +1174,13 @@ function UserOverviewPageContent() {
                     <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
                       <div>
                         <p className="text-ch-muted">Matriculado em</p>
-                        <p className="font-medium text-gray-900 text-ch">
+                        <p className="font-medium text-ch">
                           {formatDate(course.enrolledAt)}
                         </p>
                       </div>
                       <div>
                         <p className="text-ch-muted">Último acesso</p>
-                        <p className="font-medium text-gray-900 text-ch">
+                        <p className="font-medium text-ch">
                           {formatDate(course.lastAccessedAt)}
                         </p>
                       </div>
@@ -1221,7 +1221,7 @@ function UserOverviewPageContent() {
           </CardHeader>
           <CardContent>
             {overview.completedLessons.length === 0 ? (
-              <p className="text-gray-500 text-ch-muted text-center py-4">
+              <p className="text-ch-muted text-center py-4">
                 Nenhuma aula completada
               </p>
             ) : (
@@ -1233,13 +1233,13 @@ function UserOverviewPageContent() {
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 text-ch">
+                        <h3 className="font-semibold text-ch">
                           {lesson.lessonTitle}
                         </h3>
                         <p className="text-sm text-ch-muted mt-1">
                           {lesson.courseTitle}
                         </p>
-                        <p className="text-xs text-gray-500 text-ch-muted mt-1">
+                        <p className="text-xs text-ch-muted mt-1">
                           {lesson.lessonSlug}
                         </p>
                       </div>

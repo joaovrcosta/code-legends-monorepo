@@ -105,7 +105,7 @@ export default function EditCategoryPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 text-ch">Editar Categoria</h1>
+            <h1 className="text-3xl font-bold text-ch">Editar Categoria</h1>
             <p className="text-ch-muted mt-2">Atualize as informações da categoria</p>
           </div>
         </div>

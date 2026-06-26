@@ -135,7 +135,7 @@ export default function EditCourseLessonPage() {
             </Button>
           </Link>
           <div className="min-w-0 flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 text-ch">
+            <h1 className="text-3xl font-bold text-ch">
               Editar Aula
             </h1>
             <LessonContextBreadcrumb
