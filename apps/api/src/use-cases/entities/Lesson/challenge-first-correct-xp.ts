@@ -16,6 +16,7 @@ export function countArticleChallengeBlocks(body: string | null | undefined): nu
 const CHALLENGE_TYPE_SLUGS = new Set([
   'prediction',
   'conceptual',
+  'mcq',
   'bug',
   'refactor',
   'complete',

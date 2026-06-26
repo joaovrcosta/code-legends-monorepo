@@ -119,6 +119,9 @@ function prepareBlocksForExport(blocks: any[]): void {
                   const img = String(p.missionImageUrl || "").trim();
                   if (img) base.missionImageUrl = img;
                 }
+                if (p.shuffleOptions === "true") {
+                  base.shuffleOptions = true;
+                }
                 return base;
               })(),
               null,
@@ -187,6 +190,7 @@ function processImportedBlocks(blocks: any[]): void {
             blockSlotsCorrect: blockSlotsFields.blockSlotsCorrect,
             blockSlotsDistractors: blockSlotsFields.blockSlotsDistractors,
             missionImageUrl: String(parsed.missionImageUrl || "").trim(),
+            shuffleOptions: parsed.shuffleOptions === true ? "true" : "false",
           },
           content: [],
           children: []

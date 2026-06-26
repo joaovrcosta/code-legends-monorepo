@@ -18,6 +18,7 @@ const challengeTypeLabels: Record<string, string> = {
   refactor: "Refatoração",
   complete: "Complete o Código",
   conceptual: "Conceitual",
+  mcq: "Múltipla escolha",
   block_slots: "Encaixar comandos",
   exam_mcq: "Exame (múltipla escolha)",
 };
@@ -46,6 +47,7 @@ export const ChallengeBlock = createReactBlockSpec(
       blockSlotsCorrect: { default: "" },
       blockSlotsDistractors: { default: "" },
       missionImageUrl: { default: "" },
+      shuffleOptions: { default: "false" },
     },
     content: "none",
   },
@@ -61,13 +63,14 @@ export const ChallengeBlock = createReactBlockSpec(
       };
 
       const options = JSON.parse(block.props.options || "[]") as string[];
-      const hasOptions = ["prediction", "conceptual", "bug", "exam_mcq"].includes(
+      const hasOptions = ["prediction", "conceptual", "mcq", "bug", "exam_mcq"].includes(
         block.props.challengeType,
       );
       const isBlockSlots =
         block.props.challengeType === "block_slots" || block.props.challengeType === "parsons";
       const showCode =
         block.props.challengeType !== "conceptual" &&
+        block.props.challengeType !== "mcq" &&
         block.props.challengeType !== "exam_mcq";
 
       const setOption = (index: number, val: string) => {
@@ -203,6 +206,7 @@ export const ChallengeBlock = createReactBlockSpec(
                     >
                       <option value="prediction">Previsão</option>
                       <option value="conceptual">Conceitual</option>
+                      <option value="mcq">Múltipla escolha</option>
                       <option value="bug">Encontre o Bug</option>
                       <option value="refactor">Refatoração</option>
                       <option value="complete">Complete o Código</option>
@@ -251,7 +255,20 @@ export const ChallengeBlock = createReactBlockSpec(
 
                 {hasOptions && (
                   <div className="space-y-2">
-                    <Label className="text-xs text-zinc-400">Opções</Label>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <Label className="text-xs text-zinc-400">Opções</Label>
+                      <label className="flex cursor-pointer items-center gap-2 text-xs text-zinc-400">
+                        <input
+                          type="checkbox"
+                          checked={block.props.shuffleOptions === "true"}
+                          onChange={(e) =>
+                            updateProp("shuffleOptions", e.target.checked ? "true" : "false")
+                          }
+                          className="h-4 w-4 rounded border-zinc-600"
+                        />
+                        Embaralhar para o aluno
+                      </label>
+                    </div>
                     {options.map((opt, i) => (
                       <div key={i} className="flex gap-2 items-center">
                         <Input

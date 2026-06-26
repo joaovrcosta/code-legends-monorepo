@@ -40,6 +40,7 @@ const challengeTypeLabels: Record<ChallengeType, string> = {
   refactor: 'Refatoração',
   complete: 'Complete o Código',
   conceptual: 'Conceitual (sem código)',
+  mcq: 'Múltipla escolha',
   block_slots: 'Encaixar comandos',
   exam_mcq: 'Exame — múltipla escolha (one-shot, só na carreira)',
 }
@@ -149,6 +150,7 @@ function ChallengeFormFields({
   const hasOptions =
     challenge.type === 'prediction' ||
     challenge.type === 'conceptual' ||
+    challenge.type === 'mcq' ||
     challenge.type === 'bug' ||
     challenge.type === 'exam_mcq'
   const isBlockSlots = challenge.type === 'block_slots'
@@ -182,7 +184,9 @@ function ChallengeFormFields({
         />
       </div>
 
-      {challenge.type !== 'conceptual' && challenge.type !== 'exam_mcq' && (
+      {challenge.type !== 'conceptual' &&
+        challenge.type !== 'mcq' &&
+        challenge.type !== 'exam_mcq' && (
         <div className="space-y-1.5">
           <Label>Código (opcional)</Label>
           <div className="flex gap-2">
@@ -213,7 +217,20 @@ function ChallengeFormFields({
 
       {hasOptions && (
         <div className="space-y-1.5">
-          <Label>Opções de resposta</Label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Label>Opções de resposta</Label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-ch-muted">
+              <input
+                type="checkbox"
+                checked={challenge.shuffleOptions ?? false}
+                onChange={(e) =>
+                  onChange({ ...challenge, shuffleOptions: e.target.checked })
+                }
+                className="h-4 w-4 rounded border-ch-border text-ch-accent focus:ring-ch-accent"
+              />
+              Embaralhar opções para o aluno
+            </label>
+          </div>
           <div className="space-y-2">
             {(challenge.options ?? []).map((opt, i) => (
               <div key={i} className="flex gap-2 items-center">

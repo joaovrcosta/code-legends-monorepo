@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import type { Challenge } from "@/types/roadmap";
 import { cn } from "@/lib/utils";
+import { getChallengeDisplayOptions } from "@/lib/shuffle-challenge-options";
 import {
   RaiQuestionBubble,
   pickRandomCheerMessage,
@@ -61,7 +62,12 @@ export function ExamMcqChallenge({
   /** No exame: avança questão. Em artigo/lição sem `onNext`, “Continuar” só reinicia o estado local. */
   onNext?: () => void;
 }) {
-  const options = challenge.options ?? [];
+  const [shuffleSeed, setShuffleSeed] = useState(0);
+  const displayOptions = useMemo(
+    () =>
+      getChallengeDisplayOptions(challenge.options ?? [], challenge.shuffleOptions),
+    [challenge.options, challenge.shuffleOptions, shuffleSeed],
+  );
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -98,7 +104,8 @@ export function ExamMcqChallenge({
     setSelected(null);
     setIsCorrect(null);
     answerReported.current = false;
-  }, [submitted, onNext]);
+    if (challenge.shuffleOptions) setShuffleSeed((s) => s + 1);
+  }, [submitted, onNext, challenge.shuffleOptions]);
 
   return (
     <div className="relative my-6 mx-auto w-full max-w-[640px] rounded-[16px] overflow-hidden">
@@ -120,7 +127,7 @@ export function ExamMcqChallenge({
       ) : null}
 
       <div className="px-5 pb-4 flex flex-col gap-2">
-        {options.map((option, i) => {
+        {displayOptions.map((option, i) => {
           const letter = String.fromCharCode(65 + i);
           const isThisCorrect = submitted && isOptionCorrect(challenge, option);
           const isThisWrong = submitted && selected === option && !isCorrect;

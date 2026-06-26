@@ -8,6 +8,7 @@ export type ChallengeType =
   | "refactor"
   | "complete"
   | "conceptual"
+  | "mcq"
   | "block_slots"
   | "exam_mcq";
 
@@ -29,6 +30,7 @@ export interface Challenge {
   pieces?: ParsonsPiece[];
   solution?: string[];
   missionImageUrl?: string;
+  shuffleOptions?: boolean;
 }
 
 /** Bloco de Code Playground no Markdown (```playground + JSON). */

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { awardChallengeXpFromBrowser } from '@/lib/award-challenge-xp-client'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import dynamic from 'next/dynamic'
@@ -21,6 +21,7 @@ import {
   type CheerVariant,
 } from '@/components/classroom/challenge/challenge-rai-question-bubble'
 import { playCorrectChime, playWrongTamTamm } from '@/lib/play-correct-chime'
+import { getChallengeDisplayOptions } from '@/lib/shuffle-challenge-options'
 import { ArrowRight, Eye } from '@phosphor-icons/react/dist/ssr'
 
 const CodeBlockHighlighter = dynamic(
@@ -93,18 +94,29 @@ export function ChallengeBlock({
   const [xpAward, setXpAward] = useState<ChallengeFeedbackXpAward>({ state: 'idle' })
   const [cheerMessage, setCheerMessage] = useState<string | null>(null)
   const [cheerVariant, setCheerVariant] = useState<CheerVariant>('happy1')
+  const [shuffleSeed, setShuffleSeed] = useState(0)
   const isDesktopLayout = useIsDesktopChallengeLayout()
+
+  const displayOptions = useMemo(
+    () =>
+      getChallengeDisplayOptions(challenge.options ?? [], challenge.shuffleOptions),
+    [challenge.options, challenge.shuffleOptions, shuffleSeed],
+  )
 
   const hasOptions = Array.isArray(challenge.options) && challenge.options.length > 0
   const isChoiceType =
     (challenge.type === 'prediction' ||
       challenge.type === 'conceptual' ||
+      challenge.type === 'mcq' ||
       challenge.type === 'bug') &&
     hasOptions
   const isTextType =
     challenge.type === 'refactor' ||
     challenge.type === 'complete' ||
-    (!hasOptions && (challenge.type === 'bug' || challenge.type === 'conceptual'))
+    (!hasOptions &&
+      (challenge.type === 'bug' ||
+        challenge.type === 'conceptual' ||
+        challenge.type === 'mcq'))
 
   const handleSubmit = useCallback(() => {
     if (submitted) return
@@ -178,7 +190,8 @@ export function ChallengeBlock({
     setXpAward({ state: 'idle' })
     setCheerMessage(null)
     setCheerVariant('happy1')
-  }, [])
+    if (challenge.shuffleOptions) setShuffleSeed((s) => s + 1)
+  }, [challenge.shuffleOptions])
 
   if (challenge.type === 'block_slots') {
     return (
@@ -233,7 +246,7 @@ export function ChallengeBlock({
       {/* Choices */}
       {isChoiceType && (
         <div className="px-5 pb-4 flex flex-col gap-2">
-          {challenge.options!.map((option, i) => {
+          {displayOptions.map((option, i) => {
             const isSelected = selected === option
             const isThisCorrect =
               submitted && challenge.correctAnswer !== undefined
@@ -244,7 +257,7 @@ export function ChallengeBlock({
 
             return (
               <button
-                key={i}
+                key={`${option}-${i}`}
                 type="button"
                 disabled={submitted}
                 onClick={() => setSelected(option)}
@@ -278,7 +291,7 @@ export function ChallengeBlock({
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
             disabled={submitted}
-            rows={challenge.type === 'conceptual' ? 3 : 5}
+            rows={challenge.type === 'conceptual' || challenge.type === 'mcq' ? 3 : 5}
             placeholder={challenge.placeholder ?? 'Escreva sua resposta...'}
             className="w-full rounded-[10px] border border-[#25252A] bg-surface px-4 py-3 text-sm text-white font-mono placeholder:text-[#52525b] focus:border-[#00b3e4] focus:outline-none resize-none disabled:opacity-60"
           />

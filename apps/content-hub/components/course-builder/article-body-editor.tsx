@@ -212,6 +212,7 @@ const challengeTypeLabels: Record<string, string> = {
   refactor: 'Refatoração',
   complete: 'Complete o Código',
   conceptual: 'Conceitual',
+  mcq: 'Múltipla escolha',
   block_slots: 'Encaixar comandos',
   parsons: 'Encaixar comandos (legado)',
   exam_mcq: 'Exame (múltipla escolha)',
@@ -220,6 +221,7 @@ const challengeTypeLabels: Record<string, string> = {
 const CHALLENGE_TYPES: ChallengeType[] = [
   'prediction',
   'conceptual',
+  'mcq',
   'bug',
   'refactor',
   'complete',
@@ -420,13 +422,19 @@ function InsertChallengeModal({
   const [blockSlotsCorrect, setBlockSlotsCorrect] = useState('')
   const [blockSlotsDistractors, setBlockSlotsDistractors] = useState('')
   const [missionImageUrl, setMissionImageUrl] = useState('')
+  const [shuffleOptions, setShuffleOptions] = useState(false)
 
   const isBlockSlots = challengeType === 'block_slots'
   const hasOptions =
     challengeType === 'prediction' ||
     challengeType === 'conceptual' ||
-    challengeType === 'bug'
-  const showCode = challengeType !== 'conceptual'
+    challengeType === 'mcq' ||
+    challengeType === 'bug' ||
+    challengeType === 'exam_mcq'
+  const showCode =
+    challengeType !== 'conceptual' &&
+    challengeType !== 'mcq' &&
+    challengeType !== 'exam_mcq'
 
   const addOption = () => setOptions((o) => [...o, ''])
   const removeOption = (i: number) =>
@@ -476,6 +484,7 @@ function InsertChallengeModal({
     if (hasOptions && options.some((o) => o.trim())) {
       challenge.options = options.map((o) => o.trim()).filter(Boolean)
       if (correctAnswer.trim()) challenge.correctAnswer = correctAnswer.trim()
+      if (shuffleOptions) challenge.shuffleOptions = true
     } else if (!isBlockSlots && correctAnswer.trim()) {
       challenge.correctAnswer = correctAnswer.trim()
     }
@@ -567,7 +576,18 @@ function InsertChallengeModal({
 
             {hasOptions && (
               <div className="space-y-2">
-                <Label>Opções (mín. 2)</Label>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Label>Opções (mín. 2)</Label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-ch-muted">
+                    <input
+                      type="checkbox"
+                      checked={shuffleOptions}
+                      onChange={(e) => setShuffleOptions(e.target.checked)}
+                      className="h-4 w-4 rounded border-ch-border text-ch-accent focus:ring-ch-accent"
+                    />
+                    Embaralhar opções para o aluno
+                  </label>
+                </div>
                 {options.map((opt, i) => (
                   <div key={i} className="flex gap-2">
                     <Input

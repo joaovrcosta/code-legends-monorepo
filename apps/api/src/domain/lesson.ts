@@ -4,6 +4,7 @@ export type ChallengeType =
   | "refactor"
   | "complete"
   | "conceptual"
+  | "mcq"
   | "block_slots";
 
 export interface ParsonsPiece {
@@ -24,6 +25,7 @@ export interface Challenge {
   pieces?: ParsonsPiece[];
   solution?: string[];
   missionImageUrl?: string;
+  shuffleOptions?: boolean;
 }
 
 export interface ProjectSpecs {
