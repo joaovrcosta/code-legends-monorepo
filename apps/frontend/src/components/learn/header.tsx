@@ -78,7 +78,7 @@ export default function LearnHeader({
       }}
     >
       <ul className="flex justify-between items-center gap-2 lg:gap-0 lg:pt-4 pt-0 lg:pb-4 pb-0 w-full mx-auto px-4 sm:px-5">
-        <li className="flex min-w-0 shrink-0 items-center lg:space-x-3">
+        <li className="flex min-w-0 shrink-0 items-center">
           <button
             type="button"
             onClick={openMobileNav}
