@@ -77,7 +77,7 @@ const Sidebar = () => {
                             {isOpen && link.name}
                           </span>
                         </div>
-                        {isActive && isOpen && <CaretRight size={28} />}
+                        {isActive && isOpen && <CaretRight size={24} />}
                       </div>
                       {isActive && (
                         <div className="absolute right-0 top-0 h-full w-10 bg-blue-500 blur-xl opacity-50 z-50 will-change-[opacity]"></div>
