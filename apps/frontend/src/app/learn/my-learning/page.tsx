@@ -282,7 +282,7 @@ export default function MyLearningPage() {
 
   if (isLoading) {
     return (
-      <div className="py-4 lg:px-12 px-4 w-full">
+      <div className="w-full">
         <div className="flex items-center justify-start space-x-2 py-6">
           <BookBookmarkIcon
             className="text-[#00C8FF]"
@@ -301,7 +301,7 @@ export default function MyLearningPage() {
   }
 
   return (
-    <div className="py-4 lg:px-12 px-4 w-full">
+    <div className="w-full">
       <div className="flex items-center justify-start space-x-2 py-6">
         <BookBookmarkIcon className="text-[#00C8FF]" size={28} weight="fill" />
         <span className="font-bold bg-blue-gradient-500 bg-clip-text text-transparent text-lg">

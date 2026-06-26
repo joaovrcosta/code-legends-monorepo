@@ -8,14 +8,13 @@ export default async function CareersPage() {
 
   return (
     <div className="w-full">
-      <div className="flex flex-col items-start xl:mt-10 mt-6 px-4 lg:px-[84px]">
-        <div className="flex items-center space-x-2 mb-4">
-          <span className="text-muted-foreground text-[14px] font-semibold">
-            Carreiras
-          </span>
-        </div>
+      <div className="mb-4 flex items-center space-x-2">
+        <span className="text-muted-foreground text-[14px] font-semibold">
+          Carreiras
+        </span>
+      </div>
 
-        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {data.careers.map((c) => (
             <CareerTrackCard
               key={c.id}
@@ -29,7 +28,6 @@ export default async function CareersPage() {
               modulesCount={c.modulesCount}
             />
           ))}
-        </div>
       </div>
     </div>
   );

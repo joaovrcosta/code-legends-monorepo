@@ -1,10 +1,12 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { FooterFixed } from '@/components/learn/footer-fixed'
 import LearnHeader from '@/components/learn/header'
 import Sidebar from '@/components/learn/sidebar'
 import { TopAdvertesing } from '@/components/learn/top-advertesing'
+import { PageContainer, shouldApplyPageContainer } from '@/components/layout/page-container'
 import type { EnrolledCourse, ActiveCourse } from '@/types/user-course.ts'
 
 const showTopBannerByEnv = process.env.NEXT_PUBLIC_SHOW_TOP_BANNER === 'true'
@@ -22,6 +24,7 @@ export function AppShell({
   initialUserCourses,
   initialActiveCourse,
 }: AppShellProps) {
+  const pathname = usePathname()
   const { data: session, status } = useSession()
   const userPlan = (session?.user as { plan?: string } | undefined)?.plan
   const isPaidUser = userPlan === 'PRO' || userPlan === 'PREMIUM'
@@ -51,7 +54,13 @@ export function AppShell({
         )}
 
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto pt-0 pb-20 lg:pb-4">
-          <main className="w-full min-w-0">{children}</main>
+          <main className="w-full min-w-0">
+            {shouldApplyPageContainer(pathname) ? (
+              <PageContainer>{children}</PageContainer>
+            ) : (
+              children
+            )}
+          </main>
           <FooterFixed
             initialUserCourses={initialUserCourses}
             initialActiveCourse={initialActiveCourse}

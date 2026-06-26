@@ -61,7 +61,7 @@ const PROJECTS_MOCK = [
 
 export default function ProjectsPage() {
   return (
-    <div className="py-4 lg:px-12 px-6">
+    <div className="w-full">
       <div className="flex flex-col items-center justify-center">
         <div className="w-full flex-col px-0 py-6 flex">
           <div className="flex items-center justify-start space-x-2">

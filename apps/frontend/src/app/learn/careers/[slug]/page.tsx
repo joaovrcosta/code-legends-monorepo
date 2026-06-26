@@ -9,6 +9,7 @@ import { getAuroraBackground } from "@/utils/hexToRgb";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr";
 import { PlanBadge } from "@/components/ui/plan-badge";
 import Link from "next/link";
+import { PageContentWidth } from "@/components/layout/page-container";
 import { SectionTitle } from "@/app/catalog-courses-carousel-title";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +31,7 @@ export default async function CareerDetailPage({
       >
         <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
 
-        <div className="mx-auto w-full max-w-[1420px] px-4 sm:px-6 lg:px-8 xl:px-12">
+        <PageContentWidth>
           <div className="relative z-10 flex w-full flex-col items-center lg:items-start">
             <Link
               href="/learn/careers"
@@ -83,10 +84,10 @@ export default async function CareerDetailPage({
               </div>
             </div>
           </div>
-        </div>
+        </PageContentWidth>
       </section>
 
-      <div className="mx-auto mt-6 flex w-full max-w-[1420px] flex-col items-start px-4 sm:px-6 lg:px-8 xl:px-12">
+      <PageContentWidth className="mt-6 flex flex-col items-start">
         <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
           <CareerDetailTabs
             conteudo={<CareerConteudoTab data={data} />}
@@ -111,7 +112,7 @@ export default async function CareerDetailPage({
             </div>
           </div>
         </div>
-      </div>
+      </PageContentWidth>
     </div>
   );
 }

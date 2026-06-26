@@ -8,6 +8,7 @@ import {
   type AvatarRingVariant,
 } from '@/components/ui/avatar'
 import { CompactNumber } from '@/components/ui/compact-number'
+import { PageContentWidth } from '@/components/layout/page-container'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import type { Metadata } from 'next'
 import Image from 'next/image'
@@ -127,7 +128,7 @@ export default async function TrackingPage() {
       >
       </div>
 
-      <div className="mx-auto max-w-[1420px] px-4 py-6 xl:px-0">
+      <PageContentWidth className="py-6">
         <div className="grid grid-cols-1 gap-6 lg:[grid-template-columns:756px_1fr]">
           <div className="w-full space-y-6 lg:max-w-[756px]">
             <div
@@ -264,7 +265,7 @@ export default async function TrackingPage() {
             </div>
           </div>
         </div>
-      </div>
+      </PageContentWidth>
     </TooltipProvider>
   )
 }

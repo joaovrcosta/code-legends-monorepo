@@ -19,7 +19,9 @@ import {
   type StudyProgramLessonLine,
   type StudyProgramModuleSection,
 } from "@/lib/study-program-overview";
-import { findLessonContext, generateLessonUrl } from "@/utils/lesson-url";
+import { pageContentWidthClassName } from '@/components/layout/page-container'
+import { cn } from '@/lib/utils'
+import { findLessonContext, generateLessonUrl } from '@/utils/lesson-url'
 
 export const dynamic = "force-dynamic";
 
@@ -168,7 +170,7 @@ export default async function CoursePage({
   return (
     <div>
       <CourseBanner course={course} userProgress={userProgress} />
-      <section className="flex items-center justify-between mt-4 mb-4 lg:px-0 px-4 max-w-[1356px] mx-auto">
+      <section className={cn('mt-4 mb-4 flex items-center justify-between', pageContentWidthClassName)}>
         <Tabs tabs={myLearningTabs} defaultTab="in-progress" />
       </section>
     </div>

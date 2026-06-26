@@ -28,11 +28,5 @@ export default async function CoursesPage() {
     modulesCount: c.modulesCount,
   }))
 
-  return (
-    <div className="w-full min-w-0">
-      <div className="mt-6 flex w-full flex-col pl-4 pr-0 xl:mt-10 lg:pl-20">
-        <CatalogPageContent courses={courses.courses} tracks={tracks} />
-      </div>
-    </div>
-  )
+  return <CatalogPageContent courses={courses.courses} tracks={tracks} />
 }

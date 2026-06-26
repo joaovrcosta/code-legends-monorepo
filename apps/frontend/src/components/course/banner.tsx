@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 import { SubscriberBadge } from '@/components/ui/subscriber-badge'
+import { pageContentWidthClassName } from '@/components/layout/page-container'
 import { appendCourseIdToClassroomHref } from '@/utils/lesson-url'
 
 import { Progress } from '@/components/ui/progress'
@@ -292,7 +293,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
         className="relative border-b border-[#25252A] lg:py-12 lg:pb-24 lg:px-12 px-6 pb-8 pt-4 flex flex-col lg:flex-row items-center"
         style={getAuroraBackground(course.colorHex)}
       >
-        <div className="flex w-full items-center justify-center max-w-[1356px] gap-12 mx-auto flex-col lg:flex-row">
+        <div className={cn('mx-auto flex w-full flex-col items-center justify-center gap-12 lg:flex-row', pageContentWidthClassName)}>
           <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
 
           <div className="flex-col flex-1 relative z-10 w-full">

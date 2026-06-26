@@ -8,9 +8,9 @@ export default function AccountLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="max-w-[1560px] mx-auto flex gap-4 lg:gap-10 lg:flex-row flex-col items-start px-4 pb-20">
+    <div className="flex w-full flex-col items-start gap-4 lg:gap-10 lg:flex-row">
       <AccountAsideMenu />
-      <main className="w-full lg:flex-1 min-w-0">{children}</main>
+      <main className="w-full min-w-0 lg:flex-1">{children}</main>
     </div>
   )
 }

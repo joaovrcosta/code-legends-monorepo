@@ -44,8 +44,7 @@ export default async function Home() {
   return (
     <>
       <HomePageWrapper initialUserCourses={enrolledCoursesData.userCourses || []}>
-        <div className="w-full pt-8 px-4 xl:px-0">
-          <div className="flex flex-col lg:flex-row max-w-[1420px] pb-10 gap-8 md:gap-6 mx-auto">
+        <div className="flex flex-col lg:flex-row gap-8 md:gap-6">
             <div className="flex-1 flex flex-col items-start min-w-0 overflow-x-hidden">
               <div className="w-full">
                 <SectionTitle
@@ -112,7 +111,6 @@ export default async function Home() {
             <div className="relative z-10 hidden lg:block flex-shrink-0">
               <UserProfiler />
             </div>
-          </div>
         </div>
       </HomePageWrapper>
       <PostPaymentWelcomeGate />

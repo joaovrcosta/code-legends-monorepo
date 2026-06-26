@@ -37,6 +37,8 @@ export function CategoriesCarousel() {
         className="w-full"
       >
         <div className="relative min-w-0">
+          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />
+
           <CarouselContent className="-ml-4">
             {CATEGORIES.map((category) => (
               <CarouselItem
