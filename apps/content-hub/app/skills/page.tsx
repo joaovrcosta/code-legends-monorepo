@@ -3,15 +3,37 @@
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { ch } from "@/lib/ui-classes";
+import { cn } from "@/lib/utils";
 import { listSkills, type Skill } from "@/actions/skill/list-skills";
 import { createSkill } from "@/actions/skill/create-skill";
 import { updateSkill } from "@/actions/skill/update-skill";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { toast } from "sonner";
 import { generateSlug } from "@/lib/utils";
+
+function SkillAvatar({ name, imageUrl }: { name: string; imageUrl?: string | null }) {
+  if (imageUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={imageUrl}
+        alt=""
+        className="size-full object-cover"
+      />
+    );
+  }
+
+  const initial = name.trim().charAt(0).toUpperCase() || "?";
+  return (
+    <span className="text-sm font-semibold text-ch-accent">{initial}</span>
+  );
+}
 
 export default function SkillsPage() {
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -139,7 +161,12 @@ export default function SkillsPage() {
 
   return (
     <MainLayout>
-      <div className="flex flex-col gap-6">
+      <div className={cn("flex flex-col", ch.page)}>
+        <PageHeader
+          title="Skills"
+          description="Cadastre habilidades e associe aos cursos."
+        />
+
         <Card>
           <CardHeader>
             <CardTitle>Nova skill</CardTitle>
@@ -186,7 +213,7 @@ export default function SkillsPage() {
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-ch-muted mt-1">
                   Ícone ou logo público da skill (mesmo conceito que avatar de
                   usuário).
                 </p>
@@ -279,51 +306,46 @@ export default function SkillsPage() {
               </Button>
             </form>
 
-            {loading && <p className="text-sm text-muted-foreground">Carregando...</p>}
+            {loading && <p className="text-sm text-ch-muted">Carregando...</p>}
 
             {!loading && skills.length === 0 && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-ch-muted">
                 Nenhuma skill cadastrada ainda.
               </p>
             )}
 
             {!loading && skills.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {skills.map((skill) => (
                   <div
                     key={skill.id}
-                    className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-sm"
+                    className={cn(
+                      ch.surfaceInteractive,
+                      "flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+                    )}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="shrink-0 size-9 rounded-md border border-border overflow-hidden bg-muted flex items-center justify-center">
-                        {skill.imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={skill.imageUrl}
-                            alt=""
-                            className="size-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            —
-                          </span>
-                        )}
+                    <div className="flex min-w-0 items-start gap-3 sm:items-center">
+                      <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-ch border border-ch-border bg-ch-accent-soft">
+                        <SkillAvatar name={skill.name} imageUrl={skill.imageUrl} />
                       </div>
-                      <div className="min-w-0">
-                        <div className="font-medium">{skill.name}</div>
-                        <div className="text-xs text-muted-foreground truncate">
-                          slug: {skill.slug}
-                          {skill.description
-                            ? ` • ${skill.description}`
-                            : null}
-                        </div>
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="font-medium text-ch">{skill.name}</div>
+                        <p className="text-xs text-ch-muted">
+                          <span className="font-mono">/{skill.slug}</span>
+                        </p>
+                        {skill.description ? (
+                          <p className="text-sm text-ch-muted line-clamp-2">
+                            {skill.description}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex shrink-0 items-center gap-3 sm:pl-2">
                       {typeof skill.coursesCount === "number" && (
-                        <div className="text-xs text-muted-foreground">
-                          {skill.coursesCount} curso(s)
-                        </div>
+                        <Badge variant="secondary">
+                          {skill.coursesCount} curso
+                          {skill.coursesCount === 1 ? "" : "s"}
+                        </Badge>
                       )}
                       <Button
                         type="button"
