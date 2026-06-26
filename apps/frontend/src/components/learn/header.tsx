@@ -4,8 +4,7 @@ import Image from 'next/image'
 import codeLegendsLogo from '../../../public/code-legends-logo.svg'
 import codeLegendsLogoMobile from '../../../public/logo-mobile.png'
 import Link from 'next/link'
-import { ListEnd, Menu, Search } from 'lucide-react'
-import useSidebarStore from '@/stores/sidebarStore'
+import { Menu, Search } from 'lucide-react'
 import { useMobileNavStore } from '@/stores/mobile-nav-store'
 import { MobileNavSheet } from './mobile-nav-sheet'
 import { CourseDropdownMenu } from './course-menu'
@@ -23,16 +22,12 @@ import { NotificationsSection } from '../notifications-section'
 interface LearnHeaderProps {
   initialUserCourses: EnrolledCourse[]
   initialActiveCourse: ActiveCourse | null
-  /** Quando false, oculta o botão que expande/recolhe a sidebar (ex.: tela de exame focada). */
-  showDesktopSidebarToggle?: boolean
 }
 
 export default function LearnHeader({
   initialUserCourses,
   initialActiveCourse,
-  showDesktopSidebarToggle = true,
 }: LearnHeaderProps) {
-  const { toggleSidebar, isOpen } = useSidebarStore()
   const openMobileNav = useMobileNavStore((s) => s.open)
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -84,23 +79,6 @@ export default function LearnHeader({
     >
       <ul className="flex justify-between items-center gap-2 lg:gap-0 lg:pt-4 pt-0 lg:pb-4 pb-0 w-full mx-auto px-4 sm:px-5">
         <li className="flex min-w-0 shrink-0 items-center lg:space-x-3">
-          {showDesktopSidebarToggle && (
-            <button
-              onClick={toggleSidebar}
-              className="text-white p-1 border border-[#25252a] rounded-lg lg:block hidden hover:bg-[#25252a] transition-all duration-150 ease-in-out"
-            >
-              {isOpen ? (
-                <>
-                  <ListEnd size={24} />
-                </>
-              ) : (
-                <>
-                  <Menu size={24} />
-                </>
-              )}
-            </button>
-          )}
-
           <button
             type="button"
             onClick={openMobileNav}

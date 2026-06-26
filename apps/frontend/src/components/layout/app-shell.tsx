@@ -40,7 +40,6 @@ export function AppShell({
       <LearnHeader
         initialUserCourses={initialUserCourses}
         initialActiveCourse={initialActiveCourse}
-        showDesktopSidebarToggle={showSidebar}
       />
 
       <div
@@ -48,7 +47,7 @@ export function AppShell({
         className="flex min-h-0 min-w-0 flex-1 pt-[calc(var(--header-height-mobile)+var(--top-banner-height)+var(--header-top-offset))] lg:pt-[calc(var(--header-height-desktop)+var(--top-banner-height)+var(--header-top-offset))]"
       >
         {showSidebar && (
-          <div className="hidden h-full min-h-0 max-w-64 flex-shrink-0 overflow-hidden lg:block">
+          <div className="hidden h-full min-h-0 flex-shrink-0 overflow-visible lg:block">
             <Sidebar />
           </div>
         )}
