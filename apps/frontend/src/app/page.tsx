@@ -44,7 +44,7 @@ export default async function Home() {
   return (
     <>
       <HomePageWrapper initialUserCourses={enrolledCoursesData.userCourses || []}>
-        <div className="w-full lg:p-6 xl:pt-8 pt-6 pl-6 pr-0 pb-6">
+        <div className="w-full pt-8 px-4 xl:px-0">
           <div className="flex flex-col lg:flex-row max-w-[1420px] pb-10 gap-8 md:gap-6 mx-auto">
             <div className="flex-1 flex flex-col items-start min-w-0 overflow-x-hidden">
               <div className="w-full">
@@ -52,7 +52,7 @@ export default async function Home() {
                   className="mb-4"
                   title="Trilha atual"
                 />
-                <div className="lg:pr-0 pr-6">
+                <div className="lg:pr-0">
                   <CurrentCourseCard />
                 </div>
 
@@ -66,7 +66,7 @@ export default async function Home() {
                   </div>
                 ) : null}
 
-                <div className="lg:hidden w-full pr-6 lg:mt-6 mt-12">
+                <div className="lg:hidden w-full lg:mt-6 mt-12">
                   <UserProfiler />
                 </div>
 
@@ -86,7 +86,7 @@ export default async function Home() {
 
                 <div className="relative w-full min-w-0 overflow-hidden px-0 pb-10">
                   <SectionTitle
-                    className="mb-5"
+                    className="mb-4"
                     title="Categorias"
                   />
                   <CategoriesCarousel />
@@ -101,7 +101,7 @@ export default async function Home() {
 
                 <div className="relative w-full min-w-0 overflow-hidden px-0 mb-6">
                   <SectionTitle
-                    className="mb-5"
+                    className="mb-4"
                     title="Novidades"
                   />
                   <NewsBannerCarousel />

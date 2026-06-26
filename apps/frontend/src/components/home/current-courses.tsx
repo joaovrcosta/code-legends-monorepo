@@ -28,7 +28,7 @@ export async function CurrentCourses() {
 
             {isSingle && single ? (
                 <>
-                    <div className="md:hidden w-full min-w-0 max-w-full pr-6">
+                    <div className="md:hidden w-full min-w-0 max-w-full">
                         <KeepLearningCard
                             course={single}
                             glowColor={glowColors[0] ?? "blue"}

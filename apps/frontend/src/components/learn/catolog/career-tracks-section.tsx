@@ -48,11 +48,11 @@ export function CareerTracksSection({
         {showHeader ? (
           <div
             className={cn(
-              'mb-5 flex items-center justify-between gap-4 pr-6 lg:pr-0',
+              'mb-4 flex items-center justify-between gap-4 pr-6 lg:pr-0',
               titleRowClassName,
             )}
           >
-            <span className="text-sm font-semibold text-[#666]">
+            <span className="text-sm font-semibold text-[#E0E0EE]">
               {sectionTitle}
             </span>
             <div className="flex shrink-0 items-center gap-2">
@@ -72,22 +72,22 @@ export function CareerTracksSection({
           </div>
         ) : null}
 
-          {!showHeader ? (
-            <div className="mb-4 flex items-center justify-end gap-2 pr-6 lg:pr-0">
-              <CarouselPrevious
-                variant="ghost"
-                hideWhenDisabled
-                aria-label="Anterior"
-                className={carouselHeaderNavButtonClassName}
-              />
-              <CarouselNext
-                variant="ghost"
-                hideWhenDisabled
-                aria-label="Próximo"
-                className={carouselHeaderNavButtonClassName}
-              />
-            </div>
-          ) : null}
+        {!showHeader ? (
+          <div className="mb-4 flex items-center justify-end gap-2 pr-6 lg:pr-0">
+            <CarouselPrevious
+              variant="ghost"
+              hideWhenDisabled
+              aria-label="Anterior"
+              className={carouselHeaderNavButtonClassName}
+            />
+            <CarouselNext
+              variant="ghost"
+              hideWhenDisabled
+              aria-label="Próximo"
+              className={carouselHeaderNavButtonClassName}
+            />
+          </div>
+        ) : null}
 
         <div className="relative min-w-0">
           <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-surface to-transparent" />

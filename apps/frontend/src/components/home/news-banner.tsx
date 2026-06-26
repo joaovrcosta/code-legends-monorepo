@@ -43,7 +43,7 @@ export function NewsBanner() {
                     </div>
 
                     <div className="mt-4 lg:mt-0">
-                        <div className="flex flex-wrap items-center gap-4 mb-4 lg:mb-5">
+                        <div className="flex flex-wrap items-center gap-4 mb-4 lg:mb-4">
                             <div className="flex text-xs items-center gap-2">
                                 <Avatar className="h-6 w-6">
                                     <AvatarImage src="https://avatars.githubusercontent.com/u/70654718?v=4" />

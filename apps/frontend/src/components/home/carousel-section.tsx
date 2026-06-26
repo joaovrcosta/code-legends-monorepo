@@ -85,7 +85,7 @@ export function CarouselSection({ courses, header, sectionTitle }: CarouselSecti
                         )}
                     >
                         {sectionTitle ? (
-                            <span className="text-sm font-semibold text-[#666]">
+                            <span className="text-sm font-semibold text-[#E0E0EE]">
                                 {sectionTitle}
                             </span>
                         ) : null}
