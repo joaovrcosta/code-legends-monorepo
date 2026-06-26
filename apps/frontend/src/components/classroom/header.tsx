@@ -14,7 +14,8 @@ import { useMemo, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useClassroomAutoplayStore } from '@/stores/classroom-autoplay-store'
 import { usePathname } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Menu } from 'lucide-react'
+import { useClassroomMobileContentStore } from '@/stores/classroom-mobile-content-store'
 import { useClassroomRoadmap } from '@/components/classroom/classroom-roadmap-context'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/skeleton'
@@ -55,6 +56,7 @@ export default function ClassroomHeader({
     setAutoplayEnabled,
   } = useClassroomAutoplayStore()
   const { roadmap } = useClassroomRoadmap()
+  const openMobileContent = useClassroomMobileContentStore((s) => s.open)
 
   useEffect(() => {
     hydrateAutoplay()
@@ -155,7 +157,15 @@ export default function ClassroomHeader({
         />
         <ul className="relative z-10 mx-auto flex w-full items-center justify-between px-4 py-2 lg:pt-4 lg:pb-4">
           <li className="flex items-center lg:space-x-6">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={openMobileContent}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#25252a] text-white transition-colors hover:bg-[#25252a] lg:hidden"
+                aria-label="Abrir conteúdo do curso"
+              >
+                <Menu size={22} strokeWidth={2} />
+              </button>
               <div>
                 <Link href="/">
                   <Image

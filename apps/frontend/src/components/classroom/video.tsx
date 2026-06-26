@@ -4,7 +4,6 @@ import Image from 'next/image'
 import notFoundImg from '../../../public/not-found.png'
 import { TitleAccordion } from '../learn/title-accordion'
 import { LevelAccordion } from '../learn/level-accordion'
-import { LessonsAccordion } from '../learn/lessons-accordion'
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react'
 import { useClassroomAutoplayStore } from '@/stores/classroom-autoplay-store'
@@ -452,7 +451,6 @@ export default function VideoComponent({
       <div className="">
         <LevelAccordion />
         <TitleAccordion title={title} description={description} />
-        <LessonsAccordion />
       </div>
     </div>
   )

@@ -17,7 +17,6 @@ import { SkipForward } from '@phosphor-icons/react'
 import { SkipBack } from '@phosphor-icons/react/dist/ssr'
 import Link from 'next/link'
 import { Loading } from '@/components/loading'
-import { LessonsAccordion } from '@/components/learn/lessons-accordion'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { useClassroomRoadmap } from '@/components/classroom/classroom-roadmap-context'
@@ -365,9 +364,6 @@ export default function DynamicLessonPage() {
         <div className="lg:hidden flex-1 min-h-0 overflow-y-auto flex flex-col scrollbar-classroom">
           <div className="flex-shrink-0">
             <LessonPaywall />
-          </div>
-          <div className="w-full pt-4 pb-6">
-            <LessonsAccordion />
           </div>
         </div>
 
