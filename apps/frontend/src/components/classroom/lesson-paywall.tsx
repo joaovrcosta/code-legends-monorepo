@@ -16,7 +16,7 @@ const PLAN_ICONS = [
 
 export function LessonPaywall() {
   return (
-    <div className="flex-1 flex flex-col min-h-0 items-center justify-center px-4 py-8 lg:py-12 relative overflow-hidden">
+    <div className="relative flex min-h-full w-full flex-1 flex-col items-center justify-center overflow-hidden px-4 py-8 lg:min-h-0 lg:py-12">
       {/* Container principal com Glassmorphism */}
       <div className="relative w-full max-w-[560px] flex flex-col items-center text-center p-8 lg:p-12 rounded-[16px] transition-all duration-500">
         {/* Ícones dos planos (Free, Pro, Premium) - avatar stack */}
@@ -56,12 +56,7 @@ export function LessonPaywall() {
           </Link>
         </div>
 
-        <Link
-          href="/learn"
-          className="relative z-10 mt-10 text-sm font-medium text-zinc-500 hover:text-zinc-300 transition-colors underline decoration-zinc-700 hover:decoration-zinc-400 underline-offset-4"
-        >
-          Fale com a gente
-        </Link>
+        <div />
       </div>
     </div>
   )
