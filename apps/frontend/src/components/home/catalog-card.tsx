@@ -158,17 +158,17 @@ export function CatalogCard({
   const { label, className: statusClass } = getStatusInfo(status)
   const transformOriginClass =
     position === 'first'
-      ? 'origin-left'
+      ? 'md:origin-left'
       : position === 'last'
-        ? 'origin-right'
-        : 'origin-center'
+        ? 'md:origin-right'
+        : 'md:origin-center'
   return (
     <Link href={url} className="block h-full group">
       <div
         className={`relative z-0 overflow-hidden w-full h-full min-w-[300px] flex flex-col rounded-[16px] border shadow-2xl cursor-pointer
-    transition-transform duration-300 ease-out
-    md:hover:z-20 md:hover:-translate-y-3 md:hover:scale-[1.08] md:hover:border-[#3f3f48]
-    md:hover:shadow-[0_30px_60px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06),inset_0_-24px_24px_rgba(255,255,255,0.03)]
+    transition-[border-color,box-shadow] duration-300 ease-out
+    md:hover:border-[#3f3f48]
+    md:hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06),inset_0_-24px_24px_rgba(255,255,255,0.03)]
     ${isCurrent
             ? 'bg-blue-gradient-second border-[#35BED5]'
             : 'bg-primary border-[#25252A]'
@@ -181,7 +181,7 @@ export function CatalogCard({
           alt="Background do Card"
           fill
           priority
-          className="object-cover absolute inset-0 opacity-80 pointer-events-none"
+          className="object-cover absolute inset-0 opacity-80 pointer-events-none transition-transform duration-500 ease-out md:group-hover:scale-105"
         />
 
         {label && (

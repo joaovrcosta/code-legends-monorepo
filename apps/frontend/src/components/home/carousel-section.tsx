@@ -90,10 +90,7 @@ export function CarouselSection({ courses, header }: CarouselSectionProps) {
                         </>
                     )}
 
-                    <CarouselContent
-                        className="-ml-4"
-                        viewportClassName="pt-10 pb-6"
-                    >
+                    <CarouselContent className="-ml-4">
                         {courses.map((course, index) => {
                             const position =
                                 index === 0
@@ -105,7 +102,7 @@ export function CarouselSection({ courses, header }: CarouselSectionProps) {
                             return (
                                 <CarouselItem
                                     key={course.id}
-                                    className="relative z-0 basis-[85%] flex-shrink-0 pl-4 sm:basis-[316px] md:[&:has(.group:hover)]:z-30"
+                                    className="basis-[85%] flex-shrink-0 pl-4 sm:basis-[316px]"
                                 >
                                     <CatalogCard
                                         name={course.title}
