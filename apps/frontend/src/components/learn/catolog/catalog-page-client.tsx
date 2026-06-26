@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import type { CourseWithCount } from '@/types/user-course.ts'
 import { CatalogCoursesGrid } from '@/components/learn/catolog/catalog-courses-grid'
+import { CatalogCoursesCarousel } from '@/components/home/catalog-courses-carousel'
 import {
   getFreeCourses,
   getTrendingCourses,
@@ -29,8 +30,10 @@ export function CatalogPageClient({ courses }: CatalogPageClientProps) {
   return (
     <div className="w-full min-w-0 pb-8">
       <section className="mb-8">
-        <SectionTitle>Em alta</SectionTitle>
-        <CatalogCoursesGrid courses={trendingCourses} />
+        <CatalogCoursesCarousel
+          courses={trendingCourses}
+          sectionTitle="Em alta"
+        />
       </section>
 
       <section>
