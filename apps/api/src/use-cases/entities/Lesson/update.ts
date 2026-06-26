@@ -80,35 +80,48 @@ export class UpdateLessonUseCase {
       video_duration !== undefined ||
       video_provider_id !== undefined;
 
-    if (lessonType === "video" && (data.type === "video" || touchesVideoFields)) {
+    if (lessonType === "video" && touchesVideoFields) {
       const existingVideo = await this.videoRepository.findByLessonId(lesson.id);
-      const urlToValidate =
-        video_url !== undefined ? video_url : existingVideo?.url ?? undefined;
-      const providerIdToUse =
-        video_provider_id !== undefined
-          ? video_provider_id
-          : existingVideo?.providerId ?? undefined;
 
-      try {
-        const resolved = await resolveLessonVideoInput({
-          videoUrl: urlToValidate,
-          videoProviderId: providerIdToUse,
-          videoProviderRepository: this.videoProviderRepository,
-          requireUrl: false,
-        });
-        await this.videoRepository.upsert(lesson.id, {
-          url: resolved.url ?? existingVideo?.url ?? null,
-          duration:
-            video_duration !== undefined
-              ? video_duration
-              : existingVideo?.duration ?? undefined,
-          providerId: resolved.provider.id,
-        });
-      } catch (error) {
-        if (error instanceof InvalidVideoUrlForProviderError) {
-          videoWarnings = error.details;
-        } else {
-          throw error;
+      const urlChanged =
+        video_url !== undefined &&
+        (video_url?.trim() ?? "") !== (existingVideo?.url?.trim() ?? "");
+      const durationChanged =
+        video_duration !== undefined &&
+        (video_duration ?? "") !== (existingVideo?.duration ?? "");
+      const providerChanged =
+        video_provider_id !== undefined &&
+        (video_provider_id ?? null) !== (existingVideo?.providerId ?? null);
+
+      if (urlChanged || durationChanged || providerChanged) {
+        const urlToValidate =
+          video_url !== undefined ? video_url : existingVideo?.url ?? undefined;
+        const providerIdToUse =
+          video_provider_id !== undefined
+            ? video_provider_id
+            : existingVideo?.providerId ?? undefined;
+
+        try {
+          const resolved = await resolveLessonVideoInput({
+            videoUrl: urlToValidate,
+            videoProviderId: providerIdToUse,
+            videoProviderRepository: this.videoProviderRepository,
+            requireUrl: false,
+          });
+          await this.videoRepository.upsert(lesson.id, {
+            url: resolved.url ?? existingVideo?.url ?? null,
+            duration:
+              video_duration !== undefined
+                ? video_duration
+                : existingVideo?.duration ?? undefined,
+            providerId: resolved.provider.id,
+          });
+        } catch (error) {
+          if (error instanceof InvalidVideoUrlForProviderError) {
+            videoWarnings = error.details;
+          } else {
+            throw error;
+          }
         }
       }
     }

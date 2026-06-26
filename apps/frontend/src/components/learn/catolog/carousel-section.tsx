@@ -50,11 +50,14 @@ export function CarouselSection({
           ? false
           : undefined
   return (
-    <div className="relative min-w-0 overflow-x-hidden overflow-y-visible">
+    <div className="relative min-w-0">
       <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-surface to-transparent z-10" />
 
       <Carousel>
-        <CarouselContent className="w-full ml-0 gap-4">
+        <CarouselContent
+          className="ml-0 w-full gap-4"
+          viewportClassName="pt-10 pb-6"
+        >
           {courses.map((course, index) => {
             const position =
               index === 0
@@ -66,7 +69,7 @@ export function CarouselSection({
             return (
               <CarouselItem
                 key={course.id}
-                className="pl-0 basis-[85%] md:basis-[314px] lg:basis-[314px]"
+                className="relative z-0 basis-[85%] pl-0 md:basis-[314px] lg:basis-[314px] md:[&:has(.group:hover)]:z-30"
               >
                 <CatalogCard
                   name={course.title}

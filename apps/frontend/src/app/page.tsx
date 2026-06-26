@@ -46,7 +46,6 @@ export default async function Home() {
       <HomePageWrapper initialUserCourses={enrolledCoursesData.userCourses || []}>
         <div className="w-full lg:p-6 xl:pt-8 pt-6 pl-6 pr-0 pb-6">
           <div className="flex flex-col lg:flex-row max-w-[1420px] pb-10 gap-8 md:gap-10 mx-auto">
-            {/* overflow-x só na coluna esquerda — no wrapper pai o `sticky` do profiler deixava de funcionar */}
             <div className="flex-1 flex flex-col items-start min-w-0 overflow-x-hidden">
               <div className="w-full">
                 <SectionTitle
@@ -109,8 +108,6 @@ export default async function Home() {
                   />
                   <NewsBannerCarousel />
                 </div>
-
-
               </div>
             </div>
 
