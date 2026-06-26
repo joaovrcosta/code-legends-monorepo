@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -18,9 +18,11 @@ import { Plus, Edit, Trash2, LayoutList, Kanban, ImageIcon } from "lucide-react"
 import Link from "next/link";
 import { toast } from "sonner";
 import { CourseKanban } from "@/components/courses/course-kanban";
+import { PageHeader } from "@/components/ui/page-header";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 
 const STATUS_BADGE: Record<string, { label: string; classes: string }> = {
-  DRAFT:      { label: "Rascunho",    classes: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400" },
+  DRAFT:      { label: "Rascunho",    classes: "bg-ch-surface-raised text-ch-muted" },
   REVIEW:     { label: "Em Revisão",  classes: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300" },
   PUBLISHED:  { label: "Publicado",   classes: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300" },
 };
@@ -84,42 +86,51 @@ export default function CoursesPage() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Cursos</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Gerencie todos os cursos da plataforma</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <button
-                onClick={() => setViewMode("table")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors ${viewMode === "table" ? "bg-blue-600 text-white" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"}`}
-              >
-                <LayoutList className="h-3.5 w-3.5" />
-                Lista
-              </button>
-              <button
-                onClick={() => setViewMode("kanban")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors ${viewMode === "kanban" ? "bg-blue-600 text-white" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"}`}
-              >
-                <Kanban className="h-3.5 w-3.5" />
-                Kanban
-              </button>
-            </div>
-            <Link href="/courses/new">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Curso
-              </Button>
-            </Link>
-          </div>
-        </div>
+        <PageHeader
+          title="Cursos"
+          description="Gerencie todos os cursos da plataforma"
+          actions={
+            <>
+              <SegmentedControl
+                value={viewMode}
+                onChange={setViewMode}
+                size="sm"
+                options={[
+                  {
+                    value: "table",
+                    label: (
+                      <span className="inline-flex items-center gap-1.5">
+                        <LayoutList className="h-3.5 w-3.5" />
+                        Lista
+                      </span>
+                    ),
+                  },
+                  {
+                    value: "kanban",
+                    label: (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Kanban className="h-3.5 w-3.5" />
+                        Kanban
+                      </span>
+                    ),
+                  },
+                ]}
+              />
+              <Link href="/courses/new">
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Curso
+                </Button>
+              </Link>
+            </>
+          }
+        />
 
         {loading ? (
-          <div className="py-12 text-center text-gray-500">Carregando...</div>
+          <div className="py-12 text-center text-ch-muted">Carregando...</div>
         ) : viewMode === "kanban" ? (
           <div>
-            <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mb-4 text-sm text-ch-muted">
               Arraste os cursos entre as colunas para atualizar o status de publicação.
               {userRole !== "ADMIN" && " Apenas Admins podem mover para Publicado."}
             </p>
@@ -146,7 +157,7 @@ export default function CoursesPage() {
                 <TableBody>
                   {courses.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={7} className="text-center py-8 text-ch-muted">
                         Nenhum curso encontrado
                       </TableCell>
                     </TableRow>
@@ -161,11 +172,11 @@ export default function CoursesPage() {
                               <img
                                 src={course.icon}
                                 alt=""
-                                className="h-10 w-10 rounded-lg object-cover border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800"
+                                className="h-10 w-10 rounded-lg object-cover border border-ch-border bg-ch-surface-raised"
                               />
                             ) : (
                               <div
-                                className="flex h-10 w-10 items-center justify-center rounded-lg border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 text-gray-400"
+                                className="flex h-10 w-10 items-center justify-center rounded-lg border border-dashed border-ch-border bg-ch-canvas bg-ch-surface-raised/50 text-ch-muted"
                                 title="Sem ícone"
                               >
                                 <ImageIcon className="h-4 w-4" aria-hidden />

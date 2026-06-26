@@ -105,8 +105,8 @@ export default function EditCategoryPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Editar Categoria</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Atualize as informações da categoria</p>
+            <h1 className="text-3xl font-bold text-gray-900 text-ch">Editar Categoria</h1>
+            <p className="text-ch-muted mt-2">Atualize as informações da categoria</p>
           </div>
         </div>
 
@@ -203,7 +203,7 @@ export default function EditCategoryPage() {
                   id="active"
                   checked={formData.active !== false}
                   onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                  className="rounded border-gray-300"
+                  className="rounded border-ch-border"
                 />
                 <Label htmlFor="active" className="cursor-pointer">
                   Categoria ativa

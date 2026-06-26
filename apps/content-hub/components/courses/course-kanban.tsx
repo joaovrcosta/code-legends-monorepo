@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useCallback } from "react";
 import {
@@ -36,7 +36,7 @@ interface Column {
 }
 
 const columns: Column[] = [
-  { id: "DRAFT", label: "Rascunho", color: "bg-gray-100 dark:bg-gray-800" },
+  { id: "DRAFT", label: "Rascunho", color: "bg-ch-surface-raised" },
   { id: "REVIEW", label: "Em Revisão", color: "bg-yellow-50 dark:bg-yellow-950" },
   { id: "PUBLISHED", label: "Publicado ✅", color: "bg-green-50 dark:bg-green-950" },
 ];
@@ -54,20 +54,20 @@ function CourseCard({ course, isDragging }: { course: KanbanCourse; isDragging?:
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex items-start gap-3 rounded-md border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900"
+      className="group flex items-start gap-3 rounded-md border border-ch-border bg-ch-surface p-3 shadow-sm border-ch-border bg-ch-surface-raised"
     >
       <button
         {...attributes}
         {...listeners}
-        className="mt-0.5 cursor-grab text-gray-400 hover:text-gray-600 active:cursor-grabbing"
+        className="mt-0.5 cursor-grab text-ch-muted hover:text-ch-muted active:cursor-grabbing"
       >
         <GripVertical className="h-4 w-4" />
       </button>
       <div className="flex-1 min-w-0">
-        <p className="truncate text-sm font-medium text-gray-900 dark:text-white">{course.title}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">{course.instructor.name}</p>
+        <p className="truncate text-sm font-medium text-ch dark:text-white">{course.title}</p>
+        <p className="text-xs text-ch-muted">{course.instructor.name}</p>
       </div>
-      <BookOpen className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400" />
+      <BookOpen className="mt-0.5 h-4 w-4 flex-shrink-0 text-ch-muted" />
     </div>
   );
 }
@@ -150,8 +150,8 @@ export function CourseKanban({ initialCourses, userRole }: CourseKanbanProps) {
           return (
             <div key={col.id} className={`rounded-xl p-4 ${col.color}`} id={col.id}>
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-semibold text-gray-700 dark:text-gray-300">{col.label}</h3>
-                <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-gray-600 shadow dark:bg-gray-700 dark:text-gray-300">
+                <h3 className="font-semibold text-ch-muted">{col.label}</h3>
+                <span className="rounded-full bg-ch-surface px-2 py-0.5 text-xs font-bold text-ch-muted shadow dark:bg-ch-surface-raised text-ch-muted">
                   {colCourses.length}
                 </span>
               </div>
@@ -166,7 +166,7 @@ export function CourseKanban({ initialCourses, userRole }: CourseKanbanProps) {
                   strategy={verticalListSortingStrategy}
                 >
                   {colCourses.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-gray-400">Sem cursos</p>
+                    <p className="py-8 text-center text-sm text-ch-muted">Sem cursos</p>
                   ) : (
                     colCourses.map((course) => (
                       <CourseCard key={course.id} course={course} isDragging={course.id === activeId} />
@@ -175,7 +175,7 @@ export function CourseKanban({ initialCourses, userRole }: CourseKanbanProps) {
                 </SortableContext>
               </div>
               {col.id === "PUBLISHED" && userRole !== "ADMIN" && (
-                <div className="mt-2 flex items-center gap-1 text-xs text-gray-500">
+                <div className="mt-2 flex items-center gap-1 text-xs text-ch-muted">
                   <Lock className="h-3 w-3" />
                   Apenas admins podem publicar
                 </div>
@@ -186,7 +186,7 @@ export function CourseKanban({ initialCourses, userRole }: CourseKanbanProps) {
       </div>
       <DragOverlay>
         {activeCourse ? (
-          <div className="rounded-md border border-blue-300 bg-white p-3 shadow-xl dark:bg-gray-900">
+          <div className="rounded-md border border-ch-accent/40 bg-ch-surface p-3 shadow-xl bg-ch-surface-raised">
             <p className="text-sm font-medium">{activeCourse.title}</p>
           </div>
         ) : null}

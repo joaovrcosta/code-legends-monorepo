@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { MainLayout } from "@/components/layout/main-layout";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -60,22 +61,18 @@ export default function CareersPage() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Carreiras
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Cadastre trilhas/carreiras, módulos e exames.
-            </p>
-          </div>
-          <Link href="/careers/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Carreira
-            </Button>
-          </Link>
-        </div>
+        <PageHeader
+          title="Carreiras"
+          description="Cadastre trilhas/carreiras, módulos e exames."
+          actions={
+            <Link href="/careers/new">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Carreira
+              </Button>
+            </Link>
+          }
+        />
 
         <Card>
           <CardHeader>
@@ -83,7 +80,7 @@ export default function CareersPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="py-12 text-center text-gray-500">Carregando...</div>
+              <div className="py-12 text-center text-ch-muted">Carregando...</div>
             ) : (
               <Table>
                 <TableHeader>
@@ -97,7 +94,7 @@ export default function CareersPage() {
                 <TableBody>
                   {sorted.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={4} className="text-center py-8 text-ch-muted">
                         Nenhuma carreira encontrada
                       </TableCell>
                     </TableRow>
@@ -112,7 +109,7 @@ export default function CareersPage() {
                               "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
                               c.active
                                 ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
-                                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
+                                : "bg-ch-surface-raised text-ch-muted",
                             ].join(" ")}
                           >
                             {c.active ? "Ativa" : "Inativa"}

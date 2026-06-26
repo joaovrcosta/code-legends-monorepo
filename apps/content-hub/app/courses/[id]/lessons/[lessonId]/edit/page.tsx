@@ -114,7 +114,7 @@ export default function EditCourseLessonPage() {
   if (loading) {
     return (
       <MainLayout>
-        <div className="py-8 text-center text-gray-600 dark:text-gray-400">
+        <div className="py-8 text-center text-ch-muted">
           Carregando aula…
         </div>
       </MainLayout>
@@ -135,7 +135,7 @@ export default function EditCourseLessonPage() {
             </Button>
           </Link>
           <div className="min-w-0 flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-3xl font-bold text-gray-900 text-ch">
               Editar Aula
             </h1>
             <LessonContextBreadcrumb

@@ -58,7 +58,7 @@ export function ChartContainer({
       <div
         data-slot="chart"
         className={cn(
-          "h-[300px] w-full text-xs [&_.recharts-cartesian-axis-tick_text]:fill-gray-500 [&_.recharts-cartesian-grid_line]:stroke-gray-200 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-gray-300 [&_.recharts-pie-label-text]:fill-gray-600 dark:[&_.recharts-cartesian-axis-tick_text]:fill-gray-400 dark:[&_.recharts-cartesian-grid_line]:stroke-[#25252a] dark:[&_.recharts-curve.recharts-tooltip-cursor]:stroke-gray-600 dark:[&_.recharts-pie-label-text]:fill-gray-300",
+          "h-[300px] w-full text-xs [&_.recharts-cartesian-axis-tick_text]:fill-ch-muted [&_.recharts-cartesian-grid_line]:stroke-ch-border [&_.recharts-curve.recharts-tooltip-cursor]:stroke-ch-border [&_.recharts-pie-label-text]:fill-ch-muted",
           className
         )}
         style={style}
@@ -106,12 +106,12 @@ export function ChartTooltipContent({
   return (
     <div
       className={cn(
-        "min-w-[180px] rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-md dark:border-[#25252a] dark:bg-[#101013]",
+        "min-w-[180px] rounded-ch-lg border border-ch-border bg-ch-surface px-3 py-2 text-sm shadow-md",
         className
       )}
     >
       {!hideLabel && label ? (
-        <div className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+        <div className="mb-2 text-xs font-medium text-ch-muted">
           {label}
         </div>
       ) : null}
@@ -130,11 +130,11 @@ export function ChartTooltipContent({
                   className="h-2.5 w-2.5 rounded-full"
                   style={{ backgroundColor: indicatorColor }}
                 />
-                <span className="text-gray-600 dark:text-gray-300">
+                <span className="text-ch-muted">
                   {itemConfig?.label ?? item.name ?? key}
                 </span>
               </div>
-              <span className="font-medium text-gray-900 dark:text-gray-100">
+              <span className="font-medium text-ch">
                 {typeof item.value === "number"
                   ? valueFormatter?.(item.value, key) ?? item.value.toLocaleString("pt-BR")
                   : item.value}
@@ -173,7 +173,7 @@ export function ChartLegendContent({
         const itemConfig = config[key];
 
         return (
-          <div key={key} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+          <div key={key} className="flex items-center gap-2 text-sm text-ch-muted">
             <span
               className="h-2.5 w-2.5 rounded-full"
               style={{ backgroundColor: item.color ?? itemConfig?.color ?? "currentColor" }}

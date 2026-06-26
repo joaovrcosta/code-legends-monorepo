@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -84,7 +84,7 @@ export function RequestAdminDetail({
           <CardTitle className="break-all">
             Solicitação #{request.id.slice(0, 8)}
           </CardTitle>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-ch-muted">
             {request.user?.name} ({request.user?.email})
           </p>
         </div>
@@ -111,7 +111,7 @@ export function RequestAdminDetail({
         {request.data ? (
           <div>
             <label className="text-sm font-medium">Dados adicionais</label>
-            <div className="mt-1 rounded bg-gray-100 p-3 text-sm dark:bg-gray-800">
+            <div className="mt-1 rounded bg-ch-surface-raised p-3 text-sm bg-ch-surface-raised">
               <pre className="max-h-64 overflow-auto text-xs">{formatDataJson(request.data)}</pre>
             </div>
           </div>
@@ -127,7 +127,7 @@ export function RequestAdminDetail({
         {request.response ? (
           <div>
             <label className="text-sm font-medium">Resposta anterior</label>
-            <div className="mt-1 rounded bg-gray-100 p-3 text-sm dark:bg-gray-800">
+            <div className="mt-1 rounded bg-ch-surface-raised p-3 text-sm bg-ch-surface-raised">
               {request.response}
             </div>
           </div>

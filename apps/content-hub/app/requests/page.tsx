@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -18,7 +18,7 @@ import { RequestStatusBadge } from "@/components/requests/request-admin-detail";
 import { toast } from "sonner";
 
 const outlineLinkClass =
-  "inline-flex h-9 items-center justify-center rounded-md border border-gray-300 px-3 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 dark:border-[#25252a] dark:text-gray-100 dark:hover:bg-gray-800";
+  "inline-flex h-9 items-center justify-center rounded-md border border-ch-border px-3 text-sm font-medium text-ch transition-colors hover:bg-ch-surface-raised border-ch-border text-ch hover:bg-ch-surface-raised";
 
 export default function RequestsPage() {
   const [requests, setRequests] = useState<Request[]>([]);
@@ -59,10 +59,10 @@ export default function RequestsPage() {
     <MainLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="text-3xl font-bold text-ch">
             Solicitações
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-ch-muted">
             Gerencie todas as solicitações dos usuários
           </p>
         </div>
@@ -76,7 +76,7 @@ export default function RequestsPage() {
             </CardHeader>
             <CardContent>
               {requests.length === 0 ? (
-                <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+                <div className="py-8 text-center text-ch-muted">
                   Nenhuma solicitação encontrada
                 </div>
               ) : (
@@ -99,7 +99,7 @@ export default function RequestsPage() {
                             <div className="font-medium">
                               {request.user?.name || "N/A"}
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                            <div className="text-sm text-ch-muted">
                               {request.user?.email || "N/A"}
                             </div>
                           </div>
@@ -113,7 +113,7 @@ export default function RequestsPage() {
                               {request.title || "Sem título"}
                             </div>
                             {request.description ? (
-                              <div className="truncate text-sm text-gray-500 dark:text-gray-400">
+                              <div className="truncate text-sm text-ch-muted">
                                 {request.description}
                               </div>
                             ) : null}

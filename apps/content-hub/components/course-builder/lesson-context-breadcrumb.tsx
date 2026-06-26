@@ -1,4 +1,4 @@
-import { ChevronRight } from "lucide-react";
+﻿import { ChevronRight } from "lucide-react";
 import type { LessonBreadcrumbContext } from "@/lib/course-structure";
 
 interface LessonContextBreadcrumbProps {
@@ -17,8 +17,8 @@ function Crumb({
     <span
       className={
         current
-          ? "truncate font-medium text-gray-900 dark:text-gray-100"
-          : "truncate text-gray-600 dark:text-gray-400"
+          ? "truncate font-medium text-ch"
+          : "truncate text-ch-muted"
       }
       title={children}
       aria-current={current ? "page" : undefined}
@@ -31,7 +31,7 @@ function Crumb({
 function Separator() {
   return (
     <ChevronRight
-      className="h-3.5 w-3.5 shrink-0 text-gray-400 dark:text-gray-500"
+      className="h-3.5 w-3.5 shrink-0 text-ch-muted dark:text-ch-muted"
       aria-hidden
     />
   );

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import {
@@ -76,12 +76,12 @@ function productionStatusBadgeClass(status: LessonProductionStatus): string {
     case "REVIEW":
       return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400";
     case "IN_PROGRESS":
-      return "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400";
+      return "border-blue-500/30 bg-blue-500/10 text-blue-700 text-ch-accent";
     case "BLOCKED":
       return "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400";
     case "TODO":
     default:
-      return "border-gray-500/30 bg-gray-500/10 text-gray-700 dark:text-gray-300";
+      return "border-gray-500/30 bg-ch-canvas0/10 text-ch-muted";
   }
 }
 
@@ -209,15 +209,15 @@ export function LessonNode({
       <div
         ref={setNodeRef}
         style={style}
-        className="lesson-node-row grid items-center gap-x-2 gap-y-1 p-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded ml-4"
+        className="lesson-node-row grid items-center gap-x-2 gap-y-1 p-2 bg-ch-surface border border-ch-border rounded ml-4"
       >
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded justify-self-start"
+          className="cursor-grab active:cursor-grabbing p-1 hover:bg-ch-surface-raised rounded justify-self-start"
           aria-label="Arrastar para reordenar"
         >
-          <GripVertical className="h-4 w-4 text-gray-400" />
+          <GripVertical className="h-4 w-4 text-ch-muted" />
         </button>
         <div className="min-w-0">
           {isEditingTitle ? (
@@ -252,7 +252,7 @@ export function LessonNode({
               </Button>
             </div>
           ) : (
-            <span className="block min-w-0 text-sm text-gray-600 dark:text-gray-400 truncate">
+            <span className="block min-w-0 text-sm text-ch-muted truncate">
               {lesson.title}
             </span>
           )}
@@ -290,7 +290,7 @@ export function LessonNode({
         </div>
         <div className="lesson-node-col-select">
           <select
-            className="h-8 w-full rounded-md border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+            className="h-8 w-full rounded-md border border-ch-border bg-ch-surface px-2 text-xs text-ch border-ch-border bg-ch-surface-raised text-ch-muted"
             value={productionStatus}
             onChange={(e) => handleProductionStatusChange(e.target.value as LessonProductionStatus)}
             disabled={productionLoading || loading}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { ModuleWithStructure, GroupWithStructure } from "@/actions/course/get-course-with-structure";
@@ -181,11 +181,11 @@ export function ModuleNode({
     };
 
     return (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
-            <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800">
+        <div className="border border-ch-border rounded-lg">
+            <div className="flex items-center gap-2 p-3 bg-ch-canvas bg-ch-surface-raised">
                 <button
                     onClick={onToggle}
-                    className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+                    className="p-1 hover:bg-ch-surface-raised rounded"
                 >
                     {isExpanded ? (
                         <ChevronDown className="h-4 w-4" />
@@ -219,10 +219,10 @@ export function ModuleNode({
                 ) : (
                     <>
                         <div className="flex-1 min-w-0">
-                            <div className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                            <div className="text-[11px] font-medium text-ch-muted">
                                 Módulo {moduleNumber ?? module.orderIndex + 1}
                             </div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                            <div className="font-medium text-ch truncate">
                                 {module.title}
                             </div>
                         </div>
@@ -257,7 +257,7 @@ export function ModuleNode({
             {isExpanded && (
                 <div className="p-3 space-y-2">
                     {module.groups.length === 0 ? (
-                        <div className="text-sm text-gray-500 dark:text-gray-400 pl-6">
+                        <div className="text-sm text-ch-muted pl-6">
                             Nenhum submódulo. Clique no botão + para adicionar.
                         </div>
                     ) : (

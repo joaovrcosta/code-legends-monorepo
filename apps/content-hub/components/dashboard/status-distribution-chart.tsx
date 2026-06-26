@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Pie, PieChart } from "recharts";
 import {
@@ -64,12 +64,12 @@ export function StatusDistributionChart({
                 <ChartLegend content={<ChartLegendContent />} />
               </PieChart>
             </ChartContainer>
-            <div className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
-              Total: <span className="font-medium text-gray-900 dark:text-gray-100">{total}</span>
+            <div className="mt-2 text-center text-sm text-ch-muted">
+              Total: <span className="font-medium text-ch">{total}</span>
             </div>
           </>
         ) : (
-          <div className="flex h-[260px] items-center justify-center rounded-lg border border-dashed border-gray-200 text-sm text-gray-500 dark:border-[#25252a] dark:text-gray-400">
+          <div className="flex h-[260px] items-center justify-center rounded-lg border border-dashed border-ch-border text-sm text-ch-muted border-ch-border text-ch-muted">
             Nenhum dado disponível
           </div>
         )}

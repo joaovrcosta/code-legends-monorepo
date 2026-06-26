@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -23,6 +23,7 @@ import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { StatusDistributionChart } from "@/components/dashboard/status-distribution-chart";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { TopSkillsChart } from "@/components/dashboard/top-skills-chart";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAuthTokenFromClient } from "@/lib/auth";
@@ -33,7 +34,7 @@ const quickLinks = [
     description: "Gerenciar catálogo e publicações",
     href: "/courses",
     icon: BookOpen,
-    iconClassName: "text-blue-600 dark:text-blue-400",
+    iconClassName: "text-ch-accent",
   },
   {
     title: "Usuários",
@@ -79,8 +80,8 @@ function DashboardSkeleton() {
         {Array.from({ length: 4 }).map((_, index) => (
           <Card key={index}>
             <CardHeader className="space-y-2">
-              <div className="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
-              <div className="h-8 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+              <div className="h-4 w-28 animate-pulse rounded bg-ch-surface-raised" />
+              <div className="h-8 w-24 animate-pulse rounded bg-ch-surface-raised" />
             </CardHeader>
           </Card>
         ))}
@@ -89,11 +90,11 @@ function DashboardSkeleton() {
         {Array.from({ length: 3 }).map((_, index) => (
           <Card key={index}>
             <CardHeader className="space-y-2">
-              <div className="h-5 w-36 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
-              <div className="h-4 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+              <div className="h-5 w-36 animate-pulse rounded bg-ch-surface-raised" />
+              <div className="h-4 w-48 animate-pulse rounded bg-ch-surface-raised" />
             </CardHeader>
             <CardContent>
-              <div className="h-[260px] animate-pulse rounded bg-gray-100 dark:bg-gray-900" />
+              <div className="h-[260px] animate-pulse rounded bg-ch-surface-raised" />
             </CardContent>
           </Card>
         ))}
@@ -106,10 +107,10 @@ function QuickLinksSection() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+        <h2 className="text-xl font-semibold text-ch">
           Acesso rápido
         </h2>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-1 text-sm text-ch-muted">
           Atalhos para as áreas mais usadas do Content Hub
         </p>
       </div>
@@ -123,7 +124,7 @@ function QuickLinksSection() {
                 <item.icon className={`h-4 w-4 ${item.iconClassName}`} />
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{item.description}</p>
+                <p className="text-sm text-ch-muted">{item.description}</p>
               </CardContent>
             </Card>
           </Link>
@@ -205,23 +206,21 @@ export default function Home() {
   return (
     <MainLayout>
       <div className="space-y-8">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Visão consolidada de catálogo, usuários, monetização e operação do Content Hub.
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => loadDashboard(revenueRange)}
-            disabled={loading}
-            className="w-full lg:w-auto"
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            {loading ? "Atualizando..." : "Atualizar dados"}
-          </Button>
-        </div>
+        <PageHeader
+          title="Dashboard"
+          description="Visão consolidada de catálogo, usuários, monetização e operação do Content Hub."
+          actions={
+            <Button
+              variant="outline"
+              onClick={() => loadDashboard(revenueRange)}
+              disabled={loading}
+              className="w-full lg:w-auto"
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              {loading ? "Atualizando..." : "Atualizar dados"}
+            </Button>
+          }
+        />
 
         {loading && !dashboard ? <DashboardSkeleton /> : null}
 

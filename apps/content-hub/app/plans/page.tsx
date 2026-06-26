@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -43,12 +43,12 @@ export default function PlansPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Crown className="h-8 w-8 text-gray-900 dark:text-gray-100" />
+            <Crown className="h-8 w-8 text-ch" />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              <h1 className="text-3xl font-bold text-ch">
                 Planos
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
+              <p className="text-ch-muted mt-2">
                 Gerencie os planos de assinatura da plataforma
               </p>
             </div>
@@ -85,7 +85,7 @@ export default function PlansPage() {
                     <TableRow>
                       <TableCell
                         colSpan={6}
-                        className="text-center py-8 text-gray-500"
+                        className="text-center py-8 text-ch-muted"
                       >
                         Nenhum plano encontrado
                       </TableCell>
@@ -111,7 +111,7 @@ export default function PlansPage() {
                             className={
                               plan.active
                                 ? "text-emerald-600 dark:text-emerald-400"
-                                : "text-gray-500"
+                                : "text-ch-muted"
                             }
                           >
                             {plan.active ? "Sim" : "Não"}

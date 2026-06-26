@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -59,8 +59,8 @@ export default function CategoriesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Categorias</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Gerencie todas as categorias da plataforma</p>
+            <h1 className="text-3xl font-bold text-ch">Categorias</h1>
+            <p className="text-ch-muted mt-2">Gerencie todas as categorias da plataforma</p>
           </div>
           <Link href="/categories/new">
             <Button>
@@ -93,7 +93,7 @@ export default function CategoriesPage() {
                 <TableBody>
                   {categories.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={7} className="text-center py-8 text-ch-muted">
                         Nenhuma categoria encontrada
                       </TableCell>
                     </TableRow>
@@ -106,13 +106,13 @@ export default function CategoriesPage() {
                           {category.icon ? (
                             <span className="text-2xl">{category.icon}</span>
                           ) : (
-                            <Tag className="h-4 w-4 text-gray-400" />
+                            <Tag className="h-4 w-4 text-ch-muted" />
                           )}
                         </TableCell>
                         <TableCell>
                           {category.color && (
                             <div
-                              className="w-6 h-6 rounded-full border border-gray-300"
+                              className="w-6 h-6 rounded-full border border-ch-border"
                               style={{ backgroundColor: category.color }}
                             />
                           )}
@@ -123,14 +123,14 @@ export default function CategoriesPage() {
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
                               category.active !== false
                                 ? "bg-emerald-900/20 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
-                                : "bg-gray-900/20 dark:bg-gray-500/20 text-gray-700 dark:text-gray-300"
+                                : "bg-ch-surface-raised/50 dark:bg-ch-surface-raised/50 text-ch-muted"
                             }`}
                           >
                             <span
                               className={`w-1.5 h-1.5 rounded-full ${
                                 category.active !== false
                                   ? "bg-emerald-700 dark:bg-emerald-400"
-                                  : "bg-gray-700 dark:bg-gray-400"
+                                  : "bg-ch-surface-raised bg-ch-muted"
                               }`}
                             />
                             {category.active !== false ? "Ativa" : "Inativa"}

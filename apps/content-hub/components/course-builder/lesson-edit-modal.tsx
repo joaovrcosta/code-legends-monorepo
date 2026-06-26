@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import {
@@ -55,6 +55,7 @@ import {
 } from '@/lib/course-structure'
 import { LessonContextBreadcrumb } from './lesson-context-breadcrumb'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 
 function priorityLabel(p: LessonProductionPriority): string {
   switch (p) {
@@ -810,7 +811,7 @@ Vamos passar por cada linha juntos...`
 
       <div className="space-y-2">
         <Label>Skills desta aula (opcional)</Label>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-ch-muted">
           Essas skills recebem XP adicional quando o aluno conclui esta aula.
         </p>
         <div className="flex gap-2">
@@ -861,11 +862,11 @@ Vamos passar por cada linha juntos...`
             {lessonSkills.map((item) => (
               <div
                 key={item.skillId}
-                className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm dark:border-gray-700"
+                className="flex items-center justify-between rounded-md border border-ch-border px-3 py-2 text-sm border-ch-border"
               >
                 <div>
                   <div className="font-medium">{item.name}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="text-xs text-ch-muted">
                     slug: {item.slug}
                   </div>
                 </div>
@@ -887,7 +888,7 @@ Vamos passar por cada linha juntos...`
                     }}
                     className="w-20"
                   />
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                  <span className="text-xs text-ch-muted">
                     %
                   </span>
                   <Button
@@ -909,9 +910,9 @@ Vamos passar por cada linha juntos...`
         )}
       </div>
 
-      <div className="rounded-lg border border-gray-200 p-4 space-y-4 dark:border-gray-700">
+      <div className="rounded-lg border border-ch-border p-4 space-y-4 border-ch-border">
         <div>
-          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          <h3 className="text-sm font-medium text-ch">
             Produção editorial
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -966,7 +967,7 @@ Vamos passar por cada linha juntos...`
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="rounded-lg border border-ch-border">
         <button
           type="button"
           className="flex w-full items-center justify-between gap-2 rounded-t-lg px-4 py-3 text-left font-medium hover:bg-muted/50"
@@ -1077,7 +1078,7 @@ Vamos passar por cada linha juntos...`
               {isPage ? 'Informações da Aula' : 'Editar Aula'}
             </CardTitle>
             {loadingContent && (
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-2 text-sm text-ch-muted">
                 Carregando conteúdo da aula…
               </p>
             )}
@@ -1140,24 +1141,15 @@ Vamos passar por cada linha juntos...`
                 <TabsTrigger value="informacoes">Informações</TabsTrigger>
               </TabsList>
               {lessonTab === 'desafios' && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant={quizMode === 'editor' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setQuizMode('editor')}
-                  >
-                    Editor
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={quizMode === 'json' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setQuizMode('json')}
-                  >
-                    JSON
-                  </Button>
-                </div>
+                <SegmentedControl
+                  value={quizMode}
+                  onChange={setQuizMode}
+                  size="sm"
+                  options={[
+                    { value: 'editor', label: 'Editor' },
+                    { value: 'json', label: 'JSON' },
+                  ]}
+                />
               )}
             </div>
 
@@ -1275,7 +1267,7 @@ Vamos passar por cada linha juntos...`
                 }
               />
 
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-ch-border p-3 border-ch-border">
                 <div>
                   <p className="text-sm font-medium">Roteiro da videoaula</p>
                   <p className="text-xs text-muted-foreground">
@@ -1312,24 +1304,15 @@ Vamos passar por cada linha juntos...`
                 <p className="text-xs text-muted-foreground">
                   Você pode cadastrar pelo editor visual ou colar um JSON (array de challenges).
                 </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant={quizMode === 'editor' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setQuizMode('editor')}
-                  >
-                    Editor
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={quizMode === 'json' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setQuizMode('json')}
-                  >
-                    JSON
-                  </Button>
-                </div>
+                <SegmentedControl
+                  value={quizMode}
+                  onChange={setQuizMode}
+                  size="sm"
+                  options={[
+                    { value: 'editor', label: 'Editor' },
+                    { value: 'json', label: 'JSON' },
+                  ]}
+                />
               </div>
 
               {quizMode === 'editor' ? (
@@ -1432,7 +1415,7 @@ Vamos passar por cada linha juntos...`
           {formData.type !== 'article' && (
             <div className="space-y-2">
               <Label>Skills desta aula (opcional)</Label>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-ch-muted">
                 Essas skills recebem XP adicional quando o aluno conclui esta aula.
               </p>
               <div className="flex gap-2">
@@ -1483,11 +1466,11 @@ Vamos passar por cada linha juntos...`
                   {lessonSkills.map((item) => (
                     <div
                       key={item.skillId}
-                      className="flex items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm"
+                      className="flex items-center justify-between rounded-md border border-ch-border px-3 py-2 text-sm"
                     >
                       <div>
                         <div className="font-medium">{item.name}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                        <div className="text-xs text-ch-muted">
                           slug: {item.slug}
                         </div>
                       </div>
@@ -1511,7 +1494,7 @@ Vamos passar por cada linha juntos...`
                           }}
                           className="w-20"
                         />
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-ch-muted">
                           %
                         </span>
                         <Button
@@ -1534,9 +1517,9 @@ Vamos passar por cada linha juntos...`
             </div>
           )}
 
-          <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+          <div className="rounded-lg border border-ch-border p-4 space-y-4">
             <div>
-              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <h3 className="text-sm font-medium text-ch">
                 Produção editorial
               </h3>
               <p className="text-xs text-muted-foreground mt-1">
@@ -1595,7 +1578,7 @@ Vamos passar por cada linha juntos...`
             </div>
           </div>
 
-          <div className="rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="rounded-lg border border-ch-border">
             <button
               type="button"
               className="flex w-full items-center justify-between gap-2 rounded-t-lg px-4 py-3 text-left font-medium hover:bg-muted/50"

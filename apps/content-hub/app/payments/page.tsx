@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -81,7 +81,7 @@ export default function PaymentsPage() {
           ? "bg-amber-900/20 text-amber-700 dark:text-amber-300"
           : status === "FAILED"
             ? "bg-red-900/20 text-red-700 dark:text-red-300"
-            : "bg-gray-900/20 text-gray-700 dark:text-gray-300";
+            : "bg-ch-surface-raised/50 text-ch-muted";
     const label =
       status === "PAID"
         ? "Pago"
@@ -99,12 +99,12 @@ export default function PaymentsPage() {
     <MainLayout>
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <CreditCard className="h-8 w-8 text-gray-900 dark:text-gray-100" />
+          <CreditCard className="h-8 w-8 text-ch" />
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-3xl font-bold text-ch">
               Pagamentos
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-ch-muted mt-2">
               Todos os pagamentos da plataforma
             </p>
           </div>
@@ -147,7 +147,7 @@ export default function PaymentsPage() {
                     <TableRow>
                       <TableCell
                         colSpan={7}
-                        className="text-center py-8 text-gray-500"
+                        className="text-center py-8 text-ch-muted"
                       >
                         Nenhum pagamento encontrado
                       </TableCell>
@@ -155,17 +155,17 @@ export default function PaymentsPage() {
                   ) : (
                     payments.map((p) => (
                       <TableRow key={p.id}>
-                        <TableCell className="text-gray-600 dark:text-gray-400 text-sm">
+                        <TableCell className="text-ch-muted text-sm">
                           {formatDate(p.createdAt)}
                         </TableCell>
                         <TableCell>
                           <Link
                             href={`/users/${p.userId}/overview`}
-                            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                            className="text-ch-accent hover:underline font-medium"
                           >
                             {p.userName}
                           </Link>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-ch-muted">
                             {p.userEmail}
                           </p>
                         </TableCell>
@@ -178,7 +178,7 @@ export default function PaymentsPage() {
                         <TableCell>{getPlanLabel(p.plan)}</TableCell>
                         <TableCell>{getStatusBadge(p.status)}</TableCell>
                         <TableCell>{p.gateway}</TableCell>
-                        <TableCell className="text-gray-600 dark:text-gray-400 text-sm">
+                        <TableCell className="text-ch-muted text-sm">
                           {p.paidAt ? formatDate(p.paidAt) : "—"}
                         </TableCell>
                       </TableRow>

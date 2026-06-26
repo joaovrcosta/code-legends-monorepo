@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -50,7 +50,7 @@ function buildMetricCards(metrics: CourseMetricsResponse): MetricCard[] {
       value: summary.enrollments.toLocaleString("pt-BR"),
       description: "Alunos inscritos no curso",
       icon: Users,
-      iconClassName: "text-blue-600 dark:text-blue-400",
+      iconClassName: "text-ch-accent",
     },
     {
       title: "Conclusões",
@@ -168,21 +168,21 @@ export function CourseMetricsTab({ courseId, enabled }: CourseMetricsTabProps) {
           {Array.from({ length: 9 }).map((_, index) => (
             <Card key={index}>
               <CardHeader className="pb-2">
-                <div className="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                <div className="h-4 w-24 animate-pulse rounded bg-ch-surface-raised" />
               </CardHeader>
               <CardContent>
-                <div className="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
-                <div className="mt-2 h-3 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                <div className="h-8 w-16 animate-pulse rounded bg-ch-surface-raised" />
+                <div className="mt-2 h-3 w-40 animate-pulse rounded bg-ch-surface-raised" />
               </CardContent>
             </Card>
           ))}
         </div>
         <Card>
           <CardHeader>
-            <div className="h-6 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+            <div className="h-6 w-48 animate-pulse rounded bg-ch-surface-raised" />
           </CardHeader>
           <CardContent>
-            <div className="h-40 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+            <div className="h-40 animate-pulse rounded bg-ch-surface-raised" />
           </CardContent>
         </Card>
       </div>
@@ -213,10 +213,10 @@ export function CourseMetricsTab({ courseId, enabled }: CourseMetricsTabProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-xl font-semibold text-ch">
             Métricas do curso
           </h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-1 text-sm text-ch-muted">
             Engajamento, progresso e reações dos alunos neste curso.
           </p>
         </div>
@@ -235,16 +235,16 @@ export function CourseMetricsTab({ courseId, enabled }: CourseMetricsTabProps) {
         {cards.map((card) => (
           <Card key={card.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              <CardTitle className="text-sm font-medium text-ch-muted">
                 {card.title}
               </CardTitle>
               <card.icon className={`h-4 w-4 ${card.iconClassName}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <div className="text-2xl font-bold text-ch">
                 {card.value}
               </div>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-xs text-ch-muted">
                 {card.description}
               </p>
             </CardContent>
@@ -258,7 +258,7 @@ export function CourseMetricsTab({ courseId, enabled }: CourseMetricsTabProps) {
         </CardHeader>
         <CardContent>
           {metrics.lessonReactions.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-ch-muted">
               Este curso ainda não possui aulas cadastradas.
             </p>
           ) : (
@@ -286,20 +286,20 @@ export function CourseMetricsTab({ courseId, enabled }: CourseMetricsTabProps) {
                       {lesson.dislikes.toLocaleString("pt-BR")}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="tabular-nums font-medium text-gray-900 dark:text-gray-100">
+                      <div className="tabular-nums font-medium text-ch">
                         {formatAverageRating(
                           lesson.averageRating,
                           lesson.ratingCount,
                         )}
                         {lesson.ratingCount > 0 ? (
-                          <span className="text-gray-500 dark:text-gray-400 font-normal">
+                          <span className="text-ch-muted font-normal">
                             {" "}
                             / 5
                           </span>
                         ) : null}
                       </div>
                       {lesson.ratingCount > 0 ? (
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                        <div className="text-xs text-ch-muted">
                           {lesson.ratingCount.toLocaleString("pt-BR")}{" "}
                           {lesson.ratingCount === 1 ? "nota" : "notas"}
                         </div>

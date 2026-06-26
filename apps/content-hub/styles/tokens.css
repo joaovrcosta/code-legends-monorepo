@@ -1,0 +1,37 @@
+:root {
+  /* Colors — light */
+  --ch-canvas: #f8fafc;
+  --ch-surface: #ffffff;
+  --ch-surface-raised: #f1f5f9;
+  --ch-border: #e2e8f0;
+  --ch-border-subtle: #f1f5f9;
+  --ch-text: #0f172a;
+  --ch-text-muted: #64748b;
+  --ch-accent: #00b3e4;
+  --ch-accent-hover: #35bed5;
+  --ch-accent-soft: rgb(0 179 228 / 0.12);
+  --ch-destructive: #dc2626;
+  --ch-destructive-hover: #b91c1c;
+
+  /* Spacing */
+  --ch-gap: 24px;
+
+  /* Radius */
+  --ch-radius: 12px;
+  --ch-radius-lg: 16px;
+}
+
+.dark {
+  --ch-canvas: #0f0f10;
+  --ch-surface: #18181b;
+  --ch-surface-raised: #1f1f23;
+  --ch-border: #27272a;
+  --ch-border-subtle: #1f1f23;
+  --ch-text: #fafafa;
+  --ch-text-muted: #94a3b8;
+  --ch-accent: #00b3e4;
+  --ch-accent-hover: #35bed5;
+  --ch-accent-soft: rgb(0 179 228 / 0.12);
+  --ch-destructive: #ef4444;
+  --ch-destructive-hover: #dc2626;
+}

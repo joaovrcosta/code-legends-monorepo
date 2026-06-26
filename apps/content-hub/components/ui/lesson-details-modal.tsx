@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { X, Clock, User, BookOpen, Lock, Unlock, CheckCircle, XCircle } from "lucide-react";
@@ -43,9 +43,9 @@ export function LessonDetailsModal({
         </CardHeader>
         <CardContent className="space-y-6">
           {loading ? (
-            <div className="text-center py-8 text-gray-900 dark:text-gray-100">Carregando...</div>
+            <div className="text-center py-8 text-ch">Carregando...</div>
           ) : !lesson ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <div className="text-center py-8 text-ch-muted">
               Aula não encontrada
             </div>
           ) : (
@@ -53,47 +53,47 @@ export function LessonDetailsModal({
               {/* Informações Básicas */}
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Informações Básicas</h3>
+                  <h3 className="text-lg font-semibold mb-2 text-ch">Informações Básicas</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Título</p>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">{lesson.title}</p>
+                      <p className="text-sm text-ch-muted">Título</p>
+                      <p className="font-medium text-ch">{lesson.title}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Slug</p>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">{lesson.slug}</p>
+                      <p className="text-sm text-ch-muted">Slug</p>
+                      <p className="font-medium text-ch">{lesson.slug}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Tipo</p>
-                      <p className="font-medium capitalize text-gray-900 dark:text-gray-100">{lesson.type}</p>
+                      <p className="text-sm text-ch-muted">Tipo</p>
+                      <p className="font-medium capitalize text-ch">{lesson.type}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Ordem</p>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">{lesson.order || "N/A"}</p>
+                      <p className="text-sm text-ch-muted">Ordem</p>
+                      <p className="font-medium text-ch">{lesson.order || "N/A"}</p>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Descrição</p>
-                  <p className="text-sm text-gray-900 dark:text-gray-100">{lesson.description}</p>
+                  <p className="text-sm text-ch-muted mb-2">Descrição</p>
+                  <p className="text-sm text-ch">{lesson.description}</p>
                 </div>
               </div>
 
               {/* Status */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Status</h3>
+                <h3 className="text-lg font-semibold text-ch">Status</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
                     {lesson.locked ? (
                       <>
                         <Lock className="h-4 w-4 text-red-600 dark:text-red-400" />
-                        <span className="text-sm text-gray-900 dark:text-gray-100">Bloqueada</span>
+                        <span className="text-sm text-ch">Bloqueada</span>
                       </>
                     ) : (
                       <>
                         <Unlock className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        <span className="text-sm text-gray-900 dark:text-gray-100">Disponível</span>
+                        <span className="text-sm text-ch">Disponível</span>
                       </>
                     )}
                   </div>
@@ -101,12 +101,12 @@ export function LessonDetailsModal({
                     {lesson.isFree ? (
                       <>
                         <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        <span className="text-sm text-gray-900 dark:text-gray-100">Gratuita</span>
+                        <span className="text-sm text-ch">Gratuita</span>
                       </>
                     ) : (
                       <>
                         <XCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                        <span className="text-sm text-gray-900 dark:text-gray-100">Paga</span>
+                        <span className="text-sm text-ch">Paga</span>
                       </>
                     )}
                   </div>
@@ -115,12 +115,12 @@ export function LessonDetailsModal({
                       {lesson.completed ? (
                         <>
                           <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                          <span className="text-sm text-gray-900 dark:text-gray-100">Concluída</span>
+                          <span className="text-sm text-ch">Concluída</span>
                         </>
                       ) : (
                         <>
-                          <XCircle className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                          <span className="text-sm text-gray-900 dark:text-gray-100">Não concluída</span>
+                          <XCircle className="h-4 w-4 text-ch-muted dark:text-ch-muted" />
+                          <span className="text-sm text-ch">Não concluída</span>
                         </>
                       )}
                     </div>
@@ -135,12 +135,12 @@ export function LessonDetailsModal({
                   <div className="grid grid-cols-2 gap-4">
                     {lesson.video_url && (
                       <div>
-                        <p className="text-sm text-gray-600">URL do Vídeo</p>
+                        <p className="text-sm text-ch-muted">URL do Vídeo</p>
                         <a
                           href={lesson.video_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:underline break-all"
+                          className="text-sm text-ch-accent hover:underline break-all"
                         >
                           {lesson.video_url}
                         </a>
@@ -148,9 +148,9 @@ export function LessonDetailsModal({
                     )}
                     {lesson.video_duration && (
                       <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-gray-400" />
+                        <Clock className="h-4 w-4 text-ch-muted" />
                         <div>
-                          <p className="text-sm text-gray-600">Duração</p>
+                          <p className="text-sm text-ch-muted">Duração</p>
                           <p className="font-medium">{lesson.video_duration}</p>
                         </div>
                       </div>
@@ -167,7 +167,7 @@ export function LessonDetailsModal({
                     href={lesson.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline break-all"
+                    className="text-sm text-ch-accent hover:underline break-all"
                   >
                     {lesson.url}
                   </a>
@@ -177,7 +177,7 @@ export function LessonDetailsModal({
               {/* Autor */}
               {lesson.author && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 text-ch">
                     <User className="h-5 w-5" />
                     Autor
                   </h3>
@@ -190,10 +190,10 @@ export function LessonDetailsModal({
                       />
                     )}
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">{lesson.author.name}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{lesson.author.email}</p>
+                      <p className="font-medium text-ch">{lesson.author.name}</p>
+                      <p className="text-sm text-ch-muted">{lesson.author.email}</p>
                       {lesson.author.bio && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{lesson.author.bio}</p>
+                        <p className="text-sm text-ch-muted mt-1">{lesson.author.bio}</p>
                       )}
                       {lesson.author.expertise && lesson.author.expertise.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
@@ -215,20 +215,20 @@ export function LessonDetailsModal({
               {/* Submódulo e Módulo */}
               {lesson.submodule && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 text-ch">
                     <BookOpen className="h-5 w-5" />
                     Estrutura do Curso
                   </h3>
                   <div className="space-y-2">
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Submódulo</p>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">{lesson.submodule.title}</p>
+                      <p className="text-sm text-ch-muted">Submódulo</p>
+                      <p className="font-medium text-ch">{lesson.submodule.title}</p>
                     </div>
                     {lesson.submodule.module && (
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Módulo</p>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{lesson.submodule.module.title}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Slug: {lesson.submodule.module.slug}</p>
+                        <p className="text-sm text-ch-muted">Módulo</p>
+                        <p className="font-medium text-ch">{lesson.submodule.module.title}</p>
+                        <p className="text-xs text-ch-muted">Slug: {lesson.submodule.module.slug}</p>
                       </div>
                     )}
                   </div>
@@ -237,26 +237,26 @@ export function LessonDetailsModal({
 
               {/* Datas */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Datas</h3>
+                <h3 className="text-lg font-semibold text-ch">Datas</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Criado em</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">{formatDate(lesson.createdAt)}</p>
+                    <p className="text-sm text-ch-muted">Criado em</p>
+                    <p className="font-medium text-ch">{formatDate(lesson.createdAt)}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Atualizado em</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">{formatDate(lesson.updatedAt)}</p>
+                    <p className="text-sm text-ch-muted">Atualizado em</p>
+                    <p className="font-medium text-ch">{formatDate(lesson.updatedAt)}</p>
                   </div>
                   {lesson.completedAt && (
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Concluída em</p>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">{formatDate(lesson.completedAt)}</p>
+                      <p className="text-sm text-ch-muted">Concluída em</p>
+                      <p className="font-medium text-ch">{formatDate(lesson.completedAt)}</p>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-[#25252a]">
+              <div className="flex justify-end pt-4 border-t border-ch-border">
                 <Button onClick={onClose}>Fechar</Button>
               </div>
             </>

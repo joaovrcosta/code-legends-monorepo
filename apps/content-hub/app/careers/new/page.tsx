@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -76,10 +76,10 @@ export default function NewCareerPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-3xl font-bold text-ch">
               Nova Carreira
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-ch-muted mt-2">
               Crie uma trilha/carreira com módulos e exames.
             </p>
           </div>

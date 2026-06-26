@@ -119,10 +119,10 @@ export default function EditPlanPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-3xl font-bold text-gray-900 text-ch">
               Editar Plano
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-ch-muted mt-2">
               Atualize as informações do plano
             </p>
           </div>
@@ -270,7 +270,7 @@ export default function EditPlanPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, active: e.target.checked })
                   }
-                  className="rounded border-gray-300"
+                  className="rounded border-ch-border"
                 />
                 <Label htmlFor="active" className="cursor-pointer">
                   Plano ativo

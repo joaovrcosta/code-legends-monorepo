@@ -10,7 +10,7 @@ import { RequestAdminDetail } from "@/components/requests/request-admin-detail";
 import { toast } from "sonner";
 
 const outlineLinkClass =
-  "inline-flex h-9 items-center justify-center rounded-md border border-gray-300 px-3 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 dark:border-[#25252a] dark:text-gray-100 dark:hover:bg-gray-800";
+  "inline-flex h-9 items-center justify-center rounded-md border border-ch-border px-3 text-sm font-medium text-gray-900 transition-colors hover:bg-ch-surface-raised border-ch-border text-ch hover:bg-ch-surface-raised";
 
 export default function RequestDetailPage() {
   const params = useParams();
@@ -121,7 +121,7 @@ export default function RequestDetailPage() {
         </div>
 
         {loading ? (
-          <div className="py-12 text-center text-gray-500 dark:text-gray-400">
+          <div className="py-12 text-center text-gray-500 text-ch-muted">
             Carregando…
           </div>
         ) : request ? (
@@ -135,7 +135,7 @@ export default function RequestDetailPage() {
             updatingStatus={updatingStatus}
           />
         ) : (
-          <p className="text-center text-gray-500 dark:text-gray-400">
+          <p className="text-center text-gray-500 text-ch-muted">
             Não foi possível carregar esta solicitação.
           </p>
         )}

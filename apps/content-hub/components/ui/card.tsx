@@ -1,18 +1,12 @@
 import * as React from "react";
+import { ch } from "@/lib/ui-classes";
 import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-lg border border-gray-200 dark:border-[#25252a] bg-white dark:bg-[#101013] text-gray-950 dark:text-gray-50 shadow-sm",
-      className
-    )}
-    {...props}
-  />
+  <div ref={ref} className={cn(ch.surface, className)} {...props} />
 ));
 Card.displayName = "Card";
 
@@ -35,7 +29,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
+      "text-2xl font-semibold leading-none tracking-tight text-ch",
       className
     )}
     {...props}
@@ -49,7 +43,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-gray-500", className)}
+    className={cn("text-sm text-ch-muted", className)}
     {...props}
   />
 ));
@@ -76,4 +70,3 @@ const CardFooter = React.forwardRef<
 CardFooter.displayName = "CardFooter";
 
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
-

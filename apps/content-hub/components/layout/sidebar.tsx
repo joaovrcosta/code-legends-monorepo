@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { ch } from "@/lib/ui-classes";
 import { cn } from "@/lib/utils";
 import { logoutUser } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
@@ -61,7 +62,6 @@ export function Sidebar({
 
   return (
     <>
-      {/* Overlay mobile */}
       {isMobileOpen ? (
         <button
           type="button"
@@ -73,48 +73,45 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col border-r border-gray-200 bg-white transition-transform duration-200 ease-out dark:border-[#25252a] dark:bg-[#101013]",
+          "fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col border-r border-ch-border bg-ch-surface transition-transform duration-200 ease-out",
           "lg:static lg:translate-x-0 lg:z-auto",
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
-      <div className="flex h-16 items-center justify-between border-b border-gray-200 dark:border-[#25252a] px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Code Legends</h1>
-        <ThemeToggle />
-      </div>
-      <nav className="flex-1 space-y-0.5 px-3 py-4">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              onClick={handleNavClick}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="border-t border-gray-200 dark:border-[#25252a] p-4">
-        <Button
-          onClick={handleLogout}
-          variant="ghost"
-          className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-        >
-          <LogOut className="mr-3 h-5 w-5" />
-          Sair
-        </Button>
-      </div>
+        <div className="flex h-16 items-center justify-between border-b border-ch-border px-6 py-4">
+          <h1 className="text-xl font-semibold text-ch">Code Legends</h1>
+          <ThemeToggle />
+        </div>
+        <nav className="flex-1 space-y-0.5 px-3 py-4">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                onClick={handleNavClick}
+                className={cn(
+                  "flex items-center gap-3 rounded-ch px-3 py-2.5 text-sm font-medium transition-colors",
+                  isActive ? ch.navItemActive : ch.navItem
+                )}
+              >
+                <item.icon className="h-5 w-5" />
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="border-t border-ch-border p-4">
+          <Button
+            onClick={handleLogout}
+            variant="ghost"
+            className="w-full justify-start"
+          >
+            <LogOut className="mr-3 h-5 w-5" />
+            Sair
+          </Button>
+        </div>
       </aside>
     </>
   );
 }
-

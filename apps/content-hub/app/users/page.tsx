@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -103,11 +104,11 @@ export default function UsersPage() {
       case "ADMIN":
         return "bg-purple-900/20 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300";
       case "INSTRUCTOR":
-        return "bg-blue-900/20 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300";
+        return "bg-blue-900/20 bg-ch-accent/20 text-blue-700 dark:text-blue-300";
       case "STUDENT":
         return "bg-emerald-900/20 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300";
       default:
-        return "bg-gray-900/20 dark:bg-gray-500/20 text-gray-700 dark:text-gray-300";
+        return "bg-ch-surface-raised/50 dark:bg-ch-surface-raised/50 text-ch-muted";
     }
   };
 
@@ -120,7 +121,7 @@ export default function UsersPage() {
       case "STUDENT":
         return "bg-emerald-700 dark:bg-emerald-400";
       default:
-        return "bg-gray-700 dark:bg-gray-400";
+        return "bg-ch-surface-raised bg-ch-muted";
     }
   };
 
@@ -181,15 +182,15 @@ export default function UsersPage() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <UsersIcon className="h-8 w-8 text-gray-900 dark:text-gray-100" />
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Usuários</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Gerencie todos os usuários da plataforma
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title={
+            <span className="inline-flex items-center gap-3">
+              <UsersIcon className="h-8 w-8" />
+              Usuários
+            </span>
+          }
+          description="Gerencie todos os usuários da plataforma"
+        />
 
         <Card>
           <CardHeader>
@@ -197,13 +198,13 @@ export default function UsersPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {!loading && (
-              <div className="flex flex-wrap items-end gap-4 pb-4 border-b border-gray-200 dark:border-[#25252a]">
+              <div className="flex flex-wrap items-end gap-4 pb-4 border-b border-ch-border">
                 <div className="flex-1 min-w-[200px] max-w-xs">
-                  <Label htmlFor="filter-search" className="text-gray-600 dark:text-gray-400 text-xs">
+                  <Label htmlFor="filter-search" className="text-ch-muted text-xs">
                     Buscar (nome ou e-mail)
                   </Label>
                   <div className="relative mt-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ch-muted" />
                     <Input
                       id="filter-search"
                       type="text"
@@ -215,7 +216,7 @@ export default function UsersPage() {
                   </div>
                 </div>
                 <div className="w-[140px]">
-                  <Label htmlFor="filter-role" className="text-gray-600 dark:text-gray-400 text-xs">
+                  <Label htmlFor="filter-role" className="text-ch-muted text-xs">
                     Função
                   </Label>
                   <Select
@@ -231,7 +232,7 @@ export default function UsersPage() {
                   </Select>
                 </div>
                 <div className="w-[120px]">
-                  <Label htmlFor="filter-plan" className="text-gray-600 dark:text-gray-400 text-xs">
+                  <Label htmlFor="filter-plan" className="text-ch-muted text-xs">
                     Plan
                   </Label>
                   <Select
@@ -247,7 +248,7 @@ export default function UsersPage() {
                   </Select>
                 </div>
                 <div className="w-[160px]">
-                  <Label htmlFor="filter-onboarding" className="text-gray-600 dark:text-gray-400 text-xs">
+                  <Label htmlFor="filter-onboarding" className="text-ch-muted text-xs">
                     Onboarding
                   </Label>
                   <Select
@@ -274,7 +275,7 @@ export default function UsersPage() {
             ) : (
               <>
                 {hasActiveFilters && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-ch-muted">
                     {filteredUsers.length === users.length
                       ? `${users.length} usuário(s)`
                       : `${filteredUsers.length} de ${users.length} usuário(s)`}
@@ -300,7 +301,7 @@ export default function UsersPage() {
                       <TableRow>
                         <TableCell
                           colSpan={10}
-                          className="text-center py-8 text-gray-500"
+                          className="text-center py-8 text-ch-muted"
                         >
                           {users.length === 0
                             ? "Nenhum usuário encontrado"
@@ -320,7 +321,7 @@ export default function UsersPage() {
                                 className="rounded-full"
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium">
+                              <div className="w-10 h-10 rounded-full bg-ch-surface-raised flex items-center justify-center text-ch-muted font-medium">
                                 {user.name.charAt(0).toUpperCase()}
                               </div>
                             )}
@@ -381,7 +382,7 @@ export default function UsersPage() {
                                   size="icon"
                                   title="Ver overview"
                                 >
-                                  <Eye className="h-4 w-4 text-blue-600" />
+                                  <Eye className="h-4 w-4 text-ch-accent" />
                                 </Button>
                               </Link>
                               <Button
@@ -428,15 +429,15 @@ export default function UsersPage() {
                 <h3 className="text-lg font-semibold mb-4">Informações Básicas</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Nome</p>
+                    <p className="text-sm text-ch-muted">Nome</p>
                     <p className="font-medium">{selectedUser.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="text-sm text-ch-muted">Email</p>
                     <p className="font-medium">{selectedUser.email}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Função</p>
+                    <p className="text-sm text-ch-muted">Função</p>
                     <span
                       className={`px-2 py-1 rounded-full text-xs inline-block ${getRoleBadgeColor(
                         selectedUser.role
@@ -446,18 +447,18 @@ export default function UsersPage() {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Slug</p>
+                    <p className="text-sm text-ch-muted">Slug</p>
                     <p className="font-medium">{selectedUser.slug || "Não informado"}</p>
                   </div>
                   {selectedUser.bio && (
                     <div className="col-span-2">
-                      <p className="text-sm text-gray-500">Bio</p>
+                      <p className="text-sm text-ch-muted">Bio</p>
                       <p className="font-medium">{selectedUser.bio}</p>
                     </div>
                   )}
                   {selectedUser.expertise && selectedUser.expertise.length > 0 && (
                     <div className="col-span-2">
-                      <p className="text-sm text-gray-500">Expertise</p>
+                      <p className="text-sm text-ch-muted">Expertise</p>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {selectedUser.expertise.map((exp, idx) => (
                           <span
@@ -478,21 +479,21 @@ export default function UsersPage() {
                 <h3 className="text-lg font-semibold mb-4">Progresso</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Nível</p>
+                    <p className="text-sm text-ch-muted">Nível</p>
                     <p className="font-medium text-xl">Nível {selectedUser.level}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">XP Total</p>
+                    <p className="text-sm text-ch-muted">XP Total</p>
                     <p className="font-medium text-xl">
                       {selectedUser.totalXp.toLocaleString("pt-BR")}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">XP para Próximo Nível</p>
+                    <p className="text-sm text-ch-muted">XP para Próximo Nível</p>
                     <p className="font-medium">{selectedUser.xpToNextLevel}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Onboarding</p>
+                    <p className="text-sm text-ch-muted">Onboarding</p>
                     <span
                       className={`px-2 py-1 rounded-full text-xs inline-block ${selectedUser.onboardingCompleted
                         ? "bg-green-100 text-green-800"
@@ -504,13 +505,13 @@ export default function UsersPage() {
                   </div>
                   {selectedUser.onboardingGoal && (
                     <div>
-                      <p className="text-sm text-gray-500">Objetivo do Onboarding</p>
+                      <p className="text-sm text-ch-muted">Objetivo do Onboarding</p>
                       <p className="font-medium">{selectedUser.onboardingGoal}</p>
                     </div>
                   )}
                   {selectedUser.onboardingCareer && (
                     <div>
-                      <p className="text-sm text-gray-500">Carreira do Onboarding</p>
+                      <p className="text-sm text-ch-muted">Carreira do Onboarding</p>
                       <p className="font-medium">{selectedUser.onboardingCareer}</p>
                     </div>
                   )}
@@ -523,67 +524,67 @@ export default function UsersPage() {
                 <div className="grid grid-cols-2 gap-4">
                   {selectedUser.fullname && (
                     <div>
-                      <p className="text-sm text-gray-500">Nome Completo</p>
+                      <p className="text-sm text-ch-muted">Nome Completo</p>
                       <p className="font-medium">{selectedUser.fullname}</p>
                     </div>
                   )}
                   {selectedUser.birth_date && (
                     <div>
-                      <p className="text-sm text-gray-500">Data de Nascimento</p>
+                      <p className="text-sm text-ch-muted">Data de Nascimento</p>
                       <p className="font-medium">{formatDate(selectedUser.birth_date)}</p>
                     </div>
                   )}
                   {selectedUser.born_in && (
                     <div>
-                      <p className="text-sm text-gray-500">Naturalidade</p>
+                      <p className="text-sm text-ch-muted">Naturalidade</p>
                       <p className="font-medium">{selectedUser.born_in}</p>
                     </div>
                   )}
                   {selectedUser.gender && (
                     <div>
-                      <p className="text-sm text-gray-500">Gênero</p>
+                      <p className="text-sm text-ch-muted">Gênero</p>
                       <p className="font-medium">{selectedUser.gender}</p>
                     </div>
                   )}
                   {selectedUser.marital_status && (
                     <div>
-                      <p className="text-sm text-gray-500">Estado Civil</p>
+                      <p className="text-sm text-ch-muted">Estado Civil</p>
                       <p className="font-medium">{selectedUser.marital_status}</p>
                     </div>
                   )}
                   {selectedUser.occupation && (
                     <div>
-                      <p className="text-sm text-gray-500">Ocupação</p>
+                      <p className="text-sm text-ch-muted">Ocupação</p>
                       <p className="font-medium">{selectedUser.occupation}</p>
                     </div>
                   )}
                   {selectedUser.phone && (
                     <div>
-                      <p className="text-sm text-gray-500">Telefone</p>
+                      <p className="text-sm text-ch-muted">Telefone</p>
                       <p className="font-medium">{selectedUser.phone}</p>
                     </div>
                   )}
                   {selectedUser.foreign_phone && (
                     <div>
-                      <p className="text-sm text-gray-500">Telefone Estrangeiro</p>
+                      <p className="text-sm text-ch-muted">Telefone Estrangeiro</p>
                       <p className="font-medium">{selectedUser.foreign_phone}</p>
                     </div>
                   )}
                   {selectedUser.document && (
                     <div>
-                      <p className="text-sm text-gray-500">Documento</p>
+                      <p className="text-sm text-ch-muted">Documento</p>
                       <p className="font-medium">{selectedUser.document}</p>
                     </div>
                   )}
                   {selectedUser.rg && (
                     <div>
-                      <p className="text-sm text-gray-500">RG</p>
+                      <p className="text-sm text-ch-muted">RG</p>
                       <p className="font-medium">{selectedUser.rg}</p>
                     </div>
                   )}
                   {selectedUser.address && (
                     <div className="col-span-2">
-                      <p className="text-sm text-gray-500">Endereço</p>
+                      <p className="text-sm text-ch-muted">Endereço</p>
                       <p className="font-medium">{selectedUser.address}</p>
                     </div>
                   )}
@@ -595,15 +596,15 @@ export default function UsersPage() {
                 <h3 className="text-lg font-semibold mb-4">Informações do Sistema</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">ID</p>
+                    <p className="text-sm text-ch-muted">ID</p>
                     <p className="font-mono text-xs">{selectedUser.id}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Criado em</p>
+                    <p className="text-sm text-ch-muted">Criado em</p>
                     <p className="font-medium">{formatDate(selectedUser.createdAt)}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Atualizado em</p>
+                    <p className="text-sm text-ch-muted">Atualizado em</p>
                     <p className="font-medium">{formatDate(selectedUser.updatedAt)}</p>
                   </div>
                 </div>

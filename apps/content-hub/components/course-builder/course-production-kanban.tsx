@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import type { ModuleWithStructure } from "@/actions/course";
@@ -663,11 +663,11 @@ export function CourseProductionKanban({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
             <div className="md:col-span-1">
-              <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Buscar</label>
+              <label className="text-xs font-medium text-ch-muted">Buscar</label>
               <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Título da aula..." />
             </div>
             <div className="md:col-span-1">
-              <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Módulo</label>
+              <label className="text-xs font-medium text-ch-muted">Módulo</label>
               <Select value={moduleFilter} onChange={(e) => {
                 setModuleFilter(e.target.value);
                 setGroupFilter("__all__");
@@ -679,7 +679,7 @@ export function CourseProductionKanban({
               </Select>
             </div>
             <div className="md:col-span-1">
-              <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Grupo</label>
+              <label className="text-xs font-medium text-ch-muted">Grupo</label>
               <Select value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)} disabled={moduleFilter === "__all__"}>
                 <option value="__all__">Todos</option>
                 {groupOptions.map((g) => (
@@ -688,7 +688,7 @@ export function CourseProductionKanban({
               </Select>
             </div>
             <div className="md:col-span-1">
-              <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Tipo</label>
+              <label className="text-xs font-medium text-ch-muted">Tipo</label>
               <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
                 <option value="__all__">Todos</option>
                 {allTypes.map((t) => (

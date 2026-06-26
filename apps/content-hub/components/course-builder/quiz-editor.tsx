@@ -8,6 +8,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import type { Challenge, ChallengeType } from '@/actions/lesson/list-lessons'
 import { Plus, Trash2, ChevronDown, ChevronUp, Code, Bold, List, Info, Lightbulb } from 'lucide-react'
+import { EditorList } from '@/components/editor/editor-list'
+import { EditorListItem } from '@/components/editor/editor-list-item'
+import { EditorPanel, EditorPanelCard, EditorIndexBadge } from '@/components/editor/editor-panel'
+import { EditorEmptyState } from '@/components/editor/editor-empty-state'
+import { ch } from '@/lib/ui-classes'
+import { cn } from '@/lib/utils'
 
 const EXPLANATION_SNIPPETS = [
   { label: 'Bloco de código', icon: Code, text: '```javascript\n// seu código aqui\n```' },
@@ -211,7 +217,7 @@ function ChallengeFormFields({
           <div className="space-y-2">
             {(challenge.options ?? []).map((opt, i) => (
               <div key={i} className="flex gap-2 items-center">
-                <span className="text-xs text-gray-500 w-6 text-center">
+                <span className="text-xs text-ch-muted w-6 text-center">
                   {String.fromCharCode(65 + i)}
                 </span>
                 <Input
@@ -379,41 +385,40 @@ function ChallengeFormPanel({
   onRemove: () => void
 }) {
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-700">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-            {index + 1}
-          </span>
-          <div className="min-w-0 flex-1 space-y-1.5">
-            <Label className="sr-only">Tipo do desafio</Label>
-            <Select
-              value={challenge.type}
-              onChange={(e) =>
-                onChange({ ...challenge, type: e.target.value as ChallengeType })
-              }
-            >
-              {(Object.keys(challengeTypeLabels) as ChallengeType[]).map((t) => (
-                <option key={t} value={t}>
-                  {challengeTypeLabels[t]}
-                </option>
-              ))}
-            </Select>
+    <EditorPanelCard
+      header={
+        <>
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <EditorIndexBadge index={index} />
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <Label className="sr-only">Tipo do desafio</Label>
+              <Select
+                value={challenge.type}
+                onChange={(e) =>
+                  onChange({ ...challenge, type: e.target.value as ChallengeType })
+                }
+              >
+                {(Object.keys(challengeTypeLabels) as ChallengeType[]).map((t) => (
+                  <option key={t} value={t}>
+                    {challengeTypeLabels[t]}
+                  </option>
+                ))}
+              </Select>
+            </div>
           </div>
-        </div>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="shrink-0 p-1.5 text-red-500 transition-colors hover:text-red-700"
-          title="Remover desafio"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <ChallengeFormFields challenge={challenge} onChange={onChange} />
-      </div>
-    </div>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="shrink-0 p-1.5 text-ch-destructive transition-colors hover:text-ch-destructive-hover"
+            title="Remover desafio"
+          >
+            <Trash2 size={16} />
+          </button>
+        </>
+      }
+    >
+      <ChallengeFormFields challenge={challenge} onChange={onChange} />
+    </EditorPanelCard>
   )
 }
 
@@ -433,16 +438,14 @@ function ChallengeItem({
   onToggleCollapsed: () => void
 }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+    <div className={cn(ch.surface, "overflow-hidden")}>
       <div
         className="flex cursor-pointer select-none items-center justify-between px-4 py-3"
         onClick={onToggleCollapsed}
       >
         <div className="flex items-center gap-3">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-            {index + 1}
-          </span>
-          <span className="max-w-xs truncate text-sm font-medium text-gray-700 dark:text-gray-200">
+          <EditorIndexBadge index={index} />
+          <span className="max-w-xs truncate text-sm font-medium text-ch">
             {challengeTypeLabels[challenge.type]}{' '}
             {challenge.question &&
               `— ${challenge.question.slice(0, 40)}${challenge.question.length > 40 ? '…' : ''}`}
@@ -455,7 +458,7 @@ function ChallengeItem({
               e.stopPropagation()
               onRemove()
             }}
-            className="p-1 text-red-500 transition-colors hover:text-red-700"
+            className="p-1 text-ch-destructive transition-colors hover:text-ch-destructive-hover"
             title="Remover desafio"
           >
             <Trash2 size={14} />
@@ -465,7 +468,7 @@ function ChallengeItem({
       </div>
 
       {!collapsed && (
-        <div className="space-y-4 border-t border-gray-100 px-4 pb-4 pt-4 dark:border-gray-700">
+        <div className="space-y-4 border-t border-ch-border px-4 pb-4 pt-4">
           <div className="space-y-1.5">
             <Label>Tipo do desafio</Label>
             <Select
@@ -501,61 +504,16 @@ function QuestionListItem({
   onSelect: () => void
   onRemove: () => void
 }) {
-  const title = challengeTitle(challenge)
-
   return (
-    <div
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onSelect()
-        }
-      }}
-      className={[
-        'w-full cursor-pointer rounded-lg border px-3 py-2 text-left transition-colors',
-        isSelected
-          ? 'border-blue-500/50 bg-blue-50 dark:bg-blue-950/30'
-          : 'border-transparent hover:border-gray-200 hover:bg-gray-50 dark:hover:border-gray-700 dark:hover:bg-gray-900/30',
-      ].join(' ')}
-      title={title}
-      role="button"
-      tabIndex={0}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <span
-            className={[
-              'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold',
-              isSelected
-                ? 'border-blue-500 text-blue-700 dark:text-blue-300'
-                : 'border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300',
-            ].join(' ')}
-          >
-            {index + 1}
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-              {challengeTypeLabels[challenge.type]}
-            </p>
-            <p className="truncate text-sm font-medium text-gray-700 dark:text-gray-200">
-              {title}
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            onRemove()
-          }}
-          className="shrink-0 p-1 text-red-500 transition-colors hover:text-red-700"
-          title="Remover desafio"
-        >
-          <Trash2 size={14} />
-        </button>
-      </div>
-    </div>
+    <EditorListItem
+      index={index}
+      isSelected={isSelected}
+      onSelect={onSelect}
+      onRemove={onRemove}
+      typeLabel={challengeTypeLabels[challenge.type]}
+      title={challengeTitle(challenge)}
+      removeTitle="Remover desafio"
+    />
   )
 }
 
@@ -576,7 +534,7 @@ function QuizJsonEditor({
     <div
       className={
         fillHeight
-          ? 'flex h-full min-h-0 flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800'
+          ? 'flex h-full min-h-0 flex-col gap-3 rounded-ch-lg border border-ch-border bg-ch-surface p-4'
           : 'space-y-2'
       }
     >
@@ -673,37 +631,12 @@ function QuizWorkspaceEditor({
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-[280px_1fr] overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-      <aside className="flex min-h-0 flex-col overflow-hidden border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
-            Perguntas ({challenges.length})
-          </p>
-          {challenges.length > 0 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {selectedIndex + 1}/{challenges.length}
-            </p>
-          )}
-        </div>
-        <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
-          {challenges.length === 0 ? (
-            <p className="px-2 py-4 text-center text-xs text-gray-500 dark:text-gray-400">
-              Nenhuma pergunta cadastrada.
-            </p>
-          ) : (
-            challenges.map((c, i) => (
-              <QuestionListItem
-                key={i}
-                challenge={c}
-                index={i}
-                isSelected={i === selectedIndex}
-                onSelect={() => setSelectedIndex(i)}
-                onRemove={() => removeChallenge(i)}
-              />
-            ))
-          )}
-        </div>
-        <div className="shrink-0 border-t border-gray-100 p-2 dark:border-gray-700">
+    <div className="grid h-full min-h-0 grid-cols-[280px_1fr] overflow-hidden rounded-ch-lg border border-ch-border">
+      <EditorList
+        title={`Perguntas (${challenges.length})`}
+        count={challenges.length}
+        selectedIndex={selectedIndex}
+        footer={
           <Button
             type="button"
             size="sm"
@@ -712,24 +645,33 @@ function QuizWorkspaceEditor({
           >
             <Plus size={14} /> Adicionar desafio
           </Button>
-        </div>
-      </aside>
-
-      <div className="flex min-h-0 min-w-0 flex-col overflow-hidden bg-gray-50 p-4 dark:bg-gray-900/40">
+        }
+      >
         {challenges.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 px-6 py-12 text-center dark:border-gray-600">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Selecione ou adicione um desafio para começar a editar.
-            </p>
-            <Button
-              type="button"
-              size="sm"
-              onClick={addChallenge}
-              className="mt-4 gap-1.5"
-            >
-              <Plus size={14} /> Adicionar desafio
-            </Button>
-          </div>
+          <p className="px-2 py-4 text-center text-xs text-ch-muted">
+            Nenhuma pergunta cadastrada.
+          </p>
+        ) : (
+          challenges.map((c, i) => (
+            <QuestionListItem
+              key={i}
+              challenge={c}
+              index={i}
+              isSelected={i === selectedIndex}
+              onSelect={() => setSelectedIndex(i)}
+              onRemove={() => removeChallenge(i)}
+            />
+          ))
+        )}
+      </EditorList>
+
+      <EditorPanel>
+        {challenges.length === 0 ? (
+          <EditorEmptyState
+            message="Selecione ou adicione um desafio para começar a editar."
+            actionLabel="Adicionar desafio"
+            onAction={addChallenge}
+          />
         ) : (
           <ChallengeFormPanel
             key={selectedIndex}
@@ -739,7 +681,7 @@ function QuizWorkspaceEditor({
             onRemove={() => removeChallenge(selectedIndex)}
           />
         )}
-      </div>
+      </EditorPanel>
     </div>
   )
 }
@@ -813,10 +755,10 @@ export function QuizEditor({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          <p className="text-sm font-medium text-ch">
             Desafios ({challenges.length})
           </p>
-          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-0.5 text-xs text-ch-muted">
             Edite um desafio por vez, como no layout do Content Hub.
           </p>
         </div>
@@ -826,35 +768,29 @@ export function QuizEditor({
       </div>
 
       {challenges.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-gray-300 py-10 text-center dark:border-gray-600">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Nenhum desafio cadastrado. Clique em &quot;Adicionar desafio&quot; para começar.
-          </p>
-        </div>
+        <EditorEmptyState
+          className="py-10"
+          message='Nenhum desafio cadastrado. Clique em "Adicionar desafio" para começar.'
+        />
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr] lg:gap-6">
-          <aside className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
-                Perguntas
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {selectedIndex + 1}/{challenges.length}
-              </p>
-            </div>
-            <div className="max-h-[520px] space-y-1 overflow-y-auto p-2">
-              {challenges.map((c, i) => (
-                <QuestionListItem
-                  key={i}
-                  challenge={c}
-                  index={i}
-                  isSelected={i === selectedIndex}
-                  onSelect={() => setSelectedIndex(i)}
-                  onRemove={() => removeChallenge(i)}
-                />
-              ))}
-            </div>
-          </aside>
+          <EditorList
+            title="Perguntas"
+            count={challenges.length}
+            selectedIndex={selectedIndex}
+            className="rounded-ch-lg border border-ch-border"
+          >
+            {challenges.map((c, i) => (
+              <QuestionListItem
+                key={i}
+                challenge={c}
+                index={i}
+                isSelected={i === selectedIndex}
+                onSelect={() => setSelectedIndex(i)}
+                onRemove={() => removeChallenge(i)}
+              />
+            ))}
+          </EditorList>
 
           <div className="min-w-0">
             <ChallengeItem

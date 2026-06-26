@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import {
@@ -273,11 +273,11 @@ export function GroupNode({
   }
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-lg ml-4">
-      <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800">
+    <div className="border border-ch-border rounded-lg ml-4">
+      <div className="flex items-center gap-2 p-2 bg-ch-canvas bg-ch-surface-raised">
         <button
           onClick={onToggle}
-          className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+          className="p-1 hover:bg-ch-surface-raised rounded"
         >
           {isExpanded ? (
             <ChevronDown className="h-4 w-4" />
@@ -319,10 +319,10 @@ export function GroupNode({
         ) : (
           <>
             <div className="flex-1 min-w-0">
-              <div className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+              <div className="text-[11px] font-medium text-ch-muted">
                 Submódulo {groupNumber ?? group.orderIndex + 1}
               </div>
-              <div className="text-sm text-gray-700 dark:text-gray-300 truncate">
+              <div className="text-sm text-ch-muted truncate">
                 {group.title}
               </div>
             </div>
@@ -367,7 +367,7 @@ export function GroupNode({
       {isExpanded && (
         <div className="p-2 space-y-1">
           {lessons.length === 0 ? (
-            <div className="text-xs text-gray-500 dark:text-gray-400 pl-6">
+            <div className="text-xs text-ch-muted pl-6">
               Nenhuma aula. Clique no botão + para adicionar.
             </div>
           ) : (

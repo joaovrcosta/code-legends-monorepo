@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -57,8 +57,8 @@ export default function GamificationSettingsPage() {
     <MainLayout>
       <div className="mx-auto max-w-4xl space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Gamificação</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+          <h1 className="text-3xl font-bold text-ch">Gamificação</h1>
+          <p className="mt-2 text-ch-muted">
             Calibre as variáveis globais de pontuação de experiência (XP) concedida pelas atividades.
           </p>
         </div>
@@ -72,7 +72,7 @@ export default function GamificationSettingsPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-gray-500 py-4">Carregando...</p>
+              <p className="text-ch-muted py-4">Carregando...</p>
             ) : (
               <form onSubmit={handleSave} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -87,7 +87,7 @@ export default function GamificationSettingsPage() {
                         setSettings({ ...settings, xpPerLesson: parseInt(e.target.value) || 0 })
                       }
                     />
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-ch-muted">
                       Montante base de XP entregue na conclusão de qualquer módulo padrão (texto/vídeo).
                     </p>
                   </div>
@@ -103,7 +103,7 @@ export default function GamificationSettingsPage() {
                         setSettings({ ...settings, xpPerProject: parseInt(e.target.value) || 0 })
                       }
                     />
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-ch-muted">
                       Experiência massiva entregue quando um avaliador aprova o submissão do aluno.
                     </p>
                   </div>
@@ -120,7 +120,7 @@ export default function GamificationSettingsPage() {
                         setSettings({ ...settings, xpQuizMultiplier: parseFloat(e.target.value) || 0 })
                       }
                     />
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-ch-muted">
                       Porcentagem do "XP por Lição" concedido em quizzes perfeitos. (Ex: 1.5 = +50%)
                     </p>
                   </div>

@@ -528,7 +528,7 @@ export default function EditCoursePage() {
             </Link>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                <h1 className="text-3xl font-bold text-gray-900 text-ch">
                   {formData.title || "Editar Curso"}
                 </h1>
                 <span
@@ -546,7 +546,7 @@ export default function EditCoursePage() {
                   {courseStatus === "PUBLISHED" ? "Publicado" : "Rascunho"}
                 </span>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
+              <p className="text-ch-muted mt-2">
                 Atualize as informações e estrutura do curso
               </p>
             </div>
@@ -735,12 +735,12 @@ export default function EditCoursePage() {
                         }}
                       />
                       {showSuggestions && tagSuggestions.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto">
+                        <div className="absolute z-10 w-full mt-1 bg-ch-surface border border-ch-border rounded-md shadow-lg max-h-60 overflow-auto">
                           {tagSuggestions.map((tag) => (
                             <button
                               key={tag.id}
                               type="button"
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 focus:outline-none"
+                              className="w-full text-left px-4 py-2 hover:bg-ch-surface-raised focus:bg-ch-surface-raised focus:outline-none"
                               onClick={() => {
                                 if (!formData.tags?.includes(tag.name)) {
                                   setFormData({
@@ -775,7 +775,7 @@ export default function EditCoursePage() {
                                 tags: formData.tags?.filter((_, i) => i !== index) || [],
                               });
                             }}
-                            className="ml-1 hover:text-blue-600 dark:hover:text-blue-300"
+                            className="ml-1 hover:text-ch-accent hover:text-ch-accent-hover"
                           >
                             ×
                           </button>
@@ -783,7 +783,7 @@ export default function EditCoursePage() {
                       ))}
                     </div>
                   )}
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-gray-500 text-ch-muted">
                     Pressione Enter para adicionar uma tag
                   </p>
                 </div>
@@ -791,7 +791,7 @@ export default function EditCoursePage() {
 
               <div className="space-y-2">
                 <Label>Skills deste curso</Label>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500 text-ch-muted">
                   As skills definem para onde o XP deste curso será distribuído
                   (por exemplo, JavaScript, Web development, IA).
                 </p>
@@ -824,11 +824,11 @@ export default function EditCoursePage() {
                     {courseSkills.map((item) => (
                       <div
                         key={item.skillId}
-                        className="flex items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm"
+                        className="flex items-center justify-between rounded-md border border-ch-border px-3 py-2 text-sm"
                       >
                         <div>
                           <div className="font-medium">{item.name}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                          <div className="text-xs text-gray-500 text-ch-muted">
                             slug: {item.slug}
                           </div>
                         </div>
@@ -852,7 +852,7 @@ export default function EditCoursePage() {
                             }}
                             className="w-20"
                           />
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                          <span className="text-xs text-gray-500 text-ch-muted">
                             %
                           </span>
                           <Button
@@ -1019,7 +1019,7 @@ export default function EditCoursePage() {
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-ch-muted">
                   Tem certeza que deseja publicar este curso? Para confirmar, digite sua senha:
                 </p>
 
@@ -1091,7 +1091,7 @@ export default function EditCoursePage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-ch-muted">
                   O curso não está mais marcado como gratuito. O que fazer com
                   as aulas que ainda estão como gratuitas?
                 </p>

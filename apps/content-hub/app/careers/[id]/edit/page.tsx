@@ -218,10 +218,10 @@ export default function EditCareerPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              <h1 className="text-3xl font-bold text-gray-900 text-ch">
                 {career.title}
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
+              <p className="text-ch-muted mt-2">
                 Edite módulos, cursos e exames.
               </p>
             </div>
@@ -240,7 +240,7 @@ export default function EditCareerPage() {
               type="button"
               variant="ghost"
               size="sm"
-              className="h-8 gap-1.5 px-2 text-gray-600 dark:text-gray-400"
+              className="h-8 gap-1.5 px-2 text-ch-muted"
               onClick={() => setInfoOpen((o) => !o)}
               aria-expanded={infoOpen}
               aria-controls="career-edit-info"
@@ -351,7 +351,7 @@ export default function EditCareerPage() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-gray-600 dark:text-gray-400"
+                  className="h-8 w-8 text-ch-muted"
                   onClick={() => setModulesPanelOpen((o) => !o)}
                   aria-expanded={modulesPanelOpen}
                   aria-label={modulesPanelOpen ? "Recolher lista de módulos" : "Expandir lista de módulos"}
@@ -420,7 +420,7 @@ export default function EditCareerPage() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-gray-600 dark:text-gray-400"
+                  className="h-8 w-8 text-ch-muted"
                   onClick={() => setExamsPanelOpen((o) => !o)}
                   aria-expanded={examsPanelOpen}
                   aria-label={examsPanelOpen ? "Recolher lista de exames" : "Expandir lista de exames"}
@@ -640,11 +640,11 @@ function CareerModuleCard({
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+    <div className="overflow-hidden rounded-xl border border-ch-border dark:border-gray-800">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-center justify-between gap-3 bg-gray-50/90 px-4 py-3 text-left transition-colors hover:bg-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-800/80"
+        className="flex w-full items-center justify-between gap-3 bg-ch-surface-raised/90 px-4 py-3 text-left transition-colors hover:bg-ch-surface-raised/50 hover:bg-ch-surface-raised/80"
         aria-expanded={expanded}
       >
         <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -655,19 +655,19 @@ function CareerModuleCard({
             )}
             aria-hidden
           />
-          <span className="truncate font-medium text-gray-900 dark:text-gray-100">
+          <span className="truncate font-medium text-gray-900 text-ch">
             {local.title || "Módulo sem título"}
           </span>
-          <span className="shrink-0 rounded-md bg-gray-200/80 px-1.5 py-0.5 text-xs tabular-nums text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+          <span className="shrink-0 rounded-md bg-ch-surface-raised/80 px-1.5 py-0.5 text-xs tabular-nums text-ch-muted bg-ch-surface-raised text-ch-muted">
             ordem {local.orderIndex}
           </span>
         </div>
-        <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+        <span className="shrink-0 text-xs text-gray-500 text-ch-muted">
           {expanded ? "Recolher" : "Expandir"}
         </span>
       </button>
       {expanded ? (
-        <div className="space-y-4 border-t border-gray-200 p-4 dark:border-gray-800">
+        <div className="space-y-4 border-t border-ch-border p-4 dark:border-gray-800">
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2 space-y-2">
           <Label>Título</Label>
@@ -702,24 +702,24 @@ function CareerModuleCard({
         <div className="space-y-3">
           <div>
             <Label>Cursos vinculados a este módulo</Label>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-xs text-gray-500 text-ch-muted">
               Um mesmo curso não pode estar em dois módulos ao mesmo tempo. Use as setas para
               definir a ordem na trilha.
             </p>
           </div>
 
-          <div className="min-h-20 space-y-1.5 rounded-lg border border-gray-200 bg-gray-50/50 p-2 dark:border-gray-700 dark:bg-gray-900/30">
+          <div className="min-h-20 space-y-1.5 rounded-lg border border-ch-border bg-ch-canvas/50 p-2 border-ch-border bg-ch-surface-raised/30">
             {selectedCourses.length === 0 ? (
-              <p className="px-2 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+              <p className="px-2 py-4 text-center text-sm text-gray-500 text-ch-muted">
                 Nenhum curso vinculado. Adicione abaixo.
               </p>
             ) : (
               selectedCourses.map((courseId, idx) => (
                 <div
                   key={`${courseId}-${idx}`}
-                  className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1.5 dark:border-gray-600 dark:bg-gray-950"
+                  className="flex items-center gap-1 rounded-md border border-ch-border bg-ch-surface px-2 py-1.5 dark:border-ch-border bg-ch-canvas"
                 >
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900 text-ch">
                     {courseTitle(courseId)}
                   </span>
                   <div className="flex shrink-0 items-center gap-0.5">
@@ -766,11 +766,11 @@ function CareerModuleCard({
             Salvar vínculos ({selectedCourses.length})
           </Button>
 
-          <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <div className="border-t border-ch-border pt-3 border-ch-border">
             <Label htmlFor={`add-course-${module.id}`}>Adicionar curso</Label>
             <div className="relative mt-1.5">
               <Search
-                className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ch-muted"
                 aria-hidden
               />
               <Input
@@ -782,9 +782,9 @@ function CareerModuleCard({
                 autoComplete="off"
               />
             </div>
-            <div className="mt-2 max-h-52 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="mt-2 max-h-52 overflow-y-auto rounded-lg border border-ch-border">
               {availableToAdd.length === 0 ? (
-                <p className="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                <p className="px-3 py-6 text-center text-sm text-gray-500 text-ch-muted">
                   {allCourses.length === 0
                     ? "Nenhum curso cadastrado na plataforma."
                     : "Nenhum curso disponível (todos já vinculados a este ou a outro módulo)."}
@@ -797,9 +797,9 @@ function CareerModuleCard({
                         type="button"
                         disabled={busy}
                         onClick={() => addCourse(c.id)}
-                        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/80 disabled:opacity-50"
+                        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-ch-surface-raised/80 disabled:opacity-50"
                       >
-                        <span className="min-w-0 flex-1 truncate font-medium text-gray-900 dark:text-gray-100">
+                        <span className="min-w-0 flex-1 truncate font-medium text-gray-900 text-ch">
                           {c.title}
                         </span>
                         <span className="flex shrink-0 items-center gap-1 text-xs text-gray-500">
@@ -923,11 +923,11 @@ function CareerExamCard({
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+    <div className="overflow-hidden rounded-xl border border-ch-border dark:border-gray-800">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-center justify-between gap-3 bg-gray-50/90 px-4 py-3 text-left transition-colors hover:bg-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-800/80"
+        className="flex w-full items-center justify-between gap-3 bg-ch-surface-raised/90 px-4 py-3 text-left transition-colors hover:bg-ch-surface-raised/50 hover:bg-ch-surface-raised/80"
         aria-expanded={expanded}
       >
         <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
@@ -939,20 +939,20 @@ function CareerExamCard({
               )}
               aria-hidden
             />
-            <span className="truncate font-medium text-gray-900 dark:text-gray-100">
+            <span className="truncate font-medium text-gray-900 text-ch">
               {local.title || "Exame sem título"}
             </span>
           </div>
-          <span className="truncate pl-6 text-xs text-gray-500 dark:text-gray-400 sm:pl-0">
+          <span className="truncate pl-6 text-xs text-gray-500 text-ch-muted sm:pl-0">
             {local.slug}
           </span>
         </div>
-        <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+        <span className="shrink-0 text-xs text-gray-500 text-ch-muted">
           {expanded ? "Recolher" : "Expandir"}
         </span>
       </button>
       {expanded ? (
-        <div className="space-y-4 border-t border-gray-200 p-4 dark:border-gray-800">
+        <div className="space-y-4 border-t border-ch-border p-4 dark:border-gray-800">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label>Título</Label>

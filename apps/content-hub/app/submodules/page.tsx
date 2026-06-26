@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -102,8 +102,8 @@ export default function SubmodulesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Submódulos</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Gerencie os submódulos (grupos) dos módulos</p>
+            <h1 className="text-3xl font-bold text-ch">Submódulos</h1>
+            <p className="text-ch-muted mt-2">Gerencie os submódulos (grupos) dos módulos</p>
           </div>
           {selectedModule && (
             <Link href={`/submodules/new?moduleId=${selectedModule}`}>
@@ -174,7 +174,7 @@ export default function SubmodulesPage() {
                   <TableBody>
                     {groups.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={2} className="text-center py-8 text-gray-500">
+                        <TableCell colSpan={2} className="text-center py-8 text-ch-muted">
                           Nenhum submódulo encontrado
                         </TableCell>
                       </TableRow>

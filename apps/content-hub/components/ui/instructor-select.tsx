@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
+import { ch } from "@/lib/ui-classes";
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 
@@ -49,7 +50,7 @@ export function InstructorSelect({
       );
     }
     return (
-      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-300 text-xs font-medium text-gray-600">
+      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-ch-border text-xs font-medium text-ch-muted">
         {instructor.name.charAt(0).toUpperCase()}
       </div>
     );
@@ -81,8 +82,9 @@ export function InstructorSelect({
         id={id}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-10 w-full items-center gap-3 rounded-md border border-gray-300 dark:border-[#25252a] bg-white dark:bg-[#0c0c0d] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 ring-offset-white dark:ring-offset-[#0c0c0d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-          !selectedInstructor && "text-gray-500 dark:text-gray-400"
+          ch.input,
+          "items-center gap-3",
+          !selectedInstructor && "text-ch-muted"
         )}
       >
         {selectedInstructor ? (
@@ -91,20 +93,20 @@ export function InstructorSelect({
             <span className="flex-1 text-left">{selectedInstructor.name}</span>
           </>
         ) : (
-          <span className="flex-1 text-left text-gray-500 dark:text-gray-400">Selecione um instrutor</span>
+          <span className="flex-1 text-left text-ch-muted">Selecione um instrutor</span>
         )}
         <ChevronDown
           className={cn(
-            "h-4 w-4 text-gray-400 transition-transform",
+            "h-4 w-4 text-ch-muted transition-transform",
             isOpen && "rotate-180"
           )}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 dark:border-[#25252a] bg-white dark:bg-[#0c0c0d] shadow-lg">
+        <div className={cn(ch.surface, "absolute z-50 mt-1 max-h-60 w-full overflow-auto shadow-lg")}>
           {instructors.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+            <div className="px-3 py-2 text-sm text-ch-muted">
               Nenhum instrutor disponível
             </div>
           ) : (
@@ -117,8 +119,8 @@ export function InstructorSelect({
                   setIsOpen(false);
                 }}
                 className={cn(
-                  "flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800",
-                  value === instructor.id && "bg-blue-50 dark:bg-blue-900/20"
+                  "flex w-full items-center gap-3 px-3 py-2 text-sm text-ch transition-colors hover:bg-ch-surface-raised",
+                  value === instructor.id && "bg-ch-accent-soft"
                 )}
               >
                 {renderAvatar(instructor)}

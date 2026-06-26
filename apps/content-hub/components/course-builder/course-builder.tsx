@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState, useRef, useCallback, useEffect } from "react";
 import {
@@ -847,10 +847,10 @@ export function CourseBuilder({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h3 className="text-lg font-semibold text-ch">
             Estrutura do Curso
           </h3>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-gray-600 dark:text-gray-400">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-ch-muted">
             <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-sky-700 dark:text-sky-300">
               Vídeos: {typeCounts.video}
             </span>
@@ -909,7 +909,7 @@ export function CourseBuilder({
 
       <div className="space-y-2">
         {modules.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-ch-muted">
             Nenhum módulo cadastrado. Clique em "Adicionar Módulo" para começar.
           </div>
         ) : (
@@ -960,7 +960,7 @@ export function CourseBuilder({
             <CardContent>
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-ch-muted">
                     Use esta ferramenta para copiar a estrutura completa de
                     módulos, grupos e aulas de um curso, ou importar a estrutura
                     em outro curso. Marque as opções abaixo para incluir no JSON
@@ -974,7 +974,7 @@ export function CourseBuilder({
                       <input
                         id="exportIncludeContent"
                         type="checkbox"
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="h-4 w-4 rounded border-ch-border text-ch-accent focus:ring-blue-500"
                         checked={exportIncludeContent}
                         onChange={(e) =>
                           setExportIncludeContent(e.target.checked)
@@ -982,7 +982,7 @@ export function CourseBuilder({
                       />
                       <label
                         htmlFor="exportIncludeContent"
-                        className="text-sm text-gray-700 dark:text-gray-300"
+                        className="text-sm text-ch-muted"
                       >
                         Incluir conteúdo das aulas (corpo, quiz, projeto) para
                         importação completa
@@ -992,7 +992,7 @@ export function CourseBuilder({
                       <input
                         id="exportIncludeKanban"
                         type="checkbox"
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="h-4 w-4 rounded border-ch-border text-ch-accent focus:ring-blue-500"
                         checked={exportIncludeKanban}
                         onChange={(e) =>
                           setExportIncludeKanban(e.target.checked)
@@ -1000,7 +1000,7 @@ export function CourseBuilder({
                       />
                       <label
                         htmlFor="exportIncludeKanban"
-                        className="text-sm text-gray-700 dark:text-gray-300"
+                        className="text-sm text-ch-muted"
                       >
                         Incluir informações do Kanban (status e prioridade)
                       </label>
@@ -1009,7 +1009,7 @@ export function CourseBuilder({
                       <input
                         id="exportIncludeNotes"
                         type="checkbox"
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="h-4 w-4 rounded border-ch-border text-ch-accent focus:ring-blue-500"
                         checked={exportIncludeNotes}
                         onChange={(e) =>
                           setExportIncludeNotes(e.target.checked)
@@ -1017,13 +1017,13 @@ export function CourseBuilder({
                       />
                       <label
                         htmlFor="exportIncludeNotes"
-                        className="text-sm text-gray-700 dark:text-gray-300"
+                        className="text-sm text-ch-muted"
                       >
                         Incluir anotações
                       </label>
                     </div>
                   </div>
-                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <label className="text-sm font-medium text-ch">
                     Estrutura atual (somente leitura)
                   </label>
                   <Textarea
@@ -1049,9 +1049,9 @@ export function CourseBuilder({
                   </div>
                 </div>
 
-                <div className="border-t border-gray-200 dark:border-gray-800 pt-4 space-y-2">
+                <div className="border-t border-ch-border dark:border-gray-800 pt-4 space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <label className="text-sm font-medium text-ch">
                       Importar nova estrutura (substitui ou adiciona módulos)
                     </label>
                     <input
@@ -1101,14 +1101,14 @@ export function CourseBuilder({
                     <input
                       id="clearBeforeImport"
                       type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 rounded border-ch-border text-ch-accent focus:ring-blue-500"
                       checked={clearBeforeImport}
                       disabled={importLoading}
                       onChange={(e) => setClearBeforeImport(e.target.checked)}
                     />
                     <label
                       htmlFor="clearBeforeImport"
-                      className="text-sm text-gray-700 dark:text-gray-300"
+                      className="text-sm text-ch-muted"
                     >
                       Apagar estrutura atual antes de importar (substituição
                       completa)
@@ -1117,25 +1117,25 @@ export function CourseBuilder({
 
                   {importLoading && (
                     <div
-                      className="mt-2 space-y-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-900/50"
+                      className="mt-2 space-y-2 rounded-lg border border-ch-border bg-ch-canvas px-4 py-3 border-ch-border bg-ch-surface-raised/50"
                       role="status"
                       aria-live="polite"
                     >
                       <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                        <span className="font-medium text-ch">
                           Importando estrutura…
                         </span>
-                        <span className="tabular-nums text-gray-600 dark:text-gray-400">
+                        <span className="tabular-nums text-ch-muted">
                           {importProgress}%
                         </span>
                       </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-ch-surface-raised">
                         <div
-                          className="h-full rounded-full bg-blue-600 transition-[width] duration-300 ease-out"
+                          className="h-full rounded-full bg-ch-accent transition-[width] duration-300 ease-out"
                           style={{ width: `${importProgress}%` }}
                         />
                       </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                      <p className="text-xs text-ch-muted">
                         Tempo restante estimado:{" "}
                         {importProgress < 3 || importEtaSeconds === null
                           ? "calculando…"

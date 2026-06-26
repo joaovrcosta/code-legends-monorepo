@@ -1,46 +1,78 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
 
 /* Tailwind v4: habilita `dark:` por classe `.dark` (não por media query). */
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --chart-1: 221.2 83.2% 53.3%;
-  --chart-2: 262.1 83.3% 57.8%;
-  --chart-3: 160.1 84.1% 39.4%;
-  --chart-4: 24.6 95% 53.1%;
-  --chart-5: 346.8 77.2% 49.8%;
+  --background: var(--ch-canvas);
+  --foreground: var(--ch-text);
+  --chart-1: 191 100% 45%;
+  --chart-2: 187 64% 52%;
+  --chart-3: 160 84% 39%;
+  --chart-4: 24 95% 53%;
+  --chart-5: 347 77% 50%;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-poppins);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0c0c0d;
-    --foreground: #ededed;
-  }
+  --color-ch-canvas: var(--ch-canvas);
+  --color-ch-surface: var(--ch-surface);
+  --color-ch-surface-raised: var(--ch-surface-raised);
+  --color-ch-border: var(--ch-border);
+  --color-ch-border-subtle: var(--ch-border-subtle);
+  --color-ch: var(--ch-text);
+  --color-ch-muted: var(--ch-text-muted);
+  --color-ch-accent: var(--ch-accent);
+  --color-ch-accent-hover: var(--ch-accent-hover);
+  --color-ch-accent-soft: var(--ch-accent-soft);
+  --color-ch-destructive: var(--ch-destructive);
+  --color-ch-destructive-hover: var(--ch-destructive-hover);
+
+  --radius-ch: var(--ch-radius);
+  --radius-ch-lg: var(--ch-radius-lg);
+  --spacing-ch-gap: var(--ch-gap);
 }
 
 .dark {
   color-scheme: dark;
-  --background: #0c0c0d;
-  --foreground: #ededed;
-  --chart-1: 217.2 91.2% 59.8%;
-  --chart-2: 263.4 89.5% 66.3%;
-  --chart-3: 160.1 84.1% 39.4%;
-  --chart-4: 20.5 90.2% 48.2%;
-  --chart-5: 347.7 77.7% 50.2%;
+  --background: var(--ch-canvas);
+  --foreground: var(--ch-text);
+  --chart-1: 191 100% 45%;
+  --chart-2: 187 64% 52%;
+  --chart-3: 160 84% 39%;
+  --chart-4: 20 90% 48%;
+  --chart-5: 347 77% 50%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-poppins), sans-serif;
+}
+
+/* Utilitários do design system */
+.ch-card {
+  background: var(--ch-surface);
+  border: 1px solid var(--ch-border);
+  border-radius: var(--ch-radius-lg);
+}
+
+.ch-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ch-gap);
+}
+
+.ch-section-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ch-text-muted);
 }
 
 /* Utilitários locais (Tailwind v4 sem plugin de line-clamp aqui). */
@@ -67,29 +99,37 @@ body {
 .cb-modal-card {
   display: flex;
   width: 100%;
-  max-width: 48rem; /* ~ max-w-3xl */
+  max-width: 48rem;
   max-height: 90vh;
   flex-direction: column;
   overflow: hidden;
+  background: var(--ch-surface);
+  border: 1px solid var(--ch-border);
+  border-radius: var(--ch-radius-lg);
 }
 
 .cb-modal-card-lg {
   display: flex;
   width: 100%;
-  max-width: 64rem; /* ~ max-w-5xl */
+  max-width: 64rem;
   max-height: 90vh;
   flex-direction: column;
   overflow: hidden;
+  background: var(--ch-surface);
+  border: 1px solid var(--ch-border);
+  border-radius: var(--ch-radius-lg);
 }
 
-/* Modal extra largo (ex.: anotações longas no Kanban). */
 .cb-modal-card-xl {
   display: flex;
   width: 100%;
-  max-width: 80rem; /* ~ max-w-7xl */
+  max-width: 80rem;
   max-height: 95vh;
   flex-direction: column;
   overflow: hidden;
+  background: var(--ch-surface);
+  border: 1px solid var(--ch-border);
+  border-radius: var(--ch-radius-lg);
 }
 
 .cb-modal-body {

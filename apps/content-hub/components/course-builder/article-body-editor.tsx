@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useRef, useCallback, useState, useEffect } from 'react'
 import type { ComponentProps, ReactNode } from 'react'
@@ -742,7 +742,7 @@ export function ArticleBodyEditor({
   const hasContent = value.trim().length > 0
 
   const previewNode = hasContent ? (
-    <div className="rounded-md border border-zinc-200 bg-white p-3 text-sm shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="rounded-md border border-zinc-200 bg-ch-surface p-3 text-sm shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">
         Pré-visualização
       </p>
@@ -917,7 +917,7 @@ export function ArticleBodyEditor({
               </p>
               <ul className="list-disc list-inside space-y-1 ml-1">
                 <li>
-                  <code className="text-blue-600 dark:text-blue-400">Nota</code>{' '}
+                  <code className="text-ch-accent">Nota</code>{' '}
                   para informações azuis.
                 </li>
                 <li>

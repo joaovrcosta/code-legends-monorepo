@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -18,11 +18,11 @@ function LoginPageContent() {
       : '')
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0c0c0d]">
+    <div className="flex min-h-screen items-center justify-center bg-ch-canvas">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">Code Legends</CardTitle>
-          <p className="text-center text-gray-600 dark:text-gray-400 mt-2">
+          <p className="text-center text-ch-muted mt-2">
             Content Hub - Login
           </p>
         </CardHeader>
@@ -67,7 +67,7 @@ function LoginPageContent() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0c0c0d]">
+      <div className="flex min-h-screen items-center justify-center bg-ch-canvas">
         <Card className="w-full max-w-md">
           <CardHeader>
             <div className="h-8 w-32 animate-pulse rounded bg-muted mx-auto" />

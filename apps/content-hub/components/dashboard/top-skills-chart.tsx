@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import type { DashboardOverview } from "@/actions/dashboard";
@@ -53,7 +53,7 @@ export function TopSkillsChart({ data }: { data: TopSkillDatum[] }) {
             </BarChart>
           </ChartContainer>
         ) : (
-          <div className="flex h-[320px] items-center justify-center rounded-lg border border-dashed border-gray-200 text-sm text-gray-500 dark:border-[#25252a] dark:text-gray-400">
+          <div className="flex h-[320px] items-center justify-center rounded-lg border border-dashed border-ch-border text-sm text-ch-muted border-ch-border text-ch-muted">
             Nenhuma skill com cursos vinculados
           </div>
         )}

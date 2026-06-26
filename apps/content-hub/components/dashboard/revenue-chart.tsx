@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import type { DashboardRevenueMeta, DashboardRevenuePoint, RevenueRangePreset } from "@/actions/dashboard";
@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+
+import { chartColors } from "@/lib/chart-theme";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -60,7 +62,7 @@ export function RevenueChart({
           </div>
 
           <div className="w-full max-w-sm">
-            <Label htmlFor="revenue-range" className="text-xs text-gray-600 dark:text-gray-400">
+            <Label htmlFor="revenue-range" className="text-xs text-ch-muted">
               Período
             </Label>
             <Select
@@ -82,7 +84,7 @@ export function RevenueChart({
         {selectedPreset === "custom" ? (
           <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
             <div>
-              <Label htmlFor="revenue-from" className="text-xs text-gray-600 dark:text-gray-400">
+              <Label htmlFor="revenue-from" className="text-xs text-ch-muted">
                 Data inicial
               </Label>
               <Input
@@ -95,7 +97,7 @@ export function RevenueChart({
               />
             </div>
             <div>
-              <Label htmlFor="revenue-to" className="text-xs text-gray-600 dark:text-gray-400">
+              <Label htmlFor="revenue-to" className="text-xs text-ch-muted">
                 Data final
               </Label>
               <Input
@@ -125,7 +127,7 @@ export function RevenueChart({
           config={{
             revenue: {
               label: "Receita",
-              color: "hsl(var(--chart-1))",
+              color: chartColors.accent,
             },
           }}
           className="h-[320px]"

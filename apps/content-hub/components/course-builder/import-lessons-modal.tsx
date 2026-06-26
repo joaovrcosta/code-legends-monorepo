@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -225,7 +225,7 @@ export function ImportLessonsModal({
                                 rows={15}
                                 className="font-mono text-sm"
                             />
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                            <p className="text-sm text-ch-muted">
                                 Cole aqui o JSON com um array de aulas. Campos obrigatórios: title, description.
                                 Slug será gerado automaticamente se não fornecido.
                             </p>

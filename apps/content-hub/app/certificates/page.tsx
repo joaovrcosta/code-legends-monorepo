@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -104,8 +104,8 @@ export default function CertificatesPage() {
       <div className="space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Certificados</h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
+            <h1 className="text-3xl font-bold text-ch">Certificados</h1>
+            <p className="mt-2 text-ch-muted">
               O template <strong>Code Legends — Conclusão (padrão)</strong> é criado pelo seed da API e usado
               automaticamente ao gerar certificados no aluno. Crie modelos adicionais aqui se precisar
               de variantes administrativas; o PDF continua com o layout da plataforma aluna.
@@ -129,9 +129,9 @@ export default function CertificatesPage() {
               </CardHeader>
               <CardContent>
                 {loading ? (
-                  <p className="text-gray-500 py-4 text-center">Carregando...</p>
+                  <p className="text-ch-muted py-4 text-center">Carregando...</p>
                 ) : issued.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center p-8 text-center text-gray-500">
+                  <div className="flex flex-col items-center justify-center p-8 text-center text-ch-muted">
                     <AlertCircle className="mb-2 h-8 w-8" />
                     <p>Nenhum certificado emitido até o momento.</p>
                   </div>
@@ -151,7 +151,7 @@ export default function CertificatesPage() {
                           <TableCell>
                             <div className="flex flex-col">
                               <span className="font-medium">{cert.user.name}</span>
-                              <span className="text-xs text-gray-500">{cert.user.email}</span>
+                              <span className="text-xs text-ch-muted">{cert.user.email}</span>
                             </div>
                           </TableCell>
                           <TableCell>{cert.course.title}</TableCell>
@@ -182,7 +182,7 @@ export default function CertificatesPage() {
               </CardHeader>
               <CardContent>
                 {showNewTemplate && (
-                  <div className="mb-6 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+                  <div className="mb-6 rounded-lg border border-ch-border p-4 space-y-3">
                     <div>
                       <Label htmlFor="tpl-name">Nome</Label>
                       <Input
@@ -228,9 +228,9 @@ export default function CertificatesPage() {
                   </div>
                 )}
                 {loading ? (
-                  <p className="text-gray-500 py-4 text-center">Carregando...</p>
+                  <p className="text-ch-muted py-4 text-center">Carregando...</p>
                 ) : templates.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center p-8 text-center text-gray-500">
+                  <div className="flex flex-col items-center justify-center p-8 text-center text-ch-muted">
                     <AlertCircle className="mb-2 h-8 w-8" />
                     <p>Nenhum template cadastrado.</p>
                   </div>

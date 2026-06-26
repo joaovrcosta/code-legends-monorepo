@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -68,10 +68,10 @@ export default function BroadcastPage() {
     <MainLayout>
       <div className="mx-auto max-w-4xl space-y-6">
         <div className="flex items-center gap-3">
-          <Megaphone className="h-8 w-8 text-blue-600" />
+          <Megaphone className="h-8 w-8 text-ch-accent" />
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Broadcaster</h1>
-            <p className="mt-1 text-gray-600 dark:text-gray-400">
+            <h1 className="text-3xl font-bold text-ch">Broadcaster</h1>
+            <p className="mt-1 text-ch-muted">
               Envie notificações em massa para segmentos de usuários da plataforma.
             </p>
           </div>

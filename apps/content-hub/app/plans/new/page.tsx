@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -73,10 +73,10 @@ export default function NewPlanPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-3xl font-bold text-ch">
               Novo Plano
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-ch-muted mt-2">
               Cadastre um novo plano de assinatura
             </p>
           </div>
@@ -231,7 +231,7 @@ export default function NewPlanPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, active: e.target.checked })
                   }
-                  className="rounded border-gray-300"
+                  className="rounded border-ch-border"
                 />
                 <Label htmlFor="active" className="cursor-pointer">
                   Plano ativo

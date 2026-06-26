@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -80,8 +80,8 @@ function NewLessonPageContent() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Nova Aula</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Crie uma nova aula</p>
+            <h1 className="text-3xl font-bold text-ch">Nova Aula</h1>
+            <p className="text-ch-muted mt-2">Crie uma nova aula</p>
           </div>
         </div>
 

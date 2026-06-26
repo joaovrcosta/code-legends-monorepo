@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { BookOpen, CreditCard, MessageSquare, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +22,7 @@ export function SummaryCards({
       value: summary.totalUsers.toLocaleString("pt-BR"),
       description: "Total de usuários cadastrados",
       icon: Users,
-      iconClassName: "text-blue-600 dark:text-blue-400",
+      iconClassName: "text-ch-accent",
     },
     {
       title: "Cursos publicados",
@@ -52,16 +52,16 @@ export function SummaryCards({
       {cards.map((card) => (
         <Card key={card.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            <CardTitle className="text-sm font-medium text-ch-muted">
               {card.title}
             </CardTitle>
             <card.icon className={`h-4 w-4 ${card.iconClassName}`} />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="text-2xl font-bold text-ch">
               {card.value}
             </div>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{card.description}</p>
+            <p className="mt-1 text-xs text-ch-muted">{card.description}</p>
           </CardContent>
         </Card>
       ))}

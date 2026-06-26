@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import type {
@@ -18,7 +18,7 @@ const paymentStatusClassName: Record<string, string> = {
   PAID: "bg-emerald-900/20 text-emerald-700 dark:text-emerald-300",
   PENDING: "bg-amber-900/20 text-amber-700 dark:text-amber-300",
   FAILED: "bg-red-900/20 text-red-700 dark:text-red-300",
-  REFUNDED: "bg-gray-900/20 text-gray-700 dark:text-gray-300",
+  REFUNDED: "bg-ch-surface-raised/50 text-ch-muted",
 };
 
 const requestStatusLabel: Record<string, string> = {
@@ -57,7 +57,7 @@ function getPlanLabel(plan: string) {
 function RequestList({ items }: { items: DashboardRecentRequest[] }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-200 p-6 text-sm text-gray-500 dark:border-[#25252a] dark:text-gray-400">
+      <div className="rounded-lg border border-dashed border-ch-border p-6 text-sm text-ch-muted border-ch-border text-ch-muted">
         Nenhuma solicitação recente encontrada.
       </div>
     );
@@ -69,15 +69,15 @@ function RequestList({ items }: { items: DashboardRecentRequest[] }) {
         <Link
           key={request.id}
           href={`/requests/${encodeURIComponent(request.id)}`}
-          className="block rounded-lg border border-gray-200 p-4 transition-colors hover:border-gray-300 hover:bg-gray-50/80 dark:border-[#25252a] dark:hover:border-[#3f3f46] dark:hover:bg-white/3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+          className="block rounded-lg border border-ch-border p-4 transition-colors hover:border-ch-border hover:bg-ch-canvas/80 border-ch-border dark:hover:border-[#3f3f46] dark:hover:bg-white/3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
           aria-label={`Ver solicitação: ${request.title || "sem título"}`}
         >
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="truncate font-medium text-gray-900 dark:text-gray-100">
+              <p className="truncate font-medium text-ch">
                 {request.title || "Solicitação sem título"}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-ch-muted">
                 {request.userName} • {request.type}
               </p>
             </div>
@@ -88,7 +88,7 @@ function RequestList({ items }: { items: DashboardRecentRequest[] }) {
               {requestStatusLabel[request.status] ?? request.status}
             </span>
           </div>
-          <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-3 text-xs text-ch-muted">
             {formatDate(request.createdAt)}
           </p>
         </Link>
@@ -100,7 +100,7 @@ function RequestList({ items }: { items: DashboardRecentRequest[] }) {
 function PaymentList({ items }: { items: DashboardRecentPayment[] }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-200 p-6 text-sm text-gray-500 dark:border-[#25252a] dark:text-gray-400">
+      <div className="rounded-lg border border-dashed border-ch-border p-6 text-sm text-ch-muted border-ch-border text-ch-muted">
         Nenhum pagamento recente encontrado.
       </div>
     );
@@ -111,17 +111,17 @@ function PaymentList({ items }: { items: DashboardRecentPayment[] }) {
       {items.map((payment) => (
         <div
           key={payment.id}
-          className="rounded-lg border border-gray-200 p-4 dark:border-[#25252a]"
+          className="rounded-lg border border-ch-border p-4 border-ch-border"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <Link
                 href={`/users/${payment.userId}/overview`}
-                className="truncate font-medium text-blue-600 hover:underline dark:text-blue-400"
+                className="truncate font-medium text-ch-accent hover:underline text-ch-accent"
               >
                 {payment.userName}
               </Link>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-ch-muted">
                 {getPlanLabel(payment.plan)} • {currencyFormatter.format(payment.amount)}
               </p>
             </div>
@@ -132,7 +132,7 @@ function PaymentList({ items }: { items: DashboardRecentPayment[] }) {
               {paymentStatusLabel[payment.status] ?? payment.status}
             </span>
           </div>
-          <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-3 text-xs text-ch-muted">
             {formatDate(payment.createdAt)}
           </p>
         </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { getLessonProductionLogsByCourse, type LessonProductionLogItem } from "@/actions/lesson/get-lesson-production-logs-by-course";
@@ -114,7 +114,7 @@ export function CourseProductionLogs({
       </CardHeader>
       <CardContent>
         {items.length === 0 ? (
-          <div className="py-6 text-sm text-gray-600 dark:text-gray-400">
+          <div className="py-6 text-sm text-ch-muted">
             Nenhuma alteração registrada ainda.
           </div>
         ) : (

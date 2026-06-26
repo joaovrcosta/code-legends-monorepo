@@ -10,10 +10,10 @@ export function Badge({ className, variant = "default", ...props }: BadgeProps) 
       className={cn(
         "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors",
         {
-          "border-transparent bg-primary text-primary-foreground": variant === "default",
-          "border-transparent bg-secondary text-secondary-foreground": variant === "secondary",
-          "text-foreground": variant === "outline",
-          "border-transparent bg-red-600 text-white dark:bg-red-500": variant === "destructive",
+          "border-transparent bg-ch-accent-soft text-ch-accent": variant === "default",
+          "border-transparent bg-ch-surface-raised text-ch-muted": variant === "secondary",
+          "border-ch-border text-ch": variant === "outline",
+          "border-transparent bg-ch-destructive text-white": variant === "destructive",
         },
         className
       )}

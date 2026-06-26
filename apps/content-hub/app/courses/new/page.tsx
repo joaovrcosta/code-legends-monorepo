@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -144,8 +144,8 @@ export default function NewCoursePage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Novo Curso</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Crie um novo curso para a plataforma</p>
+            <h1 className="text-3xl font-bold text-ch">Novo Curso</h1>
+            <p className="text-ch-muted mt-2">Crie um novo curso para a plataforma</p>
           </div>
         </div>
 
@@ -324,12 +324,12 @@ export default function NewCoursePage() {
                         }}
                       />
                       {showSuggestions && tagSuggestions.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto">
+                        <div className="absolute z-10 w-full mt-1 bg-ch-surface border border-ch-border rounded-md shadow-lg max-h-60 overflow-auto">
                           {tagSuggestions.map((tag) => (
                             <button
                               key={tag.id}
                               type="button"
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 focus:outline-none"
+                              className="w-full text-left px-4 py-2 hover:bg-ch-surface-raised focus:bg-ch-surface-raised focus:bg-ch-surface-raised focus:outline-none"
                               onClick={() => {
                                 if (!formData.tags?.includes(tag.name)) {
                                   setFormData({
@@ -364,7 +364,7 @@ export default function NewCoursePage() {
                                 tags: formData.tags?.filter((_, i) => i !== index) || [],
                               });
                             }}
-                            className="ml-1 hover:text-blue-600 dark:hover:text-blue-300"
+                            className="ml-1 hover:text-ch-accent hover:text-ch-accent-hover"
                           >
                             ×
                           </button>
@@ -372,7 +372,7 @@ export default function NewCoursePage() {
                       ))}
                     </div>
                   )}
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-ch-muted">
                     Pressione Enter para adicionar uma tag
                   </p>
                 </div>

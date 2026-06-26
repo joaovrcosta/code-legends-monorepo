@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -260,8 +260,8 @@ export default function LessonsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Aulas</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Gerencie as aulas dos submódulos</p>
+            <h1 className="text-3xl font-bold text-ch">Aulas</h1>
+            <p className="text-ch-muted mt-2">Gerencie as aulas dos submódulos</p>
           </div>
           {selectedGroup && (
             <div className="flex gap-2">
@@ -361,7 +361,7 @@ export default function LessonsPage() {
                   <TableBody>
                     {lessons.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                        <TableCell colSpan={6} className="text-center py-8 text-ch-muted">
                           Nenhuma aula encontrada
                         </TableCell>
                       </TableRow>
