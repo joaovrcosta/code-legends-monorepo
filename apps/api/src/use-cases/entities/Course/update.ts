@@ -4,9 +4,6 @@ import { ICategoryRepository } from '../../../repositories/category-repository'
 import { CourseNotFoundError } from '../../errors/course-not-found'
 import { CourseAlreadyExistsError } from '../../errors/course-already-exists'
 import { CategoryNotFoundError } from '../../errors/category-not-found'
-import { NotificationBuilder } from '../../../utils/notification-builder'
-import { createNotificationsBatch } from '../../../utils/create-notification'
-import { prisma } from '../../../lib/prisma'
 import {
   type LessonFreeSync,
   resolveLessonFreeSyncAction,
@@ -66,7 +63,6 @@ export class UpdateCourseUseCase {
       }
     }
 
-    const wasActive = course.active
     const wasFree = course.isFree
 
     const updatedCourse = await this.courseRepository.update(data.id, {
@@ -95,48 +91,6 @@ export class UpdateCourseUseCase {
       lessonsSynced = await syncCourseLessonsIsFree(updatedCourse.id, true)
     } else if (syncAction === 'all_paid') {
       lessonsSynced = await syncCourseLessonsIsFree(updatedCourse.id, false)
-    }
-
-    if (!wasActive && updatedCourse.active) {
-      setImmediate(async () => {
-        try {
-          const instructor = await prisma.user.findUnique({
-            where: { id: course.instructorId },
-            select: { name: true },
-          })
-
-          const thirtyDaysAgo = new Date()
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-          const users = await prisma.user.findMany({
-            where: {
-              lastLogin: {
-                gte: thirtyDaysAgo,
-              },
-            },
-            select: { id: true },
-          })
-
-          if (users.length > 0) {
-            const notifications = users.map((user) =>
-              NotificationBuilder.createNewCourseNotification(user.id, {
-                courseId: updatedCourse.id,
-                courseTitle: updatedCourse.title,
-                courseSlug: updatedCourse.slug,
-                instructorName: instructor?.name,
-              }),
-            )
-
-            await createNotificationsBatch(notifications)
-          }
-        } catch (error) {
-          console.error('Erro ao criar notificações de novo curso:', {
-            courseId: updatedCourse.id,
-            error: error instanceof Error ? error.message : 'Unknown error',
-            stack: error instanceof Error ? error.stack : undefined,
-          })
-        }
-      })
     }
 
     return {

@@ -1,7 +1,8 @@
 import { Course } from "@prisma/client";
 import { ICourseRepository } from "../../../repositories/course-repository";
-import { CourseNotFoundError } from "../../errors/course-not-found";
-import { ValidateCourseIntegrityUseCase } from "./validate-course-integrity";
+import { CourseNotFoundError } from '../../errors/course-not-found'
+import { ValidateCourseIntegrityUseCase } from './validate-course-integrity'
+import { scheduleNewCoursePublishedNotification } from '../../../utils/notify-new-course-published'
 
 interface PublishCourseRequest {
   courseId: string;
@@ -36,8 +37,19 @@ export class PublishCourseUseCase {
       );
     }
 
+    const wasPublished = course.status === "PUBLISHED";
+
     // Publicar o curso
     const publishedCourse = await this.courseRepository.publish(courseId);
+
+    if (!wasPublished) {
+      scheduleNewCoursePublishedNotification({
+        id: publishedCourse.id,
+        title: publishedCourse.title,
+        slug: publishedCourse.slug,
+        instructorId: publishedCourse.instructorId,
+      });
+    }
 
     return {
       course: publishedCourse,
