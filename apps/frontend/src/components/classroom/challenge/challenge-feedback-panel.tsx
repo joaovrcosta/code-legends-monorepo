@@ -63,6 +63,8 @@ export interface ChallengeFeedbackPanelProps {
   onNext?: () => void
   xpAward?: ChallengeFeedbackXpAward
   allowRetry?: boolean
+  /** Quando `allowRetry` é false e há `onNext`, usa "Próxima" ou "Finalizar" em vez de "Continuar". */
+  isLastQuestion?: boolean
 }
 
 export function ChallengeFeedbackPanel({
@@ -79,11 +81,30 @@ export function ChallengeFeedbackPanel({
   onNext,
   xpAward = { state: 'idle' },
   allowRetry = true,
+  isLastQuestion = false,
 }: ChallengeFeedbackPanelProps) {
   const wrong = !isCorrect
   const msg = isCorrect ? 'Parabéns.' : wrongMessage
   const showXpRow =
     isCorrect && xpAward.state !== 'idle' && open
+  const useQuizAdvance = !allowRetry && Boolean(onNext)
+  const advanceLabel = isLastQuestion ? 'Finalizar' : 'Próxima'
+
+  const renderAdvanceButton = (className: string) => (
+    <button
+      type="button"
+      className={className}
+      onClick={() => {
+        onContinue()
+        onNext?.()
+      }}
+    >
+      {advanceLabel}
+      {!isLastQuestion ? (
+        <ArrowRight weight="bold" size={14} className="inline" />
+      ) : null}
+    </button>
+  )
 
   return (
     <>
@@ -147,37 +168,30 @@ export function ChallengeFeedbackPanel({
                       </button>
                     ) : null}
                   </>
+                ) : useQuizAdvance ? (
+                  renderAdvanceButton(PILL_NEXT)
                 ) : (
-                  <>
-                    <button type="button" className={PILL_SUCCESS} onClick={onContinue}>
-                      Continuar
-                    </button>
-                    {hasExplanation ? (
-                      <button type="button" className={PILL_MUTED} onClick={onSeeAnswer}>
-                        Ver resposta
-                      </button>
-                    ) : null}
-                  </>
+                  <button type="button" className={PILL_SUCCESS} onClick={onContinue}>
+                    Continuar
+                  </button>
                 )
+              ) : useQuizAdvance ? (
+                renderAdvanceButton(PILL_NEXT)
+              ) : onNext ? (
+                <button
+                  type="button"
+                  className={PILL_NEXT}
+                  onClick={() => {
+                    onContinue()
+                    onNext()
+                  }}
+                >
+                  Continuar <ArrowRight weight="bold" size={14} className="inline" />
+                </button>
               ) : (
-                <>
-                  {onNext ? (
-                    <button
-                      type="button"
-                      className={PILL_NEXT}
-                      onClick={() => {
-                        onContinue()
-                        onNext()
-                      }}
-                    >
-                      Continuar <ArrowRight weight="bold" size={14} className="inline" />
-                    </button>
-                  ) : (
-                    <button type="button" className={PILL_SUCCESS} onClick={onContinue}>
-                      Continuar
-                    </button>
-                  )}
-                </>
+                <button type="button" className={PILL_SUCCESS} onClick={onContinue}>
+                  Continuar
+                </button>
               )}
             </div>
             <Flag
@@ -265,49 +279,38 @@ export function ChallengeFeedbackPanel({
                         </button>
                       ) : null}
                     </>
+                  ) : useQuizAdvance ? (
+                    renderAdvanceButton(cn(PILL_NEXT, 'w-full sm:w-auto'))
                   ) : (
-                    <>
-                      <button
-                        type="button"
-                        className={cn(PILL_SUCCESS, 'w-full sm:w-auto')}
-                        onClick={onContinue}
-                      >
-                        Continuar
-                      </button>
-                      {hasExplanation ? (
-                        <button
-                          type="button"
-                          className={cn(PILL_MUTED, 'w-full sm:w-auto')}
-                          onClick={onSeeAnswer}
-                        >
-                          Ver resposta
-                        </button>
-                      ) : null}
-                    </>
+                    <button
+                      type="button"
+                      className={cn(PILL_SUCCESS, 'w-full sm:w-auto')}
+                      onClick={onContinue}
+                    >
+                      Continuar
+                    </button>
                   )
+                ) : useQuizAdvance ? (
+                  renderAdvanceButton(cn(PILL_NEXT, 'w-full sm:w-auto'))
+                ) : onNext ? (
+                  <button
+                    type="button"
+                    className={cn(PILL_NEXT, 'w-full sm:w-auto')}
+                    onClick={() => {
+                      onContinue()
+                      onNext()
+                    }}
+                  >
+                    Continuar <ArrowRight weight="bold" size={14} className="inline" />
+                  </button>
                 ) : (
-                  <>
-                    {onNext ? (
-                      <button
-                        type="button"
-                        className={cn(PILL_NEXT, 'w-full sm:w-auto')}
-                        onClick={() => {
-                          onContinue()
-                          onNext()
-                        }}
-                      >
-                        Continuar <ArrowRight weight="bold" size={14} className="inline" />
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className={cn(PILL_SUCCESS, 'w-full sm:w-auto')}
-                        onClick={onContinue}
-                      >
-                        Continuar
-                      </button>
-                    )}
-                  </>
+                  <button
+                    type="button"
+                    className={cn(PILL_SUCCESS, 'w-full sm:w-auto')}
+                    onClick={onContinue}
+                  >
+                    Continuar
+                  </button>
                 )}
               </div>
               <Flag

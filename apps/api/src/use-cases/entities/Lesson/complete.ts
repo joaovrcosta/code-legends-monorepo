@@ -25,6 +25,7 @@ import {
   addDaysToISODateKeySP,
   formatYYYYMMDDInTZSP,
 } from '../../../utils/streak-calendar'
+import { aggregateModuleXpBySkill } from '../../../utils/module-xp-aggregation'
 
 interface CompleteLessonRequest {
   userId: string
@@ -534,21 +535,15 @@ export class CompleteLessonUseCase {
       const historyRows = await prisma.userSkillXpHistory.findMany({
         where: {
           userId,
-          source: 'lesson_completed',
+          source: { in: ['lesson_completed', 'challenge_first_correct'] },
           sourceId: { in: moduleLessonIds },
         },
-        select: { skillId: true, xpAmount: true },
+        select: { skillId: true, xpAmount: true, source: true, sourceId: true },
       })
 
-      const bySkill = new Map<string, number>()
-      for (const row of historyRows) {
-        bySkill.set(row.skillId, (bySkill.get(row.skillId) ?? 0) + row.xpAmount)
-      }
-
-      xpGainedInModule = [...bySkill.values()].reduce((a, b) => a + b, 0)
-      xpGainedInModuleBySkill = [...bySkill.entries()]
-        .filter(([, xp]) => xp > 0)
-        .map(([skillId, xp]) => ({ skillId, xp }))
+      const aggregated = aggregateModuleXpBySkill(historyRows, moduleLessonIds)
+      xpGainedInModule = aggregated.xpGainedInModule
+      xpGainedInModuleBySkill = aggregated.xpGainedInModuleBySkill
     }
 
     // #region agent log

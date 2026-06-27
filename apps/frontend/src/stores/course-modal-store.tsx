@@ -1,6 +1,7 @@
 // store/courseModalStore.ts
 import { create } from 'zustand'
 import type { Lesson, LessonStatus, LessonType } from '@/types/roadmap'
+import { playLessonCompleteSuccess } from '@/lib/play-correct-chime'
 import type { Task } from '../../db'
 
 interface ModuleCompletionInfo {
@@ -204,6 +205,7 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
       // Se a lição foi marcada como concluída, atualiza o timestamp
       if (status === 'completed' && currentLesson.status !== 'completed') {
         updates.lessonCompletedTimestamp = Date.now()
+        playLessonCompleteSuccess()
       }
 
       set(updates)

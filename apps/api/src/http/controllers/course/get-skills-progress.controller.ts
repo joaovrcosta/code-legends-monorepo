@@ -4,6 +4,7 @@ import { Role } from '@prisma/client'
 import { prisma } from '../../../lib/prisma'
 import { parseDurationToSeconds } from '../../../utils/parse-duration-to-seconds'
 import { canViewUserSkills } from '../../utils/skill-visibility'
+import { aggregateModuleXpBySkill } from '../../../utils/module-xp-aggregation'
 
 export async function getSkillsProgress(
   request: FastifyRequest,
@@ -110,19 +111,16 @@ export async function getSkillsProgress(
         const historyRows = await prisma.userSkillXpHistory.findMany({
           where: {
             userId: targetUserId,
-            source: 'lesson_completed',
+            source: { in: ['lesson_completed', 'challenge_first_correct'] },
             sourceId: { in: moduleLessonIds },
           },
-          select: { skillId: true, xpAmount: true },
+          select: { skillId: true, xpAmount: true, source: true, sourceId: true },
         })
 
-        const gainedBySkill = new Map<string, number>()
-        for (const row of historyRows) {
-          gainedBySkill.set(
-            row.skillId,
-            (gainedBySkill.get(row.skillId) ?? 0) + row.xpAmount,
-          )
-        }
+        const aggregated = aggregateModuleXpBySkill(historyRows, moduleLessonIds)
+        const gainedBySkill = new Map<string, number>(
+          aggregated.xpGainedInModuleBySkill.map((row) => [row.skillId, row.xp]),
+        )
 
         const weightByCourseSkill = new Map<string, number>(
           courseSkills.map((cs) => [cs.skillId, cs.weight]),
@@ -198,10 +196,7 @@ export async function getSkillsProgress(
           })
           .sort((a, b) => (b.gainedXpInModule ?? 0) - (a.gainedXpInModule ?? 0))
 
-        const xpGainedInModule = enrichedSkills.reduce(
-          (sum, s) => sum + (s.gainedXpInModule ?? 0),
-          0,
-        )
+        const xpGainedInModule = aggregated.xpGainedInModule
         const maxTotalXp = Math.max(...enrichedSkills.map((s) => s.totalXp), 0)
         const axisMax = Math.max(
           3000,

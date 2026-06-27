@@ -88,3 +88,31 @@ export function playWrongTamTamm(): void {
   playThump(ctx, t0, 255, 0.058, 0.16)
   playThump(ctx, t0 + 0.132, 168, 0.1, 0.19)
 }
+
+/** Som de sucesso ao concluir uma aula (arpejo maior ascendente). */
+export function playLessonCompleteSuccess(): void {
+  const ctx = getCtx()
+  if (!ctx) return
+  const t0 = ctx.currentTime
+  const notes = [
+    { freq: 523.25, delay: 0, duration: 0.12, gain: 0.1 },
+    { freq: 659.25, delay: 0.09, duration: 0.13, gain: 0.1 },
+    { freq: 783.99, delay: 0.18, duration: 0.15, gain: 0.11 },
+    { freq: 1046.5, delay: 0.28, duration: 0.28, gain: 0.13 },
+  ] as const
+
+  for (const note of notes) {
+    const osc = ctx.createOscillator()
+    osc.type = 'triangle'
+    osc.frequency.setValueAtTime(note.freq, t0 + note.delay)
+    const g = ctx.createGain()
+    const start = t0 + note.delay
+    g.gain.setValueAtTime(0, start)
+    g.gain.linearRampToValueAtTime(note.gain, start + 0.015)
+    g.gain.exponentialRampToValueAtTime(0.0009, start + note.duration)
+    osc.connect(g)
+    g.connect(ctx.destination)
+    osc.start(start)
+    osc.stop(start + note.duration + 0.03)
+  }
+}

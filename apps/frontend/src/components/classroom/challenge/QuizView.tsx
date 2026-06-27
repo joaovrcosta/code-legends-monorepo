@@ -461,7 +461,6 @@ export function QuizView({
   useEffect(() => {
     if (!useMultiFlow) return
     if (!quizFinished) return
-    if (!passed) return
     if (autoFinishTriggered) return
     if (!modalLessonId || modalLessonId !== lessonId) return
 
@@ -470,7 +469,6 @@ export function QuizView({
   }, [
     useMultiFlow,
     quizFinished,
-    passed,
     autoFinishTriggered,
     modalLessonId,
     lessonId,
@@ -563,6 +561,9 @@ export function QuizView({
                 challengeXpSlotIndex={currentIndex}
                 onAnswer={handleAnswer}
                 onNext={handleNext}
+                allowRetry={false}
+                isLastQuestion={currentIndex + 1 >= total}
+                wrongMessage="Não foi dessa vez."
                 awardChallengeXpOnCorrect={false}
               />
             </div>

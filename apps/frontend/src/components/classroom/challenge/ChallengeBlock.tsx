@@ -65,6 +65,9 @@ export interface ChallengeBlockProps {
   onNext?: () => void
   /** Se false (ex.: exame de carreira), não permite nova tentativa após erro. */
   allowRetry?: boolean
+  /** Última questão do quiz — botão "Finalizar" em vez de "Próxima". */
+  isLastQuestion?: boolean
+  wrongMessage?: string
   /** Notifica quando XP do desafio foi aplicado (primeira vez). */
   onXpAwarded?: (info: { slot: number; amount: number }) => void
   /**
@@ -82,6 +85,8 @@ export function ChallengeBlock({
   onAnswer,
   onNext,
   allowRetry = true,
+  isLastQuestion = false,
+  wrongMessage,
   onXpAwarded,
   awardChallengeXpOnCorrect = true,
 }: ChallengeBlockProps) {
@@ -203,6 +208,7 @@ export function ChallengeBlock({
         onAnswer={onAnswer}
         onNext={onNext}
         allowRetry={allowRetry}
+        isLastQuestion={isLastQuestion}
         onXpAwarded={onXpAwarded}
         awardChallengeXpOnCorrect={awardChallengeXpOnCorrect}
       />
@@ -362,7 +368,8 @@ export function ChallengeBlock({
               onClick={onNext}
               className="flex items-center gap-2 rounded-full bg-[#00b3e4] px-5 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90"
             >
-              Próxima <ArrowRight weight="bold" size={14} />
+              {isLastQuestion ? 'Finalizar' : 'Próxima'}
+              {!isLastQuestion ? <ArrowRight weight="bold" size={14} /> : null}
             </button>
           ) : allowRetry ? (
             <button
@@ -381,6 +388,7 @@ export function ChallengeBlock({
         isCorrect={isCorrect === true}
         isDesktopLayout={isDesktopLayout}
         hasExplanation={hasExplanation}
+        wrongMessage={wrongMessage}
         onDismiss={() => setFeedbackDismissed(true)}
         onTryAgain={handleReset}
         onSeeAnswer={() => {
@@ -391,6 +399,7 @@ export function ChallengeBlock({
         onNext={onNext}
         xpAward={xpAward}
         allowRetry={allowRetry}
+        isLastQuestion={isLastQuestion}
       />
     </div>
   )

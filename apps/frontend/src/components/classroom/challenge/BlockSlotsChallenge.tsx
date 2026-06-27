@@ -90,6 +90,7 @@ export interface BlockSlotsChallengeProps {
   onAnswer?: (correct: boolean) => void
   onNext?: () => void
   allowRetry?: boolean
+  isLastQuestion?: boolean
   onXpAwarded?: (info: { slot: number; amount: number }) => void
   /** @default true */
   awardChallengeXpOnCorrect?: boolean
@@ -103,6 +104,7 @@ export function BlockSlotsChallenge({
   onAnswer,
   onNext,
   allowRetry = true,
+  isLastQuestion = false,
   onXpAwarded,
   awardChallengeXpOnCorrect = true,
 }: BlockSlotsChallengeProps) {
@@ -422,7 +424,8 @@ export function BlockSlotsChallenge({
               onClick={onNext}
               className="flex items-center gap-2 rounded-full bg-[#00b3e4] px-5 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90"
             >
-              Próxima <ArrowRight weight="bold" size={14} />
+              {isLastQuestion ? 'Finalizar' : 'Próxima'}
+              {!isLastQuestion ? <ArrowRight weight="bold" size={14} /> : null}
             </button>
           ) : allowRetry ? (
             <button
@@ -453,6 +456,7 @@ export function BlockSlotsChallenge({
         onNext={onNext}
         xpAward={xpAward}
         allowRetry={allowRetry}
+        isLastQuestion={isLastQuestion}
       />
     </div>
   )
