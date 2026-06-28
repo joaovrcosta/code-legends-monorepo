@@ -7,6 +7,7 @@ import { LessonWithContentDTO } from '../../../domain/lesson'
 import { normalizeQuizContentToArray } from './challenge-first-correct-xp'
 import { computeEstimatedLessonXpReward } from '../../../lib/lesson-xp-reward'
 import { getGamificationSettingsCached } from '../../../utils/gamification-settings-cache'
+import { resolveDisplayCurrentTaskId } from '../../../utils/resolve-current-task-id'
 
 interface GetLessonByCourseIdAndSlugRequest {
   courseId: string
@@ -142,14 +143,11 @@ export class GetLessonByCourseIdAndSlugUseCase {
       status = 'unlocked'
     }
 
-    // Verificar se é a lesson atual
-    const hasProgress = userProgresses.some((p) => p.isCompleted)
-    const validCurrentTaskId =
-      hasProgress &&
-      userCourse?.currentTaskId &&
-      allLessons.some((l) => l.id === userCourse.currentTaskId)
-        ? userCourse.currentTaskId
-        : (allLessons[0]?.id ?? null)
+    const validCurrentTaskId = resolveDisplayCurrentTaskId(
+      allLessons,
+      (taskId) => progressMap.get(taskId) ?? false,
+      userCourse?.currentTaskId,
+    )
 
     const isCurrent = lessonEntity.id === validCurrentTaskId
 

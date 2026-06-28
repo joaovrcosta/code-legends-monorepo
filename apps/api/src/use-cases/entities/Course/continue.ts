@@ -6,6 +6,7 @@ import { IUserProgressRepository } from '../../../repositories/user-progress-rep
 import { CourseNotFoundError } from '../../errors/course-not-found'
 import { prisma } from '../../../lib/prisma'
 import { LessonWithContentDTO } from '../../../domain/lesson'
+import { resolveDisplayCurrentTaskId } from '../../../utils/resolve-current-task-id'
 
 interface ContinueCourseRequest {
   userId: string
@@ -118,7 +119,10 @@ export class ContinueCourseUseCase {
     )
 
     // Verificar se há progresso (lições completadas)
-    const hasProgress = userProgresses.some((p) => p.isCompleted)
+    const progressMap = new Map<number, boolean>()
+    userProgresses.forEach((progress) => {
+      progressMap.set(progress.taskId, progress.isCompleted)
+    })
 
     // Buscar todos os módulos com submodules e aulas para determinar a primeira lição
     const modules = await prisma.module.findMany({
@@ -173,14 +177,11 @@ export class ContinueCourseUseCase {
       return a.order - b.order
     })
 
-    // Determinar qual será a lição atual
-    // Se não houver progresso, ignorar currentTaskId e usar a primeira lição
-    const validCurrentTaskId =
-      hasProgress &&
-        userCourse.currentTaskId &&
-        allLessons.some((l) => l.id === userCourse.currentTaskId)
-        ? userCourse.currentTaskId
-        : (allLessons[0]?.id ?? null)
+    const validCurrentTaskId = resolveDisplayCurrentTaskId(
+      allLessons,
+      (taskId) => progressMap.get(taskId) ?? false,
+      userCourse.currentTaskId,
+    )
 
     // Buscar a aula atual
     let lesson = null

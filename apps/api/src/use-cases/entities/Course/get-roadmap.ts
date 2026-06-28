@@ -5,6 +5,7 @@ import { CourseNotFoundError } from '../../errors/course-not-found'
 import { prisma } from '../../../lib/prisma'
 import { computeEstimatedLessonXpReward } from '../../../lib/lesson-xp-reward'
 import { getGamificationSettingsCached } from '../../../utils/gamification-settings-cache'
+import { resolveDisplayCurrentTaskId } from '../../../utils/resolve-current-task-id'
 
 // Função auxiliar para converter duração em segundos
 function parseDurationToSeconds(duration: string | null): number {
@@ -203,23 +204,11 @@ export class GetRoadmapUseCase {
 
     const currentTaskId = userCourse?.currentTaskId ?? null
 
-    const hasProgress = userProgresses.some((p) => p.isCompleted)
-
-    let validCurrentTaskId: number | null = null
-
-    if (!hasProgress) {
-      validCurrentTaskId = allLessons[0]?.id ?? null
-    } else {
-      if (currentTaskId && allLessons.some((l) => l.id === currentTaskId)) {
-        validCurrentTaskId = currentTaskId
-      } else {
-        const firstIncomplete = allLessons.find(
-          (l) => !(progressMap.get(l.id) ?? false),
-        )
-        validCurrentTaskId =
-          firstIncomplete?.id ?? allLessons[allLessons.length - 1]?.id ?? null
-      }
-    }
+    const validCurrentTaskId = resolveDisplayCurrentTaskId(
+      allLessons,
+      (taskId) => progressMap.get(taskId) ?? false,
+      currentTaskId,
+    )
 
     // Identificar o módulo atual
     let currentModuleId: string | null = null

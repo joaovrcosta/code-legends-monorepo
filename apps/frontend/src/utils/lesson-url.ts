@@ -1,14 +1,18 @@
 import type { Lesson, Module, Group } from "@/types/roadmap";
 
 /**
- * Escolhe a aula para "continuar": prefere a marcada como atual se ainda não foi
- * concluída; senão, a primeira `unlocked` na ordem do roadmap. Evita cair na
- * primeira aula do curso só porque ela está `completed`.
+ * Escolhe a aula para "continuar" ao entrar no classroom: primeira não concluída
+ * na ordem do roadmap, depois fallbacks (isCurrent, unlocked, etc.).
  */
 export function pickContinueTargetLesson(
   allLessons: Lesson[],
   isAccessible: (lesson: Lesson) => boolean = () => true,
 ): Lesson | null {
+  const firstPending = allLessons.find(
+    (l) => l.status !== "completed" && isAccessible(l),
+  );
+  if (firstPending) return firstPending;
+
   const foundCurrent = allLessons.find((l) => l.isCurrent);
 
   if (
