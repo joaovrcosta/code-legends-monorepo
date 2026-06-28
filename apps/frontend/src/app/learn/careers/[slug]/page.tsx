@@ -7,7 +7,7 @@ import { CareerInformacoesTab } from "@/components/career/career-informacoes-tab
 import { Progress } from "@/components/ui/progress";
 import { getAuroraBackground } from "@/utils/hexToRgb";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr";
-import { PlanBadge } from "@/components/ui/plan-badge";
+import { SubscriberBadge } from "@/components/ui/subscriber-badge";
 import Link from "next/link";
 import { PageContentWidth } from "@/components/layout/page-container";
 import { SectionTitle } from "@/app/catalog-courses-carousel-title";
@@ -45,8 +45,8 @@ export default async function CareerDetailPage({
               </span>
             </Link>
 
-            <div className="flex items-center gap-1 mt-3 mb-4">
-              <PlanBadge plan="PREMIUM" />
+            <div className="mt-3 mb-4">
+              <SubscriberBadge variant="premium" />
             </div>
             <h1 className="font-bold lg:text-[44px] text-2xl lg:text-left leading-tight text-center mb-3 text-white">
               {data.career.title}

@@ -15,7 +15,7 @@ export type CareerTrack = {
   id: string
   title: string
   href: string
-  badge?: string
+  badgeVariant?: 'exclusive' | 'premium' | null
   pills?: string[]
   level?: string
   iconUrl?: string | null
@@ -101,7 +101,7 @@ export function CareerTracksSection({
                 <CareerTrackCard
                   title={track.title}
                   href={track.href}
-                  badge={track.badge}
+                  badgeVariant={track.badgeVariant}
                   pills={track.pills}
                   level={track.level}
                   iconUrl={track.iconUrl}

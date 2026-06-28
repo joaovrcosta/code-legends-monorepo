@@ -8,7 +8,7 @@ import { SubscriberBadge } from '@/components/ui/subscriber-badge'
 export type CareerTrackCardProps = {
   title: string
   href: string
-  badge?: string
+  badgeVariant?: 'exclusive' | 'premium' | null
   pills?: string[]
   level?: string
   className?: string
@@ -32,7 +32,7 @@ const CARD_FADE =
 export function CareerTrackCard({
   title,
   href,
-  badge = 'Para assinantes',
+  badgeVariant = 'premium',
   pills = [],
   className,
   iconUrl,
@@ -45,7 +45,7 @@ export function CareerTrackCard({
     <Link
       href={href}
       className={[
-        'group relative block h-[420px] w-[380px] max-w-full overflow-hidden rounded-[20px] bg-[#0a0a0a] border border-[#2a2a2e] shadow-sm isolate',
+        'group relative block h-[420px] w-full max-w-full overflow-hidden rounded-[20px] bg-[#0a0a0a] border border-[#2a2a2e] shadow-sm isolate',
         'md:hover:border-[#3f3f48]',
         className ?? '',
       ].join(' ')}
@@ -94,7 +94,9 @@ export function CareerTrackCard({
             )}
           </div>
 
-          {badge ? <SubscriberBadge size="sm" label={badge} /> : null}
+          {badgeVariant ? (
+            <SubscriberBadge variant={badgeVariant} size="sm" />
+          ) : null}
         </div>
 
         <div className="mt-auto">

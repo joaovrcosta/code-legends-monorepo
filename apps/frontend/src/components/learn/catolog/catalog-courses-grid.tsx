@@ -64,7 +64,7 @@ export function CatalogCoursesGrid({
           <CareerTrackCard
             title={track.title}
             href={track.href}
-            badge={track.badge}
+            badgeVariant={track.badgeVariant}
             pills={track.pills}
             level={track.level}
             iconUrl={track.iconUrl}

@@ -14,19 +14,22 @@ export default async function CareersPage() {
         </span>
       </div>
 
-      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="flex w-full flex-wrap gap-4">
           {data.careers.map((c) => (
-            <CareerTrackCard
+            <div
               key={c.id}
+              className="min-w-[min(100%,17.5rem)] max-w-full flex-[1_1_calc((100%-2rem)/3)]"
+            >
+            <CareerTrackCard
               title={c.title}
               href={`/learn/careers/${c.slug}`}
-              badge="Para assinantes"
               pills={[`${c.modulesCount} módulos`]}
               iconUrl={c.icon}
               thumbnailUrl={c.thumbnail}
               colorHex={c.colorHex}
               modulesCount={c.modulesCount}
             />
+            </div>
           ))}
       </div>
     </div>
