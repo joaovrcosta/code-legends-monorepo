@@ -5,25 +5,25 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./editor": {
-      "types": "./dist/editor-meta.d.ts",
-      "import": "./dist/editor-meta.js",
+      "types": "./src/editor-meta.ts",
+      "import": "./src/editor-meta.ts",
       "require": "./dist/editor-meta.js",
       "default": "./dist/editor-meta.js"
     },
     "./slots": {
-      "types": "./dist/slots/index.d.ts",
-      "import": "./dist/slots/index.js",
+      "types": "./src/slots/index.ts",
+      "import": "./src/slots/index.ts",
       "require": "./dist/slots/index.js",
       "default": "./dist/slots/index.js"
     }
   },
-  "files": ["dist"],
+  "files": ["dist", "src"],
   "scripts": {
     "build": "tsc",
     "type-check": "tsc --noEmit",

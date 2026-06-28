@@ -8,12 +8,14 @@
     "build:shared-types": "pnpm --filter @code-legends/shared-types run build",
     "build:challenges": "pnpm --filter @code-legends/challenges run build",
     "build:video-providers": "pnpm --filter @code-legends/video-providers run build",
-    "build": "pnpm run build:shared-types && pnpm run build:challenges && pnpm run build:video-providers && next build",
+    "prebuild": "pnpm run build:shared-types && pnpm run build:challenges && pnpm run build:video-providers",
+    "build": "next build",
     "start": "next start -p 3001",
     "lint": "eslint"
   },
   "dependencies": {
     "@code-legends/challenges": "workspace:*",
+    "@code-legends/shared-types": "workspace:*",
     "@code-legends/video-providers": "workspace:*",
     "@blocknote/code-block": "^0.47.1",
     "@blocknote/core": "^0.47.1",

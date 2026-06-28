@@ -141,6 +141,9 @@ importers:
       '@code-legends/challenges':
         specifier: workspace:*
         version: link:../../packages/challenges
+      '@code-legends/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
       '@code-legends/video-providers':
         specifier: workspace:*
         version: link:../../packages/video-providers

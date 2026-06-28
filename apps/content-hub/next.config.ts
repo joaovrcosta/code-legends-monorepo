@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@code-legends/video-providers"],
+  transpilePackages: [
+    "@code-legends/challenges",
+    "@code-legends/shared-types",
+    "@code-legends/video-providers",
+  ],
   images: {
     remotePatterns: [
       {
