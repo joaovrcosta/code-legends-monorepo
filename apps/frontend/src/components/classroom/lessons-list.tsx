@@ -8,9 +8,10 @@ import {
   generateLessonUrl,
 } from '@/utils/lesson-url'
 import { useRouter } from 'next/navigation'
-import { useMemo, memo, useCallback, useEffect } from 'react'
+import { useMemo, memo, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
+import { useSyncClassroomModuleAccordion } from '@/hooks/use-sync-classroom-module-accordion'
 import { ChevronDown, Circle } from 'lucide-react'
 import {
   Accordion,
@@ -55,8 +56,7 @@ export const LessonsList = memo(function LessonsList({
   courseId,
 }: LessonsListProps) {
   const { setLessonsForPage } = useCourseModalStore()
-  const { openModuleIds, setOpenModuleIds, ensureModuleOpen } =
-    useClassroomSidebarStore()
+  const { openModuleIds, setOpenModuleIds } = useClassroomSidebarStore()
   const router = useRouter()
   const { data: session } = useSession()
   const userPlan = (session?.user as { plan?: string } | undefined)?.plan
@@ -119,11 +119,7 @@ export const LessonsList = memo(function LessonsList({
     return organizedLessons[0]
   }, [organizedLessons, currentLessonId])
 
-  // Garante que o módulo da aula atual permanece aberto sem fechar os demais
-  useEffect(() => {
-    if (!currentModule) return
-    ensureModuleOpen(`module-${currentModule.id}`)
-  }, [currentModule?.id, ensureModuleOpen])
+  useSyncClassroomModuleAccordion(organizedLessons, currentModule)
 
   if (!roadmap || organizedLessons.length === 0 || !currentModule) {
     return (

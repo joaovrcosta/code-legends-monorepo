@@ -10,8 +10,9 @@ import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { Skeleton } from '@/components/skeleton'
 import { useClassroomRoadmap } from '@/components/classroom/classroom-roadmap-context'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
-import { useMemo, useCallback, useEffect } from 'react'
+import { useMemo, useCallback } from 'react'
 import type { Lesson } from '@/types/roadmap'
+import { useSyncClassroomModuleAccordion } from '@/hooks/use-sync-classroom-module-accordion'
 import {
   appendCourseIdToClassroomHref,
   findLessonContext,
@@ -42,8 +43,7 @@ function getLessonMeta(lesson: Lesson) {
 
 export function LessonsAccordion() {
   const { roadmap, courseId, currentLessonId, isLoading } = useClassroomRoadmap()
-  const { openModuleIds, setOpenModuleIds, ensureModuleOpen } =
-    useClassroomSidebarStore()
+  const { openModuleIds, setOpenModuleIds } = useClassroomSidebarStore()
   const { data: session } = useSession()
   const userPlan = (session?.user as { plan?: string } | undefined)?.plan
   const router = useRouter()
@@ -95,10 +95,7 @@ export function LessonsAccordion() {
     return organizedLessons[0]
   }, [organizedLessons, currentLessonId])
 
-  useEffect(() => {
-    if (!currentModule) return
-    ensureModuleOpen(`module-${currentModule.id}`)
-  }, [currentModule?.id, ensureModuleOpen])
+  useSyncClassroomModuleAccordion(organizedLessons, currentModule)
 
   const showLoading =
     (isLoading && !roadmap) ||
