@@ -1,36 +1,12 @@
 "use server";
 
-export type ChallengeType =
-  | "prediction"
-  | "bug"
-  | "refactor"
-  | "complete"
-  | "conceptual"
-  | "mcq"
-  | "block_slots"
-  | "exam_mcq";
+import type {
+  ChallengeType,
+  Challenge,
+  ParsonsPiece,
+} from '@code-legends/challenges'
 
-export interface ParsonsPiece {
-  id: string;
-  content: string;
-}
-
-export interface Challenge {
-  type: ChallengeType;
-  question: string;
-  code?: string;
-  language?: string;
-  options?: string[];
-  correctAnswer?: string;
-  correctAnswers?: string[];
-  explanation?: string;
-  placeholder?: string;
-  pieces?: ParsonsPiece[];
-  solution?: string[];
-  missionImageUrl?: string;
-  /** Embaralha a ordem das opções para o aluno. */
-  shuffleOptions?: boolean;
-}
+export type { ChallengeType, Challenge, ParsonsPiece }
 
 export interface Lesson {
   id: string;

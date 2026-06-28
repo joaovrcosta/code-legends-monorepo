@@ -27,6 +27,13 @@ import {
   X,
 } from 'lucide-react'
 import type { Challenge, ChallengeType } from '@/actions/lesson/list-lessons'
+import {
+  CHALLENGE_TYPE_LABELS,
+  CHALLENGE_TYPES,
+  buildBlockSlotsFromLines,
+  normalizeChallengeType,
+} from '@code-legends/challenges'
+import { getEditorMeta } from '@code-legends/challenges/editor'
 import type { RichTextEditorRef } from './rich-text-editor'
 
 const RichTextEditor = dynamic(
@@ -206,29 +213,6 @@ interface PreviewChallenge {
   missionImageUrl?: string
 }
 
-const challengeTypeLabels: Record<string, string> = {
-  prediction: 'Previsão',
-  bug: 'Encontre o Bug',
-  refactor: 'Refatoração',
-  complete: 'Complete o Código',
-  conceptual: 'Conceitual',
-  mcq: 'Múltipla escolha',
-  block_slots: 'Encaixar comandos',
-  parsons: 'Encaixar comandos (legado)',
-  exam_mcq: 'Exame (múltipla escolha)',
-}
-
-const CHALLENGE_TYPES: ChallengeType[] = [
-  'prediction',
-  'conceptual',
-  'mcq',
-  'bug',
-  'refactor',
-  'complete',
-  'block_slots',
-  'exam_mcq',
-]
-
 const LANGUAGES = [
   'javascript',
   'typescript',
@@ -242,12 +226,16 @@ const LANGUAGES = [
 ]
 
 function PreviewChallengeBlock({ challenge }: { challenge: PreviewChallenge }) {
+  const normalizedType =
+    normalizeChallengeType(String(challenge.type ?? '')) ?? challenge.type
   const typeLabel =
-    challengeTypeLabels[challenge.type ?? ''] ?? challenge.type ?? 'Desafio'
+    (normalizedType && CHALLENGE_TYPE_LABELS[normalizedType as ChallengeType]) ??
+    challenge.type ??
+    'Desafio'
   const hasOptions =
     Array.isArray(challenge.options) && challenge.options.length > 0
   const isBlockSlots =
-    challenge.type === 'block_slots' || challenge.type === 'parsons'
+    normalizedType === 'block_slots' || challenge.type === 'parsons'
   const byId = Object.fromEntries(
     (challenge.pieces ?? []).map((p) => [p.id, p.content]),
   )
@@ -424,17 +412,10 @@ function InsertChallengeModal({
   const [missionImageUrl, setMissionImageUrl] = useState('')
   const [shuffleOptions, setShuffleOptions] = useState(false)
 
-  const isBlockSlots = challengeType === 'block_slots'
-  const hasOptions =
-    challengeType === 'prediction' ||
-    challengeType === 'conceptual' ||
-    challengeType === 'mcq' ||
-    challengeType === 'bug' ||
-    challengeType === 'exam_mcq'
-  const showCode =
-    challengeType !== 'conceptual' &&
-    challengeType !== 'mcq' &&
-    challengeType !== 'exam_mcq'
+  const editorMeta = getEditorMeta(challengeType)
+  const isBlockSlots = editorMeta.isBlockSlots
+  const hasOptions = editorMeta.hasOptions
+  const showCode = editorMeta.showCode
 
   const addOption = () => setOptions((o) => [...o, ''])
   const removeOption = (i: number) =>
@@ -458,21 +439,13 @@ function InsertChallengeModal({
         .split('\n')
         .map((l) => l.replace(/\r$/, ''))
         .filter((l) => l.trim().length > 0)
-      const distrLines = blockSlotsDistractors
-        .split('\n')
-        .map((l) => l.replace(/\r$/, ''))
-        .filter((l) => l.trim().length > 0)
       if (correctLines.length < 1) return
-      const cPieces = correctLines.map((content, i) => ({
-        id: `c${i}`,
-        content,
-      }))
-      const dPieces = distrLines.map((content, i) => ({
-        id: `d${i}`,
-        content,
-      }))
-      challenge.pieces = [...cPieces, ...dPieces]
-      challenge.solution = [...cPieces.map((p) => p.id), ...dPieces.map((p) => p.id)]
+      const { pieces, solution } = buildBlockSlotsFromLines(
+        blockSlotsCorrect,
+        blockSlotsDistractors,
+      )
+      challenge.pieces = pieces
+      challenge.solution = solution
       if (missionImageUrl.trim()) {
         challenge.missionImageUrl = missionImageUrl.trim()
       }
@@ -529,7 +502,7 @@ function InsertChallengeModal({
               >
                 {CHALLENGE_TYPES.map((t) => (
                   <option key={t} value={t}>
-                    {challengeTypeLabels[t]}
+                    {CHALLENGE_TYPE_LABELS[t]}
                   </option>
                 ))}
               </Select>

@@ -3,6 +3,11 @@
 import { useCallback, useRef, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import type { Challenge } from "@/types/roadmap";
+import {
+  validateAnswer,
+  normalizeAnswer,
+  isCareerExamMultipleChoice,
+} from "@code-legends/challenges";
 import { cn } from "@/lib/utils";
 import { getChallengeDisplayOptions } from "@/lib/shuffle-challenge-options";
 import {
@@ -20,37 +25,11 @@ const CodeBlockHighlighter = dynamic(
   { ssr: false },
 );
 
-function normalizeAnswer(s: string) {
-  return s.trim().replace(/\s+/g, " ").toLowerCase();
-}
-
-function checkAnswer(challenge: Challenge, answer: string): boolean {
-  const norm = normalizeAnswer(answer);
-  if (challenge.correctAnswer !== undefined) {
-    if (normalizeAnswer(challenge.correctAnswer) === norm) return true;
-  }
-  if (challenge.correctAnswers) {
-    return challenge.correctAnswers.some((a) => normalizeAnswer(a) === norm);
-  }
-  return false;
-}
-
 function isOptionCorrect(challenge: Challenge, option: string): boolean {
-  return checkAnswer(challenge, option);
+  return validateAnswer(challenge, option);
 }
 
-/** Múltipla escolha no fluxo de exame da carreira (com ou sem tipo `exam_mcq`). */
-export function isCareerExamMultipleChoice(challenge: Challenge): boolean {
-  const opts = challenge.options;
-  const hasOptions = Array.isArray(opts) && opts.length > 0;
-  if (!hasOptions) return false;
-  if (challenge.type === "exam_mcq") return true;
-  return (
-    challenge.type === "conceptual" ||
-    challenge.type === "prediction" ||
-    challenge.type === "bug"
-  );
-}
+export { isCareerExamMultipleChoice };
 
 export function ExamMcqChallenge({
   challenge,
@@ -77,7 +56,7 @@ export function ExamMcqChallenge({
 
   const handleConfirm = useCallback(() => {
     if (submitted || selected === null) return;
-    const correct = checkAnswer(challenge, selected);
+    const correct = validateAnswer(challenge, selected);
     setIsCorrect(correct);
     setSubmitted(true);
     if (correct) {

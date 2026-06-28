@@ -21,6 +21,7 @@ import { ChallengeBlock } from '@/components/classroom/article/challenge-block-d
 import { CodePlayground } from '@/components/code-playground'
 import { useArticlePlayground } from '@/contexts/article-playground-context'
 import type { Lesson, Challenge, PlaygroundBlock } from '@/types/roadmap'
+import { normalizeChallengeType } from '@code-legends/challenges'
 import { HashIcon } from '@phosphor-icons/react/dist/ssr'
 import {
   extractChallengeFenceInnersFromArticleBody,
@@ -129,8 +130,9 @@ function ArticleCodeBlockPre({ children }: ComponentProps<'pre'>) {
       : getCodeString(codeEl)
     try {
       const data = JSON.parse(raw) as Challenge & { type?: string }
-      if ((data as { type?: string }).type === 'parsons') {
-        ;(data as { type: Challenge['type'] }).type = 'block_slots'
+      const normalized = normalizeChallengeType(String(data.type ?? ''))
+      if (normalized) {
+        data.type = normalized
       }
       let challengeXpSlotIndex: number | undefined
       if (

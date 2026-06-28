@@ -1,18 +1,13 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useState, useCallback, useMemo } from 'react'
+import { validateAnswer, normalizeAnswer, getStudentInputMode } from '@code-legends/challenges'
+import { awardChallengeXpFromBrowser } from '@/lib/award-challenge-xp-client'
+import { useActiveCourseStore } from '@/stores/active-course-store'
 import dynamic from 'next/dynamic'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Challenge } from '@/types/roadmap'
-import {
-  normalizeBlockSlotsSolution,
-  validateAnswer,
-} from '@code-legends/challenges'
-import { playPieceClickSound } from '@/lib/play-piece-click'
-import { playCorrectChime, playWrongTamTamm } from '@/lib/play-correct-chime'
-import { awardChallengeXpFromBrowser } from '@/lib/award-challenge-xp-client'
-import { useActiveCourseStore } from '@/stores/active-course-store'
 import {
   ChallengeFeedbackPanel,
   useIsDesktopChallengeLayout,
@@ -24,7 +19,10 @@ import {
   pickRandomCheerVariant,
   type CheerVariant,
 } from '@/components/classroom/challenge/challenge-rai-question-bubble'
+import { playCorrectChime, playWrongTamTamm } from '@/lib/play-correct-chime'
+import { getChallengeDisplayOptions } from '@/lib/shuffle-challenge-options'
 import { ArrowRight, Eye } from '@phosphor-icons/react/dist/ssr'
+import type { ChallengeBlockProps } from './challenge-block-props'
 
 const CodeBlockHighlighter = dynamic(
   () =>
@@ -39,39 +37,7 @@ const CodeBlockPre = dynamic(
   { ssr: false },
 )
 
-function shuffleIds(ids: string[]): string[] {
-  const copy = [...ids]
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-      ;[copy[i], copy[j]] = [copy[j], copy[i]]
-  }
-  return copy
-}
-
-function isSafeImageUrl(url: string): boolean {
-  try {
-    const u = new URL(url)
-    return u.protocol === 'https:' || u.protocol === 'http:'
-  } catch {
-    return false
-  }
-}
-
-export interface BlockSlotsChallengeProps {
-  challenge: Challenge
-  index?: number
-  lessonId?: number
-  challengeXpSlotIndex?: number
-  onAnswer?: (correct: boolean) => void
-  onNext?: () => void
-  allowRetry?: boolean
-  isLastQuestion?: boolean
-  onXpAwarded?: (info: { slot: number; amount: number }) => void
-  /** @default true */
-  awardChallengeXpOnCorrect?: boolean
-}
-
-export function BlockSlotsChallenge({
+export function ChoiceOrTextChallenge({
   challenge,
   index,
   lessonId,
@@ -80,92 +46,45 @@ export function BlockSlotsChallenge({
   onNext,
   allowRetry = true,
   isLastQuestion = false,
+  wrongMessage,
   onXpAwarded,
   awardChallengeXpOnCorrect = true,
-}: BlockSlotsChallengeProps) {
-  const targetSolution = useMemo(
-    () => normalizeBlockSlotsSolution(challenge),
-    [challenge],
-  )
-
-  const slotCount = targetSolution?.length ?? 0
-
-  const pieceMap = useMemo(() => {
-    const m = new Map<string, string>()
-    for (const p of challenge.pieces ?? []) {
-      m.set(p.id, p.content)
-    }
-    return m
-  }, [challenge.pieces])
-
-  const [slots, setSlots] = useState<(string | null)[]>(() =>
-    slotCount > 0 ? Array(slotCount).fill(null) : [],
-  )
-  const [bankOrder, setBankOrder] = useState<string[]>(() => {
-    if (!targetSolution) return []
-    return shuffleIds([...new Set(challenge.pieces?.map((p) => p.id) ?? [])])
-  })
-
+}: ChallengeBlockProps) {
+  const [selected, setSelected] = useState<string | null>(null)
+  const [typed, setTyped] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
   const [feedbackDismissed, setFeedbackDismissed] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
   const [xpAward, setXpAward] = useState<ChallengeFeedbackXpAward>({ state: 'idle' })
-  const isDesktopLayout = useIsDesktopChallengeLayout()
-
   const [cheerMessage, setCheerMessage] = useState<string | null>(null)
   const [cheerVariant, setCheerVariant] = useState<CheerVariant>('happy1')
+  const [shuffleSeed, setShuffleSeed] = useState(0)
+  const isDesktopLayout = useIsDesktopChallengeLayout()
 
-  const usedIds = useMemo(
-    () => new Set(slots.filter((s): s is string => s != null)),
-    [slots],
-  )
+  const inputMode = getStudentInputMode(challenge)
+  const isChoiceType = inputMode === 'choice'
+  const isTextType = inputMode === 'text'
 
-  const bankVisible = useMemo(
-    () => bankOrder.filter((id) => !usedIds.has(id)),
-    [bankOrder, usedIds],
-  )
-
-  const placeFromBank = useCallback(
-    (pieceId: string) => {
-      if (submitted) return
-      setSlots((prev) => {
-        const next = [...prev]
-        const idx = next.findIndex((s) => s == null)
-        if (idx === -1) return prev
-        next[idx] = pieceId
-        return next
-      })
-    },
-    [submitted],
-  )
-
-  const clearFromSlot = useCallback(
-    (fromIndex: number) => {
-      if (submitted) return
-      setSlots((prev) => {
-        const next = [...prev]
-        for (let i = fromIndex; i < next.length; i++) next[i] = null
-        return next
-      })
-    },
-    [submitted],
+  const displayOptions = useMemo(
+    () =>
+      getChallengeDisplayOptions(challenge.options ?? [], challenge.shuffleOptions),
+    [challenge.options, challenge.shuffleOptions, shuffleSeed],
   )
 
   const handleSubmit = useCallback(() => {
-    if (submitted || !targetSolution) return
-    if (slots.some((s) => s == null)) return
-    const correct = validateAnswer(challenge, slots as string[])
+    if (submitted) return
+    const answer = isChoiceType ? (selected ?? '') : typed
+    const correct = validateAnswer(challenge, answer)
     if (correct) playCorrectChime()
     else if (allowRetry) playWrongTamTamm()
     if (!correct) {
       setXpAward({ state: 'idle' })
+      setCheerMessage(null)
     }
     if (correct) {
       setCheerMessage(pickRandomCheerMessage())
       setCheerVariant(pickRandomCheerVariant())
-    } else {
-      setCheerMessage(null)
     }
     setIsCorrect(correct)
     setSubmitted(true)
@@ -202,8 +121,10 @@ export function BlockSlotsChallenge({
     }
   }, [
     submitted,
-    targetSolution,
-    slots,
+    isChoiceType,
+    selected,
+    typed,
+    challenge,
     onAnswer,
     lessonId,
     challengeXpSlotIndex,
@@ -214,9 +135,8 @@ export function BlockSlotsChallenge({
   ])
 
   const handleReset = useCallback(() => {
-    if (!targetSolution) return
-    setSlots(Array(targetSolution.length).fill(null))
-    setBankOrder(shuffleIds([...new Set(challenge.pieces?.map((p) => p.id) ?? [])]))
+    setSelected(null)
+    setTyped('')
     setSubmitted(false)
     setIsCorrect(null)
     setFeedbackDismissed(false)
@@ -224,34 +144,15 @@ export function BlockSlotsChallenge({
     setXpAward({ state: 'idle' })
     setCheerMessage(null)
     setCheerVariant('happy1')
-  }, [targetSolution, challenge.pieces])
-
-  const missionUrl = challenge.missionImageUrl?.trim() ?? ''
-  const showMission = missionUrl.length > 0 && isSafeImageUrl(missionUrl)
-
-  if (!targetSolution || slotCount === 0) {
-    return (
-      <div className="my-6 rounded-[16px] border border-red-500/40 bg-red-950/20 px-5 py-4 text-sm text-red-300">
-        Desafio inválido: defina peças com ids únicos e uma solução coerente com o número de
-        ranhuras.
-      </div>
-    )
-  }
-
-  const allFilled = !slots.some((s) => s == null)
+    if (challenge.shuffleOptions) setShuffleSeed((s) => s + 1)
+  }, [challenge.shuffleOptions])
 
   const feedbackVisible =
     submitted && (isCorrect === true || isCorrect === false) && !feedbackDismissed
   const hasExplanation = Boolean(challenge.explanation?.trim())
-  const wrongMessage =
-    'A ordem dos blocos não corresponde à solução esperada. Ajuste as ranhuras ou veja a resposta.'
-  const okMessage = 'Perfeito! A sequência de comandos está correta.'
 
   return (
     <div className="relative my-6 rounded-[16px] overflow-hidden">
-      <div className="flex items-center justify-between">
-      </div>
-
       <RaiQuestionBubble
         question={challenge.question}
         submitted={submitted}
@@ -259,17 +160,6 @@ export function BlockSlotsChallenge({
         cheerMessage={cheerMessage}
         cheerVariant={cheerVariant}
       />
-
-      {showMission && (
-        <div className="mx-2 mb-0 overflow-hidden rounded-[12px] p-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={missionUrl}
-            alt=""
-            className="mx-auto max-h-48 w-auto max-w-full object-contain"
-          />
-        </div>
-      )}
 
       {challenge.code && (
         <div className="mx-5 mb-4 overflow-hidden rounded-[12px] border border-[#25252A] bg-[#0d0d0f]">
@@ -280,62 +170,58 @@ export function BlockSlotsChallenge({
         </div>
       )}
 
-      <div className="mx-5 mb-3 rounded-[12px] pb-4">
-        <p className="mb-3 text-xs font-medium text-[#a1a1aa]">Sequência</p>
-        <div className="flex flex-col gap-2">
-          {slots.map((slotId, i) => (
-            <button
-              key={i}
-              type="button"
-              disabled={submitted}
-              onClick={() => {
-                if (slotId != null) {
-                  playPieceClickSound()
-                  clearFromSlot(i)
-                }
-              }}
-              className={`flex min-h-[44px] items-center gap-3 rounded-[10px] border px-3 py-2 text-left transition-colors ${slotId == null
-                ? 'border-dashed border-[#2a2a31] bg-transparent'
-                : 'border-[#25252A] bg-transparent hover:border-[#3f3f47]'
-                } disabled:cursor-default`}
-            >
-              <span className="w-6 shrink-0 text-center text-xs font-semibold text-[#71717a]">
-                {i + 1}
-              </span>
-              {slotId == null ? (
-                <span className="text-sm text-[#52525b]">Coloque um bloco aqui</span>
-              ) : (
-                <span className="font-mono text-sm text-white/90">
-                  {pieceMap.get(slotId) ?? slotId}
+      {isChoiceType && (
+        <div className="px-5 pb-4 flex flex-col gap-2">
+          {displayOptions.map((option, i) => {
+            const isSelected = selected === option
+            const isThisCorrect =
+              submitted && challenge.correctAnswer !== undefined
+                ? normalizeAnswer(challenge.correctAnswer) ===
+                  normalizeAnswer(option)
+                : false
+            const isThisWrong = submitted && isSelected && !isCorrect
+
+            return (
+              <button
+                key={`${option}-${i}`}
+                type="button"
+                disabled={submitted}
+                onClick={() => setSelected(option)}
+                className={`w-full text-left rounded-full border px-4 py-3 text-sm font-semibold transition-colors
+                  ${isThisCorrect
+                    ? 'border-[#4ade80] bg-[#1a2e1a]/80 text-[#4ade80]'
+                    : isThisWrong
+                      ? 'border-[#f87171] bg-[#3b1515]/80 text-[#f87171]'
+                      : isSelected
+                        ? 'border-[#00b3e4]/70 bg-white/5 text-white'
+                        : 'border-[#3f3f47] bg-transparent text-white/90 hover:border-[#00b3e4]/50 hover:bg-white/5'
+                  }
+                  disabled:cursor-not-allowed`}
+              >
+                <span className="flex items-center gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-current text-xs font-bold">
+                    {String.fromCharCode(65 + i)}
+                  </span>
+                  <span className="min-w-0 flex-1 leading-snug">{option}</span>
                 </span>
-              )}
-            </button>
-          ))}
+              </button>
+            )
+          })}
         </div>
-      </div>
+      )}
 
-      <div className="px-5 pb-2">
-        <p className="mb-2 text-xs text-[#71717a]">Blocos disponíveis</p>
-
-        <div className="flex flex-wrap gap-2">
-          {bankVisible.map((id) => (
-            <button
-              key={id}
-              type="button"
-              disabled={submitted}
-              onClick={() => {
-                if (!submitted && slots.some((s) => s == null)) {
-                  playPieceClickSound()
-                }
-                placeFromBank(id)
-              }}
-              className="rounded-full border border-[#3f3f47] bg-transparent px-3 py-2 text-sm font-semibold text-white/90 transition-colors hover:border-[#00b3e4]/50 hover:bg-white/5 active:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {pieceMap.get(id) ?? id}
-            </button>
-          ))}
+      {isTextType && (
+        <div className="px-5 pb-4">
+          <textarea
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            disabled={submitted}
+            rows={challenge.type === 'conceptual' || challenge.type === 'mcq' ? 3 : 5}
+            placeholder={challenge.placeholder ?? 'Escreva sua resposta...'}
+            className="w-full rounded-[10px] border border-[#25252A] bg-surface px-4 py-3 text-sm text-white font-mono placeholder:text-[#52525b] focus:border-[#00b3e4] focus:outline-none resize-none disabled:opacity-60"
+          />
         </div>
-      </div>
+      )}
 
       {submitted && challenge.explanation && (
         <div className="px-5 pb-5">
@@ -387,7 +273,7 @@ export function BlockSlotsChallenge({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!allFilled}
+            disabled={isChoiceType ? selected === null : typed.trim() === ''}
             className="font-wotfard mt-8 flex h-[38px] w-full items-center justify-center gap-2 rounded-full bg-[#00b3e4] px-5 py-2 text-base font-semibold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 lg:mt-4 lg:w-[115px]"
           >
             Verificar
@@ -420,7 +306,6 @@ export function BlockSlotsChallenge({
         isDesktopLayout={isDesktopLayout}
         hasExplanation={hasExplanation}
         wrongMessage={wrongMessage}
-        okMessage={okMessage}
         onDismiss={() => setFeedbackDismissed(true)}
         onTryAgain={handleReset}
         onSeeAnswer={() => {

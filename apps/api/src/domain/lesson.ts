@@ -1,32 +1,10 @@
-export type ChallengeType =
-  | "prediction"
-  | "bug"
-  | "refactor"
-  | "complete"
-  | "conceptual"
-  | "mcq"
-  | "block_slots";
+import type {
+  ChallengeType,
+  Challenge,
+  ParsonsPiece,
+} from '@code-legends/challenges'
 
-export interface ParsonsPiece {
-  id: string;
-  content: string;
-}
-
-export interface Challenge {
-  type: ChallengeType;
-  question: string;
-  code?: string;
-  language?: string;
-  options?: string[];
-  correctAnswer?: string;
-  correctAnswers?: string[];
-  explanation?: string;
-  placeholder?: string;
-  pieces?: ParsonsPiece[];
-  solution?: string[];
-  missionImageUrl?: string;
-  shuffleOptions?: boolean;
-}
+export type { ChallengeType, Challenge, ParsonsPiece }
 
 export interface ProjectSpecs {
   files?: Record<string, string>;
@@ -63,7 +41,6 @@ export interface LessonWithContentDTO {
     description: string;
     specs?: ProjectSpecs | null;
   } | null;
-  /** XP estimado ao concluir (primeira vez). */
   xpReward?: number;
 }
 

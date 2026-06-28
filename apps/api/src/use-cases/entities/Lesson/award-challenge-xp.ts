@@ -9,9 +9,7 @@ import { LessonNotFoundError } from '../../errors/lesson-not-found'
 import { CourseNotFoundError } from '../../errors/course-not-found'
 import {
   challengeFirstCorrectReasonId,
-  countArticleChallengeBlocks,
-  normalizeLessonTypeForXp,
-  normalizeQuizContentToArray,
+  countChallengeSlots,
 } from './challenge-first-correct-xp'
 import { NotificationBuilder } from '../../../utils/notification-builder'
 import { createNotification } from '../../../utils/create-notification'
@@ -36,16 +34,7 @@ function maxChallengesForLesson(
   quizContent: unknown,
   articleBody: string | null | undefined,
 ): number {
-  const type = normalizeLessonTypeForXp(typeRaw)
-  if (type === 'QUIZ' || type === 'MULTI_QUIZ') {
-    const fromQuiz = normalizeQuizContentToArray(quizContent).length
-    if (fromQuiz > 0) return fromQuiz
-    return countArticleChallengeBlocks(articleBody)
-  }
-  if (type === 'ARTICLE' || type === 'TEXT') {
-    return countArticleChallengeBlocks(articleBody)
-  }
-  return 0
+  return countChallengeSlots(typeRaw, quizContent, articleBody)
 }
 
 export class AwardChallengeXpUseCase {

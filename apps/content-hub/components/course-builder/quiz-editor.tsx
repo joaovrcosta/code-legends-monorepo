@@ -7,6 +7,13 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import type { Challenge, ChallengeType } from '@/actions/lesson/list-lessons'
+import {
+  CHALLENGE_TYPE_LABELS,
+  CHALLENGE_TYPES,
+  blockSlotsTextareasFromChallenge,
+  buildBlockSlotsChallenge,
+} from '@code-legends/challenges'
+import { getEditorMeta } from '@code-legends/challenges/editor'
 import { Plus, Trash2, ChevronDown, ChevronUp, Code, Bold, List, Info, Lightbulb } from 'lucide-react'
 import { EditorList } from '@/components/editor/editor-list'
 import { EditorListItem } from '@/components/editor/editor-list-item'
@@ -34,72 +41,9 @@ export interface QuizEditorProps {
   onReloadJsonFromEditor?: () => void
 }
 
-const challengeTypeLabels: Record<ChallengeType, string> = {
-  prediction: 'Previsão (o que acontece no código?)',
-  bug: 'Encontre o Bug',
-  refactor: 'Refatoração',
-  complete: 'Complete o Código',
-  conceptual: 'Conceitual (sem código)',
-  mcq: 'Múltipla escolha',
-  block_slots: 'Encaixar comandos',
-  exam_mcq: 'Exame — múltipla escolha (one-shot, só na carreira)',
-}
-
 function challengeTitle(challenge: Challenge): string {
   const q = (challenge.question ?? '').trim()
   return q.length > 0 ? q : 'Sem pergunta'
-}
-
-function blockSlotsTextareasFromChallenge(ch: Challenge): {
-  correct: string
-  distr: string
-} {
-  const pieces = ch.pieces ?? []
-  const sol = ch.solution ?? []
-  const byId: Record<string, string> = Object.fromEntries(
-    pieces.map((p) => [p.id, p.content]),
-  )
-  if (sol.length > 0) {
-    const correct = sol
-      .map((id) => byId[id])
-      .filter((c) => c !== undefined)
-      .join('\n')
-    const inSol = new Set(sol)
-    const distr = pieces
-      .filter((p) => !inSol.has(p.id))
-      .map((p) => p.content)
-      .join('\n')
-    return { correct, distr }
-  }
-  if (pieces.length > 0) {
-    return { correct: pieces.map((p) => p.content).join('\n'), distr: '' }
-  }
-  return { correct: '', distr: '' }
-}
-
-function buildBlockSlotsChallenge(
-  base: Challenge,
-  correct: string,
-  distr: string,
-): Challenge {
-  const correctLines = correct
-    .split('\n')
-    .map((l) => l.replace(/\r$/, ''))
-    .filter((l) => l.trim().length > 0)
-  const distrLines = distr
-    .split('\n')
-    .map((l) => l.replace(/\r$/, ''))
-    .filter((l) => l.trim().length > 0)
-  const cPieces = correctLines.map((content, i) => ({ id: `c${i}`, content }))
-  const dPieces = distrLines.map((content, i) => ({ id: `d${i}`, content }))
-  return {
-    ...base,
-    type: 'block_slots',
-    pieces: [...cPieces, ...dPieces],
-    solution: [...cPieces.map((p) => p.id), ...dPieces.map((p) => p.id)],
-    correctAnswer: undefined,
-    options: undefined,
-  }
 }
 
 function emptyChallenge(): Challenge {
@@ -147,13 +91,9 @@ function ChallengeFormFields({
     [challenge, onChange],
   )
 
-  const hasOptions =
-    challenge.type === 'prediction' ||
-    challenge.type === 'conceptual' ||
-    challenge.type === 'mcq' ||
-    challenge.type === 'bug' ||
-    challenge.type === 'exam_mcq'
-  const isBlockSlots = challenge.type === 'block_slots'
+  const editorMeta = getEditorMeta(challenge.type)
+  const hasOptions = editorMeta.hasOptions
+  const isBlockSlots = editorMeta.isBlockSlots
   const blockSlotsText = isBlockSlots
     ? blockSlotsTextareasFromChallenge(challenge)
     : { correct: '', distr: '' }
@@ -184,9 +124,7 @@ function ChallengeFormFields({
         />
       </div>
 
-      {challenge.type !== 'conceptual' &&
-        challenge.type !== 'mcq' &&
-        challenge.type !== 'exam_mcq' && (
+      {editorMeta.showCode && (
         <div className="space-y-1.5">
           <Label>Código (opcional)</Label>
           <div className="flex gap-2">
@@ -415,9 +353,9 @@ function ChallengeFormPanel({
                   onChange({ ...challenge, type: e.target.value as ChallengeType })
                 }
               >
-                {(Object.keys(challengeTypeLabels) as ChallengeType[]).map((t) => (
+                {CHALLENGE_TYPES.map((t) => (
                   <option key={t} value={t}>
-                    {challengeTypeLabels[t]}
+                    {CHALLENGE_TYPE_LABELS[t]}
                   </option>
                 ))}
               </Select>
@@ -463,7 +401,7 @@ function ChallengeItem({
         <div className="flex items-center gap-3">
           <EditorIndexBadge index={index} />
           <span className="max-w-xs truncate text-sm font-medium text-ch">
-            {challengeTypeLabels[challenge.type]}{' '}
+            {CHALLENGE_TYPE_LABELS[challenge.type]}{' '}
             {challenge.question &&
               `— ${challenge.question.slice(0, 40)}${challenge.question.length > 40 ? '…' : ''}`}
           </span>
@@ -494,9 +432,9 @@ function ChallengeItem({
                 onChange({ ...challenge, type: e.target.value as ChallengeType })
               }
             >
-              {(Object.keys(challengeTypeLabels) as ChallengeType[]).map((t) => (
+              {CHALLENGE_TYPES.map((t) => (
                 <option key={t} value={t}>
-                  {challengeTypeLabels[t]}
+                  {CHALLENGE_TYPE_LABELS[t]}
                 </option>
               ))}
             </Select>
@@ -527,7 +465,7 @@ function QuestionListItem({
       isSelected={isSelected}
       onSelect={onSelect}
       onRemove={onRemove}
-      typeLabel={challengeTypeLabels[challenge.type]}
+      typeLabel={CHALLENGE_TYPE_LABELS[challenge.type]}
       title={challengeTitle(challenge)}
       removeTitle="Remover desafio"
     />

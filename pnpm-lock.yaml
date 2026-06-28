@@ -44,6 +44,9 @@ importers:
       '@abacatepay/sdk':
         specifier: ^1.2.0
         version: 1.2.0
+      '@code-legends/challenges':
+        specifier: workspace:*
+        version: link:../../packages/challenges
       '@code-legends/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -135,6 +138,9 @@ importers:
       '@blocknote/react':
         specifier: ^0.47.1
         version: 0.47.1(@floating-ui/dom@1.7.6)(@types/hast@3.0.4)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(highlight.js@11.11.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(refractor@5.0.0)
+      '@code-legends/challenges':
+        specifier: workspace:*
+        version: link:../../packages/challenges
       '@code-legends/video-providers':
         specifier: workspace:*
         version: link:../../packages/video-providers
@@ -217,6 +223,9 @@ importers:
 
   apps/frontend:
     dependencies:
+      '@code-legends/challenges':
+        specifier: workspace:*
+        version: link:../../packages/challenges
       '@code-legends/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -398,6 +407,19 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.3
+
+  packages/challenges:
+    dependencies:
+      '@code-legends/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+    devDependencies:
+      typescript:
+        specifier: ^5.1.6
+        version: 5.9.3
+      vitest:
+        specifier: 0.33.0
+        version: 0.33.0(lightningcss@1.30.2)
 
   packages/shared-types:
     dependencies:

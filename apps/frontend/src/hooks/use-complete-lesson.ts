@@ -6,6 +6,7 @@ import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
 import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
+import { applyModuleCompletionStatsIfNeeded } from '@/lib/apply-module-completion-stats'
 import type { Lesson } from '@/types/roadmap'
 
 export function useCompleteLesson(lesson: Lesson | null, moduleTitle?: string) {
@@ -49,18 +50,12 @@ export function useCompleteLesson(lesson: Lesson | null, moduleTitle?: string) {
       showLessonXpToast(result)
       maybeShowStreakCongrats(result)
 
-      if (result.moduleCompleted) {
-        setLastModuleCompletion({
-          moduleCompleted: true,
-          moduleId: result.moduleId,
-          moduleTitle: result.moduleTitle ?? moduleTitle,
-          progress: result.progress,
-          xpGained: result.xpGained,
-          xpGainedInModule: result.xpGainedInModule,
-          xpGainedInModuleBySkill: result.xpGainedInModuleBySkill,
-        })
-        setShowModuleStatsOnce(true)
-      }
+      applyModuleCompletionStatsIfNeeded(
+        result,
+        setLastModuleCompletion,
+        setShowModuleStatsOnce,
+        moduleTitle,
+      )
 
       updateCurrentLessonStatus('completed')
       await fetchActiveCourse()

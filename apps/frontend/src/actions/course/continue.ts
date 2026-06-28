@@ -8,6 +8,8 @@ export interface ContinueCourseResult {
   success: boolean;
   nextLessonId: number | null;
   moduleCompleted: boolean;
+  /** true só quando o módulo acaba de atingir 100% nesta conclusão */
+  moduleNewlyCompleted?: boolean;
   moduleId?: string;
   moduleTitle?: string;
   courseCompleted: boolean;

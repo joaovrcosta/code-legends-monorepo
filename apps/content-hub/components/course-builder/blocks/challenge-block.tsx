@@ -6,22 +6,21 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Trash2, Plus, Eye, Edit2 } from "lucide-react";
 import dynamic from "next/dynamic";
+import {
+  CHALLENGE_TYPE_LABELS,
+  CHALLENGE_TYPES,
+  normalizeChallengeType,
+} from "@code-legends/challenges";
+import { getEditorMeta } from "@code-legends/challenges/editor";
 
 const ArticleCodeHighlighter = dynamic(
   () => import("../article-code-highlighter").then((m) => m.ArticleCodeHighlighter),
   { ssr: false }
 );
 
-const challengeTypeLabels: Record<string, string> = {
-  prediction: "Previsão",
-  bug: "Encontre o Bug",
-  refactor: "Refatoração",
-  complete: "Complete o Código",
-  conceptual: "Conceitual",
-  mcq: "Múltipla escolha",
-  block_slots: "Encaixar comandos",
-  exam_mcq: "Exame (múltipla escolha)",
-};
+function resolveChallengeType(raw: string): string {
+  return normalizeChallengeType(raw) ?? raw;
+}
 
 function nonEmptyLines(text: string): string[] {
   return text
@@ -63,15 +62,15 @@ export const ChallengeBlock = createReactBlockSpec(
       };
 
       const options = JSON.parse(block.props.options || "[]") as string[];
-      const hasOptions = ["prediction", "conceptual", "mcq", "bug", "exam_mcq"].includes(
-        block.props.challengeType,
+      const challengeType = resolveChallengeType(block.props.challengeType);
+      const editorMeta = getEditorMeta(
+        (CHALLENGE_TYPES.includes(challengeType as (typeof CHALLENGE_TYPES)[number])
+          ? challengeType
+          : "prediction") as (typeof CHALLENGE_TYPES)[number],
       );
-      const isBlockSlots =
-        block.props.challengeType === "block_slots" || block.props.challengeType === "parsons";
-      const showCode =
-        block.props.challengeType !== "conceptual" &&
-        block.props.challengeType !== "mcq" &&
-        block.props.challengeType !== "exam_mcq";
+      const hasOptions = editorMeta.hasOptions;
+      const isBlockSlots = editorMeta.isBlockSlots;
+      const showCode = editorMeta.showCode;
 
       const setOption = (index: number, val: string) => {
         const next = [...options];
@@ -95,7 +94,7 @@ export const ChallengeBlock = createReactBlockSpec(
           <div className="flex flex-wrap relative items-center justify-between border-b border-zinc-700 bg-zinc-900/80 px-4 py-2">
             <div className="flex items-center gap-2">
               <span className="rounded-md bg-zinc-700 px-2 py-0.5 text-[11px] font-medium text-zinc-200">
-                {challengeTypeLabels[block.props.challengeType] || "Desafio"}
+                {CHALLENGE_TYPE_LABELS[challengeType as keyof typeof CHALLENGE_TYPE_LABELS] || "Desafio"}
               </span>
               <span className="text-xs text-zinc-400">Desafio Interativo</span>
             </div>

@@ -37,6 +37,8 @@ interface CompleteLessonResponse {
   success: boolean
   nextLessonId: number | null
   moduleCompleted: boolean
+  /** true apenas na transição em que o módulo passa a 100% nesta conclusão */
+  moduleNewlyCompleted: boolean
   moduleId?: string
   moduleTitle?: string
   courseCompleted: boolean
@@ -386,6 +388,16 @@ export class CompleteLessonUseCase {
       totalTasksInModule > 0 ? tasksCompleted / totalTasksInModule : 0
     const moduleCompleted = tasksCompleted === totalTasksInModule
 
+    const existingModuleProgress =
+      await this.userModuleProgressRepository.findByUserAndModule(
+        userId,
+        group.moduleId,
+      )
+    const wasModuleAlreadyCompleted =
+      existingModuleProgress?.isCompleted ?? false
+    const moduleNewlyCompleted =
+      moduleCompleted && !wasModuleAlreadyCompleted
+
     await this.userModuleProgressRepository.upsert({
       userId,
       moduleId: group.moduleId,
@@ -554,6 +566,7 @@ export class CompleteLessonUseCase {
       success: true,
       nextLessonId,
       moduleCompleted,
+      moduleNewlyCompleted,
       moduleId: group.moduleId,
       moduleTitle: group.module.title,
       courseCompleted,

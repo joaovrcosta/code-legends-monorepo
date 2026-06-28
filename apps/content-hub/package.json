@@ -5,12 +5,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001 --webpack",
+    "build:challenges": "pnpm --filter @code-legends/challenges run build",
     "build:video-providers": "pnpm --filter @code-legends/video-providers run build",
-    "build": "pnpm run build:video-providers && next build",
+    "build": "pnpm run build:challenges && pnpm run build:video-providers && next build",
     "start": "next start -p 3001",
     "lint": "eslint"
   },
   "dependencies": {
+    "@code-legends/challenges": "workspace:*",
     "@code-legends/video-providers": "workspace:*",
     "@blocknote/code-block": "^0.47.1",
     "@blocknote/core": "^0.47.1",

@@ -6,6 +6,7 @@ import { CodePlayground } from '@/components/code-playground'
 import { continueCourse } from '@/actions/course'
 import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
 import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
+import { applyModuleCompletionStatsIfNeeded } from '@/lib/apply-module-completion-stats'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
@@ -49,18 +50,12 @@ export function ProjectView({ lesson, moduleTitle }: ProjectViewProps) {
         throw new Error('A API não retornou sucesso ao completar a lição')
       showLessonXpToast(result)
       maybeShowStreakCongrats(result)
-      if (result.moduleCompleted) {
-        setLastModuleCompletion({
-          moduleCompleted: true,
-          moduleId: result.moduleId,
-          moduleTitle: result.moduleTitle ?? moduleTitle,
-          progress: result.progress,
-          xpGained: result.xpGained,
-          xpGainedInModule: result.xpGainedInModule,
-          xpGainedInModuleBySkill: result.xpGainedInModuleBySkill,
-        })
-        setShowModuleStatsOnce(true)
-      }
+      applyModuleCompletionStatsIfNeeded(
+        result,
+        setLastModuleCompletion,
+        setShowModuleStatsOnce,
+        moduleTitle,
+      )
       updateCurrentLessonStatus('completed')
       await fetchActiveCourse()
     } catch (error) {

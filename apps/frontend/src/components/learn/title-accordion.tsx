@@ -10,6 +10,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { continueCourse } from '@/actions/course'
 import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
+import { applyModuleCompletionStatsIfNeeded } from '@/lib/apply-module-completion-stats'
 import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
 import { useState } from 'react'
 import { useActiveCourseStore } from '@/stores/active-course-store'
@@ -71,18 +72,11 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
       if (result?.success) {
         showLessonXpToast(result)
         maybeShowStreakCongrats(result)
-        if (result.moduleCompleted) {
-          setLastModuleCompletion({
-            moduleCompleted: true,
-            moduleId: result.moduleId,
-            moduleTitle: result.moduleTitle,
-            progress: result.progress,
-            xpGained: result.xpGained,
-            xpGainedInModule: result.xpGainedInModule,
-            xpGainedInModuleBySkill: result.xpGainedInModuleBySkill,
-          })
-          setShowModuleStatsOnce(true)
-        }
+        applyModuleCompletionStatsIfNeeded(
+          result,
+          setLastModuleCompletion,
+          setShowModuleStatsOnce,
+        )
         updateCurrentLessonStatus('completed')
         await fetchActiveCourse()
       }

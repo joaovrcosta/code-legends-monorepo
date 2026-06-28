@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development next dev -p 3000",
     "dev:fresh": "node -e \"const fs=require('fs');try{if(fs.existsSync('.next'))fs.rmSync('.next',{recursive:true,force:true});}catch(e){console.error(e);process.exit(1)}\" && cross-env NODE_ENV=development next dev -p 3000",
+    "build:challenges": "pnpm --filter @code-legends/challenges run build",
     "build:shared-types": "pnpm --filter @code-legends/shared-types run build",
     "build:video-providers": "pnpm --filter @code-legends/video-providers run build",
-    "build": "pnpm run build:shared-types && pnpm run build:video-providers && next build",
+    "build": "pnpm run build:challenges && pnpm run build:shared-types && pnpm run build:video-providers && next build",
     "start": "next start -p 3000",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
@@ -16,6 +17,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@code-legends/challenges": "workspace:*",
     "@code-legends/shared-types": "workspace:*",
     "@code-legends/video-providers": "workspace:*",
     "@codesandbox/sandpack-react": "^2.20.0",

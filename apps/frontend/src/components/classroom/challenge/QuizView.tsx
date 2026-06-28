@@ -15,6 +15,7 @@ import { ChallengeBlock } from './ChallengeBlock'
 import { continueCourse } from '@/actions/course'
 import { revalidateRoadmapCache } from '@/actions/course/revalidate-roadmap'
 import { awardChallengeXpFromBrowser } from '@/lib/award-challenge-xp-client'
+import { applyModuleCompletionStatsIfNeeded } from '@/lib/apply-module-completion-stats'
 import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
@@ -304,18 +305,11 @@ export function QuizView({
         setLessonXpGained(xpFromResult)
       }
       maybeShowStreakCongrats(result)
-      if (result.moduleCompleted) {
-        setLastModuleCompletion({
-          moduleCompleted: true,
-          moduleId: result.moduleId,
-          moduleTitle: result.moduleTitle,
-          progress: result.progress,
-          xpGained: result.xpGained,
-          xpGainedInModule: result.xpGainedInModule,
-          xpGainedInModuleBySkill: result.xpGainedInModuleBySkill,
-        })
-        setShowModuleStatsOnce(true)
-      }
+      applyModuleCompletionStatsIfNeeded(
+        result,
+        setLastModuleCompletion,
+        setShowModuleStatsOnce,
+      )
       updateCurrentLessonStatus('completed')
       await fetchActiveCourse()
     } catch (error) {
@@ -425,18 +419,11 @@ export function QuizView({
       }
 
       if (passedSnap) maybeShowStreakCongrats(result)
-      if (result.moduleCompleted) {
-        setLastModuleCompletion({
-          moduleCompleted: true,
-          moduleId: result.moduleId,
-          moduleTitle: result.moduleTitle,
-          progress: result.progress,
-          xpGained: result.xpGained,
-          xpGainedInModule: result.xpGainedInModule,
-          xpGainedInModuleBySkill: result.xpGainedInModuleBySkill,
-        })
-        setShowModuleStatsOnce(true)
-      }
+      applyModuleCompletionStatsIfNeeded(
+        result,
+        setLastModuleCompletion,
+        setShowModuleStatsOnce,
+      )
       updateCurrentLessonStatus(passedSnap ? 'completed' : 'unlocked')
       await fetchActiveCourse()
     } catch (error) {

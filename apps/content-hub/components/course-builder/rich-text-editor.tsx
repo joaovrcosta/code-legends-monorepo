@@ -7,6 +7,11 @@ import { useCallback, useEffect, useState, forwardRef, useImperativeHandle } fro
 import { Info, AlertTriangle, Lightbulb, CheckCircle2, Target } from "lucide-react";
 import { ChallengeBlock } from "./blocks/challenge-block";
 import { getHighlighter } from "./shiki";
+import {
+  buildBlockSlotsFromLines,
+  blockSlotsTextareasFromChallenge,
+  normalizeChallengeType,
+} from "@code-legends/challenges";
 
 const codeBlockCustomOptions = {
   createHighlighter: getHighlighter,
@@ -43,48 +48,29 @@ interface RichTextEditorProps {
   className?: string;
 }
 
-function buildBlockSlotsFromEditorProps(p: any): {
+function buildBlockSlotsFromEditorProps(p: Record<string, unknown>): {
   pieces: { id: string; content: string }[];
   solution: string[];
 } {
-  const correctLines = String(p.blockSlotsCorrect || p.parsonsCorrect || "")
-    .split("\n")
-    .map((l) => l.replace(/\r$/, ""))
-    .filter((l) => l.trim().length > 0);
-  const distrLines = String(p.blockSlotsDistractors || p.parsonsDistractors || "")
-    .split("\n")
-    .map((l) => l.replace(/\r$/, ""))
-    .filter((l) => l.trim().length > 0);
-  const cPieces = correctLines.map((content, i) => ({ id: `c${i}`, content }));
-  const dPieces = distrLines.map((content, i) => ({ id: `d${i}`, content }));
-  return {
-    pieces: [...cPieces, ...dPieces],
-    solution: [...cPieces.map((x) => x.id), ...dPieces.map((x) => x.id)],
-  };
+  const correct = String(p.blockSlotsCorrect || p.parsonsCorrect || "");
+  const distr = String(p.blockSlotsDistractors || p.parsonsDistractors || "");
+  return buildBlockSlotsFromLines(correct, distr);
 }
 
-function blockSlotsTextareasFromParsed(parsed: any): {
+function blockSlotsTextareasFromParsed(parsed: {
+  pieces?: { id: string; content: string }[];
+  solution?: string[];
+}): {
   blockSlotsCorrect: string;
   blockSlotsDistractors: string;
 } {
-  const pieces: { id: string; content: string }[] = Array.isArray(parsed.pieces)
-    ? parsed.pieces
-    : [];
-  const sol: string[] = Array.isArray(parsed.solution) ? parsed.solution : [];
-  const byId: Record<string, string> = Object.fromEntries(
-    pieces.map((p) => [p.id, p.content]),
-  );
-  let blockSlotsCorrect = "";
-  let blockSlotsDistractors = "";
-  if (sol.length > 0) {
-    blockSlotsCorrect = sol.map((id: string) => byId[id]).filter((c) => c !== undefined).join("\n");
-    const inSol = new Set(sol);
-    const extra = pieces.filter((p) => !inSol.has(p.id)).map((p) => p.content);
-    blockSlotsDistractors = extra.join("\n");
-  } else if (pieces.length > 0) {
-    blockSlotsCorrect = pieces.map((p) => p.content).join("\n");
-  }
-  return { blockSlotsCorrect, blockSlotsDistractors };
+  const { correct, distr } = blockSlotsTextareasFromChallenge({
+    type: "block_slots",
+    question: "",
+    pieces: parsed.pieces ?? [],
+    solution: parsed.solution ?? [],
+  });
+  return { blockSlotsCorrect: correct, blockSlotsDistractors: distr };
 }
 
 // Interceptamos a saída do BlockNote para converter nosso bloco customizado num bloco de código Markdown.
@@ -102,7 +88,9 @@ function prepareBlocksForExport(blocks: any[]): void {
             type: "text",
             text: JSON.stringify(
               (() => {
-                const exportType = p.challengeType === "parsons" ? "block_slots" : (p.challengeType || "prediction");
+                const exportType =
+                  normalizeChallengeType(String(p.challengeType || "prediction")) ??
+                  "prediction";
                 const base: Record<string, unknown> = {
                   type: exportType,
                   question: p.question || "",
@@ -169,7 +157,8 @@ function processImportedBlocks(blocks: any[]): void {
         const text = block.content.map((c: any) => c.text).join("");
         const parsed = JSON.parse(text);
         const rawType = parsed.type || "prediction";
-        const challengeType = rawType === "parsons" ? "block_slots" : rawType;
+        const challengeType =
+          normalizeChallengeType(rawType) ?? rawType;
         const blockSlotsFields =
           challengeType === "block_slots"
             ? blockSlotsTextareasFromParsed(parsed)

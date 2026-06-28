@@ -2,36 +2,13 @@ export type LessonStatus = "completed" | "unlocked" | "locked";
 
 export type LessonType = "video" | "article" | "text" | "quiz" | "multi_quiz" | "project";
 
-export type ChallengeType =
-  | "prediction"
-  | "bug"
-  | "refactor"
-  | "complete"
-  | "conceptual"
-  | "mcq"
-  | "block_slots"
-  | "exam_mcq";
+import type {
+  ChallengeType,
+  Challenge,
+  ParsonsPiece,
+} from '@code-legends/challenges'
 
-export interface ParsonsPiece {
-  id: string;
-  content: string;
-}
-
-export interface Challenge {
-  type: ChallengeType;
-  question: string;
-  code?: string;
-  language?: string;
-  options?: string[];
-  correctAnswer?: string;
-  correctAnswers?: string[];
-  explanation?: string;
-  placeholder?: string;
-  pieces?: ParsonsPiece[];
-  solution?: string[];
-  missionImageUrl?: string;
-  shuffleOptions?: boolean;
-}
+export type { ChallengeType, Challenge, ParsonsPiece }
 
 /** Bloco de Code Playground no Markdown (```playground + JSON). */
 export interface PlaygroundBlock {

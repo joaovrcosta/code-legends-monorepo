@@ -1,0 +1,40 @@
+{
+  "name": "@code-legends/challenges",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./editor": {
+      "types": "./dist/editor-meta.d.ts",
+      "import": "./dist/editor-meta.js",
+      "require": "./dist/editor-meta.js",
+      "default": "./dist/editor-meta.js"
+    },
+    "./slots": {
+      "types": "./dist/slots/index.d.ts",
+      "import": "./dist/slots/index.js",
+      "require": "./dist/slots/index.js",
+      "default": "./dist/slots/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@code-legends/shared-types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.1.6",
+    "vitest": "0.33.0"
+  }
+}
