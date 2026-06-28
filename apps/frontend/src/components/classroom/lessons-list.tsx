@@ -45,6 +45,8 @@ function getLessonMeta(lesson: Lesson) {
 interface LessonsListProps {
   lessons: Lesson[]
   currentLessonId?: number
+  activeLessonId?: number
+  paywallLessonId?: number
   roadmap: RoadmapResponse | null
   courseId?: string
 }
@@ -52,6 +54,8 @@ interface LessonsListProps {
 export const LessonsList = memo(function LessonsList({
   lessons,
   currentLessonId,
+  activeLessonId,
+  paywallLessonId,
   roadmap,
   courseId,
 }: LessonsListProps) {
@@ -251,7 +255,8 @@ export const LessonsList = memo(function LessonsList({
 
                           <div className="flex flex-col">
                             {group.lessons.map((lesson, lessonIndex) => {
-                              const isActive = currentLessonId === lesson.id
+                              const isActive = activeLessonId === lesson.id
+                              const isPaywallTarget = paywallLessonId === lesson.id
                               const isLastLesson = lessonIndex === group.lessons.length - 1
                               const lessonIndexInAll = lessons.findIndex((l) => l.id === lesson.id)
                               const isPaidLesson = lesson.isFree === false
@@ -272,8 +277,13 @@ export const LessonsList = memo(function LessonsList({
 
                                   <button
                                     onClick={() => handleLessonClick(lesson, lessonIndexInAll)}
-                                    className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${isActive ? 'bg-zinc-800/50' : 'hover:bg-zinc-800/30'
-                                      } ${isFreePlan && isPaidLesson ? 'opacity-50' : ''}`}
+                                    className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${
+                                      isActive
+                                        ? 'bg-zinc-800/50'
+                                        : isPaywallTarget
+                                          ? 'bg-zinc-800/30'
+                                          : 'hover:bg-zinc-800/30'
+                                    } ${isFreePlan && isPaidLesson && !isPaywallTarget ? 'opacity-50' : ''}`}
                                   >
                                     {lesson.status === 'completed' ? (
                                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#278b4d]">
@@ -287,19 +297,21 @@ export const LessonsList = memo(function LessonsList({
                                       <Circle
                                         size={20}
                                         strokeWidth={1.75}
-                                        className={`shrink-0 fill-transparent transition-colors ${isActive
-                                          ? 'text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]'
-                                          : 'text-zinc-500'
-                                          }`}
+                                        className={`shrink-0 fill-transparent transition-colors ${
+                                          isActive
+                                            ? 'text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]'
+                                            : 'text-zinc-500'
+                                        }`}
                                       />
                                     )}
 
                                     <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                                       <span
-                                        className={`text-sm truncate transition-colors duration-200 ${isActive
-                                          ? 'text-cyan-50 font-semibold'
-                                          : 'text-zinc-400 font-base group-hover:text-zinc-200'
-                                          }`}
+                                        className={`text-sm truncate transition-colors duration-200 ${
+                                          isActive
+                                            ? 'text-cyan-50 font-semibold'
+                                            : 'text-zinc-400 font-base group-hover:text-zinc-200'
+                                        }`}
                                       >
                                         {lesson.title}
                                       </span>

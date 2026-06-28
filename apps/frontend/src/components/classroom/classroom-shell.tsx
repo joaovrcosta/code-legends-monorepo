@@ -15,7 +15,7 @@ type ClassroomShellProps = {
 
 export function ClassroomShell({ children }: ClassroomShellProps) {
   const { isOpen: isSidebarOpen } = useClassroomSidebarStore()
-  const { roadmap, isLoading, courseId, currentLessonId, allLessons } =
+  const { roadmap, isLoading, courseId, currentLessonId, activeLessonId, paywallLessonId, allLessons } =
     useClassroomRoadmap()
 
   const showSidebarSkeleton = isLoading && !roadmap
@@ -29,6 +29,8 @@ export function ClassroomShell({ children }: ClassroomShellProps) {
           <LessonsList
             lessons={allLessons}
             currentLessonId={currentLessonId}
+            activeLessonId={activeLessonId}
+            paywallLessonId={paywallLessonId}
             roadmap={roadmap}
             courseId={courseId}
           />

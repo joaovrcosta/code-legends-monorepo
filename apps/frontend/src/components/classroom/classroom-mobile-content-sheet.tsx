@@ -17,7 +17,7 @@ import { ClassroomSidebarSkeleton } from '@/components/classroom/classroom-sideb
 export function ClassroomMobileContentSheet() {
   const pathname = usePathname()
   const { isOpen, close, open } = useClassroomMobileContentStore()
-  const { roadmap, isLoading, courseId, currentLessonId, allLessons } =
+  const { roadmap, isLoading, courseId, currentLessonId, activeLessonId, paywallLessonId, allLessons } =
     useClassroomRoadmap()
 
   useEffect(() => {
@@ -54,6 +54,8 @@ export function ClassroomMobileContentSheet() {
             <LessonsList
               lessons={allLessons}
               currentLessonId={currentLessonId}
+              activeLessonId={activeLessonId}
+              paywallLessonId={paywallLessonId}
               roadmap={roadmap}
               courseId={courseId}
             />

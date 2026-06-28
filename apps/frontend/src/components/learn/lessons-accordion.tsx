@@ -42,7 +42,7 @@ function getLessonMeta(lesson: Lesson) {
 }
 
 export function LessonsAccordion() {
-  const { roadmap, courseId, currentLessonId, isLoading } = useClassroomRoadmap()
+  const { roadmap, courseId, currentLessonId, activeLessonId, paywallLessonId, isLoading } = useClassroomRoadmap()
   const { openModuleIds, setOpenModuleIds } = useClassroomSidebarStore()
   const { data: session } = useSession()
   const userPlan = (session?.user as { plan?: string } | undefined)?.plan
@@ -229,7 +229,8 @@ export function LessonsAccordion() {
 
                           <div className="flex flex-col">
                             {group.lessons.map((lesson, lessonIndex) => {
-                              const isActive = currentLessonId === lesson.id
+                              const isActive = activeLessonId === lesson.id
+                              const isPaywallTarget = paywallLessonId === lesson.id
                               const isLastLesson =
                                 lessonIndex === group.lessons.length - 1
                               const isPaidLesson = lesson.isFree === false
@@ -247,27 +248,27 @@ export function LessonsAccordion() {
 
                                   <button
                                     onClick={() => handleLessonClick(lesson)}
-                                    className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${isActive
-                                      ? 'bg-zinc-800/50'
-                                      : 'hover:bg-zinc-800/30 border border-transparent'
-                                      } ${isFreePlan && isPaidLesson
-                                        ? 'opacity-50'
-                                        : ''
-                                      }`}
+                                    className={`group relative flex items-center gap-3 w-full py-2 px-3 rounded-[12px] transition-colors duration-200 text-left ${
+                                      isActive
+                                        ? 'bg-zinc-800/50'
+                                        : isPaywallTarget
+                                          ? 'bg-zinc-800/30'
+                                          : 'hover:bg-zinc-800/30 border border-transparent'
+                                    } ${isFreePlan && isPaidLesson && !isPaywallTarget ? 'opacity-50' : ''}`}
                                   >
                                     <div
-                                      className={`w-2 h-2 rounded-full shrink-0 transition-colors ${isActive
-                                        ? 'bg-cyan-400'
-                                        : 'bg-cyan-400/50'
-                                        }`}
+                                      className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
+                                        isActive ? 'bg-cyan-400' : 'bg-cyan-400/50'
+                                      }`}
                                     />
 
                                     <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                                       <span
-                                        className={`text-sm truncate transition-colors duration-200 ${isActive
-                                          ? 'text-cyan-50 font-semibold'
-                                          : 'text-zinc-400 font-medium group-hover:text-zinc-200'
-                                          }`}
+                                        className={`text-sm truncate transition-colors duration-200 ${
+                                          isActive
+                                            ? 'text-cyan-50 font-semibold'
+                                            : 'text-zinc-400 font-medium group-hover:text-zinc-200'
+                                        }`}
                                       >
                                         {lesson.title}
                                       </span>

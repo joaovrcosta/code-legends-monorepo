@@ -25,7 +25,12 @@ export type ClassroomRoadmapContextValue = {
   roadmap: RoadmapResponse | null
   isLoading: boolean
   courseId: string | undefined
+  /** Aula da URL ou store — define módulo aberto no accordion. */
   currentLessonId: number | undefined
+  /** Destaque no sidebar; vazio quando paywall bloqueia a aula da URL. */
+  activeLessonId: number | undefined
+  /** Aula da URL com paywall — destaque sutil (não confundir com aula ativa). */
+  paywallLessonId: number | undefined
   allLessons: Lesson[]
   refreshRoadmap: (options?: RefreshRoadmapOptions) => Promise<RoadmapResponse | null>
   patchLessonStatus: (lessonId: number, status: LessonStatus) => void
@@ -43,6 +48,7 @@ export function ClassroomRoadmapProvider({ children }: { children: ReactNode }) 
     currentLesson,
     lessonCompletedTimestamp,
     moduleUnlockedTimestamp,
+    exclusiveAccessBlocked,
   } = useCourseModalStore()
   const { resetAccordionForCourse } = useClassroomSidebarStore()
 
@@ -81,11 +87,7 @@ export function ClassroomRoadmapProvider({ children }: { children: ReactNode }) 
     setIsLoading,
   })
 
-  const currentLessonId = useMemo(() => {
-    if (currentLesson?.id) {
-      return currentLesson.id
-    }
-
+  const routeLessonId = useMemo(() => {
     if (!roadmap?.modules || !lessonSlug) {
       return undefined
     }
@@ -100,7 +102,21 @@ export function ClassroomRoadmapProvider({ children }: { children: ReactNode }) 
     }
 
     return undefined
-  }, [currentLesson?.id, lessonSlug, roadmap])
+  }, [lessonSlug, roadmap])
+
+  const currentLessonId = useMemo(() => {
+    return routeLessonId ?? currentLesson?.id
+  }, [routeLessonId, currentLesson?.id])
+
+  const activeLessonId = useMemo(() => {
+    if (exclusiveAccessBlocked) return undefined
+    return currentLessonId
+  }, [exclusiveAccessBlocked, currentLessonId])
+
+  const paywallLessonId = useMemo(() => {
+    if (!exclusiveAccessBlocked) return undefined
+    return routeLessonId
+  }, [exclusiveAccessBlocked, routeLessonId])
 
   const allLessons = useMemo(() => {
     if (!roadmap?.modules) return []
@@ -115,6 +131,8 @@ export function ClassroomRoadmapProvider({ children }: { children: ReactNode }) 
       isLoading,
       courseId,
       currentLessonId,
+      activeLessonId,
+      paywallLessonId,
       allLessons,
       refreshRoadmap,
       patchLessonStatus,
@@ -124,6 +142,8 @@ export function ClassroomRoadmapProvider({ children }: { children: ReactNode }) 
       isLoading,
       courseId,
       currentLessonId,
+      activeLessonId,
+      paywallLessonId,
       allLessons,
       refreshRoadmap,
       patchLessonStatus,
