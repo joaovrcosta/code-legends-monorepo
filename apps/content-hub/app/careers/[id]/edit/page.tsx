@@ -397,13 +397,11 @@ export default function EditCareerPage() {
                     onSetCourses={async (courses) => {
                       const token = getAuthTokenFromClient();
                       await adminSetCareerModuleCourses(m.id, courses, token || undefined);
-                      toast.success("Cursos vinculados!");
                       await load();
                     }}
                     onSetExams={async (examsToSet) => {
                       const token = getAuthTokenFromClient();
                       await adminSetCareerModuleExams(m.id, examsToSet, token || undefined);
-                      toast.success("Exames vinculados!");
                     }}
                   />
                 ))
@@ -572,10 +570,11 @@ function CareerModuleCard({
     );
   };
 
-  const save = async () => {
+  const saveAll = async () => {
     try {
       setBusy(true);
       const token = getAuthTokenFromClient();
+
       const { module: updated } = await adminUpdateCareerModule(
         careerId,
         module.id,
@@ -584,10 +583,20 @@ function CareerModuleCard({
           description: local.description || null,
           orderIndex: Number(local.orderIndex) || 0,
         },
-        token || undefined
+        token || undefined,
       );
-      toast.success("Módulo salvo!");
       onUpdated(updated);
+
+      await onSetCourses(
+        selectedCourses.map((id, idx) => ({ courseId: id, orderIndex: idx })),
+      );
+
+      const examPayload: Array<{ careerExamId: string; examIndex: 1 | 2 }> = [];
+      if (exam1) examPayload.push({ careerExamId: exam1, examIndex: 1 });
+      if (exam2) examPayload.push({ careerExamId: exam2, examIndex: 2 });
+      await onSetExams(examPayload);
+
+      toast.success("Módulo salvo!");
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || "Erro ao salvar módulo");
@@ -607,33 +616,6 @@ function CareerModuleCard({
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || "Erro ao excluir módulo");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const applyCourses = async () => {
-    try {
-      setBusy(true);
-      await onSetCourses(selectedCourses.map((id, idx) => ({ courseId: id, orderIndex: idx })));
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e.message || "Erro ao vincular cursos");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const applyExams = async () => {
-    try {
-      setBusy(true);
-      const payload: Array<{ careerExamId: string; examIndex: 1 | 2 }> = [];
-      if (exam1) payload.push({ careerExamId: exam1, examIndex: 1 });
-      if (exam2) payload.push({ careerExamId: exam2, examIndex: 2 });
-      await onSetExams(payload);
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e.message || "Erro ao vincular exames");
     } finally {
       setBusy(false);
     }
@@ -685,17 +667,6 @@ function CareerModuleCard({
       <div className="space-y-2">
         <Label>Descrição</Label>
         <Textarea value={local.description} onChange={(e) => setLocal({ ...local, description: e.target.value })} rows={2} />
-      </div>
-
-      <div className="flex gap-2">
-        <Button onClick={save} disabled={busy} className="gap-2">
-          <Save className="h-4 w-4" />
-          Salvar módulo
-        </Button>
-        <Button onClick={remove} disabled={busy} variant="outline" className="gap-2">
-          <Trash2 className="h-4 w-4 text-red-600" />
-          Excluir
-        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -761,10 +732,6 @@ function CareerModuleCard({
               ))
             )}
           </div>
-
-          <Button onClick={applyCourses} disabled={busy} variant="default" className="w-full sm:w-auto">
-            Salvar vínculos ({selectedCourses.length})
-          </Button>
 
           <div className="border-t border-ch-border pt-3 border-ch-border">
             <Label htmlFor={`add-course-${module.id}`}>Adicionar curso</Label>
@@ -841,10 +808,18 @@ function CareerModuleCard({
               </Select>
             </div>
           </div>
-          <Button onClick={applyExams} disabled={busy} variant="outline">
-            Aplicar exames
-          </Button>
         </div>
+      </div>
+
+      <div className="flex gap-2 border-t border-ch-border pt-4">
+        <Button onClick={saveAll} disabled={busy} className="gap-2">
+          <Save className="h-4 w-4" />
+          {busy ? "Salvando..." : "Salvar"}
+        </Button>
+        <Button onClick={remove} disabled={busy} variant="outline" className="gap-2">
+          <Trash2 className="h-4 w-4 text-red-600" />
+          Excluir
+        </Button>
       </div>
         </div>
       ) : null}
