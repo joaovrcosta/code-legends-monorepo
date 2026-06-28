@@ -8,7 +8,7 @@
     "build:challenges": "pnpm --filter @code-legends/challenges run build",
     "build:shared-types": "pnpm --filter @code-legends/shared-types run build",
     "build:video-providers": "pnpm --filter @code-legends/video-providers run build",
-    "build": "pnpm run build:challenges && pnpm run build:shared-types && pnpm run build:video-providers && next build",
+    "build": "pnpm run build:shared-types && pnpm run build:challenges && pnpm run build:video-providers && next build",
     "start": "next start -p 3000",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
