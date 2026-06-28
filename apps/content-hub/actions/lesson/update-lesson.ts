@@ -1,7 +1,8 @@
 "use server";
 
 import { buildApiHeaders } from "@/actions/auth";
-import type { Lesson, Challenge } from "./list-lessons";
+import type { Lesson } from "./list-lessons";
+import type { Challenge } from '@code-legends/challenges';
 
 export interface UpdateLessonData {
   title?: string;

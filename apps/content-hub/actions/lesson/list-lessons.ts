@@ -1,12 +1,7 @@
 "use server";
 
-import type {
-  ChallengeType,
-  Challenge,
-  ParsonsPiece,
-} from '@code-legends/challenges'
-
-export type { ChallengeType, Challenge, ParsonsPiece }
+import type { Challenge } from '@code-legends/challenges'
+export type { ChallengeType, Challenge, ParsonsPiece } from '@code-legends/challenges'
 
 export interface Lesson {
   id: string;

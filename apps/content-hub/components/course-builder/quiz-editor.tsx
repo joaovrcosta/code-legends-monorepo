@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
-import type { Challenge, ChallengeType } from '@/actions/lesson/list-lessons'
+import type { Challenge, ChallengeType } from '@code-legends/challenges'
 import {
   CHALLENGE_TYPE_LABELS,
   CHALLENGE_TYPES,

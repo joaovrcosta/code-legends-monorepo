@@ -26,7 +26,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import type { Challenge, ChallengeType } from '@/actions/lesson/list-lessons'
+import type { Challenge, ChallengeType } from '@code-legends/challenges'
 import {
   CHALLENGE_TYPE_LABELS,
   CHALLENGE_TYPES,
