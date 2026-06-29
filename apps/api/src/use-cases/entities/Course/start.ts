@@ -3,6 +3,10 @@ import { ICourseRepository } from '../../../repositories/course-repository'
 import { IUsersRepository } from '../../../repositories/users-repository'
 import { CourseNotFoundError } from '../../errors/course-not-found'
 import { prisma } from '../../../lib/prisma'
+import {
+  assertUserCanAccessPathUnitCourse,
+  ensureUserCourseForPathUnit,
+} from '../../../utils/path-unit-access'
 
 interface StartCourseRequest {
   userId: string
@@ -39,6 +43,9 @@ export class StartCourseUseCase {
     if (course.status !== 'PUBLISHED') {
       throw new CourseNotFoundError()
     }
+
+    await assertUserCanAccessPathUnitCourse(userId, course)
+    await ensureUserCourseForPathUnit(userId, course)
 
     // Verificar se o usuário está inscrito
     const userCourse = await this.userCourseRepository.findByUserAndCourse(

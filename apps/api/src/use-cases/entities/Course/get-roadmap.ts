@@ -6,6 +6,7 @@ import { prisma } from '../../../lib/prisma'
 import { computeEstimatedLessonXpReward } from '../../../lib/lesson-xp-reward'
 import { getGamificationSettingsCached } from '../../../utils/gamification-settings-cache'
 import { resolveDisplayCurrentTaskId } from '../../../utils/resolve-current-task-id'
+import { assertUserCanAccessPathUnitCourse, ensureUserCourseForPathUnit } from '../../../utils/path-unit-access'
 
 // Função auxiliar para converter duração em segundos
 function parseDurationToSeconds(duration: string | null): number {
@@ -129,6 +130,9 @@ export class GetRoadmapUseCase {
     if (course.status !== 'PUBLISHED') {
       throw new CourseNotFoundError()
     }
+
+    await assertUserCanAccessPathUnitCourse(userId, course)
+    await ensureUserCourseForPathUnit(userId, course)
 
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,

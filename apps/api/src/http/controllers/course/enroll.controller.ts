@@ -26,6 +26,13 @@ export async function enroll(request: FastifyRequest, reply: FastifyReply) {
       return reply.status(404).send({ message: error.message });
     }
 
+    if (
+      error instanceof Error &&
+      error.message.includes("Path Units só podem ser acessadas")
+    ) {
+      return reply.status(403).send({ message: error.message });
+    }
+
     return reply.status(500).send({ message: "Internal server error" });
   }
 }

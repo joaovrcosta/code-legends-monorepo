@@ -1,4 +1,5 @@
 import { getCareerBySlug } from "@/actions/career";
+import { getCurrentSession } from "@/actions/auth/session";
 import { EnrollCareerButton } from "@/components/career/enroll-career-button";
 import { CareerCertificatePanel } from "@/components/career/career-certificate-panel";
 import { CareerConteudoTab } from "@/components/career/career-conteudo-tab";
@@ -20,7 +21,13 @@ export default async function CareerDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const data = await getCareerBySlug(slug);
+  const [data, session] = await Promise.all([
+    getCareerBySlug(slug),
+    getCurrentSession(),
+  ]);
+  const isPremium = session?.plan === "PREMIUM";
+  const hasPaidPlan =
+    session?.plan === "PREMIUM" || session?.plan === "PRO";
 
   return (
     <div className="w-full">
@@ -45,9 +52,11 @@ export default async function CareerDetailPage({
               </span>
             </Link>
 
-            <div className="mt-3 mb-4">
-              <SubscriberBadge variant="premium" />
-            </div>
+            {!hasPaidPlan ? (
+              <div className="mt-3 mb-4">
+                <SubscriberBadge variant="premium" />
+              </div>
+            ) : null}
             <h1 className="font-bold lg:text-[44px] text-2xl lg:text-left leading-tight text-center mb-3 text-white">
               {data.career.title}
             </h1>
@@ -90,7 +99,13 @@ export default async function CareerDetailPage({
       <PageContentWidth className="mt-6 flex flex-col items-start">
         <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
           <CareerDetailTabs
-            conteudo={<CareerConteudoTab data={data} />}
+            conteudo={
+              <CareerConteudoTab
+                data={data}
+                isPremium={isPremium}
+                hasPaidPlan={hasPaidPlan}
+              />
+            }
             informacoes={<CareerInformacoesTab data={data} />}
           />
 

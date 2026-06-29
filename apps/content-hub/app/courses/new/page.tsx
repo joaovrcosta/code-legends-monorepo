@@ -1,7 +1,7 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { InstructorSelect } from "@/components/ui/instructor-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createCourse, listCourses, type CreateCourseData } from "@/actions/course";
+import { createCourse, type CreateCourseData } from "@/actions/course";
+import { adminListCareers } from "@/actions/career";
 import { listCategories } from "@/actions/category";
 import { listInstructors } from "@/actions/user";
 import { listTags } from "@/actions/tag/list-tags";
@@ -21,11 +22,27 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 export default function NewCoursePage() {
+  return (
+    <Suspense fallback={
+      <MainLayout>
+        <div className="py-12 text-center text-ch-muted">Carregando...</div>
+      </MainLayout>
+    }>
+      <NewCoursePageContent />
+    </Suspense>
+  );
+}
+
+function NewCoursePageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isPathUnit = searchParams.get("kind") === "path_unit";
   const [loading, setLoading] = useState(false);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [instructors, setInstructors] = useState<Array<{ id: string; name: string; avatar?: string | null }>>([]);
+  const [careers, setCareers] = useState<Array<{ id: string; title: string }>>([]);
+  const [exclusiveCareerId, setExclusiveCareerId] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tagSuggestions, setTagSuggestions] = useState<Array<{ id: string; name: string }>>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -57,7 +74,10 @@ export default function NewCoursePage() {
   useEffect(() => {
     loadCategories();
     loadInstructors();
-  }, []);
+    if (isPathUnit) {
+      loadCareers();
+    }
+  }, [isPathUnit]);
 
   // Buscar tags quando o usuário digita
   useEffect(() => {
@@ -105,6 +125,17 @@ export default function NewCoursePage() {
     }
   };
 
+  const loadCareers = async () => {
+    try {
+      const token = getAuthTokenFromClient();
+      if (!token) return;
+      const { careers } = await adminListCareers(token);
+      setCareers(careers.map((c) => ({ id: c.id, title: c.title })));
+    } catch (error) {
+      console.error("Erro ao carregar carreiras:", error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -120,11 +151,18 @@ export default function NewCoursePage() {
       if (!formData.description.trim()) missing.push("Descrição");
       if (!formData.level?.trim()) missing.push("Nível");
       if (!formData.instructorId?.trim()) missing.push("Instrutor");
+      if (isPathUnit && !exclusiveCareerId.trim()) missing.push("Carreira");
       if (missing.length > 0) {
         toast.error(`Preencha os campos obrigatórios:\n${missing.map((m) => `- ${m}`).join("\n")}`);
         return;
       }
-      await createCourse(formData, token);
+      const payload: CreateCourseData = {
+        ...formData,
+        ...(isPathUnit
+          ? { kind: "PATH_UNIT" as const, exclusiveCareerId }
+          : { kind: "CATALOG" as const }),
+      };
+      await createCourse(payload, token);
       router.push("/courses");
     } catch (error: any) {
       console.error("Erro ao criar curso:", error);
@@ -144,10 +182,23 @@ export default function NewCoursePage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-ch">Novo Curso</h1>
-            <p className="text-ch-muted mt-2">Crie um novo curso para a plataforma</p>
+            <h1 className="text-3xl font-bold text-ch">
+              {isPathUnit ? "Novo Path Unit" : "Novo Curso"}
+            </h1>
+            <p className="text-ch-muted mt-2">
+              {isPathUnit
+                ? "Curso exclusivo de carreira — não aparece no catálogo público"
+                : "Crie um novo curso para a plataforma"}
+            </p>
           </div>
         </div>
+
+        {isPathUnit && (
+          <div className="rounded-lg border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-900 dark:border-violet-900/50 dark:bg-violet-950/30 dark:text-violet-200">
+            Path Units usam o mesmo editor de curso e classroom dos alunos, mas só podem ser
+            adicionados aos módulos da carreira escolhida abaixo.
+          </div>
+        )}
 
         <Card>
           <CardHeader>
@@ -155,6 +206,25 @@ export default function NewCoursePage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {isPathUnit && (
+                <div className="space-y-2">
+                  <Label htmlFor="exclusiveCareerId">Carreira *</Label>
+                  <Select
+                    id="exclusiveCareerId"
+                    value={exclusiveCareerId}
+                    onChange={(e) => setExclusiveCareerId(e.target.value)}
+                    required
+                  >
+                    <option value="">Selecione a carreira</option>
+                    {careers.map((career) => (
+                      <option key={career.id} value={career.id}>
+                        {career.title}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="title">Título *</Label>
@@ -411,7 +481,7 @@ export default function NewCoursePage() {
                   </Button>
                 </Link>
                 <Button type="submit" disabled={loading}>
-                  {loading ? "Salvando..." : "Criar Curso"}
+                  {loading ? "Salvando..." : isPathUnit ? "Criar Path Unit" : "Criar Curso"}
                 </Button>
               </div>
             </form>

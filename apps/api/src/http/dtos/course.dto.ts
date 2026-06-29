@@ -9,6 +9,7 @@ export function toCourseDTO(
     instructor?: User;
     category?: Category | null;
     tags?: Array<{ name: string }> | string[];
+    exclusiveCareer?: { id: string; title: string } | null;
     _count?: {
       userCourses: number;
     };
@@ -61,6 +62,9 @@ export function toCourseDTO(
       : null,
     totalDuration: totalDuration ?? null,
     _count: course._count,
+    kind: (course as any).kind ?? "CATALOG",
+    exclusiveCareerId: (course as any).exclusiveCareerId ?? null,
+    exclusiveCareer: course.exclusiveCareer ?? null,
   };
 }
 

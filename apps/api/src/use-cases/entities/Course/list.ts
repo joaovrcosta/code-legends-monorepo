@@ -10,6 +10,8 @@ interface ListCoursesRequest {
   search?: string;
   userId?: string; // Opcional: para verificar se está inscrito
   includeDrafts?: boolean; // Opcional: para admin ver todos os cursos
+  forCareerId?: string; // Admin: cursos elegíveis para módulo de carreira
+  kind?: "CATALOG" | "PATH_UNIT";
 }
 
 interface CourseWithEnrollment extends Course {
@@ -46,6 +48,8 @@ export class ListCoursesUseCase {
       instructorId: filters?.instructorId,
       search: filters?.search,
       includeDrafts: filters?.includeDrafts,
+      forCareerId: filters?.forCareerId,
+      kind: filters?.kind,
     });
 
     // Se houver userId, verificar inscrições de uma vez (1 query adicional)

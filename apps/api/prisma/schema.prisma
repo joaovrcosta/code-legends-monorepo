@@ -8,6 +8,11 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum CourseKind {
+  CATALOG
+  PATH_UNIT
+}
+
 model Course {
   id            String       @id @default(cuid())
   title         String
@@ -25,12 +30,16 @@ model Course {
   description   String
   status        CourseStatus @default(DRAFT)
   publishedAt   DateTime?
+  kind          CourseKind   @default(CATALOG)
+  exclusiveCareerId String?
 
   instructorId String
   instructor   User   @relation("CourseInstructor", fields: [instructorId], references: [id])
 
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
+
+  exclusiveCareer Career? @relation("CareerExclusiveCourses", fields: [exclusiveCareerId], references: [id], onDelete: SetNull)
 
   tags Tag[] @relation("CourseToTag")
 
@@ -44,6 +53,9 @@ model Course {
   skills          CourseSkill[]
 
   careerModuleCourses CareerModuleCourse[]
+
+  @@index([kind])
+  @@index([exclusiveCareerId])
 }
 
 model Career {
@@ -62,6 +74,7 @@ model Career {
   exams        CareerExam[]
   userCareers  UserCareer[]
   certificates Certificate[]
+  exclusiveCourses Course[] @relation("CareerExclusiveCourses")
 }
 
 model CareerModule {

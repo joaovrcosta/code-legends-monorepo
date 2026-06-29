@@ -2,15 +2,21 @@ import { CareerExamAttemptHistory } from "@/components/career/career-exam-attemp
 import { CareerLockedPadlockPill } from "@/components/career/career-locked-padlock-pill";
 import { ProgressRing } from "@/components/classroom/module-progress-ring";
 import { Button } from "@/components/ui/button";
+import { SubscriberBadge } from "@/components/ui/subscriber-badge";
 import type { GetCareerBySlugResponse } from "@/types/career";
+import { cn } from "@/lib/utils";
 import { Check, FlaskIcon, Play } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
 
 export function CareerConteudoTab({
   data,
+  isPremium = false,
+  hasPaidPlan = false,
 }: {
   data: GetCareerBySlugResponse;
+  isPremium?: boolean;
+  hasPaidPlan?: boolean;
 }) {
   return (
     <div id="modulos" className="min-w-0 space-y-4">
@@ -48,58 +54,90 @@ export function CareerConteudoTab({
           <div className="mt-4 grid grid-cols-1 gap-3">
             <div className="">
               <ul className="mt-3 space-y-5">
-                {m.courses.map((c) => (
+                {m.courses.map((c) => {
+                  const isPremiumLockedPathUnit =
+                    c.kind === "PATH_UNIT" && !isPremium;
+                  const isEnrollmentLockedPathUnit =
+                    c.kind === "PATH_UNIT" &&
+                    isPremium &&
+                    !data.enrollment.isEnrolled;
+
+                  return (
                   <li
                     key={c.id}
-                    className="flex items-center gap-3 hover:bg-[#18181f] rounded-[20px] px-3 py-2"
+                    aria-disabled={isPremiumLockedPathUnit || undefined}
+                    className={cn(
+                      "flex items-center gap-3 rounded-[20px] px-3 py-2",
+                      !isPremiumLockedPathUnit && "hover:bg-[#18181f]",
+                    )}
                   >
-                    <div className="flex min-w-0 flex-1 items-center gap-3">
-                      <ProgressRing
-                        progress={Math.max(0, Math.min(1, c.progress / 100))}
-                        moduleNumber={0}
-                        size={34}
-                        strokeWidth={2}
-                        progressColor="stroke-[#00C8FF]"
-                        trackColor="stroke-[#25252A]"
-                        padModuleNumber={false}
-                        centerLabel={`${Math.round(c.progress)}%`}
-                      />
-                      {c.icon ? (
-                        <span className="relative block h-10 w-10 shrink-0 overflow-hidden">
-                          <Image
-                            src={c.icon}
-                            alt=""
-                            fill
-                            className="object-cover"
-                            sizes="40px"
-                          />
-                        </span>
-                      ) : (
-                        <span
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#25252A] bg-[#0D0D12] text-base text-white/70"
-                          aria-hidden
-                        >
-                          📘
-                        </span>
-                      )}
-                      <div className="min-w-0">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="truncate text-base font-medium text-white/90">
-                            {c.title}
-                          </div>
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <div
+                        className={cn(
+                          "flex min-w-0 flex-1 items-center gap-3",
+                          isPremiumLockedPathUnit &&
+                            "pointer-events-none cursor-not-allowed select-none opacity-40 saturate-[0.65]",
+                        )}
+                      >
+                        <ProgressRing
+                          progress={Math.max(0, Math.min(1, c.progress / 100))}
+                          moduleNumber={0}
+                          size={34}
+                          strokeWidth={2}
+                          progressColor="stroke-[#00C8FF]"
+                          trackColor="stroke-[#25252A]"
+                          padModuleNumber={false}
+                          centerLabel={`${Math.round(c.progress)}%`}
+                        />
+                        {c.icon ? (
+                          <span className="relative block h-10 w-10 shrink-0 overflow-hidden">
+                            <Image
+                              src={c.icon}
+                              alt=""
+                              fill
+                              className="object-cover"
+                              sizes="40px"
+                            />
+                          </span>
+                        ) : (
+                          <span
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#25252A] bg-[#0D0D12] text-base text-white/70"
+                            aria-hidden
+                          >
+                            📘
+                          </span>
+                        )}
+                        <div className="min-w-0 truncate text-base font-medium text-white/90">
+                          {c.title}
                         </div>
                       </div>
+                      {isPremiumLockedPathUnit && !hasPaidPlan ? (
+                        <SubscriberBadge variant="premium" className="shrink-0" />
+                      ) : null}
                     </div>
-                    <Link
-                      href={`/learn/paths/${c.slug}`}
-                      className="shrink-0 text-xs font-semibold text-[#00C8FF]"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#25252A] transition-colors hover:bg-[#2E2E32]">
-                        <Play size={20} className="text-white ml-0.5" fill="white" weight="fill" />
-                      </div>
-                    </Link>
+                    {isPremiumLockedPathUnit ? (
+                      <CareerLockedPadlockPill
+                        title="Path Units estão disponíveis apenas no plano Premium"
+                        aria-label="Unidade bloqueada: plano Premium necessário"
+                      />
+                    ) : isEnrollmentLockedPathUnit ? (
+                      <CareerLockedPadlockPill
+                        title="Inscreva-se na carreira para acessar esta unidade"
+                        aria-label="Unidade bloqueada: inscreva-se na carreira para acessar"
+                      />
+                    ) : (
+                      <Link
+                        href={`/learn/paths/${c.slug}`}
+                        className="shrink-0 text-xs font-semibold text-[#00C8FF]"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#25252A] transition-colors hover:bg-[#2E2E32]">
+                          <Play size={20} className="text-white ml-0.5" fill="white" weight="fill" />
+                        </div>
+                      </Link>
+                    )}
                   </li>
-                ))}
+                  );
+                })}
                 {m.courses.length === 0 ? (
                   <li className="text-sm text-white/40">
                     Nenhum curso vinculado.
@@ -155,6 +193,7 @@ export function CareerConteudoTab({
                           </Button>
                         ) : (
                           <CareerLockedPadlockPill
+                            variant="pill"
                             title="Inscreva-se na carreira para fazer o teste"
                             aria-label="Exame bloqueado: inscreva-se na carreira para fazer o teste"
                           />

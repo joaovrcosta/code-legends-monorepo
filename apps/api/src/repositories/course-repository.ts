@@ -1,4 +1,4 @@
-import { Course } from "@prisma/client";
+import { Course, CourseKind } from "@prisma/client";
 
 interface CreateCourseData {
   title: string;
@@ -14,6 +14,8 @@ interface CreateCourseData {
   isFree?: boolean;
   active?: boolean;
   releaseAt?: Date | null;
+  kind?: CourseKind;
+  exclusiveCareerId?: string | null;
 }
 
 interface UpdateCourseData {
@@ -35,11 +37,15 @@ interface FindAllFilters {
   categoryId?: string;
   instructorId?: string;
   search?: string;
+  includeDrafts?: boolean;
+  /** Admin: cursos elegíveis para vincular a um módulo de carreira */
+  forCareerId?: string;
+  kind?: CourseKind;
 }
 
 export interface ICourseRepository {
   create(data: CreateCourseData): Promise<Course>;
-  findAll(filters?: FindAllFilters & { includeDrafts?: boolean }): Promise<Course[]>;
+  findAll(filters?: FindAllFilters): Promise<Course[]>;
   findRecent(limit?: number): Promise<Course[]>;
   findPopular(limit?: number): Promise<Course[]>;
   findById(id: string): Promise<Course | null>;

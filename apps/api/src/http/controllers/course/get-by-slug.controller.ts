@@ -16,10 +16,14 @@ export async function getBySlug(request: FastifyRequest, reply: FastifyReply) {
 
     // Incluir drafts se o usuário for admin
     const includeDrafts = request.user?.role === "ADMIN";
+    const isStaff =
+      request.user?.role === "ADMIN" || request.user?.role === "INSTRUCTOR";
 
     const { course, totalDuration } = await getCourseBySlugUseCase.execute({
       slug,
       includeDrafts,
+      userId: request.user?.id,
+      bypassPathUnitAccess: isStaff,
     });
 
     // Sanitizar curso para garantir que dados de instrutor sejam públicos apenas

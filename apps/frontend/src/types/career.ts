@@ -20,6 +20,7 @@ export type CareerModuleCourse = {
   thumbnail: string | null
   icon: string | null
   level: string
+  kind?: 'CATALOG' | 'PATH_UNIT'
   progress: number
   isEnrolled: boolean
 }

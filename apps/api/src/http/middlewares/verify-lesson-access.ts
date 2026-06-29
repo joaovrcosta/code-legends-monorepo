@@ -2,6 +2,11 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../../lib/prisma";
 import { PrismaUserCourseRepository } from "../../repositories/prisma/prisma-user-course-repository";
 import { PrismaUserProgressRepository } from "../../repositories/prisma/prisma-user-progress-repository";
+import {
+  ensureUserCourseForPathUnit,
+  userHasPathUnitCareerAccess,
+  userHasPremiumPlan,
+} from "../../utils/path-unit-access";
 
 interface VerifyLessonAccessOptions {
   lessonIdParam?: string; // Nome do parâmetro que contém o lessonId (ex: "id")
@@ -106,6 +111,26 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         course.instructorId === userId
       ) {
         return; // Permite acesso
+      }
+
+      if (course.kind === "PATH_UNIT") {
+        const isPremium = await userHasPremiumPlan(userId);
+        if (!isPremium) {
+          return reply.status(403).send({
+            message:
+              "Path Units estão disponíveis apenas no plano Premium.",
+          });
+        }
+
+        const hasCareerAccess = await userHasPathUnitCareerAccess(userId, course);
+        if (!hasCareerAccess) {
+          return reply.status(403).send({
+            message:
+              "Path Units só estão disponíveis para alunos inscritos na carreira.",
+          });
+        }
+
+        await ensureUserCourseForPathUnit(userId, course);
       }
 
       // Usuário FREE só pode acessar aulas gratuitas

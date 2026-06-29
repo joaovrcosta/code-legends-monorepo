@@ -34,4 +34,7 @@ export interface CourseDTO {
     _count?: {
         userCourses: number;
     };
+    kind?: "CATALOG" | "PATH_UNIT";
+    exclusiveCareerId?: string | null;
+    exclusiveCareer?: { id: string; title: string } | null;
 }

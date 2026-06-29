@@ -1,4 +1,5 @@
 import type { CourseDetail, CourseDetailResponse } from "@/types/course-types";
+import { getAuthToken } from "@/actions/auth/session";
 
 /**
  * Busca um curso pelo slug
@@ -9,10 +10,19 @@ export async function getCourseBySlug(
   if (!slug) return null;
 
   try {
+    const token = await getAuthToken();
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/courses/${slug}`,
       {
-        next: { revalidate: 60 }, // cache de 1min
+        cache: "no-store",
+        headers,
       }
     );
 

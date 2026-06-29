@@ -1,7 +1,8 @@
-import { Course } from "@prisma/client";
+import { Course, CourseKind } from "@prisma/client";
 import { ICourseRepository } from "../../../repositories/course-repository";
 import { IUsersRepository } from "../../../repositories/users-repository";
 import { ICategoryRepository } from "../../../repositories/category-repository";
+import { ICareerRepository } from "../../../repositories/career-repository";
 import { CourseAlreadyExistsError } from "../../errors/course-already-exists";
 import { InstructorNotFoundError } from "../../errors/instructor-not-found";
 import { CategoryNotFoundError } from "../../errors/category-not-found";
@@ -20,6 +21,8 @@ interface CreateCourseRequest {
   isFree?: boolean;
   active?: boolean;
   releaseAt?: Date | null;
+  kind?: CourseKind;
+  exclusiveCareerId?: string | null;
 }
 
 interface CreateCourseResponse {
@@ -30,7 +33,8 @@ export class CreateCourseUseCase {
   constructor(
     private courseRepository: ICourseRepository,
     private usersRepository: IUsersRepository,
-    private categoryRepository: ICategoryRepository
+    private categoryRepository: ICategoryRepository,
+    private careerRepository: ICareerRepository
   ) { }
 
   async execute(data: CreateCourseRequest): Promise<CreateCourseResponse> {
@@ -62,7 +66,28 @@ export class CreateCourseUseCase {
       }
     }
 
-    const course = await this.courseRepository.create(data);
+    const kind = data.kind ?? "CATALOG";
+
+    if (kind === "PATH_UNIT") {
+      if (!data.exclusiveCareerId) {
+        throw new Error("exclusiveCareerId is required for PATH_UNIT courses");
+      }
+      const career = await this.careerRepository.findById(data.exclusiveCareerId);
+      if (!career) {
+        throw new Error("Career not found");
+      }
+      if (!career.active) {
+        throw new Error("Career is not active");
+      }
+    } else if (data.exclusiveCareerId) {
+      throw new Error("exclusiveCareerId is only allowed for PATH_UNIT courses");
+    }
+
+    const course = await this.courseRepository.create({
+      ...data,
+      kind,
+      exclusiveCareerId: kind === "PATH_UNIT" ? data.exclusiveCareerId : null,
+    });
 
     return {
       course,

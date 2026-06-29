@@ -9,9 +9,11 @@ export async function list(request: FastifyRequest, reply: FastifyReply) {
     categorySlug: z.string().optional(),
     instructor: z.string().optional(),
     search: z.string().optional(),
+    forCareerId: z.string().optional(),
+    kind: z.enum(["CATALOG", "PATH_UNIT"]).optional(),
   });
 
-  const { category, categorySlug, instructor, search } =
+  const { category, categorySlug, instructor, search, forCareerId, kind } =
     listCoursesQuerySchema.parse(request.query);
 
   try {
@@ -22,6 +24,10 @@ export async function list(request: FastifyRequest, reply: FastifyReply) {
     // Incluir drafts se o usuário for admin
     const includeDrafts = request.user?.role === "ADMIN";
 
+    if (forCareerId && request.user?.role !== "ADMIN") {
+      return reply.status(403).send({ message: "Forbidden" });
+    }
+
     const { courses } = await listCoursesUseCase.execute({
       categoryId: category,
       categorySlug,
@@ -29,6 +35,8 @@ export async function list(request: FastifyRequest, reply: FastifyReply) {
       search,
       userId, // Passar userId opcional
       includeDrafts, // Passar includeDrafts se for admin
+      forCareerId,
+      kind,
     });
 
     // Sanitizar cursos para garantir que dados de instrutor sejam públicos apenas

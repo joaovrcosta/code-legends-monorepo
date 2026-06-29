@@ -17,6 +17,8 @@ export interface CreateCourseData {
   isFree?: boolean;
   active?: boolean;
   releaseAt?: string;
+  kind?: "CATALOG" | "PATH_UNIT";
+  exclusiveCareerId?: string;
 }
 
 export interface CreateCourseResponse {

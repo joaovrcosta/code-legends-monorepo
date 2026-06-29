@@ -27,6 +27,12 @@ export class EnrollCourseUseCase {
       throw new CourseNotFoundError();
     }
 
+    if (course.kind === "PATH_UNIT") {
+      throw new Error(
+        "Path Units só podem ser acessadas por alunos inscritos na carreira",
+      );
+    }
+
     const existingEnrollment =
       await this.userCourseRepository.findByUserAndCourse(userId, courseId);
 

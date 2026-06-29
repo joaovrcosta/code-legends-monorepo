@@ -78,7 +78,7 @@ export default function EditCareerPage() {
       }
       const [{ careers }, { courses }] = await Promise.all([
         adminListCareers(token),
-        listCourses({ token }),
+        listCourses({ token, forCareerId: careerId }),
       ]);
       const found = careers.find((c) => c.id === careerId);
       if (!found) {
@@ -258,87 +258,87 @@ export default function EditCareerPage() {
             </Button>
           </CardHeader>
           {infoOpen ? (
-          <CardContent id="career-edit-info">
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="title">Título *</Label>
-                <Input
-                  id="title"
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="slug">Slug *</Label>
-                <div className="flex gap-2">
+            <CardContent id="career-edit-info">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Título *</Label>
                   <Input
-                    id="slug"
-                    value={form.slug}
-                    onChange={(e) => {
-                      setForm({ ...form, slug: e.target.value });
-                      setSlugManuallyEdited(true);
-                    }}
-                    className="flex-1"
+                    id="title"
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setForm({ ...form, slug: generateSlug(form.title || "") });
-                      setSlugManuallyEdited(true);
-                    }}
-                  >
-                    Gerar
-                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="slug">Slug *</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="slug"
+                      value={form.slug}
+                      onChange={(e) => {
+                        setForm({ ...form, slug: e.target.value });
+                        setSlugManuallyEdited(true);
+                      }}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setForm({ ...form, slug: generateSlug(form.title || "") });
+                        setSlugManuallyEdited(true);
+                      }}
+                    >
+                      Gerar
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="thumbnail">Thumbnail URL</Label>
+                  <Input
+                    id="thumbnail"
+                    value={form.thumbnail}
+                    onChange={(e) => setForm({ ...form, thumbnail: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="icon">Ícone (URL)</Label>
+                  <Input
+                    id="icon"
+                    value={form.icon}
+                    onChange={(e) => setForm({ ...form, icon: e.target.value })}
+                    placeholder="https://… (SVG ou PNG)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="colorHex">Cor (Hex)</Label>
+                  <Input
+                    id="colorHex"
+                    value={form.colorHex}
+                    onChange={(e) => setForm({ ...form, colorHex: e.target.value })}
+                    placeholder="#00C8FF"
+                  />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="thumbnail">Thumbnail URL</Label>
-                <Input
-                  id="thumbnail"
-                  value={form.thumbnail}
-                  onChange={(e) => setForm({ ...form, thumbnail: e.target.value })}
+              <div className="mt-4 space-y-2">
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  rows={4}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="icon">Ícone (URL)</Label>
-                <Input
-                  id="icon"
-                  value={form.icon}
-                  onChange={(e) => setForm({ ...form, icon: e.target.value })}
-                  placeholder="https://… (SVG ou PNG)"
+              <div className="mt-4 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={form.active}
+                  onChange={(e) => setForm({ ...form, active: e.target.checked })}
+                  className="rounded"
+                  id="active"
                 />
+                <Label htmlFor="active">Ativa</Label>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="colorHex">Cor (Hex)</Label>
-                <Input
-                  id="colorHex"
-                  value={form.colorHex}
-                  onChange={(e) => setForm({ ...form, colorHex: e.target.value })}
-                  placeholder="#00C8FF"
-                />
-              </div>
-            </div>
-            <div className="mt-4 space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                rows={4}
-              />
-            </div>
-            <div className="mt-4 flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={form.active}
-                onChange={(e) => setForm({ ...form, active: e.target.checked })}
-                className="rounded"
-                id="active"
-              />
-              <Label htmlFor="active">Ativa</Label>
-            </div>
-          </CardContent>
+            </CardContent>
           ) : null}
         </Card>
 
@@ -370,43 +370,43 @@ export default function EditCareerPage() {
               </Button>
             </CardHeader>
             {modulesPanelOpen ? (
-            <CardContent className="space-y-4">
-              {sortedModules.length === 0 ? (
-                <div className="text-sm text-gray-500">Nenhum módulo ainda.</div>
-              ) : (
-                sortedModules.map((m) => (
-                  <CareerModuleCard
-                    key={m.id}
-                    careerId={careerId}
-                    module={m}
-                    allModules={modules}
-                    allCourses={allCourses}
-                    exams={exams}
-                    onUpdated={(next) => {
-                      setModules((prev) =>
-                        prev.map((x) =>
-                          x.id === next.id
-                            ? { ...next, courses: next.courses ?? x.courses }
-                            : x,
-                        ),
-                      );
-                    }}
-                    onDeleted={async () => {
-                      setModules((prev) => prev.filter((x) => x.id !== m.id));
-                    }}
-                    onSetCourses={async (courses) => {
-                      const token = getAuthTokenFromClient();
-                      await adminSetCareerModuleCourses(m.id, courses, token || undefined);
-                      await load();
-                    }}
-                    onSetExams={async (examsToSet) => {
-                      const token = getAuthTokenFromClient();
-                      await adminSetCareerModuleExams(m.id, examsToSet, token || undefined);
-                    }}
-                  />
-                ))
-              )}
-            </CardContent>
+              <CardContent className="space-y-4">
+                {sortedModules.length === 0 ? (
+                  <div className="text-sm text-gray-500">Nenhum módulo ainda.</div>
+                ) : (
+                  sortedModules.map((m) => (
+                    <CareerModuleCard
+                      key={m.id}
+                      careerId={careerId}
+                      module={m}
+                      allModules={modules}
+                      allCourses={allCourses}
+                      exams={exams}
+                      onUpdated={(next) => {
+                        setModules((prev) =>
+                          prev.map((x) =>
+                            x.id === next.id
+                              ? { ...next, courses: next.courses ?? x.courses }
+                              : x,
+                          ),
+                        );
+                      }}
+                      onDeleted={async () => {
+                        setModules((prev) => prev.filter((x) => x.id !== m.id));
+                      }}
+                      onSetCourses={async (courses) => {
+                        const token = getAuthTokenFromClient();
+                        await adminSetCareerModuleCourses(m.id, courses, token || undefined);
+                        await load();
+                      }}
+                      onSetExams={async (examsToSet) => {
+                        const token = getAuthTokenFromClient();
+                        await adminSetCareerModuleExams(m.id, examsToSet, token || undefined);
+                      }}
+                    />
+                  ))
+                )}
+              </CardContent>
             ) : null}
           </Card>
 
@@ -437,25 +437,25 @@ export default function EditCareerPage() {
               </Button>
             </CardHeader>
             {examsPanelOpen ? (
-            <CardContent className="space-y-4">
-              {exams.length === 0 ? (
-                <div className="text-sm text-gray-500">Nenhum exame ainda.</div>
-              ) : (
-                exams.map((e) => (
-                  <CareerExamCard
-                    key={e.id}
-                    careerId={careerId}
-                    exam={e}
-                    onUpdated={(next) =>
-                      setExams((prev) => prev.map((x) => (x.id === next.id ? next : x)))
-                    }
-                    onDeleted={() =>
-                      setExams((prev) => prev.filter((x) => x.id !== e.id))
-                    }
-                  />
-                ))
-              )}
-            </CardContent>
+              <CardContent className="space-y-4">
+                {exams.length === 0 ? (
+                  <div className="text-sm text-gray-500">Nenhum exame ainda.</div>
+                ) : (
+                  exams.map((e) => (
+                    <CareerExamCard
+                      key={e.id}
+                      careerId={careerId}
+                      exam={e}
+                      onUpdated={(next) =>
+                        setExams((prev) => prev.map((x) => (x.id === next.id ? next : x)))
+                      }
+                      onDeleted={() =>
+                        setExams((prev) => prev.filter((x) => x.id !== e.id))
+                      }
+                    />
+                  ))
+                )}
+              </CardContent>
             ) : null}
           </Card>
         </div>
@@ -546,6 +546,14 @@ function CareerModuleCard({
       return fromLink ?? courseId;
     },
     [allCourses, module.courses],
+  );
+
+  const courseKind = useCallback(
+    (courseId: string): "CATALOG" | "PATH_UNIT" => {
+      const fromList = allCourses.find((c) => c.id === courseId);
+      return fromList?.kind ?? "CATALOG";
+    },
+    [allCourses],
   );
 
   const moveCourse = (index: number, dir: -1 | 1) => {
@@ -650,177 +658,187 @@ function CareerModuleCard({
       </button>
       {expanded ? (
         <div className="space-y-4 border-t border-ch-border p-4 dark:border-gray-800">
-      <div className="grid grid-cols-3 gap-3">
-        <div className="col-span-2 space-y-2">
-          <Label>Título</Label>
-          <Input value={local.title} onChange={(e) => setLocal({ ...local, title: e.target.value })} />
-        </div>
-        <div className="space-y-2">
-          <Label>Ordem</Label>
-          <Input
-            type="number"
-            value={local.orderIndex}
-            onChange={(e) => setLocal({ ...local, orderIndex: Number(e.target.value) })}
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label>Descrição</Label>
-        <Textarea value={local.description} onChange={(e) => setLocal({ ...local, description: e.target.value })} rows={2} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-3">
-          <div>
-            <Label>Cursos vinculados a este módulo</Label>
-            <p className="mt-1 text-xs text-ch-muted">
-              Um mesmo curso não pode estar em dois módulos ao mesmo tempo. Use as setas para
-              definir a ordem na trilha.
-            </p>
-          </div>
-
-          <div className="min-h-20 space-y-1.5 rounded-lg border border-ch-border bg-ch-canvas/50 p-2 border-ch-border bg-ch-surface-raised/30">
-            {selectedCourses.length === 0 ? (
-              <p className="px-2 py-4 text-center text-sm text-ch-muted">
-                Nenhum curso vinculado. Adicione abaixo.
-              </p>
-            ) : (
-              selectedCourses.map((courseId, idx) => (
-                <div
-                  key={`${courseId}-${idx}`}
-                  className="flex items-center gap-1 rounded-md border border-ch-border bg-ch-surface px-2 py-1.5 dark:border-ch-border bg-ch-canvas"
-                >
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-ch">
-                    {courseTitle(courseId)}
-                  </span>
-                  <div className="flex shrink-0 items-center gap-0.5">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      disabled={busy || idx === 0}
-                      onClick={() => moveCourse(idx, -1)}
-                      aria-label="Mover curso para cima"
-                    >
-                      <ArrowUp className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      disabled={busy || idx === selectedCourses.length - 1}
-                      onClick={() => moveCourse(idx, 1)}
-                      aria-label="Mover curso para baixo"
-                    >
-                      <ArrowDown className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-red-600 hover:text-red-700"
-                      disabled={busy}
-                      onClick={() => removeCourseAt(idx)}
-                      aria-label="Remover curso do módulo"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="border-t border-ch-border pt-3 border-ch-border">
-            <Label htmlFor={`add-course-${module.id}`}>Adicionar curso</Label>
-            <div className="relative mt-1.5">
-              <Search
-                className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ch-muted"
-                aria-hidden
-              />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2 space-y-2">
+              <Label>Título</Label>
+              <Input value={local.title} onChange={(e) => setLocal({ ...local, title: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Ordem</Label>
               <Input
-                id={`add-course-${module.id}`}
-                value={courseSearch}
-                onChange={(e) => setCourseSearch(e.target.value)}
-                placeholder="Buscar por título ou slug…"
-                className="pl-9"
-                autoComplete="off"
+                type="number"
+                value={local.orderIndex}
+                onChange={(e) => setLocal({ ...local, orderIndex: Number(e.target.value) })}
               />
             </div>
-            <div className="mt-2 max-h-52 overflow-y-auto rounded-lg border border-ch-border">
-              {availableToAdd.length === 0 ? (
-                <p className="px-3 py-6 text-center text-sm text-ch-muted">
-                  {allCourses.length === 0
-                    ? "Nenhum curso cadastrado na plataforma."
-                    : "Nenhum curso disponível (todos já vinculados a este ou a outro módulo)."}
+          </div>
+          <div className="space-y-2">
+            <Label>Descrição</Label>
+            <Textarea value={local.description} onChange={(e) => setLocal({ ...local, description: e.target.value })} rows={2} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <div>
+                <Label>Cursos vinculados a este módulo</Label>
+                <p className="mt-1 text-xs text-ch-muted">
+                  Um mesmo curso não pode estar em dois módulos ao mesmo tempo. Use as setas para
+                  definir a ordem na trilha.
                 </p>
-              ) : (
-                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {availableToAdd.map((c) => (
-                    <li key={c.id}>
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => addCourse(c.id)}
-                        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-ch-surface-raised/80 disabled:opacity-50"
-                      >
-                        <span className="min-w-0 flex-1 truncate font-medium text-ch">
-                          {c.title}
-                        </span>
-                        <span className="flex shrink-0 items-center gap-1 text-xs text-gray-500">
-                          <Plus className="h-3.5 w-3.5" aria-hidden />
-                          adicionar
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              </div>
+
+              <div className="min-h-20 space-y-1.5 rounded-lg border border-ch-border bg-ch-canvas/50 p-2 border-ch-border bg-ch-surface-raised/30">
+                {selectedCourses.length === 0 ? (
+                  <p className="px-2 py-4 text-center text-sm text-ch-muted">
+                    Nenhum curso vinculado. Adicione abaixo.
+                  </p>
+                ) : (
+                  selectedCourses.map((courseId, idx) => (
+                    <div
+                      key={`${courseId}-${idx}`}
+                      className="flex items-center gap-1 rounded-md border border-ch-border bg-ch-surface px-2 py-1.5 dark:border-ch-border bg-ch-canvas"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-ch">
+                        {courseTitle(courseId)}
+                        {courseKind(courseId) === "PATH_UNIT" && (
+                          <span className="ml-2 inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+                            Path Unit
+                          </span>
+                        )}
+                      </span>
+                      <div className="flex shrink-0 items-center gap-0.5">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          disabled={busy || idx === 0}
+                          onClick={() => moveCourse(idx, -1)}
+                          aria-label="Mover curso para cima"
+                        >
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          disabled={busy || idx === selectedCourses.length - 1}
+                          onClick={() => moveCourse(idx, 1)}
+                          aria-label="Mover curso para baixo"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-600 hover:text-red-700"
+                          disabled={busy}
+                          onClick={() => removeCourseAt(idx)}
+                          aria-label="Remover curso do módulo"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="border-t border-ch-border pt-3 border-ch-border">
+                <Label htmlFor={`add-course-${module.id}`}>Adicionar curso</Label>
+                <div className="relative mt-1.5">
+                  <Search
+                    className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ch-muted"
+                    aria-hidden
+                  />
+                  <Input
+                    id={`add-course-${module.id}`}
+                    value={courseSearch}
+                    onChange={(e) => setCourseSearch(e.target.value)}
+                    placeholder="Buscar por título ou slug…"
+                    className="pl-9"
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="mt-2 max-h-52 overflow-y-auto rounded-lg border border-ch-border">
+                  {availableToAdd.length === 0 ? (
+                    <p className="px-3 py-6 text-center text-sm text-ch-muted">
+                      {allCourses.length === 0
+                        ? "Nenhum curso cadastrado na plataforma."
+                        : "Nenhum curso disponível (todos já vinculados a este ou a outro módulo)."}
+                    </p>
+                  ) : (
+                    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {availableToAdd.map((c) => (
+                        <li key={c.id}>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => addCourse(c.id)}
+                            className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-ch-surface-raised/80 disabled:opacity-50"
+                          >
+                            <span className="min-w-0 flex-1 truncate font-medium text-ch">
+                              {c.title}
+                              {c.kind === "PATH_UNIT" && (
+                                <span className="ml-2 inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+                                  Path Unit
+                                </span>
+                              )}
+                            </span>
+                            <span className="flex shrink-0 items-center gap-1 text-xs text-gray-500">
+                              <Plus className="h-3.5 w-3.5" aria-hidden />
+                              adicionar
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Exames do módulo</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label>Exame 1</Label>
+                  <Select value={exam1} onChange={(e) => setExam1(e.target.value)}>
+                    <option value="">—</option>
+                    {exams.map((ex) => (
+                      <option key={ex.id} value={ex.id}>
+                        {ex.title}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Exame 2</Label>
+                  <Select value={exam2} onChange={(e) => setExam2(e.target.value)}>
+                    <option value="">—</option>
+                    {exams.map((ex) => (
+                      <option key={ex.id} value={ex.id}>
+                        {ex.title}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label>Exames do módulo</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <Label>Exame 1</Label>
-              <Select value={exam1} onChange={(e) => setExam1(e.target.value)}>
-                <option value="">—</option>
-                {exams.map((ex) => (
-                  <option key={ex.id} value={ex.id}>
-                    {ex.title}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label>Exame 2</Label>
-              <Select value={exam2} onChange={(e) => setExam2(e.target.value)}>
-                <option value="">—</option>
-                {exams.map((ex) => (
-                  <option key={ex.id} value={ex.id}>
-                    {ex.title}
-                  </option>
-                ))}
-              </Select>
-            </div>
+          <div className="flex gap-2 border-t border-ch-border pt-4">
+            <Button onClick={saveAll} disabled={busy} className="gap-2">
+              <Save className="h-4 w-4" />
+              {busy ? "Salvando..." : "Salvar"}
+            </Button>
+            <Button onClick={remove} disabled={busy} variant="outline" className="gap-2">
+              <Trash2 className="h-4 w-4 text-red-600" />
+              Excluir
+            </Button>
           </div>
-        </div>
-      </div>
-
-      <div className="flex gap-2 border-t border-ch-border pt-4">
-        <Button onClick={saveAll} disabled={busy} className="gap-2">
-          <Save className="h-4 w-4" />
-          {busy ? "Salvando..." : "Salvar"}
-        </Button>
-        <Button onClick={remove} disabled={busy} variant="outline" className="gap-2">
-          <Trash2 className="h-4 w-4 text-red-600" />
-          Excluir
-        </Button>
-      </div>
         </div>
       ) : null}
     </div>
@@ -928,72 +946,72 @@ function CareerExamCard({
       </button>
       {expanded ? (
         <div className="space-y-4 border-t border-ch-border p-4 dark:border-gray-800">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <Label>Título</Label>
-          <Input value={local.title} onChange={(e) => setLocal({ ...local, title: e.target.value })} />
-        </div>
-        <div className="space-y-2">
-          <Label>Slug</Label>
-          <Input value={local.slug} onChange={(e) => setLocal({ ...local, slug: e.target.value })} />
-        </div>
-      </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Título</Label>
+              <Input value={local.title} onChange={(e) => setLocal({ ...local, title: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Slug</Label>
+              <Input value={local.slug} onChange={(e) => setLocal({ ...local, slug: e.target.value })} />
+            </div>
+          </div>
 
-      <div className="space-y-2">
-        <Label>Descrição</Label>
-        <Textarea value={local.description} onChange={(e) => setLocal({ ...local, description: e.target.value })} rows={2} />
-      </div>
+          <div className="space-y-2">
+            <Label>Descrição</Label>
+            <Textarea value={local.description} onChange={(e) => setLocal({ ...local, description: e.target.value })} rows={2} />
+          </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <Label>Nota mínima (%)</Label>
-          <Input
-            type="number"
-            min={0}
-            max={100}
-            value={local.passingScore}
-            onChange={(e) => setLocal({ ...local, passingScore: Number(e.target.value) })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Máx. tentativas (opcional)</Label>
-          <Input
-            type="number"
-            min={1}
-            value={local.maxAttempts ?? ""}
-            onChange={(e) => {
-              const v = e.target.value.trim();
-              setLocal({ ...local, maxAttempts: v === "" ? null : Number(v) });
-            }}
-          />
-        </div>
-      </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Nota mínima (%)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={local.passingScore}
+                onChange={(e) => setLocal({ ...local, passingScore: Number(e.target.value) })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Máx. tentativas (opcional)</Label>
+              <Input
+                type="number"
+                min={1}
+                value={local.maxAttempts ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value.trim();
+                  setLocal({ ...local, maxAttempts: v === "" ? null : Number(v) });
+                }}
+              />
+            </div>
+          </div>
 
-      <div className="space-y-2">
-        <Label>Conteúdo (JSON)</Label>
-        <Textarea
-          value={local.contentText}
-          onChange={(e) => setLocal({ ...local, contentText: e.target.value })}
-          rows={10}
-          className={!parsed.ok ? "border-red-500" : undefined}
-        />
-        {!parsed.ok ? (
-          <div className="text-sm text-red-500">JSON inválido: {parsed.error}</div>
-        ) : (
-          <div className="text-xs text-gray-500">JSON válido.</div>
-        )}
-      </div>
+          <div className="space-y-2">
+            <Label>Conteúdo (JSON)</Label>
+            <Textarea
+              value={local.contentText}
+              onChange={(e) => setLocal({ ...local, contentText: e.target.value })}
+              rows={10}
+              className={!parsed.ok ? "border-red-500" : undefined}
+            />
+            {!parsed.ok ? (
+              <div className="text-sm text-red-500">JSON inválido: {parsed.error}</div>
+            ) : (
+              <div className="text-xs text-gray-500">JSON válido.</div>
+            )}
+          </div>
 
-      <div className="flex gap-2">
-        <Button onClick={save} disabled={busy || !parsed.ok} className="gap-2">
-          <Save className="h-4 w-4" />
-          Salvar exame
-        </Button>
-        <Button onClick={remove} disabled={busy} variant="outline" className="gap-2">
-          <Trash2 className="h-4 w-4 text-red-600" />
-          Excluir
-        </Button>
-      </div>
+          <div className="flex gap-2">
+            <Button onClick={save} disabled={busy || !parsed.ok} className="gap-2">
+              <Save className="h-4 w-4" />
+              Salvar exame
+            </Button>
+            <Button onClick={remove} disabled={busy} variant="outline" className="gap-2">
+              <Trash2 className="h-4 w-4 text-red-600" />
+              Excluir
+            </Button>
+          </div>
         </div>
       ) : null}
     </div>

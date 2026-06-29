@@ -5,6 +5,7 @@ import { IUsersRepository } from '../../../repositories/users-repository'
 import { CareerNotFoundError } from '../../errors/career-not-found'
 import { CareerEnrollmentRequiresPremiumError } from '../../errors/career-enrollment-requires-premium'
 import { UserNotFoundError } from '../../errors/user-not-found'
+import { enrollUserInCareerPathUnits } from '../../../utils/path-unit-access'
 
 interface EnrollCareerRequest {
   userId: string
@@ -50,6 +51,7 @@ export class EnrollCareerUseCase {
     }
 
     const userCareer = await this.userCareerRepository.enroll(userId, careerId)
+    await enrollUserInCareerPathUnits(userId, careerId)
     return { userCareer }
   }
 }

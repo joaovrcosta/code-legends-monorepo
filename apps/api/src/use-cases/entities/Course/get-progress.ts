@@ -3,6 +3,10 @@ import { IUserCourseRepository } from "../../../repositories/user-course-reposit
 import { IUserProgressRepository } from "../../../repositories/user-progress-repository";
 import { CourseNotFoundError } from "../../errors/course-not-found";
 import { prisma } from "../../../lib/prisma";
+import {
+  assertUserCanAccessPathUnitCourse,
+  ensureUserCourseForPathUnit,
+} from "../../../utils/path-unit-access";
 
 interface ModuleProgress {
   id: string;
@@ -79,6 +83,9 @@ export class GetCourseProgressUseCase {
     if (course.status !== "PUBLISHED") {
       throw new CourseNotFoundError();
     }
+
+    await assertUserCanAccessPathUnitCourse(userId, course);
+    await ensureUserCourseForPathUnit(userId, course);
 
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,

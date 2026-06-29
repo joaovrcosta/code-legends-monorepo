@@ -33,6 +33,11 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
     isFree: z.boolean().optional(),
     active: z.boolean().optional(),
     releaseAt: z.string().datetime().optional(),
+    kind: z.enum(["CATALOG", "PATH_UNIT"]).optional(),
+    exclusiveCareerId: z
+      .string()
+      .optional()
+      .transform((v) => (v != null && v.trim() === "" ? undefined : v)),
   });
 
   const {
@@ -49,6 +54,8 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
     isFree,
     active,
     releaseAt,
+    kind,
+    exclusiveCareerId,
   } = createCourseBodySchema.parse(request.body);
 
   try {
@@ -68,6 +75,8 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
       isFree: isFree ?? false,
       active: active ?? true,
       releaseAt: releaseAt ? new Date(releaseAt) : null,
+      kind: kind ?? "CATALOG",
+      exclusiveCareerId: exclusiveCareerId ?? null,
     });
 
     return reply.status(201).send({
@@ -103,6 +112,17 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
         error.message === "User is not an instructor")
     ) {
       return reply.status(403).send({ message: error.message });
+    }
+
+    if (
+      error instanceof Error &&
+      (error.message === "exclusiveCareerId is required for PATH_UNIT courses" ||
+        error.message === "Career not found" ||
+        error.message === "Career is not active" ||
+        error.message === "exclusiveCareerId is only allowed for PATH_UNIT courses")
+    ) {
+      const status = error.message === "Career not found" ? 404 : 400;
+      return reply.status(status).send({ message: error.message });
     }
 
     // Prisma FK / constraint errors -> mensagem amigável

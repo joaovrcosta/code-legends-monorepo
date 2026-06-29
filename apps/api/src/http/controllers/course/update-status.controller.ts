@@ -39,7 +39,7 @@ export async function updateCourseStatus(request: FastifyRequest, reply: Fastify
     },
   });
 
-  if (status === "PUBLISHED" && !wasPublished) {
+  if (status === "PUBLISHED" && !wasPublished && course.kind !== "PATH_UNIT") {
     scheduleNewCoursePublishedNotification({
       id: updated.id,
       title: updated.title,

@@ -42,7 +42,7 @@ export class PublishCourseUseCase {
     // Publicar o curso
     const publishedCourse = await this.courseRepository.publish(courseId);
 
-    if (!wasPublished) {
+    if (!wasPublished && publishedCourse.kind !== "PATH_UNIT") {
       scheduleNewCoursePublishedNotification({
         id: publishedCourse.id,
         title: publishedCourse.title,

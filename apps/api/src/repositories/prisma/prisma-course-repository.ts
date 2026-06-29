@@ -1,4 +1,4 @@
-import { Course } from "@prisma/client";
+import { Course, CourseKind } from "@prisma/client";
 import { ICourseRepository } from "../course-repository";
 import { prisma } from "../../lib/prisma";
 
@@ -16,6 +16,8 @@ interface CreateCourseData {
   isFree?: boolean;
   active?: boolean;
   releaseAt?: Date | null;
+  kind?: CourseKind;
+  exclusiveCareerId?: string | null;
 }
 
 interface UpdateCourseData {
@@ -38,6 +40,8 @@ interface FindAllFilters {
   instructorId?: string;
   search?: string;
   includeDrafts?: boolean;
+  forCareerId?: string;
+  kind?: CourseKind;
 }
 
 export class PrismaCourseRepository implements ICourseRepository {
@@ -56,6 +60,9 @@ export class PrismaCourseRepository implements ICourseRepository {
       active: data.active ?? true,
       releaseAt: data.releaseAt ?? null,
       status: "DRAFT",
+      kind: data.kind ?? "CATALOG",
+      exclusiveCareerId:
+        data.kind === "PATH_UNIT" ? (data.exclusiveCareerId ?? null) : null,
     };
 
     // Se houver tags, conecta ou cria elas
@@ -85,6 +92,22 @@ export class PrismaCourseRepository implements ICourseRepository {
       where.status = "PUBLISHED";
     }
 
+    // Cursos elegíveis para vincular a um módulo de carreira (admin)
+    const andConditions: any[] = [];
+    if (filters?.forCareerId) {
+      andConditions.push({
+        OR: [
+          { kind: "CATALOG" },
+          { kind: "PATH_UNIT", exclusiveCareerId: filters.forCareerId },
+        ],
+      });
+    } else if (filters?.kind) {
+      where.kind = filters.kind;
+    } else if (!filters?.includeDrafts) {
+      // Catálogo público: apenas cursos de catálogo
+      where.kind = "CATALOG";
+    }
+
     // Filtro por categoria
     if (filters?.categoryId) {
       where.categoryId = filters.categoryId;
@@ -97,25 +120,31 @@ export class PrismaCourseRepository implements ICourseRepository {
 
     // Busca por título ou descrição
     if (filters?.search) {
-      where.OR = [
-        {
-          title: {
-            contains: filters.search,
-            mode: "insensitive",
+      andConditions.push({
+        OR: [
+          {
+            title: {
+              contains: filters.search,
+              mode: "insensitive",
+            },
           },
-        },
-        {
-          description: {
-            contains: filters.search,
-            mode: "insensitive",
+          {
+            description: {
+              contains: filters.search,
+              mode: "insensitive",
+            },
           },
-        },
-        {
-          tags: {
-            has: filters.search.toLowerCase(),
+          {
+            tags: {
+              has: filters.search.toLowerCase(),
+            },
           },
-        },
-      ];
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     const courses = await prisma.course.findMany({
@@ -143,6 +172,12 @@ export class PrismaCourseRepository implements ICourseRepository {
             name: true,
           },
         },
+        exclusiveCareer: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
         _count: {
           select: {
             userCourses: true,
@@ -166,6 +201,7 @@ export class PrismaCourseRepository implements ICourseRepository {
       where: {
         active: true,
         status: "PUBLISHED",
+        kind: "CATALOG",
       },
       include: {
         instructor: {
@@ -205,6 +241,7 @@ export class PrismaCourseRepository implements ICourseRepository {
       where: {
         active: true,
         status: "PUBLISHED",
+        kind: "CATALOG",
       },
       include: {
         instructor: {
@@ -330,6 +367,7 @@ export class PrismaCourseRepository implements ICourseRepository {
       where: {
         active: true,
         status: "PUBLISHED",
+        kind: "CATALOG",
         title: {
           contains: name,
           mode: "insensitive",

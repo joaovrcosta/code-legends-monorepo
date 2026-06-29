@@ -2,6 +2,8 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { makeGetCourseSkillsConfigUseCase } from '../../../utils/factories/make-get-course-skills-config-use-case'
 import { CourseNotFoundError } from '../../../use-cases/errors/course-not-found'
+import { prisma } from '../../../lib/prisma'
+import { assertUserCanAccessPathUnitCourse } from '../../../utils/path-unit-access'
 
 async function handleGetSkillsConfig(
   request: FastifyRequest,
@@ -15,6 +17,19 @@ async function handleGetSkillsConfig(
   const { id: courseId } = paramsSchema.parse(request.params)
 
   try {
+    if (!opts.allowUnpublished) {
+      const course = await prisma.course.findUnique({
+        where: { id: courseId },
+        select: { kind: true, exclusiveCareerId: true, status: true },
+      })
+
+      if (!course || course.status !== 'PUBLISHED') {
+        throw new CourseNotFoundError()
+      }
+
+      await assertUserCanAccessPathUnitCourse(request.user?.id, course)
+    }
+
     const useCase = makeGetCourseSkillsConfigUseCase()
     const { skills } = await useCase.execute(courseId, {
       allowUnpublished: opts.allowUnpublished,

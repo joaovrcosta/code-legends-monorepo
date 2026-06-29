@@ -58,6 +58,7 @@ export default function EditCoursePage() {
   const [tagSuggestions, setTagSuggestions] = useState<Array<{ id: string; name: string }>>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [courseStatus, setCourseStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT");
+  const [courseKind, setCourseKind] = useState<"CATALOG" | "PATH_UNIT">("CATALOG");
   const [modules, setModules] = useState<ModuleWithStructure[]>([]);
   const [structureView, setStructureView] = useState<"tree" | "kanban">("tree");
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -214,6 +215,7 @@ export default function EditCoursePage() {
       });
       setInitialIsFree(course.isFree);
       setCourseStatus(course.status || "DRAFT");
+      setCourseKind(course.kind ?? "CATALOG");
       setSlugManuallyEdited(true);
     } catch (error) {
       console.error("Erro ao carregar curso:", error);
@@ -255,7 +257,7 @@ export default function EditCoursePage() {
 
     const skillFromSelect =
       selectedSkillId &&
-      !courseSkills.some((cs) => cs.skillId === selectedSkillId)
+        !courseSkills.some((cs) => cs.skillId === selectedSkillId)
         ? availableSkills.find((s) => s.id === selectedSkillId)
         : null;
 
@@ -263,13 +265,13 @@ export default function EditCoursePage() {
       ...courseSkills,
       ...(skillFromSelect
         ? [
-            {
-              skillId: skillFromSelect.id,
-              name: skillFromSelect.name,
-              slug: skillFromSelect.slug,
-              weight: 100,
-            },
-          ]
+          {
+            skillId: skillFromSelect.id,
+            name: skillFromSelect.name,
+            slug: skillFromSelect.slug,
+            weight: 100,
+          },
+        ]
         : []),
     ];
 
@@ -462,7 +464,11 @@ export default function EditCoursePage() {
 
         const response = await publishCourse(courseId, token);
         setCourseStatus(response.course.status);
-        toast.success("Curso publicado com sucesso!");
+        toast.success(
+          courseKind === "PATH_UNIT"
+            ? "Path Unit publicado com sucesso!"
+            : "Curso publicado com sucesso!"
+        );
         setTimeout(() => {
           loadCourse();
         }, 500);
@@ -531,20 +537,26 @@ export default function EditCoursePage() {
                 <h1 className="text-3xl font-bold text-ch">
                   {formData.title || "Editar Curso"}
                 </h1>
-                <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${courseStatus === "PUBLISHED"
-                    ? "bg-emerald-900/20 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
-                    : "bg-yellow-900/20 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300"
-                    }`}
-                >
+                {courseKind === "PATH_UNIT" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+                    Unidade
+                  </span>
+                ) : (
                   <span
-                    className={`w-1.5 h-1.5 rounded-full ${courseStatus === "PUBLISHED"
-                      ? "bg-emerald-700 dark:bg-emerald-400"
-                      : "bg-yellow-700 dark:bg-yellow-400"
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${courseStatus === "PUBLISHED"
+                      ? "bg-emerald-900/20 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                      : "bg-yellow-900/20 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300"
                       }`}
-                  />
-                  {courseStatus === "PUBLISHED" ? "Publicado" : "Rascunho"}
-                </span>
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${courseStatus === "PUBLISHED"
+                        ? "bg-emerald-700 dark:bg-emerald-400"
+                        : "bg-yellow-700 dark:bg-yellow-400"
+                        }`}
+                    />
+                    {courseStatus === "PUBLISHED" ? "Publicado" : "Rascunho"}
+                  </span>
+                )}
               </div>
               <p className="text-ch-muted mt-2">
                 Atualize as informações e estrutura do curso
@@ -560,437 +572,437 @@ export default function EditCoursePage() {
           </TabsList>
 
           <TabsContent value="editor" className="space-y-6 mt-0">
-        {/* Seção 1: Dados do Curso */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações do Curso</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Título *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Slug *</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="slug"
-                      value={formData.slug}
-                      onChange={(e) => {
-                        setFormData({ ...formData, slug: e.target.value });
-                        setSlugManuallyEdited(true);
-                      }}
-                      required
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        const newSlug = generateSlug(formData.title || "");
-                        setFormData({ ...formData, slug: newSlug });
-                        setSlugManuallyEdited(true);
-                      }}
-                    >
-                      Gerar Slug
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="level">Nível *</Label>
-                  <Select
-                    id="level"
-                    value={formData.level}
-                    onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                    required
-                  >
-                    <option value="INICIANTE">Iniciante</option>
-                    <option value="INTERMEDIARIO">Intermediário</option>
-                    <option value="AVANCADO">Avançado</option>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="instructorId">Instrutor *</Label>
-                  <InstructorSelect
-                    id="instructorId"
-                    instructors={instructors}
-                    value={formData.instructorId || ""}
-                    onChange={(value) =>
-                      setFormData({ ...formData, instructorId: value })
-                    }
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="categoryId">Categoria</Label>
-                  <Select
-                    id="categoryId"
-                    value={formData.categoryId}
-                    onChange={(e) =>
-                      setFormData({ ...formData, categoryId: e.target.value })
-                    }
-                  >
-                    <option value="">Selecione uma categoria</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="thumbnail">Thumbnail URL</Label>
-                  <Input
-                    id="thumbnail"
-                    value={formData.thumbnail}
-                    onChange={(e) =>
-                      setFormData({ ...formData, thumbnail: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="icon">Ícone URL</Label>
-                  <Input
-                    id="icon"
-                    value={formData.icon}
-                    onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="colorHex">Cor (Hex)</Label>
-                  <Input
-                    id="colorHex"
-                    value={formData.colorHex}
-                    onChange={(e) =>
-                      setFormData({ ...formData, colorHex: e.target.value })
-                    }
-                    placeholder="#000000"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Descrição *</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  rows={4}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="tags">Tags</Label>
-                <div className="space-y-2 relative">
-                  <div className="flex gap-2">
-                    <div className="flex-1 relative">
+            {/* Seção 1: Dados do Curso */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações do Curso</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Título *</Label>
                       <Input
-                        id="tagInput"
-                        placeholder="Digite uma tag e pressione Enter"
-                        value={tagInput}
-                        onChange={(e) => {
-                          setTagInput(e.target.value);
-                          setShowSuggestions(true);
-                        }}
-                        onFocus={() => {
-                          if (tagSuggestions.length > 0) {
-                            setShowSuggestions(true);
-                          }
-                        }}
-                        onBlur={() => {
-                          setTimeout(() => setShowSuggestions(false), 200);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            const tagValue = tagInput.trim();
-                            if (tagValue && !formData.tags?.includes(tagValue)) {
-                              setFormData({
-                                ...formData,
-                                tags: [...(formData.tags || []), tagValue],
-                              });
-                              setTagInput("");
-                              setShowSuggestions(false);
-                            }
-                          } else if (e.key === "Escape") {
-                            setShowSuggestions(false);
-                          }
-                        }}
+                        id="title"
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        required
                       />
-                      {showSuggestions && tagSuggestions.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-ch-surface border border-ch-border rounded-md shadow-lg max-h-60 overflow-auto">
-                          {tagSuggestions.map((tag) => (
-                            <button
-                              key={tag.id}
-                              type="button"
-                              className="w-full text-left px-4 py-2 hover:bg-ch-surface-raised focus:bg-ch-surface-raised focus:outline-none"
-                              onClick={() => {
-                                if (!formData.tags?.includes(tag.name)) {
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="slug">Slug *</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="slug"
+                          value={formData.slug}
+                          onChange={(e) => {
+                            setFormData({ ...formData, slug: e.target.value });
+                            setSlugManuallyEdited(true);
+                          }}
+                          required
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const newSlug = generateSlug(formData.title || "");
+                            setFormData({ ...formData, slug: newSlug });
+                            setSlugManuallyEdited(true);
+                          }}
+                        >
+                          Gerar Slug
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="level">Nível *</Label>
+                      <Select
+                        id="level"
+                        value={formData.level}
+                        onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                        required
+                      >
+                        <option value="INICIANTE">Iniciante</option>
+                        <option value="INTERMEDIARIO">Intermediário</option>
+                        <option value="AVANCADO">Avançado</option>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="instructorId">Instrutor *</Label>
+                      <InstructorSelect
+                        id="instructorId"
+                        instructors={instructors}
+                        value={formData.instructorId || ""}
+                        onChange={(value) =>
+                          setFormData({ ...formData, instructorId: value })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="categoryId">Categoria</Label>
+                      <Select
+                        id="categoryId"
+                        value={formData.categoryId}
+                        onChange={(e) =>
+                          setFormData({ ...formData, categoryId: e.target.value })
+                        }
+                      >
+                        <option value="">Selecione uma categoria</option>
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="thumbnail">Thumbnail URL</Label>
+                      <Input
+                        id="thumbnail"
+                        value={formData.thumbnail}
+                        onChange={(e) =>
+                          setFormData({ ...formData, thumbnail: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="icon">Ícone URL</Label>
+                      <Input
+                        id="icon"
+                        value={formData.icon}
+                        onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="colorHex">Cor (Hex)</Label>
+                      <Input
+                        id="colorHex"
+                        value={formData.colorHex}
+                        onChange={(e) =>
+                          setFormData({ ...formData, colorHex: e.target.value })
+                        }
+                        placeholder="#000000"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Descrição *</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) =>
+                        setFormData({ ...formData, description: e.target.value })
+                      }
+                      rows={4}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="tags">Tags</Label>
+                    <div className="space-y-2 relative">
+                      <div className="flex gap-2">
+                        <div className="flex-1 relative">
+                          <Input
+                            id="tagInput"
+                            placeholder="Digite uma tag e pressione Enter"
+                            value={tagInput}
+                            onChange={(e) => {
+                              setTagInput(e.target.value);
+                              setShowSuggestions(true);
+                            }}
+                            onFocus={() => {
+                              if (tagSuggestions.length > 0) {
+                                setShowSuggestions(true);
+                              }
+                            }}
+                            onBlur={() => {
+                              setTimeout(() => setShowSuggestions(false), 200);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                const tagValue = tagInput.trim();
+                                if (tagValue && !formData.tags?.includes(tagValue)) {
                                   setFormData({
                                     ...formData,
-                                    tags: [...(formData.tags || []), tag.name],
+                                    tags: [...(formData.tags || []), tagValue],
                                   });
+                                  setTagInput("");
+                                  setShowSuggestions(false);
                                 }
-                                setTagInput("");
+                              } else if (e.key === "Escape") {
                                 setShowSuggestions(false);
-                              }}
+                              }
+                            }}
+                          />
+                          {showSuggestions && tagSuggestions.length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-ch-surface border border-ch-border rounded-md shadow-lg max-h-60 overflow-auto">
+                              {tagSuggestions.map((tag) => (
+                                <button
+                                  key={tag.id}
+                                  type="button"
+                                  className="w-full text-left px-4 py-2 hover:bg-ch-surface-raised focus:bg-ch-surface-raised focus:outline-none"
+                                  onClick={() => {
+                                    if (!formData.tags?.includes(tag.name)) {
+                                      setFormData({
+                                        ...formData,
+                                        tags: [...(formData.tags || []), tag.name],
+                                      });
+                                    }
+                                    setTagInput("");
+                                    setShowSuggestions(false);
+                                  }}
+                                >
+                                  {tag.name}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {formData.tags && formData.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {formData.tags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm"
                             >
-                              {tag.name}
-                            </button>
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData({
+                                    ...formData,
+                                    tags: formData.tags?.filter((_, i) => i !== index) || [],
+                                  });
+                                }}
+                                className="ml-1 hover:text-ch-accent hover:text-ch-accent-hover"
+                              >
+                                ×
+                              </button>
+                            </span>
                           ))}
                         </div>
                       )}
+                      <p className="text-sm text-ch-muted">
+                        Pressione Enter para adicionar uma tag
+                      </p>
                     </div>
                   </div>
-                  {formData.tags && formData.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {formData.tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm"
-                        >
-                          {tag}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFormData({
-                                ...formData,
-                                tags: formData.tags?.filter((_, i) => i !== index) || [],
-                              });
-                            }}
-                            className="ml-1 hover:text-ch-accent hover:text-ch-accent-hover"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <p className="text-sm text-ch-muted">
-                    Pressione Enter para adicionar uma tag
-                  </p>
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label>Skills deste curso</Label>
-                <p className="text-sm text-ch-muted">
-                  As skills definem para onde o XP deste curso será distribuído
-                  (por exemplo, JavaScript, Web development, IA).
-                </p>
-                <div className="flex gap-2">
-                  <Select
-                    value={selectedSkillId}
-                    onChange={(e) => setSelectedSkillId(e.target.value)}
-                  >
-                    <option value="">Selecione uma skill</option>
-                    {availableSkills
-                      .filter(
-                        (skill) =>
-                          !courseSkills.some(
-                            (cs) => cs.skillId === skill.id
-                          )
-                      )
-                      .map((skill) => (
-                        <option key={skill.id} value={skill.id}>
-                          {skill.name} ({skill.slug})
-                        </option>
-                      ))}
-                  </Select>
-                  <Button type="button" variant="outline" onClick={handleAddSkillToCourse}>
-                    Adicionar
-                  </Button>
-                </div>
-
-                {courseSkills.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    {courseSkills.map((item) => (
-                      <div
-                        key={item.skillId}
-                        className="flex items-center justify-between rounded-md border border-ch-border px-3 py-2 text-sm"
+                  <div className="space-y-2">
+                    <Label>Skills deste curso</Label>
+                    <p className="text-sm text-ch-muted">
+                      As skills definem para onde o XP deste curso será distribuído
+                      (por exemplo, JavaScript, Web development, IA).
+                    </p>
+                    <div className="flex gap-2">
+                      <Select
+                        value={selectedSkillId}
+                        onChange={(e) => setSelectedSkillId(e.target.value)}
                       >
-                        <div>
-                          <div className="font-medium">{item.name}</div>
-                          <div className="text-xs text-ch-muted">
-                            slug: {item.slug}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            min={0}
-                            max={100}
-                            value={item.weight}
-                            onChange={(e) => {
-                              const value = parseSkillWeightInput(
-                                e.target.value,
-                              );
-                              setCourseSkills((prev) =>
-                                prev.map((cs) =>
-                                  cs.skillId === item.skillId
-                                    ? { ...cs, weight: value }
-                                    : cs
-                                )
-                              );
-                            }}
-                            className="w-20"
-                          />
-                          <span className="text-xs text-ch-muted">
-                            %
-                          </span>
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            onClick={() =>
-                              setCourseSkills((prev) =>
-                                prev.filter(
-                                  (cs) => cs.skillId !== item.skillId
-                                )
+                        <option value="">Selecione uma skill</option>
+                        {availableSkills
+                          .filter(
+                            (skill) =>
+                              !courseSkills.some(
+                                (cs) => cs.skillId === skill.id
                               )
-                            }
+                          )
+                          .map((skill) => (
+                            <option key={skill.id} value={skill.id}>
+                              {skill.name} ({skill.slug})
+                            </option>
+                          ))}
+                      </Select>
+                      <Button type="button" variant="outline" onClick={handleAddSkillToCourse}>
+                        Adicionar
+                      </Button>
+                    </div>
+
+                    {courseSkills.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {courseSkills.map((item) => (
+                          <div
+                            key={item.skillId}
+                            className="flex items-center justify-between rounded-md border border-ch-border px-3 py-2 text-sm"
                           >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
+                            <div>
+                              <div className="font-medium">{item.name}</div>
+                              <div className="text-xs text-ch-muted">
+                                slug: {item.slug}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                min={0}
+                                max={100}
+                                value={item.weight}
+                                onChange={(e) => {
+                                  const value = parseSkillWeightInput(
+                                    e.target.value,
+                                  );
+                                  setCourseSkills((prev) =>
+                                    prev.map((cs) =>
+                                      cs.skillId === item.skillId
+                                        ? { ...cs, weight: value }
+                                        : cs
+                                    )
+                                  );
+                                }}
+                                className="w-20"
+                              />
+                              <span className="text-xs text-ch-muted">
+                                %
+                              </span>
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                onClick={() =>
+                                  setCourseSkills((prev) =>
+                                    prev.filter(
+                                      (cs) => cs.skillId !== item.skillId
+                                    )
+                                  )
+                                }
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-              </div>
 
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.isFree}
-                    onChange={(e) =>
-                      setFormData({ ...formData, isFree: e.target.checked })
-                    }
-                    className="rounded"
-                  />
-                  <span>Curso Gratuito</span>
-                </label>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.isFree}
+                        onChange={(e) =>
+                          setFormData({ ...formData, isFree: e.target.checked })
+                        }
+                        className="rounded"
+                      />
+                      <span>Curso Gratuito</span>
+                    </label>
 
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.active}
-                    onChange={(e) =>
-                      setFormData({ ...formData, active: e.target.checked })
-                    }
-                    className="rounded"
-                  />
-                  <span>Ativo</span>
-                </label>
-              </div>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.active}
+                        onChange={(e) =>
+                          setFormData({ ...formData, active: e.target.checked })
+                        }
+                        className="rounded"
+                      />
+                      <span>Ativo</span>
+                    </label>
+                  </div>
 
-              <div className="flex justify-end gap-4">
-                <Link href="/courses">
-                  <Button type="button" variant="outline">
-                    Cancelar
-                  </Button>
-                </Link>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Salvando..." : "Salvar Alterações"}
-                </Button>
-                {courseStatus === "DRAFT" ? (
-                  <Button
-                    type="button"
-                    onClick={handlePublishClick}
-                    disabled={loading}
-                    className="bg-emerald-600 hover:bg-emerald-700"
-                  >
-                    Publicar Curso
-                  </Button>
+                  <div className="flex justify-end gap-4">
+                    <Link href="/courses">
+                      <Button type="button" variant="outline">
+                        Cancelar
+                      </Button>
+                    </Link>
+                    <Button type="submit" disabled={loading}>
+                      {loading ? "Salvando..." : "Salvar Alterações"}
+                    </Button>
+                    {courseStatus === "DRAFT" ? (
+                      <Button
+                        type="button"
+                        onClick={handlePublishClick}
+                        disabled={loading}
+                        className="bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        Publicar Curso
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        onClick={handleUnpublish}
+                        disabled={loading}
+                        variant="outline"
+                        className="border-yellow-600 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                      >
+                        Despublicar
+                      </Button>
+                    )}
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Seção 2: Estrutura do Curso */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between gap-3">
+                  <CardTitle>Estrutura do Curso</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant={structureView === "tree" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setStructureView("tree")}
+                    >
+                      Árvore
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={structureView === "kanban" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setStructureView("kanban")}
+                    >
+                      Kanban
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {loadingStructure ? (
+                  <div className="text-center py-8">Carregando estrutura...</div>
                 ) : (
-                  <Button
-                    type="button"
-                    onClick={handleUnpublish}
-                    disabled={loading}
-                    variant="outline"
-                    className="border-yellow-600 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
-                  >
-                    Despublicar
-                  </Button>
+                  <>
+                    {structureView === "tree" ? (
+                      <CourseBuilder
+                        courseId={courseId}
+                        courseTitle={formData.title || ""}
+                        modules={modules}
+                        courseSkillIds={courseSkills.map((s) => s.skillId)}
+                        onModulesChange={(updatedModules) => {
+                          setModules(updatedModules);
+                        }}
+                        onReloadStructure={() => {
+                          loadCourseStructure();
+                        }}
+                      />
+                    ) : (
+                      <CourseProductionKanban
+                        courseId={courseId}
+                        courseTitle={formData.title || ""}
+                        modules={modules}
+                        onModulesChange={setModules}
+                      />
+                    )}
+                  </>
                 )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Seção 2: Estrutura do Curso */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between gap-3">
-              <CardTitle>Estrutura do Curso</CardTitle>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant={structureView === "tree" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setStructureView("tree")}
-                >
-                  Árvore
-                </Button>
-                <Button
-                  type="button"
-                  variant={structureView === "kanban" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setStructureView("kanban")}
-                >
-                  Kanban
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-            <CardContent>
-              {loadingStructure ? (
-                <div className="text-center py-8">Carregando estrutura...</div>
-              ) : (
-                <>
-                  {structureView === "tree" ? (
-                    <CourseBuilder
-                      courseId={courseId}
-                      courseTitle={formData.title || ""}
-                      modules={modules}
-                      courseSkillIds={courseSkills.map((s) => s.skillId)}
-                      onModulesChange={(updatedModules) => {
-                        setModules(updatedModules);
-                      }}
-                      onReloadStructure={() => {
-                        loadCourseStructure();
-                      }}
-                    />
-                  ) : (
-                    <CourseProductionKanban
-                      courseId={courseId}
-                      courseTitle={formData.title || ""}
-                      modules={modules}
-                      onModulesChange={setModules}
-                    />
-                  )}
-                </>
-              )}
-            </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="metrics" className="mt-0">

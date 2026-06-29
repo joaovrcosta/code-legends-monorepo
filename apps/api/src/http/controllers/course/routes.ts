@@ -48,7 +48,7 @@ export async function courseRoutes(app: FastifyInstance) {
   app.get("/courses/recent", listRecent); // Suporta ?limit=10
   app.get("/courses/popular", listPopular); // Suporta ?limit=10
   app.get("/courses/by-id/:id", getById); // Busca por ID (para content hub) - deve vir antes de /courses/:slug
-  app.get("/courses/:slug", getBySlug);
+  app.get("/courses/:slug", { onRequest: [verifyJWTOptional] }, getBySlug);
 
   app.post("/courses", { onRequest: [verifyInstructorOrAdmin] }, create);
 
@@ -68,8 +68,12 @@ export async function courseRoutes(app: FastifyInstance) {
     { onRequest: [verifyInstructorOrAdmin] },
     getStructureEditor,
   );
-  /** Público: só curso PUBLISHED */
-  app.get("/courses/:id/skills-config", getSkillsConfig);
+  /** Público: apenas curso PUBLISHED; lista união curso + aulas (merge). */
+  app.get(
+    "/courses/:id/skills-config",
+    { onRequest: [verifyJWTOptional] },
+    getSkillsConfig,
+  );
   app.put(
     "/courses/:id/skills-config",
     { onRequest: [verifyAdmin] },

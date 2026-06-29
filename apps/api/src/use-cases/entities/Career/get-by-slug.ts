@@ -33,6 +33,7 @@ export interface GetCareerBySlugResponse {
       thumbnail: string | null
       icon: string | null
       level: string
+      kind: 'CATALOG' | 'PATH_UNIT'
       progress: number
       isEnrolled: boolean
     }>
@@ -85,6 +86,7 @@ export class GetCareerBySlugUseCase {
                     thumbnail: true,
                     icon: true,
                     level: true,
+                    kind: true,
                   },
                 },
               },

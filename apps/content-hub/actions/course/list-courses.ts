@@ -19,6 +19,9 @@ export interface Course {
   status: "DRAFT" | "PUBLISHED";
   publishedAt?: string | null;
   releaseAt?: string | null;
+  kind?: "CATALOG" | "PATH_UNIT";
+  exclusiveCareerId?: string | null;
+  exclusiveCareer?: { id: string; title: string } | null;
   createdAt: string;
   updatedAt: string;
   /** Inscrições reais (UserCourse) — vem do GET /courses via `_count` */
@@ -37,6 +40,8 @@ export async function listCourses(params?: {
   categorySlug?: string;
   instructor?: string;
   search?: string;
+  forCareerId?: string;
+  kind?: "CATALOG" | "PATH_UNIT";
   token?: string;
 }): Promise<CoursesListResponse> {
   try {
@@ -45,6 +50,8 @@ export async function listCourses(params?: {
     if (params?.categorySlug) searchParams.append("categorySlug", params.categorySlug);
     if (params?.instructor) searchParams.append("instructor", params.instructor);
     if (params?.search) searchParams.append("search", params.search);
+    if (params?.forCareerId) searchParams.append("forCareerId", params.forCareerId);
+    if (params?.kind) searchParams.append("kind", params.kind);
 
     const url = `${process.env.NEXT_PUBLIC_API_URL}/courses${
       searchParams.toString() ? `?${searchParams.toString()}` : ""
