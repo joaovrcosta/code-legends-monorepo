@@ -69,7 +69,7 @@ function ActivityCalendarLegend() {
     );
 }
 
-function ActivityCalendarSkeleton() {
+export function ActivityCalendarSkeleton() {
     const weeks = Array.from({ length: ACTIVITY_WEEK_COUNT }, (_, i) => i);
     const days = Array.from({ length: 7 }, (_, i) => i);
 

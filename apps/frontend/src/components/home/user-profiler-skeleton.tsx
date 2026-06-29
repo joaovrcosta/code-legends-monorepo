@@ -1,5 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
-import { ActivityCalendar } from './activity-calendar'
+import { ActivityCalendarSkeleton } from './activity-calendar'
 
 function ProfilerMainCardSkeleton() {
   return (
@@ -27,7 +27,7 @@ function ProfilerMainCardSkeleton() {
       </div>
 
       <div className="mt-6 w-full">
-        <ActivityCalendar activities={null} />
+        <ActivityCalendarSkeleton />
       </div>
 
       <div className="mt-6 flex items-center justify-between py-4">
