@@ -97,7 +97,7 @@ export function RecommendationsCarousel({
         )}
 
           {!inlineHeader && (
-            <div className="mb-4 flex items-center justify-end gap-2 pr-6 lg:pr-0">
+            <div className="mb-4 flex h-8 min-w-[8rem] items-center justify-end gap-2 pr-6 lg:pr-0">
               <CarouselPrevious
                 variant="ghost"
                 hideWhenDisabled

@@ -179,8 +179,7 @@ function CarouselPrevious({
   ...props
 }: React.ComponentProps<typeof Button> & { hideWhenDisabled?: boolean }) {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel()
-
-  if (hideWhenDisabled && !canScrollPrev) return null
+  const isHidden = hideWhenDisabled && !canScrollPrev
 
   return (
     <Button
@@ -192,9 +191,12 @@ function CarouselPrevious({
         orientation === 'horizontal'
           ? 'top-1/2 -left-12 -translate-y-1/2'
           : '-top-12 left-1/2 -translate-x-1/2 rotate-90',
+        isHidden && 'invisible pointer-events-none',
         className,
       )}
       disabled={!canScrollPrev}
+      aria-hidden={isHidden || undefined}
+      tabIndex={isHidden ? -1 : undefined}
       onClick={scrollPrev}
       {...props}
     >
@@ -212,8 +214,7 @@ function CarouselNext({
   ...props
 }: React.ComponentProps<typeof Button> & { hideWhenDisabled?: boolean }) {
   const { orientation, scrollNext, canScrollNext } = useCarousel()
-
-  if (hideWhenDisabled && !canScrollNext) return null
+  const isHidden = hideWhenDisabled && !canScrollNext
 
   return (
     <Button
@@ -225,9 +226,12 @@ function CarouselNext({
         orientation === 'horizontal'
           ? 'top-1/2 -right-12 -translate-y-1/2'
           : '-bottom-12 left-1/2 -translate-x-1/2 rotate-90',
+        isHidden && 'invisible pointer-events-none',
         className,
       )}
       disabled={!canScrollNext}
+      aria-hidden={isHidden || undefined}
+      tabIndex={isHidden ? -1 : undefined}
       onClick={scrollNext}
       {...props}
     >
