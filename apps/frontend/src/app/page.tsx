@@ -6,7 +6,9 @@ import { CurrentCourseCard } from '@/components/home/current-course-card'
 import { CategoriesCarousel } from '@/components/learn/catolog/categories-carousel'
 import { NewsBannerCarousel } from '@/components/home/news-banner-carousel'
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { UserProfiler } from '@/components/home/user-profiler'
+import { UserProfilerSkeleton } from '@/components/home/user-profiler-skeleton'
 import { CurrentCourses } from '@/components/home/current-courses'
 import { HomePageWrapper } from '@/components/home/home-page-wrapper'
 import { PostPaymentWelcomeGate } from '@/components/providers/post-payment-welcome-gate'
@@ -70,7 +72,9 @@ export default async function Home() {
                 ) : null}
 
                 <div className="lg:hidden w-full lg:mt-6 mt-12">
-                  <UserProfiler />
+                  <Suspense fallback={<UserProfilerSkeleton />}>
+                    <UserProfiler />
+                  </Suspense>
                 </div>
 
                 <div className="mb-12 pt-10">
@@ -113,7 +117,9 @@ export default async function Home() {
             </div>
 
             <div className="relative z-10 hidden lg:block flex-shrink-0">
-              <UserProfiler />
+              <Suspense fallback={<UserProfilerSkeleton />}>
+                <UserProfiler />
+              </Suspense>
             </div>
         </div>
       </HomePageWrapper>

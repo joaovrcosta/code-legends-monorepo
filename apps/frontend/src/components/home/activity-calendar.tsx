@@ -13,35 +13,77 @@ interface ActivityCalendarProps {
 
 const SAO_PAULO_TZ = "America/Sao_Paulo";
 
-/** Alinhado ao grid carregado: 91 dias → 13 colunas × 7 linhas (mesmas gaps/medidas do calendário real). */
-const SKELETON_WEEK_COUNT = 13;
+/** 91 dias de atividade → 13 colunas semanais. */
+const ACTIVITY_WEEK_COUNT = 13;
 
-/** Mesmas medidas das células reais — `div` nativo evita padding/rounding extra do componente Skeleton. */
+const activityCalendarRootClassName =
+    "w-full font-sans select-none flex flex-col items-center";
+
+const activityCalendarScrollClassName =
+    "w-full overflow-x-auto scrollbar-hide py-2";
+
+const activityCalendarGridWrapperClassName =
+    "flex flex-col gap-2 w-max mx-auto lg:ml-auto lg:mr-0";
+
+const activityCalendarMonthRowClassName =
+    "flex text-[9px] font-bold h-4 ml-8";
+
+const activityCalendarDayLabelsClassName =
+    "flex flex-col justify-between text-[9px] font-medium py-[2px] h-[105px] sm:h-[130px] shrink-0";
+
+const activityCalendarWeeksRowClassName = "flex gap-[5px] sm:gap-[6px]";
+
+const activityCalendarWeekColumnClassName =
+    "flex flex-col gap-[5px] sm:gap-[6px]";
+
+const activityCellClassName =
+    "box-border shrink-0 w-[13px] h-[13px] sm:w-[15px] sm:h-[14px] rounded-[4px]";
+
+const activityCalendarLegendClassName =
+    "w-full flex justify-center lg:justify-end mt-4 px-2 gap-2 text-[10px] text-[#525252] items-center leading-none";
+
 function SkeletonCell() {
     return (
         <div
-            className="box-border shrink-0 w-[13px] h-[13px] sm:w-[15px] sm:h-[14px] rounded-[4px] bg-white/10 animate-pulse"
+            className={`${activityCellClassName} bg-white/10 animate-pulse`}
             aria-hidden
         />
     );
 }
 
+function ActivityCalendarLegend() {
+    return (
+        <div className={activityCalendarLegendClassName}>
+            <span>Menos</span>
+            <div className="flex gap-[3px]">
+                {[0, 1, 2, 3, 4].map((lvl) => (
+                    <div
+                        key={lvl}
+                        className={`w-[10px] h-[10px] rounded-[2px] shrink-0 box-border bg-white/10 animate-pulse`}
+                        aria-hidden
+                    />
+                ))}
+            </div>
+            <span>Mais</span>
+        </div>
+    );
+}
+
 function ActivityCalendarSkeleton() {
-    const weeks = Array.from({ length: SKELETON_WEEK_COUNT }, (_, i) => i);
+    const weeks = Array.from({ length: ACTIVITY_WEEK_COUNT }, (_, i) => i);
     const days = Array.from({ length: 7 }, (_, i) => i);
 
     return (
         <div
-            className="w-full font-sans select-none flex flex-col items-center"
+            className={activityCalendarRootClassName}
             aria-busy
             aria-label="A carregar calendário de atividade"
         >
-            <div className="w-full overflow-x-auto scrollbar-hide py-2">
-                <div className="flex flex-col gap-2 w-max mx-auto lg:ml-auto lg:mr-0">
-                    {/* Mesma estrutura que o calendário carregado: flex sem gap entre colunas de mês */}
-                    <div className="flex text-[9px] font-bold h-4 ml-8">
+            <div className={activityCalendarScrollClassName}>
+                <div className={activityCalendarGridWrapperClassName}>
+                    <div className={`${activityCalendarMonthRowClassName} text-transparent`}>
                         {weeks.map((wi) => (
-                            <div key={wi} className="relative min-w-0 w-full">
+                            <div key={wi} className="relative w-full">
                                 {wi % 4 === 0 ? (
                                     <span className="absolute left-0 top-0 inline-block h-[10px] w-[26px] rounded-sm bg-white/10 animate-pulse sm:w-[30px]" />
                                 ) : null}
@@ -50,18 +92,25 @@ function ActivityCalendarSkeleton() {
                     </div>
 
                     <div className="flex gap-3">
-                        {/* Mesma coluna que “Seg / Qua / Sex”: sem largura fixa extra */}
-                        <div className="flex flex-col justify-between text-[9px] font-medium py-[2px] h-[105px] sm:h-[130px] shrink-0">
-                            <span className="inline-block h-[10px] w-[22px] rounded-sm bg-white/10 animate-pulse" />
-                            <span className="inline-block h-[10px] w-[26px] rounded-sm bg-white/10 animate-pulse" />
-                            <span className="inline-block h-[10px] w-[22px] rounded-sm bg-white/10 animate-pulse" />
+                        <div
+                            className={`${activityCalendarDayLabelsClassName} text-transparent`}
+                        >
+                            <span className="inline-block h-[10px] w-[22px] rounded-sm bg-white/10 animate-pulse">
+                                Seg
+                            </span>
+                            <span className="inline-block h-[10px] w-[26px] rounded-sm bg-white/10 animate-pulse">
+                                Qua
+                            </span>
+                            <span className="inline-block h-[10px] w-[22px] rounded-sm bg-white/10 animate-pulse">
+                                Sex
+                            </span>
                         </div>
 
-                        <div className="flex gap-[5px] sm:gap-[6px]">
+                        <div className={activityCalendarWeeksRowClassName}>
                             {weeks.map((weekIndex) => (
                                 <div
                                     key={weekIndex}
-                                    className="flex flex-col gap-[5px] sm:gap-[6px]"
+                                    className={activityCalendarWeekColumnClassName}
                                 >
                                     {days.map((dayIndex) => (
                                         <SkeletonCell
@@ -75,19 +124,7 @@ function ActivityCalendarSkeleton() {
                 </div>
             </div>
 
-            {/* Legenda — mesmas classes base que o bloco real (text-[10px] ≈ altura de linha) */}
-            <div className="w-full flex justify-center lg:justify-end mt-4 px-2 gap-2 text-[10px] text-[#525252] items-center">
-                <span className="inline-block h-[12px] w-[34px] rounded-sm bg-white/10 animate-pulse" />
-                <div className="flex gap-[3px]">
-                    {Array.from({ length: 5 }, (_, lvl) => (
-                        <div
-                            key={lvl}
-                            className="w-[10px] h-[10px] rounded-[2px] bg-white/10 animate-pulse shrink-0 box-border"
-                        />
-                    ))}
-                </div>
-                <span className="inline-block h-[12px] w-[30px] rounded-sm bg-white/10 animate-pulse" />
-            </div>
+            <ActivityCalendarLegend />
         </div>
     );
 }
@@ -126,7 +163,6 @@ function monthLabelInTZ(date: Date, timeZone: string) {
 
 function addDaysUTCNoon(base: Date, days: number) {
     const d = new Date(base.getTime());
-    // Meio-dia UTC evita shift de dia no fuso local
     d.setUTCHours(12, 0, 0, 0);
     d.setUTCDate(d.getUTCDate() + days);
     return d;
@@ -141,22 +177,20 @@ function getActivityColor(count: number): string {
 }
 
 export function ActivityCalendar({ activities }: ActivityCalendarProps) {
-    const [isMounted, setIsMounted] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        setIsMounted(true);
-        if (isMounted) {
-            const scrollToRight = () => {
-                if (scrollContainerRef.current) {
-                    scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
-                }
-            };
-            scrollToRight();
-            const timer = setTimeout(scrollToRight, 100);
-            return () => clearTimeout(timer);
-        }
-    }, [isMounted]);
+        const scrollToRight = () => {
+            if (scrollContainerRef.current) {
+                scrollContainerRef.current.scrollLeft =
+                    scrollContainerRef.current.scrollWidth;
+            }
+        };
+
+        scrollToRight();
+        const timer = window.setTimeout(scrollToRight, 100);
+        return () => window.clearTimeout(timer);
+    }, [activities]);
 
     const dataMap = useMemo(() => {
         const map = new Map<string, number>();
@@ -180,7 +214,7 @@ export function ActivityCalendar({ activities }: ActivityCalendarProps) {
                 date: dateStr,
                 count: dataMap.get(dateStr) ?? 0,
                 month: monthLabelInTZ(date, SAO_PAULO_TZ),
-                isFirstDayOfMonth: dom === 1
+                isFirstDayOfMonth: dom === 1,
             });
         }
         return days;
@@ -194,25 +228,32 @@ export function ActivityCalendar({ activities }: ActivityCalendarProps) {
         return cols;
     }, [activityGrid]);
 
-    if (!isMounted || activities == null) return <ActivityCalendarSkeleton />;
+    if (activities == null) {
+        return <ActivityCalendarSkeleton />;
+    }
 
     return (
-        <div className="w-full font-sans select-none flex flex-col items-center">
+        <div className={activityCalendarRootClassName}>
             <div
                 ref={scrollContainerRef}
-                className="w-full overflow-x-auto scrollbar-hide py-2"
+                className={activityCalendarScrollClassName}
             >
-                {/* mx-auto centraliza; gap-4 no mobile dá mais respiro lateral */}
-                <div className="flex flex-col gap-2 w-max mx-auto lg:ml-auto lg:mr-0">
-
-                    <div className="flex text-[9px] font-bold text-[#737373] h-4 ml-8">
+                <div className={activityCalendarGridWrapperClassName}>
+                    <div
+                        className={`${activityCalendarMonthRowClassName} text-[#737373]`}
+                    >
                         {weeks.map((week, i) => {
-                            const showLabel = i === 0 || week.some(d => d.isFirstDayOfMonth);
+                            const showLabel =
+                                i === 0 || week.some((d) => d.isFirstDayOfMonth);
                             if (showLabel) {
-                                const monthLabel = week.find(d => d.isFirstDayOfMonth)?.month || week[0].month;
+                                const monthLabel =
+                                    week.find((d) => d.isFirstDayOfMonth)?.month ||
+                                    week[0].month;
                                 return (
                                     <div key={i} className="relative w-full">
-                                        <span className="absolute left-0 whitespace-nowrap">{monthLabel}</span>
+                                        <span className="absolute left-0 whitespace-nowrap">
+                                            {monthLabel}
+                                        </span>
                                     </div>
                                 );
                             }
@@ -221,27 +262,24 @@ export function ActivityCalendar({ activities }: ActivityCalendarProps) {
                     </div>
 
                     <div className="flex gap-3">
-                        {/* Ajuste de altura responsiva para acompanhar o aumento dos quadrados */}
-                        <div className="flex flex-col justify-between text-[9px] font-medium text-[#525252] py-[2px] h-[105px] sm:h-[130px]">
+                        <div
+                            className={`${activityCalendarDayLabelsClassName} text-[#525252]`}
+                        >
                             <span>Seg</span>
                             <span>Qua</span>
                             <span>Sex</span>
                         </div>
 
-                        {/* Aumentado: w/h de 11px para 13px no mobile */}
-                        <div className="flex gap-[5px] sm:gap-[6px]">
+                        <div className={activityCalendarWeeksRowClassName}>
                             {weeks.map((week, weekIndex) => (
-                                <div key={weekIndex} className="flex flex-col gap-[5px] sm:gap-[6px]">
+                                <div
+                                    key={weekIndex}
+                                    className={activityCalendarWeekColumnClassName}
+                                >
                                     {week.map((day) => (
                                         <div
                                             key={day.date}
-                                            className={`
-                                                w-[13px] h-[13px] 
-                                                sm:w-[15px] sm:h-[14px] 
-                                                rounded-[4px] transition-all 
-                                                ${getActivityColor(day.count)}
-                                                hover:ring-1 hover:ring-white/40 cursor-pointer
-                                            `}
+                                            className={`${activityCellClassName} transition-all ${getActivityColor(day.count)} hover:ring-1 hover:ring-white/40 cursor-pointer`}
                                             title={`${day.date}: ${day.count} ${day.count === 1 ? "aula" : "aulas"}`}
                                         />
                                     ))}
@@ -252,11 +290,14 @@ export function ActivityCalendar({ activities }: ActivityCalendarProps) {
                 </div>
             </div>
 
-            <div className="w-full flex justify-center lg:justify-end mt-4 px-2 gap-2 text-[10px] text-[#525252]">
+            <div className={activityCalendarLegendClassName}>
                 <span>Menos</span>
                 <div className="flex gap-[3px]">
                     {[0, 1, 2, 3, 4].map((lvl) => (
-                        <div key={lvl} className={`w-[10px] h-[10px] rounded-[2px] ${getActivityColor(lvl)}`} />
+                        <div
+                            key={lvl}
+                            className={`w-[10px] h-[10px] rounded-[2px] shrink-0 box-border ${getActivityColor(lvl)}`}
+                        />
                     ))}
                 </div>
                 <span>Mais</span>
