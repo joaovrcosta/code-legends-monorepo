@@ -21,7 +21,7 @@ import { getAuroraBackground } from '@/utils/hexToRgb'
 import { Progress } from '@/components/ui/progress'
 import { getWeeklyXp } from '@/actions/user/get-weekly-xp'
 import { WeeklyXpCard } from '@/components/learn/weekly-xp-card'
-import { PlanBadge } from '@/components/ui/plan-badge'
+import { UserPlanSubscriberBadge } from '@/components/ui/subscriber-badge'
 
 function planToRingVariant(plan?: string): AvatarRingVariant {
   if (plan === 'PRO') return 'pro'
@@ -152,7 +152,7 @@ export default async function TrackingPage() {
                         <p className="truncate text-[24px] sm:text-2xl font-medium text-white">
                           {userFromAPI?.name ?? user.name}
                         </p>
-                        <PlanBadge plan={userFromAPI?.plan ?? user.plan} />
+                        <UserPlanSubscriberBadge />
                       </div>
                       <p className="mt-1 text-sm text-[#7e7e89]">Fullstack developer</p>
                     </div>

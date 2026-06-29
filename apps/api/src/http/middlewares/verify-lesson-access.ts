@@ -118,7 +118,7 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         if (!isPremium) {
           return reply.status(403).send({
             message:
-              "Path Units estão disponíveis apenas no plano Premium.",
+              "Unidades Extras estão disponíveis apenas no plano Premium.",
           });
         }
 
@@ -126,7 +126,7 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         if (!hasCareerAccess) {
           return reply.status(403).send({
             message:
-              "Path Units só estão disponíveis para alunos inscritos na carreira.",
+              "Unidades Extras só estão disponíveis para alunos inscritos na carreira.",
           });
         }
 

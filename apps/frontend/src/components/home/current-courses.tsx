@@ -1,3 +1,4 @@
+import { UserPlan } from "@code-legends/shared-types";
 import { getUserEnrolledList } from "@/actions/progress";
 import { KeepLearningCard } from "./keep-learning-card";
 import {
@@ -5,12 +6,17 @@ import {
     CarouselContent,
     CarouselItem,
 } from "@/components/ui/carousel";
+import { isVisibleInContinueLearning } from "@/utils/continue-learning";
 
-export async function CurrentCourses() {
+interface CurrentCoursesProps {
+    userPlan: UserPlan;
+}
+
+export async function CurrentCourses({ userPlan }: CurrentCoursesProps) {
     const { userCourses } = await getUserEnrolledList();
 
-    const coursesWithProgress = userCourses.filter(
-        (course) => course.progress > 0 && !course.isCompleted
+    const coursesWithProgress = userCourses.filter((course) =>
+        isVisibleInContinueLearning(course, userPlan),
     );
 
     if (coursesWithProgress.length === 0) return null;

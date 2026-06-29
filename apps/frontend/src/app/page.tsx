@@ -1,5 +1,7 @@
 import { listCourses } from '@/actions/course'
 import { getUserEnrolledList } from '@/actions/progress'
+import { getResolvedUserPlan } from '@/actions/user/get-user-from-api'
+import { isVisibleInContinueLearning } from '@/utils/continue-learning'
 import { CurrentCourseCard } from '@/components/home/current-course-card'
 import { CategoriesCarousel } from '@/components/learn/catolog/categories-carousel'
 import { NewsBannerCarousel } from '@/components/home/news-banner-carousel'
@@ -22,10 +24,13 @@ export const metadata: Metadata = {
 export default async function Home() {
   const courses = await listCourses()
   const careers = await listCareers()
-  const enrolledCoursesData = await getUserEnrolledList()
+  const [enrolledCoursesData, userPlan] = await Promise.all([
+    getUserEnrolledList(),
+    getResolvedUserPlan(),
+  ])
 
   const hasContinueLearningCourses = (enrolledCoursesData.userCourses ?? []).some(
-    (course) => course.progress > 0 && !course.isCompleted,
+    (course) => isVisibleInContinueLearning(course, userPlan),
   )
 
   const tracks: CareerTrack[] = careers.careers.map((c) => ({
@@ -60,7 +65,7 @@ export default async function Home() {
                       className="mb-4 mt-10"
                       title="Continuar aprendendo"
                     />
-                    <CurrentCourses />
+                    <CurrentCourses userPlan={userPlan} />
                   </div>
                 ) : null}
 

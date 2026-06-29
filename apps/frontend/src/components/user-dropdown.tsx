@@ -12,46 +12,20 @@ import {
 } from './ui/dropdown-menu'
 import { Headset, LogOut, User } from 'lucide-react'
 import { logout } from '@/actions/auth'
-import { getUserFromAPI } from '@/actions/user/get-user-from-api'
 import { useSession } from 'next-auth/react'
-import { useState, useEffect, useCallback } from 'react'
-import { PlanBadge } from '@/components/ui/plan-badge'
-
-type UserPlan = 'FREE' | 'PRO' | 'PREMIUM'
-
-function normalizePlan(plan: string | undefined): UserPlan {
-  if (plan === 'PRO' || plan === 'PREMIUM') return plan
-  return 'FREE'
-}
+import { useState, useEffect } from 'react'
+import { UserPlanSubscriberBadge } from '@/components/ui/subscriber-badge'
+import { useUserPlan } from '@/hooks/use-user-plan'
 
 export function UserDropdown() {
   const { data: session } = useSession()
   const user = session?.user
-  const sessionPlan = normalizePlan(
-    (user as { plan?: string } | undefined)?.plan
-  )
-  /** Plano vindo de GET /me — mesma fonte do UserProfiler (JWT da sessão atrasa após upgrade). */
-  const [planFromApi, setPlanFromApi] = useState<UserPlan | null>(null)
-  const userPlan = planFromApi ?? sessionPlan
+  const { refreshPlan } = useUserPlan()
   const [open, setOpen] = useState(false)
 
-  const refreshPlanFromApi = useCallback(() => {
-    if (!session?.user) {
-      setPlanFromApi(null)
-      return
-    }
-    void getUserFromAPI().then((u) => {
-      if (u) setPlanFromApi(normalizePlan(u.plan))
-    })
-  }, [session?.user])
-
   useEffect(() => {
-    refreshPlanFromApi()
-  }, [refreshPlanFromApi])
-
-  useEffect(() => {
-    if (open) refreshPlanFromApi()
-  }, [open, refreshPlanFromApi])
+    if (open) void refreshPlan()
+  }, [open, refreshPlan])
 
   // Obtém as iniciais do nome para o fallback
   const getInitials = (name?: string | null) => {
@@ -137,7 +111,7 @@ export function UserDropdown() {
                   <p className="text-[#708089] text-xs">{user?.email}</p>
                 </div>
               </div>
-              <PlanBadge plan={userPlan} />
+              <UserPlanSubscriberBadge />
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="border border-[#25252A]" />

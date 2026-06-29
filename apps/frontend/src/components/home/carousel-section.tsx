@@ -13,7 +13,6 @@ import {
 import type { CourseWithCount } from '@/types/user-course.ts'
 import { cn } from '@/lib/utils'
 import { CatalogCard } from './catalog-card'
-import { useSession } from 'next-auth/react'
 
 const getColorByLevel = (level: string): string => {
     const normalized = (level ?? '')
@@ -46,18 +45,6 @@ export type CarouselSectionProps = {
 }
 
 export function CarouselSection({ courses, header, sectionTitle }: CarouselSectionProps) {
-    const { data, status } = useSession()
-    const plan = (data?.user as { plan?: 'FREE' | 'PRO' | 'PREMIUM' } | undefined)
-        ?.plan
-    const isFreeUser =
-        status === 'loading'
-            ? undefined
-            : plan === 'FREE'
-                ? true
-                : plan
-                    ? false
-                    : undefined
-
     const hasHeader = Boolean(header)
     const showTopNav = !hasHeader
 
@@ -136,7 +123,6 @@ export function CarouselSection({ courses, header, sectionTitle }: CarouselSecti
                                         level={course.level}
                                         isFree={course.isFree}
                                         position={position}
-                                        isFreeUser={isFreeUser}
                                         progress={course.progress}
                                     />
                                 </CarouselItem>

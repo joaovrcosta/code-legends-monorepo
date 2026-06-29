@@ -8,7 +8,9 @@ import { CourseOverview } from "@/components/course/overview";
 import { CourseProjects } from "@/components/course/courses/react-js/projects";
 import { Tabs } from "@/components/ui/tabs";
 import { notFound } from "next/navigation";
-import { getAuthToken, getCurrentSession } from "@/actions/auth/session";
+import { getAuthToken } from "@/actions/auth/session";
+import { getResolvedUserPlan } from "@/actions/user/get-user-from-api";
+import { canAccessPathUnit } from "@/lib/user-plan";
 import type { LessonType, RoadmapResponse } from "@/types/roadmap";
 import {
   mapLessonTypeToCategoryLabel,
@@ -97,16 +99,16 @@ export default async function CoursePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [course, session] = await Promise.all([
+  const [course, userPlan] = await Promise.all([
     getCourseBySlug(slug),
-    getCurrentSession(),
+    getResolvedUserPlan(),
   ]);
 
   if (!course) {
     notFound();
   }
 
-  if (course.kind === "PATH_UNIT" && session?.plan !== "PREMIUM") {
+  if (course.kind === "PATH_UNIT" && !canAccessPathUnit(userPlan)) {
     notFound();
   }
 

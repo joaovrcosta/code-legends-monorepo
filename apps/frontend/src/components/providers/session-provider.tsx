@@ -3,7 +3,9 @@
 import dynamic from "next/dynamic";
 import type { ComponentProps } from "react";
 import { SessionProvider } from "next-auth/react";
+import { UserPlan } from "@code-legends/shared-types";
 import { Toaster } from "@/components/ui/toaster";
+import { UserPlanProvider } from "@/components/providers/user-plan-provider";
 
 export type ProvidersSession = ComponentProps<
   typeof SessionProvider
@@ -26,15 +28,18 @@ const WelcomePaidModal = dynamic(
 interface ProvidersProps {
   children: React.ReactNode;
   session: ProvidersSession;
+  initialPlan: UserPlan;
 }
 
-export function Providers({ children, session }: ProvidersProps) {
+export function Providers({ children, session, initialPlan }: ProvidersProps) {
   return (
     <SessionProvider session={session ?? undefined}>
-      {children}
-      <Toaster />
-      <StreakCongratsModal />
-      <WelcomePaidModal />
+      <UserPlanProvider initialPlan={initialPlan}>
+        {children}
+        <Toaster />
+        <StreakCongratsModal />
+        <WelcomePaidModal />
+      </UserPlanProvider>
     </SessionProvider>
   );
 }

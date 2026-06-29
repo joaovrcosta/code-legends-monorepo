@@ -15,7 +15,6 @@ import type { CourseWithCount } from '@/types/user-course.ts'
 import { cn } from '@/lib/utils'
 import { CatalogCard } from './catalog-card'
 import { CodeBlock } from '@phosphor-icons/react'
-import { useSession } from 'next-auth/react'
 
 const defaultHeaderIcon = (
   <CodeBlock weight="fill" size={16} className="text-[#eceeef]" aria-hidden />
@@ -57,18 +56,6 @@ export function RecommendationsCarousel({
   titleRowClassName,
   sectionIcon,
 }: RecommendationsCarouselProps) {
-  const { data, status } = useSession()
-  const plan = (data?.user as { plan?: 'FREE' | 'PRO' | 'PREMIUM' } | undefined)
-    ?.plan
-  const isFreeUser =
-    status === 'loading'
-      ? undefined
-      : plan === 'FREE'
-        ? true
-        : plan
-          ? false
-          : undefined
-
   const inlineHeader = Boolean(sectionTitle)
 
   return (
@@ -156,7 +143,6 @@ export function RecommendationsCarousel({
                     level={course.level}
                     isFree={course.isFree}
                     position={position}
-                    isFreeUser={isFreeUser}
                     progress={course.progress}
                   />
                 </CarouselItem>

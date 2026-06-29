@@ -1,5 +1,6 @@
 import { getCareerBySlug } from "@/actions/career";
-import { getCurrentSession } from "@/actions/auth/session";
+import { getResolvedUserPlan } from "@/actions/user/get-user-from-api";
+import { isPremium } from "@/lib/user-plan";
 import { EnrollCareerButton } from "@/components/career/enroll-career-button";
 import { CareerCertificatePanel } from "@/components/career/career-certificate-panel";
 import { CareerConteudoTab } from "@/components/career/career-conteudo-tab";
@@ -8,7 +9,7 @@ import { CareerInformacoesTab } from "@/components/career/career-informacoes-tab
 import { Progress } from "@/components/ui/progress";
 import { getAuroraBackground } from "@/utils/hexToRgb";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr";
-import { SubscriberBadge } from "@/components/ui/subscriber-badge";
+import { FreeUserPremiumUpsellBadge } from "@/components/ui/subscriber-badge";
 import Link from "next/link";
 import { PageContentWidth } from "@/components/layout/page-container";
 import { SectionTitle } from "@/app/catalog-courses-carousel-title";
@@ -21,13 +22,11 @@ export default async function CareerDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [data, session] = await Promise.all([
+  const [data, userPlan] = await Promise.all([
     getCareerBySlug(slug),
-    getCurrentSession(),
+    getResolvedUserPlan(),
   ]);
-  const isPremium = session?.plan === "PREMIUM";
-  const hasPaidPlan =
-    session?.plan === "PREMIUM" || session?.plan === "PRO";
+  const userIsPremium = isPremium(userPlan);
 
   return (
     <div className="w-full">
@@ -52,11 +51,7 @@ export default async function CareerDetailPage({
               </span>
             </Link>
 
-            {!hasPaidPlan ? (
-              <div className="mt-3 mb-4">
-                <SubscriberBadge variant="premium" />
-              </div>
-            ) : null}
+            <FreeUserPremiumUpsellBadge className="mt-3 mb-4" />
             <h1 className="font-bold lg:text-[44px] text-2xl lg:text-left leading-tight text-center mb-3 text-white">
               {data.career.title}
             </h1>
@@ -100,11 +95,7 @@ export default async function CareerDetailPage({
         <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
           <CareerDetailTabs
             conteudo={
-              <CareerConteudoTab
-                data={data}
-                isPremium={isPremium}
-                hasPaidPlan={hasPaidPlan}
-              />
+              <CareerConteudoTab data={data} isPremium={userIsPremium} />
             }
             informacoes={<CareerInformacoesTab data={data} />}
           />

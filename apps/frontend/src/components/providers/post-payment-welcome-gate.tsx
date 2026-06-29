@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useWelcomePaidStore } from "@/stores/welcome-paid-store";
 import { getPostPurchaseWelcome } from "@/actions/account/post-purchase-welcome";
 import type { PostPurchaseWelcomeResponse } from "@/actions/account/post-purchase-welcome";
+import { useUserPlan } from "@/hooks/use-user-plan";
 
 const PENDING_KEY = "cl_pending_welcome";
 const BACKOFF_MS = [0, 5_000, 15_000, 30_000] as const;
@@ -17,6 +18,7 @@ function shouldShowModal(data: PostPurchaseWelcomeResponse): boolean {
 
 export function PostPaymentWelcomeGate() {
   const { status } = useSession();
+  const { refreshPlan } = useUserPlan();
   const hasRunRef = useRef(false);
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export function PostPaymentWelcomeGate() {
 
     const openFromResponse = (data: PostPurchaseWelcomeResponse) => {
       if (!data.paymentId || cancelled) return;
+      void refreshPlan();
       useWelcomePaidStore.getState().open({
         paymentId: data.paymentId,
         planSlug: data.planSlug,
@@ -99,7 +102,7 @@ export function PostPaymentWelcomeGate() {
     return () => {
       cancelled = true;
     };
-  }, [status]);
+  }, [status, refreshPlan]);
 
   useEffect(() => {
     const enabled = process.env.NEXT_PUBLIC_DEBUG_WELCOME_MODAL === "1";

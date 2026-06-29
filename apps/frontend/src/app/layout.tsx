@@ -5,6 +5,7 @@ import { Suspense } from 'react'
 import { Providers, type ProvidersSession } from '@/components/providers/session-provider'
 import { AppShellWithData } from '@/components/layout/app-shell-with-data'
 import { AppShellStreamingFallback } from '@/components/layout/app-shell-streaming-fallback'
+import { getResolvedUserPlan } from '@/actions/user/get-user-from-api'
 import { auth } from '@/auth/authSetup'
 import type { Metadata } from 'next'
 
@@ -42,6 +43,7 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const session = (await auth()) as ProvidersSession
+  const initialPlan = await getResolvedUserPlan()
 
   return (
     <html
@@ -49,7 +51,7 @@ export default async function RootLayout({
       className={`${poppins.variable} ${instrumentSans.variable} ${wotfard.variable}`}
     >
       <body className="font-instrumentSans antialiased">
-        <Providers session={session}>
+        <Providers session={session} initialPlan={initialPlan}>
           <Suspense
             fallback={<AppShellStreamingFallback>{children}</AppShellStreamingFallback>}
           >

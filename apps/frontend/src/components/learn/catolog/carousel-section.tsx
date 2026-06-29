@@ -7,7 +7,6 @@ import {
   CarouselItem,
 } from '@/components/ui/carousel'
 import type { CourseWithCount } from '@/types/user-course.ts'
-import { useSession } from 'next-auth/react'
 import { CatalogCard } from './catalog-card'
 
 const getColorByLevel = (level: string): string => {
@@ -38,17 +37,6 @@ export function CarouselSection({
 }: {
   courses: CourseWithCount[]
 }) {
-  const { data, status } = useSession()
-  const plan = (data?.user as { plan?: 'FREE' | 'PRO' | 'PREMIUM' } | undefined)
-    ?.plan
-  const isFreeUser =
-    status === 'loading'
-      ? undefined
-      : plan === 'FREE'
-        ? true
-        : plan
-          ? false
-          : undefined
   return (
     <div className="relative min-w-0">
       <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-surface to-transparent z-10" />
@@ -80,7 +68,6 @@ export function CarouselSection({
                   level={course.level}
                   isFree={course.isFree}
                   position={position}
-                  isFreeUser={isFreeUser}
                   progress={course.progress}
                 />
               </CarouselItem>

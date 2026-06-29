@@ -1,6 +1,5 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
 import type { CourseWithCount } from '@/types/user-course.ts'
 import type { CareerTrack } from '@/components/learn/catolog/career-tracks-section'
 import { CatalogCard } from '@/components/learn/catolog/catalog-card'
@@ -32,18 +31,6 @@ export function CatalogCoursesGrid({
   className,
   emptyMessage = 'Nenhum resultado encontrado para os filtros selecionados.',
 }: CatalogCoursesGridProps) {
-  const { data, status } = useSession()
-  const plan = (data?.user as { plan?: 'FREE' | 'PRO' | 'PREMIUM' } | undefined)
-    ?.plan
-  const isFreeUser =
-    status === 'loading'
-      ? undefined
-      : plan === 'FREE'
-        ? true
-        : plan
-          ? false
-          : undefined
-
   const isEmpty = courses.length === 0 && tracks.length === 0
 
   if (isEmpty) {
@@ -87,7 +74,6 @@ export function CatalogCoursesGrid({
             courseId={course.id}
             level={course.level}
             isFree={course.isFree}
-            isFreeUser={isFreeUser}
             progress={course.progress}
             variant="grid"
           />

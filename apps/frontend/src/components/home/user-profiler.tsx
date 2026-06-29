@@ -1,3 +1,4 @@
+import { UserPlan } from '@code-legends/shared-types'
 import Link from 'next/link'
 import { Progress } from '../ui/progress'
 import { ActivityCalendar } from './activity-calendar'
@@ -9,19 +10,21 @@ import {
   type AvatarRingVariant,
 } from '../ui/avatar'
 import { getCurrentUser } from '@/actions/user/get-current-user'
-import { getUserFromAPI } from '@/actions/user/get-user-from-api'
+import { getUserFromAPI, getResolvedUserPlan } from '@/actions/user/get-user-from-api'
 import { getMySkills } from '@/actions/user/get-my-skills'
 import { getLessonActivity } from '@/actions/user/get-lesson-activity'
 import { getStreak } from '@/actions/user/get-streak'
+import { hasPaidPlan } from '@/lib/user-plan'
 import { CompactNumber } from '@/components/ui/compact-number'
 import { CtaFacaUpgradeCard } from '@/components/cta'
-import { PlanBadge } from '@/components/ui/plan-badge'
+import { UserPlanSubscriberBadge } from '@/components/ui/subscriber-badge'
 import Image from 'next/image'
 
 export async function UserProfiler() {
-  const [user, userFromAPI, { skills }, lessonActivity, streak] = await Promise.all([
+  const [user, userFromAPI, userPlan, { skills }, lessonActivity, streak] = await Promise.all([
     getCurrentUser(),
     getUserFromAPI(),
+    getResolvedUserPlan(),
     getMySkills(),
     getLessonActivity({ days: 98 }),
     getStreak(),
@@ -32,7 +35,6 @@ export async function UserProfiler() {
   const xpRemainingToNextLevel =
     userFromAPI?.xpToNextLevel ?? user?.xpToNextLevel ?? 100
 
-  // Mesma regra da página de tracking: XP acumulado da API e meta = atual + falta para o próximo nível
   const totalXp =
     userFromAPI?.totalXp ??
     user?.totalXp ??
@@ -43,17 +45,19 @@ export async function UserProfiler() {
       ? Math.max(0, Math.min(100, (totalXp / xpForNextLevel) * 100))
       : 0
 
-  const userPlan = userFromAPI?.plan ?? user?.plan
-
   const avatarRingVariant: AvatarRingVariant =
-    userPlan === 'PRO' ? 'pro' : userPlan === 'PREMIUM' ? 'premium' : 'free'
+    userPlan === UserPlan.PRO
+      ? 'pro'
+      : userPlan === UserPlan.PREMIUM
+        ? 'premium'
+        : 'free'
 
   return (
     <div className="relative z-10 w-full lg:mb-0 mb-6 lg:max-w-[360px] flex-shrink-0 self-stretch lg:mt-9 mt-0 flex flex-col gap-8 lg:sticky lg:top-[32px] h-fit">
       <div className="bg-surface-2 p-6 border border-[#25252A] rounded-[20px] w-full">
         <div className=" flex justify-between">
           <h1 className="text-white text-xl font-medium">Olá, {firstName}</h1>
-          <PlanBadge plan={userPlan} />
+          <UserPlanSubscriberBadge />
         </div>
         <div className="flex items-center gap-4 mt-6">
           {/* Avatar com anel na cor do plano */}
@@ -133,7 +137,7 @@ export async function UserProfiler() {
           </div>
         </div>
       </div>
-      {userPlan !== 'PRO' && userPlan !== 'PREMIUM' && <CtaFacaUpgradeCard />}
+      {!hasPaidPlan(userPlan) && <CtaFacaUpgradeCard />}
       <div className="bg-surface-2 border border-[#25252A] rounded-[20px] w-full p-6">
         <div className="flex items-center gap-2 mb-2">
           <Flame size={24} weight="fill" className="text-[#FF6200]" />

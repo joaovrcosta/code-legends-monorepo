@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useWelcomePaidStore } from "@/stores/welcome-paid-store";
 import { ackPostPurchaseWelcome } from "@/actions/account/post-purchase-welcome";
+import { useUserPlan } from "@/hooks/use-user-plan";
 import Image from "next/image";
 import codeLegendsLogo from "../../public/logo-mobile.png";
 
@@ -51,6 +52,13 @@ function readableTextColor(backgroundHex: string): "#000000" | "#FFFFFF" {
 
 export function WelcomePaidModal() {
   const { isOpen, payload } = useWelcomePaidStore();
+  const { refreshPlan } = useUserPlan();
+
+  useEffect(() => {
+    if (isOpen) {
+      void refreshPlan();
+    }
+  }, [isOpen, refreshPlan]);
 
   const isDesktop = useIsDesktop();
   const accentHex =
@@ -71,6 +79,7 @@ export function WelcomePaidModal() {
     if (pid) {
       await ackPostPurchaseWelcome(pid).catch(() => { });
     }
+    await refreshPlan();
     useWelcomePaidStore.getState().close();
   };
 

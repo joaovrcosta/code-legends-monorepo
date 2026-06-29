@@ -9,7 +9,7 @@ import { useState } from 'react'
 import { useEnrolledCoursesStore } from '@/stores/enrolled-courses-store'
 import coverBackground from '../../../../public/cover-background.png'
 import { LevelBars } from '@/components/course/level-bars'
-import { SubscriberBadge } from '@/components/ui/subscriber-badge'
+import { CatalogAccessBadge } from '@/components/catalog/catalog-access-badge'
 
 function EnrollButton({
     courseId,
@@ -136,7 +136,6 @@ interface RecomendationCardProps {
     level?: string
     isFree?: boolean
     position?: 'first' | 'middle' | 'last'
-    isFreeUser?: boolean
     progress?: number
     variant?: 'carousel' | 'grid'
 }
@@ -153,7 +152,6 @@ export function CatalogCard({
     level,
     isFree,
     position = 'middle',
-    isFreeUser,
     progress = 0,
     variant = 'carousel',
 }: RecomendationCardProps) {
@@ -197,14 +195,7 @@ export function CatalogCard({
                         >
                             <p className="text-xs text-muted-foreground">{label}</p>
                         </div>
-                        {isFreeUser === true &&
-                            (isFree ? (
-                                <div className="bg-lime-500/10 border border-lime-500/20 rounded-full px-2 py-1">
-                                    <p className="text-xs text-lime-400 font-semibold">Gratuito</p>
-                                </div>
-                            ) : (
-                                <SubscriberBadge />
-                            ))}
+                        <CatalogAccessBadge isFree={isFree} />
                     </div>
                 )}
 

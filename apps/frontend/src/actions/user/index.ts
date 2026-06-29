@@ -1,5 +1,5 @@
 export { getCurrentUser } from "./get-current-user";
-export { getUserFromAPI } from "./get-user-from-api";
+export { getUserFromAPI, getResolvedUserPlan } from "./get-user-from-api";
 export { getUserCourses } from "./get-user-courses";
 export { getActiveCourse } from "./get-active-course";
 export {

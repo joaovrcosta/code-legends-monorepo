@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import courseCover from '../../../../public/course-cover.jpeg'
-import { SubscriberBadge } from '@/components/ui/subscriber-badge'
+import { CareerTrackPremiumBadge } from '@/components/ui/subscriber-badge'
 
 export type CareerTrackCardProps = {
   title: string
@@ -95,7 +95,7 @@ export function CareerTrackCard({
           </div>
 
           {badgeVariant ? (
-            <SubscriberBadge variant={badgeVariant} size="sm" />
+            <CareerTrackPremiumBadge variant={badgeVariant} size="sm" />
           ) : null}
         </div>
 
