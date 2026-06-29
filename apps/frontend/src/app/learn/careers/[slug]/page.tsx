@@ -82,7 +82,7 @@ export default async function CareerDetailPage({
                     isEnrolled={data.enrollment.isEnrolled}
                     notEnrolledLabel="Inscreva-se"
                     enrolledLabel="Inscrito"
-                    className="h-12 w-full lg:max-w-[142px] rounded-full px-4 text-base text-white font-semibold bg-blue-gradient-500 text-white/70 hover:bg-white/10"
+                    className="h-12 w-full rounded-full px-4 text-base text-white font-semibold bg-blue-gradient-500 text-white/70 hover:bg-white/10"
                   />
                 </div>
               </div>

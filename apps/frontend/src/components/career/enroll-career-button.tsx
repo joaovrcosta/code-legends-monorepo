@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { enrollInCareer } from "@/actions/career";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { CareerEnrollPremiumGateDialog } from "@/components/career/career-enroll-premium-gate-dialog";
+import { useUserPlan } from "@/hooks/use-user-plan";
+import { UserPlan } from "@code-legends/shared-types";
 import {
   CAREER_ENROLL_PREMIUM_REQUIRED,
   type CareerEnrollBlockedPlan,
@@ -21,11 +24,9 @@ function isPremiumGateError(
   );
 }
 
-function sessionPlanToBlocked(
-  plan: string | undefined,
-): CareerEnrollBlockedPlan | null {
-  if (plan === "PREMIUM") return null;
-  if (plan === "PRO") return "PRO";
+function planToBlocked(plan: UserPlan): CareerEnrollBlockedPlan | null {
+  if (plan === UserPlan.PREMIUM) return null;
+  if (plan === UserPlan.PRO) return "PRO";
   return "FREE";
 }
 
@@ -34,6 +35,7 @@ export function EnrollCareerButton({
   isEnrolled,
   notEnrolledLabel = "Inscrever-se",
   enrolledLabel = "Já inscrito",
+  reactivatePremiumLabel = "Reativar Premium",
   loadingLabel = "Inscrevendo...",
   className,
 }: {
@@ -41,10 +43,11 @@ export function EnrollCareerButton({
   isEnrolled: boolean;
   notEnrolledLabel?: string;
   enrolledLabel?: string;
+  reactivatePremiumLabel?: string;
   loadingLabel?: string;
   className?: string;
 }) {
-  const { data: session, status } = useSession();
+  const { plan, isPremium } = useUserPlan();
   const [isLoading, setIsLoading] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
   const [gateVariant, setGateVariant] = useState<CareerEnrollBlockedPlan | null>(
@@ -59,9 +62,8 @@ export function EnrollCareerButton({
   const handleEnroll = async () => {
     if (isEnrolled || isLoading) return;
 
-    const plan = (session?.user as { plan?: string } | undefined)?.plan;
-    if (status === "authenticated" && plan !== "PREMIUM") {
-      const blocked = sessionPlanToBlocked(plan);
+    if (!isPremium) {
+      const blocked = planToBlocked(plan);
       if (blocked) {
         openGate(blocked);
         return;
@@ -84,6 +86,16 @@ export function EnrollCareerButton({
     }
   };
 
+  const buttonClassName = ["rounded-full", className].filter(Boolean).join(" ");
+
+  if (isEnrolled && !isPremium) {
+    return (
+      <Button asChild className={cn(buttonClassName, "w-fit")}>
+        <Link href="/plans">{reactivatePremiumLabel}</Link>
+      </Button>
+    );
+  }
+
   return (
     <>
       <CareerEnrollPremiumGateDialog
@@ -97,7 +109,7 @@ export function EnrollCareerButton({
       <Button
         onClick={handleEnroll}
         disabled={isEnrolled || isLoading}
-        className={["rounded-full", className].filter(Boolean).join(" ")}
+        className={buttonClassName}
       >
         {isEnrolled
           ? enrolledLabel
