@@ -133,7 +133,7 @@ export function TitleAccordion({ title, description }: TitleAccordionProps) {
       <div className="hidden lg:block w-full overflow-hidden">
         <div className="px-2">
           <div className="flex flex-row items-center justify-between gap-4 w-full">
-            <h1 className="bg-blue-gradient-500 bg-clip-text text-transparent text-2xl font-bold tracking-tight">
+            <h1 className="text-white/90 text-2xl font-bold tracking-tight">
               {title}
             </h1>
             {desktopActionButtons}
