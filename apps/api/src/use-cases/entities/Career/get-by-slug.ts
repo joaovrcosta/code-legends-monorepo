@@ -5,6 +5,7 @@ import {
   evaluateCareerCertificationReadiness,
   isUserCourseFullyComplete,
 } from './career-certification-readiness'
+import { computeCareerProgressMetrics } from './compute-career-progress-metrics'
 
 interface GetCareerBySlugRequest {
   slug: string
@@ -56,6 +57,10 @@ export interface GetCareerBySlugResponse {
   }>
   enrollment: {
     isEnrolled: boolean
+    journeyProgress: number
+    modulesCompleted: number
+    modulesTotal: number
+    modulesCompletionProgress: number
     progress: number
     isCompleted: boolean
     finalExamClearedAt: string | null
@@ -286,6 +291,16 @@ export class GetCareerBySlugUseCase {
       }
     })
 
+    const progressMetrics = computeCareerProgressMetrics({
+      courses: modules.flatMap((m) =>
+        m.courses.map((c) => ({ progress: c.progress })),
+      ),
+      exams: modules.flatMap((m) =>
+        m.exams.map((e) => ({ bestScore: e.bestScore })),
+      ),
+      modules: modules.map((m) => ({ isCompleted: m.status.isCompleted })),
+    })
+
     return {
       career: {
         id: career.id,
@@ -300,18 +315,11 @@ export class GetCareerBySlugUseCase {
       modules,
       enrollment: {
         isEnrolled: userCareer != null,
-        progress:
-          userCareer != null
-            ? Math.max(
-                0,
-                Math.min(
-                  100,
-                  userCareer.progress <= 1
-                    ? Math.round(userCareer.progress * 100)
-                    : Math.round(userCareer.progress),
-                ),
-              )
-            : 0,
+        journeyProgress: progressMetrics.journeyProgress,
+        modulesCompleted: progressMetrics.modulesCompleted,
+        modulesTotal: progressMetrics.modulesTotal,
+        modulesCompletionProgress: progressMetrics.modulesCompletionProgress,
+        progress: progressMetrics.modulesCompletionProgress,
         isCompleted: userCareer?.isCompleted ?? false,
         finalExamClearedAt,
         certificateIssued,

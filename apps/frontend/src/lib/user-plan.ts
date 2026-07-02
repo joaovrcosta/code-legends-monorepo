@@ -21,12 +21,17 @@ export function isFreePlan(plan: UserPlan): boolean {
 
 /** Card de trilha de carreira: badge Premium para FREE e PRO. */
 export function shouldShowCareerTrackPremiumBadge(plan: UserPlan): boolean {
+  return shouldShowCareerPremiumUpsellBadge(plan);
+}
+
+/** Banner da carreira e Path Units: badge Premium para quem ainda não é Premium (FREE e PRO). */
+export function shouldShowCareerPremiumUpsellBadge(plan: UserPlan): boolean {
   return !isPremium(plan);
 }
 
-/** Banner da carreira e Path Units: badge Premium apenas para FREE. */
+/** @deprecated Use shouldShowCareerPremiumUpsellBadge — mantido para compatibilidade. */
 export function shouldShowFreeUserPremiumUpsell(plan: UserPlan): boolean {
-  return isFreePlan(plan);
+  return shouldShowCareerPremiumUpsellBadge(plan);
 }
 
 /** Catálogo (conteúdo pago): badge Exclusivo apenas para FREE. */

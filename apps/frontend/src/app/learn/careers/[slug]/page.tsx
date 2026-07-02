@@ -9,7 +9,7 @@ import { CareerInformacoesTab } from "@/components/career/career-informacoes-tab
 import { Progress } from "@/components/ui/progress";
 import { getAuroraBackground } from "@/utils/hexToRgb";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr";
-import { FreeUserPremiumUpsellBadge } from "@/components/ui/subscriber-badge";
+import { CareerTrackPremiumBadge } from "@/components/ui/subscriber-badge";
 import Link from "next/link";
 import { PageContentWidth } from "@/components/layout/page-container";
 import { SectionTitle } from "@/app/catalog-courses-carousel-title";
@@ -50,7 +50,7 @@ export default async function CareerDetailPage({
               </span>
             </Link>
 
-            <FreeUserPremiumUpsellBadge className="mt-3 mb-4" />
+            <CareerTrackPremiumBadge className="mt-3 mb-4" />
             <h1 className="font-bold lg:text-[44px] text-2xl lg:text-left leading-tight text-center mb-3 text-white">
               {data.career.title}
             </h1>
@@ -62,19 +62,36 @@ export default async function CareerDetailPage({
             ) : null}
 
             <div className="mt-6 flex w-full justify-center lg:justify-start">
-              <div className="w-full max-w-[500px]">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-[#7e7e89]">
-                  <span>Seu Progresso</span>
-                  <span className="text-white text-sm">
-                    {Math.round(data.enrollment.progress)}%
-                  </span>
+              <div className="w-full max-w-[500px] space-y-5">
+                <div>
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-[#7e7e89]">
+                    <span>Progresso da jornada</span>
+                    <span className="text-white text-sm">
+                      {Math.round(data.enrollment.journeyProgress)}%
+                    </span>
+                  </div>
+                  <div className="mt-2">
+                    <Progress
+                      value={data.enrollment.journeyProgress}
+                      className="h-[2px] bg-surface-2 [&>div>div]:bg-[#FF6200] [&>div>div]:shadow-[0_0_16px_0px_#FF6200]"
+                    />
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <Progress
-                    value={data.enrollment.progress}
-                    className="h-[2px] bg-surface-2"
-                  />
-                </div>
+
+                {/* <div>
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-[#7e7e89]">
+                    <span>Módulos concluídos</span>
+                    <span className="text-white text-sm">
+                      {data.enrollment.modulesCompleted}/{data.enrollment.modulesTotal}
+                    </span>
+                  </div>
+                  <div className="mt-2">
+                    <Progress
+                      value={data.enrollment.modulesCompletionProgress}
+                      className="h-[2px] bg-surface-2 [&>div>div]:bg-[#FF6200] [&>div>div]:shadow-[0_0_16px_0px_#FF6200]"
+                    />
+                  </div>
+                </div> */}
               </div>
             </div>
           </div>

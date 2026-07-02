@@ -58,12 +58,20 @@ export function CareerInformacoesTab({
             {data.enrollment.isEnrolled ? "Ativa" : "Não inscrito"}
           </dd>
         </div>
-        <div className="rounded-xl border border-[#25252A] bg-[#0D0D12] px-4 py-3 sm:col-span-2">
+        <div className="rounded-xl border border-[#25252A] bg-[#0D0D12] px-4 py-3">
           <dt className="text-[10px] font-semibold uppercase tracking-wider text-white/45">
-            Progresso geral
+            Progresso da jornada
           </dt>
           <dd className="mt-1 text-base font-semibold text-white">
-            {Math.round(data.enrollment.progress)}%
+            {Math.round(data.enrollment.journeyProgress)}%
+          </dd>
+        </div>
+        <div className="rounded-xl border border-[#25252A] bg-[#0D0D12] px-4 py-3">
+          <dt className="text-[10px] font-semibold uppercase tracking-wider text-white/45">
+            Módulos concluídos
+          </dt>
+          <dd className="mt-1 text-base font-semibold text-white">
+            {data.enrollment.modulesCompleted}/{data.enrollment.modulesTotal}
           </dd>
         </div>
       </dl>

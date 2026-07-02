@@ -9,9 +9,9 @@ import { cn } from '@/lib/utils'
 import { useUserPlan } from '@/hooks/use-user-plan'
 import {
   normalizeUserPlan,
+  shouldShowCareerPremiumUpsellBadge,
   shouldShowCareerTrackPremiumBadge,
   shouldShowExclusiveCatalogBadge,
-  shouldShowFreeUserPremiumUpsell,
 } from '@/lib/user-plan'
 
 export const SUBSCRIBER_BADGE_LABEL = 'Exclusivo' as const
@@ -99,7 +99,7 @@ export function CareerTrackPremiumBadge({
   )
 }
 
-/** Badge Premium para upsell em banner de carreira e Path Units (apenas FREE). */
+/** Badge Premium para upsell em banner de carreira e Path Units (FREE e PRO). */
 export function FreeUserPremiumUpsellBadge({
   className,
   size,
@@ -108,7 +108,7 @@ export function FreeUserPremiumUpsellBadge({
   size?: VariantProps<typeof subscriberBadgeVariants>['size']
 }) {
   const { plan } = useUserPlan()
-  if (!shouldShowFreeUserPremiumUpsell(plan)) return null
+  if (!shouldShowCareerPremiumUpsellBadge(plan)) return null
 
   return (
     <SubscriberBadge variant="premium" size={size} className={className} />

@@ -1,6 +1,13 @@
 import { prisma } from '../../../lib/prisma'
 import { CareerNotFoundError } from '../../errors/career-not-found'
-import { examScoreMeetsCertification } from './career-certification-readiness'
+import {
+  examScoreMeetsCertification,
+  isUserCourseFullyComplete,
+} from './career-certification-readiness'
+import {
+  computeCareerProgressMetrics,
+  normalizeProgressPercent,
+} from './compute-career-progress-metrics'
 
 interface GetCareerProgressRequest {
   userId: string
@@ -10,6 +17,10 @@ interface GetCareerProgressRequest {
 export interface GetCareerProgressResponse {
   career: {
     id: string
+    journeyProgress: number
+    modulesCompleted: number
+    modulesTotal: number
+    modulesCompletionProgress: number
     progress: number
     isCompleted: boolean
   }
@@ -36,6 +47,9 @@ export class GetCareerProgressUseCase {
           orderBy: { orderIndex: 'asc' },
           select: {
             id: true,
+            courses: {
+              select: { courseId: true },
+            },
             exams: {
               select: {
                 careerExamId: true,
@@ -52,9 +66,41 @@ export class GetCareerProgressUseCase {
       where: { userId_careerId: { userId, careerId } },
       select: { id: true, progress: true, isCompleted: true },
     })
+
+    const courseIds = [
+      ...new Set(career.modules.flatMap((m) => m.courses.map((c) => c.courseId))),
+    ]
+    const userCourses = courseIds.length
+      ? await prisma.userCourse.findMany({
+          where: { userId, courseId: { in: courseIds } },
+          select: { courseId: true, progress: true, isCompleted: true },
+        })
+      : []
+    const userCourseMap = new Map(userCourses.map((uc) => [uc.courseId, uc]))
+
     if (!userCareer) {
+      const progressMetrics = computeCareerProgressMetrics({
+        courses: courseIds.map((courseId) => ({
+          progress: normalizeProgressPercent(
+            userCourseMap.get(courseId)?.progress ?? 0,
+          ),
+        })),
+        exams: career.modules.flatMap((m) =>
+          m.exams.map(() => ({ bestScore: null as number | null })),
+        ),
+        modules: career.modules.map(() => ({ isCompleted: false })),
+      })
+
       return {
-        career: { id: careerId, progress: 0, isCompleted: false },
+        career: {
+          id: careerId,
+          journeyProgress: progressMetrics.journeyProgress,
+          modulesCompleted: progressMetrics.modulesCompleted,
+          modulesTotal: progressMetrics.modulesTotal,
+          modulesCompletionProgress: progressMetrics.modulesCompletionProgress,
+          progress: progressMetrics.modulesCompletionProgress,
+          isCompleted: false,
+        },
         modules: career.modules.map((m) => ({
           id: m.id,
           isCompleted: false,
@@ -77,61 +123,85 @@ export class GetCareerProgressUseCase {
 
     const examIds = career.modules.flatMap((m) => m.exams.map((e) => e.careerExamId))
     const uniqueExamIds = [...new Set(examIds)]
-    const attempts = await prisma.userCareerExamAttempt.findMany({
-      where: {
-        userCareerId: userCareer.id,
-        careerExamId: { in: uniqueExamIds },
-      },
-      orderBy: { createdAt: 'desc' },
-      select: { careerExamId: true, score: true },
-    })
-    const latestScoreByExam = new Map<string, number>()
-    for (const a of attempts) {
-      if (!latestScoreByExam.has(a.careerExamId)) {
-        latestScoreByExam.set(a.careerExamId, a.score)
-      }
-    }
+    const attempts = uniqueExamIds.length
+      ? await prisma.userCareerExamAttempt.findMany({
+          where: {
+            userCareerId: userCareer.id,
+            careerExamId: { in: uniqueExamIds },
+          },
+          orderBy: { createdAt: 'desc' },
+          select: { careerExamId: true, score: true },
+        })
+      : []
 
-    const passingByExamId = new Map<string, number>()
-    for (const m of career.modules) {
-      for (const e of m.exams) {
-        passingByExamId.set(e.careerExamId, e.exam.passingScore)
+    const latestScoreByExam = new Map<string, number>()
+    const bestScoreByExam = new Map<string, number>()
+    for (const attempt of attempts) {
+      if (!latestScoreByExam.has(attempt.careerExamId)) {
+        latestScoreByExam.set(attempt.careerExamId, attempt.score)
       }
+      const currentBest = bestScoreByExam.get(attempt.careerExamId) ?? 0
+      bestScoreByExam.set(
+        attempt.careerExamId,
+        Math.max(currentBest, attempt.score),
+      )
     }
 
     const modules = career.modules.map((m) => {
-      const s = statusMap.get(m.id)
-      const passedCount = m.exams.reduce((acc, e) => {
+      const statusRow = statusMap.get(m.id)
+      const examsPassedCount = m.exams.reduce((acc, e) => {
         const score = latestScoreByExam.get(e.careerExamId)
-        const passing = passingByExamId.get(e.careerExamId) ?? 70
-        const ok = score != null && examScoreMeetsCertification(score, passing)
+        const ok =
+          score != null &&
+          examScoreMeetsCertification(score, e.exam.passingScore)
         return acc + (ok ? 1 : 0)
       }, 0)
+
+      const coursesCompleteForModule = m.courses.every((row) =>
+        isUserCourseFullyComplete(userCourseMap.get(row.courseId)),
+      )
+      const examsAllPassed =
+        m.exams.length === 0 || examsPassedCount === m.exams.length
+      const moduleCompleteDerived = coursesCompleteForModule && examsAllPassed
+
       return {
         id: m.id,
-        isCompleted: s?.isCompleted ?? false,
-        completedAt: s?.completedAt ? s.completedAt.toISOString() : null,
-        examsPassedCount: passedCount,
+        isCompleted: moduleCompleteDerived,
+        completedAt: statusRow?.completedAt
+          ? statusRow.completedAt.toISOString()
+          : null,
+        examsPassedCount,
         examsTotal: m.exams.length,
+        courses: m.courses.map((row) => ({
+          progress: normalizeProgressPercent(
+            userCourseMap.get(row.courseId)?.progress ?? 0,
+          ),
+        })),
+        exams: m.exams.map((row) => ({
+          bestScore: bestScoreByExam.has(row.careerExamId)
+            ? bestScoreByExam.get(row.careerExamId)!
+            : null,
+        })),
       }
+    })
+
+    const progressMetrics = computeCareerProgressMetrics({
+      courses: modules.flatMap((m) => m.courses),
+      exams: modules.flatMap((m) => m.exams),
+      modules: modules.map((m) => ({ isCompleted: m.isCompleted })),
     })
 
     return {
       career: {
         id: careerId,
-        progress: Math.max(
-          0,
-          Math.min(
-            100,
-            userCareer.progress <= 1
-              ? Math.round(userCareer.progress * 100)
-              : Math.round(userCareer.progress),
-          ),
-        ),
+        journeyProgress: progressMetrics.journeyProgress,
+        modulesCompleted: progressMetrics.modulesCompleted,
+        modulesTotal: progressMetrics.modulesTotal,
+        modulesCompletionProgress: progressMetrics.modulesCompletionProgress,
+        progress: progressMetrics.modulesCompletionProgress,
         isCompleted: userCareer.isCompleted,
       },
-      modules,
+      modules: modules.map(({ courses: _courses, exams: _exams, ...module }) => module),
     }
   }
 }
-

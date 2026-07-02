@@ -2,7 +2,7 @@ import { CareerExamAttemptHistory } from "@/components/career/career-exam-attemp
 import { CareerLockedPadlockPill } from "@/components/career/career-locked-padlock-pill";
 import { ProgressRing } from "@/components/classroom/module-progress-ring";
 import { Button } from "@/components/ui/button";
-import { FreeUserPremiumUpsellBadge } from "@/components/ui/subscriber-badge";
+import { CareerTrackPremiumBadge } from "@/components/ui/subscriber-badge";
 import type { GetCareerBySlugResponse } from "@/types/career";
 import { cn } from "@/lib/utils";
 import { Check, FlaskIcon, Play } from "@phosphor-icons/react/dist/ssr";
@@ -98,7 +98,7 @@ export function CareerConteudoTab({
                             moduleNumber={0}
                             size={34}
                             strokeWidth={2}
-                            progressColor="stroke-[#00C8FF]"
+                            progressColor="stroke-[#FF6200]"
                             trackColor="stroke-[#25252A]"
                             padModuleNumber={false}
                             centerLabel={`${Math.round(c.progress)}%`}
@@ -126,7 +126,7 @@ export function CareerConteudoTab({
                           </div>
                         </div>
                         {isPremiumLockedPathUnit ? (
-                          <FreeUserPremiumUpsellBadge className="shrink-0" />
+                          <CareerTrackPremiumBadge className="shrink-0" />
                         ) : null}
                       </div>
                       {isPremiumLockedPathUnit ? (

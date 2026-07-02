@@ -64,6 +64,10 @@ export type GetCareerBySlugResponse = {
   modules: CareerModule[]
   enrollment: {
     isEnrolled: boolean
+    journeyProgress: number
+    modulesCompleted: number
+    modulesTotal: number
+    modulesCompletionProgress: number
     progress: number
     isCompleted: boolean
     finalExamClearedAt: string | null
