@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { PrimaryButton } from '@/components/ui/primary-button'
 import { Play } from '@phosphor-icons/react/dist/ssr'
+import { Loader2 } from 'lucide-react'
 import { useCourseEnrollment } from '@/hooks/use-course-enrollment'
 import { useState, useEffect } from 'react'
 import { getCourseRoadmapFresh } from '@/actions/course'
@@ -27,13 +28,20 @@ export function ContinueCourseButton({
   const { isEnrolled, isLoading, isCheckingEnrollment, handleStartCourse } =
     useCourseEnrollment(courseId)
   const [mounted, setMounted] = useState(false)
+  const [isNavigating, setIsNavigating] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  const isButtonLoading =
+    !mounted || isCheckingEnrollment || isLoading || isNavigating
+
   const handleClick: () => Promise<void> = async () => {
+    if (isButtonLoading) return
+
     try {
+      setIsNavigating(true)
       await handleStartCourse(courseId)
 
       const roadmapData = await getCourseRoadmapFresh(courseId)
@@ -64,13 +72,12 @@ export function ContinueCourseButton({
       }
 
       router.push(appendCourseIdToClassroomHref('/classroom', courseId))
-    } catch { }
+    } catch {
+      setIsNavigating(false)
+    }
   }
 
   const getButtonText = () => {
-    if (!mounted) return 'Continuar'
-    if (isLoading) return 'Carregando...'
-    if (isCheckingEnrollment) return 'Verificando...'
     if (isEnrolled) return 'Continuar'
     return 'Inscrever'
   }
@@ -78,14 +85,29 @@ export function ContinueCourseButton({
   return (
     <PrimaryButton
       onClick={handleClick}
-      disabled={isLoading || isCheckingEnrollment}
-      className={`w-full bg-blue-gradient-500 transition-all rounded-full lg:text-[18px] text-[16px] duration-300 hover:shadow-[0_0_12px_#00C8FF] font-semibold px-6 h-[54px] disabled:opacity-50 border-none ${className}`}
+      disabled={isButtonLoading}
+      aria-busy={isButtonLoading}
+      aria-label={
+        isButtonLoading
+          ? isCheckingEnrollment || !mounted
+            ? 'Verificando inscrição'
+            : 'Abrindo curso'
+          : undefined
+      }
+      className={`w-full bg-blue-gradient-500 transition-all rounded-full lg:text-[18px] text-[16px] duration-300 hover:shadow-[0_0_12px_#00C8FF] font-semibold px-6 h-[54px] disabled:opacity-50 border-none min-w-[160px] ${className}`}
       suppressHydrationWarning
     >
-      <span className="flex items-center gap-2">
-        <Play size={24} weight="fill" className="text-white" />
-        {getButtonText()}
-      </span>
+      {isButtonLoading ? (
+        <Loader2
+          className="!size-6 animate-spin text-white motion-reduce:animate-none"
+          aria-hidden
+        />
+      ) : (
+        <span className="flex items-center gap-2">
+          <Play size={24} weight="fill" className="text-white" />
+          {getButtonText()}
+        </span>
+      )}
     </PrimaryButton>
   )
 }

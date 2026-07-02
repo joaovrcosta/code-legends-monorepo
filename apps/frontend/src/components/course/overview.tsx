@@ -30,7 +30,6 @@ import Image from 'next/image'
 import { ChevronRight, LockKeyhole } from 'lucide-react'
 import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { LearnUpgradeCard } from '@/components/learn/learn-upgrade-card'
-import { XpHistoryModal } from '@/components/learn/xp-history-modal'
 import type { CourseSkillConfigItem } from '@/actions/course/get-course-skills-config'
 import type { ModuleLessonGridItem } from '@/lib/module-lesson-overview'
 import type { StudyProgramModuleSection } from '@/lib/study-program-overview'
@@ -41,7 +40,6 @@ interface CourseOverviewProps {
   courseSkills?: CourseSkillConfigItem[]
   studyProgramModules?: StudyProgramModuleSection[]
   moduleLessons?: ModuleLessonGridItem[]
-  /** ID do curso da página — evita abrir aula no curso ativo errado */
   courseId?: string
   resumeLessonHref?: string | null
   currentLesson?: {
@@ -537,25 +535,6 @@ export function CourseOverview({
             </div>
           </CardHeader>
           <div className="px-4 py-6 space-y-4">
-            <div className="rounded-[16px] border border-[#25252A] bg-[#141417] p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs text-[#C4C4CC]">XP</p>
-                  <p className="text-sm font-semibold text-white">
-                    Histórico de ganhos
-                  </p>
-                </div>
-                <XpHistoryModal
-                  days={30}
-                  limit={200}
-                  triggerClassName="h-9 rounded-full border-[#25252A] bg-transparent text-white hover:bg-[#25252A]"
-                />
-              </div>
-              <p className="text-xs text-[#7e7e89] mt-2">
-                Veja os lançamentos de XP recentes.
-              </p>
-            </div>
-
             <div>
               <p className="text-xs text-[#C4C4CC] mb-2">Nível</p>
               <p className="text-sm font-semibold text-white">Intermediário</p>

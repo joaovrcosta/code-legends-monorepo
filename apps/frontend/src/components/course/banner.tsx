@@ -238,9 +238,18 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
     }
   }
 
+  const isButtonLoading = !mounted || isCheckingEnrollment || isLoadingAction
+
   const renderButtonContent = () => {
-    if (!mounted || isCheckingEnrollment) return 'Verificando...'
-    if (isLoadingAction) return <Loader2 className="animate-spin" size={24} />
+    if (isButtonLoading) {
+      return (
+        <Loader2
+          className="!size-6 animate-spin text-white motion-reduce:animate-none"
+          aria-hidden
+        />
+      )
+    }
+
     const progress = userProgress?.course.progress ?? 0
     return isEnrolled ? (
       <>
@@ -276,8 +285,16 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
           <div className="flex items-center gap-3">
             <Button
               onClick={handleCourseAction}
-              disabled={isLoadingAction || isCheckingEnrollment}
-              className="bg-blue-gradient-500 transition-all rounded-full duration-300 hover:shadow-[0_0_12px_#00C8FF] font-semibold px-6 h-[42px] disabled:opacity-50"
+              disabled={isButtonLoading}
+              aria-busy={isButtonLoading}
+              aria-label={
+                isButtonLoading
+                  ? isCheckingEnrollment || !mounted
+                    ? 'Verificando inscrição'
+                    : 'Abrindo curso'
+                  : undefined
+              }
+              className="bg-blue-gradient-500 transition-all rounded-full duration-300 hover:shadow-[0_0_12px_#00C8FF] font-semibold px-6 h-[42px] disabled:opacity-50 min-w-[120px]"
             >
               {renderButtonContent()}
             </Button>
@@ -374,8 +391,16 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
               <div className="flex items-center lg:justify-start lg:mb-0 mb-8 justify-center gap-4 w-full">
                 <Button
                   onClick={handleCourseAction}
-                  disabled={isLoadingAction || isCheckingEnrollment}
-                  className="lg:w-fit w-full h-[54px] px-10 text-lg bg-blue-gradient-500 rounded-full hover:shadow-[0_0_15px_#00C8FF] transition-all disabled:opacity-50"
+                  disabled={isButtonLoading}
+                  aria-busy={isButtonLoading}
+                  aria-label={
+                    isButtonLoading
+                      ? isCheckingEnrollment || !mounted
+                        ? 'Verificando inscrição'
+                        : 'Abrindo curso'
+                      : undefined
+                  }
+                  className="lg:w-fit w-full h-[54px] px-10 text-lg bg-blue-gradient-500 rounded-full hover:shadow-[0_0_15px_#00C8FF] transition-all disabled:opacity-50 min-w-[160px]"
                 >
                   {renderButtonContent()}
                 </Button>
