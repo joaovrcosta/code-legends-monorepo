@@ -23,10 +23,9 @@ export const subscriberBadgeVariants = cva(
   {
     variants: {
       variant: {
-        exclusive:
-          'border border-[#00C8FF]/20 bg-subscriber-gradient',
-        premium: 'border border-orange-500/35 bg-premium-gradient',
-        pro: 'border border-violet-500/35 bg-pro-plan-gradient',
+        exclusive: 'bg-subscriber-gradient',
+        premium: 'bg-premium-gradient',
+        pro: 'bg-pro-plan-gradient',
       },
       size: {
         sm: 'px-2.5 py-1 text-[10px]',

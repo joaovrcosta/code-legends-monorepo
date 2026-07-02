@@ -41,7 +41,7 @@ export function CareerConteudoTab({
         >
           <div className="flex items-start justify-between gap-4 sm:gap-6">
             <div className="min-w-0 flex-1">
-              <span className="text-lg font-bold text-[#FF6200]">
+              <span className="text-lg font-bold text-white/90">
                 {m.title}
               </span>
               {m.description ? (
