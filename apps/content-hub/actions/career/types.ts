@@ -3,6 +3,7 @@ export type Career = {
   slug: string
   title: string
   description: string | null
+  longDescription: string | null
   thumbnail: string | null
   icon: string | null
   colorHex: string | null

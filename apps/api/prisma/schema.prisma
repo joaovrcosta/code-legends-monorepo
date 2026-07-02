@@ -59,16 +59,17 @@ model Course {
 }
 
 model Career {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  title       String
-  description String?
-  thumbnail   String?
-  icon        String?
-  colorHex    String?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  title            String
+  description      String?
+  longDescription  String?  @db.Text
+  thumbnail        String?
+  icon             String?
+  colorHex         String?
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   modules      CareerModule[]
   exams        CareerExam[]

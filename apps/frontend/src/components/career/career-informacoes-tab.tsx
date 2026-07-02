@@ -7,14 +7,16 @@ export function CareerInformacoesTab({
 }) {
   const totalCourses = data.modules.reduce((n, m) => n + m.courses.length, 0);
   const totalExams = data.modules.reduce((n, m) => n + m.exams.length, 0);
+  const longDescription =
+    data.career.longDescription ?? data.career.description;
 
   return (
     <div className="space-y-6 rounded-2xl border border-[#25252A] bg-primary/30 px-5 py-6 sm:px-6">
       <div>
         <h2 className="text-lg font-semibold text-white">Sobre esta carreira</h2>
-        {data.career.description ? (
+        {longDescription ? (
           <p className="mt-3 text-sm leading-relaxed text-white/65">
-            {data.career.description}
+            {longDescription}
           </p>
         ) : (
           <p className="mt-3 text-sm text-white/45">

@@ -17,6 +17,7 @@ export interface GetCareerBySlugResponse {
     slug: string
     title: string
     description: string | null
+    longDescription: string | null
     thumbnail: string | null
     icon: string | null
     colorHex: string | null
@@ -291,6 +292,7 @@ export class GetCareerBySlugUseCase {
         slug: career.slug,
         title: career.title,
         description: career.description,
+        longDescription: career.longDescription,
         thumbnail: career.thumbnail,
         icon: career.icon,
         colorHex: career.colorHex,

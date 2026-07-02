@@ -30,7 +30,6 @@ export default async function CareerDetailPage({
 
   return (
     <div className="w-full">
-      {/* Banner full-width */}
       <section
         className="relative w-full border-b border-[#25252A] pb-8 pt-6 lg:py-12"
         style={getAuroraBackground(data.career.colorHex)}
@@ -76,15 +75,6 @@ export default async function CareerDetailPage({
                     className="h-[2px] bg-surface-2"
                   />
                 </div>
-                <div className="mb-2 mt-6">
-                  <EnrollCareerButton
-                    careerId={data.career.id}
-                    isEnrolled={data.enrollment.isEnrolled}
-                    notEnrolledLabel="Inscreva-se"
-                    enrolledLabel="Inscrito"
-                    className="h-12 w-full rounded-full px-4 text-base text-white font-semibold bg-blue-gradient-500 text-white/70 hover:bg-white/10"
-                  />
-                </div>
               </div>
             </div>
           </div>
@@ -100,8 +90,15 @@ export default async function CareerDetailPage({
             informacoes={<CareerInformacoesTab data={data} />}
           />
 
-          <div className="lg:sticky lg:top-6">
+          <div className="order-first lg:order-none lg:sticky lg:top-6">
             <div className="space-y-4">
+              <EnrollCareerButton
+                careerId={data.career.id}
+                isEnrolled={data.enrollment.isEnrolled}
+                notEnrolledLabel="Inscreva-se"
+                enrolledLabel="Inscrito"
+                className="my-4 h-12 w-full rounded-full bg-[#FF6200] px-4 text-base font-semibold text-white hover:bg-[#E55A00]"
+              />
               <SectionTitle
                 className=""
                 title="Certificado"

@@ -7,6 +7,7 @@ export type CreateCareerData = {
   slug: string;
   title: string;
   description?: string;
+  longDescription?: string;
   thumbnail?: string;
   icon?: string;
   colorHex?: string;

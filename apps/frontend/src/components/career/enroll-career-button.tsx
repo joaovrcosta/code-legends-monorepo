@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { enrollInCareer } from "@/actions/career";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { CareerEnrollPremiumGateDialog } from "@/components/career/career-enroll-premium-gate-dialog";
 import { useUserPlan } from "@/hooks/use-user-plan";
 import { UserPlan } from "@code-legends/shared-types";
@@ -90,8 +89,10 @@ export function EnrollCareerButton({
 
   if (isEnrolled && !isPremium) {
     return (
-      <Button asChild className={cn(buttonClassName, "w-fit")}>
-        <Link href="/plans">{reactivatePremiumLabel}</Link>
+      <Button asChild className={buttonClassName}>
+        <Link href="/plans" className="flex w-full items-center justify-center">
+          {reactivatePremiumLabel}
+        </Link>
       </Button>
     );
   }

@@ -62,6 +62,7 @@ export default function EditCareerPage() {
     title: "",
     slug: "",
     description: "",
+    longDescription: "",
     thumbnail: "",
     icon: "",
     colorHex: "",
@@ -93,6 +94,7 @@ export default function EditCareerPage() {
         title: found.title,
         slug: found.slug,
         description: found.description ?? "",
+        longDescription: found.longDescription ?? "",
         thumbnail: found.thumbnail ?? "",
         icon: found.icon ?? "",
         colorHex: found.colorHex ?? "",
@@ -133,6 +135,7 @@ export default function EditCareerPage() {
           title: form.title,
           slug: form.slug,
           description: form.description || null,
+          longDescription: form.longDescription || null,
           thumbnail: form.thumbnail || null,
           icon: form.icon || null,
           colorHex: form.colorHex || null,
@@ -320,12 +323,23 @@ export default function EditCareerPage() {
                 </div>
               </div>
               <div className="mt-4 space-y-2">
-                <Label htmlFor="description">Descrição</Label>
+                <Label htmlFor="description">Descrição curta</Label>
                 <Textarea
                   id="description"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  rows={4}
+                  rows={2}
+                  placeholder="Resumo exibido no topo da página da carreira"
+                />
+              </div>
+              <div className="mt-4 space-y-2">
+                <Label htmlFor="longDescription">Descrição longa</Label>
+                <Textarea
+                  id="longDescription"
+                  value={form.longDescription}
+                  onChange={(e) => setForm({ ...form, longDescription: e.target.value })}
+                  rows={6}
+                  placeholder="Texto completo exibido em “Conheça a carreira”"
                 />
               </div>
               <div className="mt-4 flex items-center gap-2">

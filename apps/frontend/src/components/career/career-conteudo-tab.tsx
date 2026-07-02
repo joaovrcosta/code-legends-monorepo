@@ -16,8 +16,24 @@ export function CareerConteudoTab({
   data: GetCareerBySlugResponse;
   isPremium?: boolean;
 }) {
+  const longDescription =
+    data.career.longDescription ?? data.career.description;
+
   return (
     <div id="modulos" className="min-w-0 space-y-4">
+      <div className="rounded-[20px] border border-[#25252A] bg-primary/30 px-5 py-6 sm:px-6">
+        <h2 className="text-sm font-semibold text-[#C4C4CC]">Conheça a carreira</h2>
+        {longDescription ? (
+          <p className="mt-3 text-sm leading-relaxed text-white/90">
+            {longDescription}
+          </p>
+        ) : (
+          <p className="mt-3 text-sm text-white/45">
+            Esta carreira ainda não possui descrição detalhada.
+          </p>
+        )}
+      </div>
+
       {data.modules.map((m) => (
         <div
           key={m.id}
@@ -25,7 +41,7 @@ export function CareerConteudoTab({
         >
           <div className="flex items-start justify-between gap-4 sm:gap-6">
             <div className="min-w-0 flex-1">
-              <span className="font-bold bg-blue-gradient-500 bg-clip-text text-transparent text-lg">
+              <span className="text-lg font-bold text-[#FF6200]">
                 {m.title}
               </span>
               {m.description ? (

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 type TabId = "conteudo" | "informacoes";
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: "conteudo", label: "Conteúdo" },
+  { id: "conteudo", label: "Visão geral" },
   { id: "informacoes", label: "Informações" },
 ];
 
@@ -48,7 +48,7 @@ export function CareerDetailTabs({
               {t.label}
               {isActive ? (
                 <span
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-gradient-500"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF6200]"
                   aria-hidden
                 />
               ) : null}
