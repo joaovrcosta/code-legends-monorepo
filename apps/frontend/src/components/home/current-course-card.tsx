@@ -1,4 +1,4 @@
-import { getActiveCourse } from '@/actions/user/get-active-course'
+import { getDisplayActiveCourse } from '@/actions/user/get-active-course'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Progress } from '../ui/progress'
@@ -8,7 +8,7 @@ import { getUserCourseProgress } from '@/actions/progress'
 import { ShineBorder } from '../ui/border-beam'
 
 export async function CurrentCourseCard() {
-  const activeCourse = await getActiveCourse()
+  const activeCourse = await getDisplayActiveCourse()
 
   if (!activeCourse || activeCourse.isCompleted) {
     return (

@@ -2,6 +2,8 @@
 
 import { cache } from "react";
 import { getAuthToken } from "../auth/session";
+import { getResolvedUserPlan } from "./get-user-from-api";
+import { canAccessPathUnit } from "@/lib/user-plan";
 import type {
   ActiveCourseResponse,
   ActiveCourse,
@@ -57,4 +59,22 @@ export const getActiveCourse = cache(async function getActiveCourse(): Promise<A
     console.error("Erro ao buscar curso ativo:", error);
     return null;
   }
+});
+
+/** Curso ativo em "Trilha atual" — oculta PATH_UNIT para quem não é Premium. */
+export const getDisplayActiveCourse = cache(async function getDisplayActiveCourse(): Promise<ActiveCourse | null> {
+  const [activeCourse, userPlan] = await Promise.all([
+    getActiveCourse(),
+    getResolvedUserPlan(),
+  ]);
+
+  if (!activeCourse) {
+    return null;
+  }
+
+  if (activeCourse.kind === "PATH_UNIT" && !canAccessPathUnit(userPlan)) {
+    return null;
+  }
+
+  return activeCourse;
 });

@@ -5,6 +5,7 @@ import { IUserProgressRepository } from "../../../repositories/user-progress-rep
 import { UserNotFoundError } from "../../errors/user-not-found";
 import { prisma } from "../../../lib/prisma";
 import { resolveUserStreakForApi } from "../../../lib/user-streak-resolve";
+import { userHasPathUnitCareerAccess } from "../../../utils/path-unit-access";
 
 interface GetAccountOverviewRequest {
   userId: string;
@@ -122,19 +123,30 @@ export class GetAccountOverviewUseCase {
             title: true,
             slug: true,
             status: true,
+            kind: true,
+            exclusiveCareerId: true,
           },
         });
 
         if (course?.status === "PUBLISHED") {
-          activeCourse = {
-            id: course.id,
-            title: course.title,
-            slug: course.slug,
-            progress: userCourse.progress,
-            isCompleted: userCourse.isCompleted,
-            currentModuleId: userCourse.currentModuleId,
-            currentTaskId: userCourse.currentTaskId,
-          };
+          const isPathUnitWithoutAccess =
+            course.kind === "PATH_UNIT" &&
+            !(await userHasPathUnitCareerAccess(userId, course));
+
+          if (isPathUnitWithoutAccess) {
+            await this.usersRepository.update(userId, { activeCourseId: null });
+            responseUser = { ...user, activeCourseId: null };
+          } else {
+            activeCourse = {
+              id: course.id,
+              title: course.title,
+              slug: course.slug,
+              progress: userCourse.progress,
+              isCompleted: userCourse.isCompleted,
+              currentModuleId: userCourse.currentModuleId,
+              currentTaskId: userCourse.currentTaskId,
+            };
+          }
         } else {
           await this.usersRepository.update(userId, { activeCourseId: null });
           responseUser = { ...user, activeCourseId: null };

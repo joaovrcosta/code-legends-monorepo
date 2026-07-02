@@ -46,6 +46,11 @@ export function UserPlanProvider({
   );
 
   const [planFromApi, setPlanFromApi] = useState<UserPlan | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const refreshPlan = useCallback(async () => {
     if (!session?.user) {
@@ -60,11 +65,13 @@ export function UserPlanProvider({
   }, [session?.user]);
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (!isHydrated || status === "loading") return;
     void refreshPlan();
-  }, [status, refreshPlan, sessionPlan]);
+  }, [isHydrated, status, refreshPlan, sessionPlan]);
 
-  const plan = planFromApi ?? (status === "loading" ? initialPlan : sessionPlan);
+  const plan = !isHydrated
+    ? initialPlan
+    : (planFromApi ?? (status === "loading" ? initialPlan : sessionPlan));
 
   const value = useMemo<UserPlanContextValue>(
     () => ({

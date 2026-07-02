@@ -1,6 +1,7 @@
 import { IUsersRepository } from "../../../repositories/users-repository";
 import { ICourseRepository } from "../../../repositories/course-repository";
 import { IUserCourseRepository } from "../../../repositories/user-course-repository";
+import { userHasPathUnitCareerAccess } from "../../../utils/path-unit-access";
 
 interface GetActiveCourseRequest {
   userId: string;
@@ -14,6 +15,7 @@ interface GetActiveCourseResponse {
     thumbnail: string | null;
     description: string;
     icon: string | null;
+    kind: "CATALOG" | "PATH_UNIT";
     progress: number;
     isCompleted: boolean;
     currentModuleId: string | null;
@@ -54,6 +56,14 @@ export class GetActiveCourseUseCase {
       return { course: null };
     }
 
+    if (course.kind === "PATH_UNIT") {
+      const hasPathUnitAccess = await userHasPathUnitCareerAccess(userId, course);
+      if (!hasPathUnitAccess) {
+        await this.usersRepository.update(userId, { activeCourseId: null });
+        return { course: null };
+      }
+    }
+
     // Buscar inscrição do usuário neste curso
     const userCourse = await this.userCourseRepository.findByUserAndCourse(
       userId,
@@ -72,6 +82,7 @@ export class GetActiveCourseUseCase {
         thumbnail: course.thumbnail,
         description: course.description,
         icon: course.icon,
+        kind: course.kind,
         progress: userCourse.progress,
         isCompleted: userCourse.isCompleted,
         currentModuleId: userCourse.currentModuleId,

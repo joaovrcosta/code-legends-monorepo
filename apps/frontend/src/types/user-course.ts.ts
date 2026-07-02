@@ -68,6 +68,7 @@ export type ActiveCourse = {
   currentModuleId: string;
   currentTaskId: number;
   icon: string;
+  kind?: "CATALOG" | "PATH_UNIT";
 };
 
 export type ActiveCourseResponse = {
