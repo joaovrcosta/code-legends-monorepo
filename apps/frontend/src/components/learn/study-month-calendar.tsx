@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { CaretLeft, CaretRight } from '@phosphor-icons/react/dist/ssr'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { LessonActivityDay } from '@/actions/user/get-lesson-activity'
 
 const SAO_PAULO_TZ = 'America/Sao_Paulo'
@@ -74,6 +75,98 @@ interface StudyMonthCalendarProps {
   activities?: LessonActivityDay[]
 }
 
+type SlideDirection = 1 | -1
+
+const monthSlideVariants = {
+  enter: (direction: SlideDirection) => ({
+    x: direction > 0 ? 28 : -28,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: SlideDirection) => ({
+    x: direction > 0 ? -28 : 28,
+    opacity: 0,
+  }),
+}
+
+function buildMonthCells(
+  viewYear: number,
+  viewMonth: number,
+  activityMap: Map<string, number>,
+  todayKey: string,
+) {
+  const totalDays = daysInMonth(viewYear, viewMonth)
+  const firstWeekday = getWeekdayMondayZero(
+    dateAtNoonUTC(viewYear, viewMonth, 1),
+    SAO_PAULO_TZ,
+  )
+
+  const grid: CalendarCell[] = []
+
+  for (let i = 0; i < firstWeekday; i++) {
+    grid.push({ type: 'empty' })
+  }
+
+  for (let day = 1; day <= totalDays; day++) {
+    const dateKey = formatYYYYMMDDInTZ(
+      dateAtNoonUTC(viewYear, viewMonth, day),
+      SAO_PAULO_TZ,
+    )
+    const lessonCount = activityMap.get(dateKey) ?? 0
+    grid.push({
+      type: 'day',
+      day,
+      dateKey,
+      studied: lessonCount > 0,
+      lessonCount,
+      isToday: dateKey === todayKey,
+    })
+  }
+
+  return grid
+}
+
+function MonthGrid({ cells }: { cells: CalendarCell[] }) {
+  return (
+    <div className="grid grid-cols-7 gap-y-1 text-center">
+      {cells.map((cell, index) => {
+        if (cell.type === 'empty') {
+          return <div key={`empty-${index}`} className="h-9" aria-hidden />
+        }
+
+        const title = cell.studied
+          ? `${cell.day}: ${cell.lessonCount} ${cell.lessonCount === 1 ? 'lição' : 'lições'}`
+          : `${cell.day}: sem estudo`
+
+        return (
+          <div key={cell.dateKey} className="flex h-9 items-center justify-center">
+            <span
+              title={title}
+              className={[
+                'flex h-8 w-8 items-center justify-center rounded-full text-sm tabular-nums transition-colors',
+                cell.studied
+                  ? 'bg-[#00C8FF]/15 font-semibold text-[#00C8FF] ring-1 ring-[#00C8FF]/50'
+                  : 'text-[#737373]',
+                cell.isToday && !cell.studied
+                  ? 'ring-1 ring-[#C4C4CC]/60 text-white'
+                  : '',
+                cell.isToday && cell.studied
+                  ? 'ring-2 ring-[#00C8FF]'
+                  : '',
+              ].join(' ')}
+            >
+              {cell.day}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function StudyMonthCalendar({ activities = [] }: StudyMonthCalendarProps) {
   const todayKey = useMemo(
     () => formatYYYYMMDDInTZ(new Date(), SAO_PAULO_TZ),
@@ -87,6 +180,9 @@ export function StudyMonthCalendar({ activities = [] }: StudyMonthCalendarProps)
 
   const [viewYear, setViewYear] = useState(initialView.year)
   const [viewMonth, setViewMonth] = useState(initialView.month)
+  const [slideDirection, setSlideDirection] = useState<SlideDirection>(1)
+
+  const viewKey = `${viewYear}-${viewMonth}`
 
   const activityMap = useMemo(() => {
     const map = new Map<string, number>()
@@ -107,39 +203,13 @@ export function StudyMonthCalendar({ activities = [] }: StudyMonthCalendarProps)
     return formatted.charAt(0).toUpperCase() + formatted.slice(1)
   }, [viewYear, viewMonth])
 
-  const cells = useMemo(() => {
-    const totalDays = daysInMonth(viewYear, viewMonth)
-    const firstWeekday = getWeekdayMondayZero(
-      dateAtNoonUTC(viewYear, viewMonth, 1),
-      SAO_PAULO_TZ,
-    )
-
-    const grid: CalendarCell[] = []
-
-    for (let i = 0; i < firstWeekday; i++) {
-      grid.push({ type: 'empty' })
-    }
-
-    for (let day = 1; day <= totalDays; day++) {
-      const dateKey = formatYYYYMMDDInTZ(
-        dateAtNoonUTC(viewYear, viewMonth, day),
-        SAO_PAULO_TZ,
-      )
-      const lessonCount = activityMap.get(dateKey) ?? 0
-      grid.push({
-        type: 'day',
-        day,
-        dateKey,
-        studied: lessonCount > 0,
-        lessonCount,
-        isToday: dateKey === todayKey,
-      })
-    }
-
-    return grid
-  }, [viewYear, viewMonth, activityMap, todayKey])
+  const cells = useMemo(
+    () => buildMonthCells(viewYear, viewMonth, activityMap, todayKey),
+    [viewYear, viewMonth, activityMap, todayKey],
+  )
 
   const goToPreviousMonth = () => {
+    setSlideDirection(-1)
     if (viewMonth === 1) {
       setViewYear((y) => y - 1)
       setViewMonth(12)
@@ -149,6 +219,7 @@ export function StudyMonthCalendar({ activities = [] }: StudyMonthCalendarProps)
   }
 
   const goToNextMonth = () => {
+    setSlideDirection(1)
     if (viewMonth === 12) {
       setViewYear((y) => y + 1)
       setViewMonth(1)
@@ -160,7 +231,20 @@ export function StudyMonthCalendar({ activities = [] }: StudyMonthCalendarProps)
   return (
     <div className="w-full">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-white">{monthLabel}</h3>
+        <div className="relative min-h-[20px] overflow-hidden">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.h3
+              key={viewKey}
+              initial={{ opacity: 0, y: slideDirection > 0 ? 8 : -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: slideDirection > 0 ? -8 : 8 }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              className="text-sm font-semibold text-white"
+            >
+              {monthLabel}
+            </motion.h3>
+          </AnimatePresence>
+        </div>
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -190,38 +274,22 @@ export function StudyMonthCalendar({ activities = [] }: StudyMonthCalendarProps)
             {label}
           </div>
         ))}
+      </div>
 
-        {cells.map((cell, index) => {
-          if (cell.type === 'empty') {
-            return <div key={`empty-${index}`} className="h-9" aria-hidden />
-          }
-
-          const title = cell.studied
-            ? `${cell.day}: ${cell.lessonCount} ${cell.lessonCount === 1 ? 'lição' : 'lições'}`
-            : `${cell.day}: sem estudo`
-
-          return (
-            <div key={cell.dateKey} className="flex h-9 items-center justify-center">
-              <span
-                title={title}
-                className={[
-                  'flex h-8 w-8 items-center justify-center rounded-full text-sm tabular-nums transition-colors',
-                  cell.studied
-                    ? 'bg-[#00C8FF]/15 font-semibold text-[#00C8FF] ring-1 ring-[#00C8FF]/50'
-                    : 'text-[#737373]',
-                  cell.isToday && !cell.studied
-                    ? 'ring-1 ring-[#C4C4CC]/60 text-white'
-                    : '',
-                  cell.isToday && cell.studied
-                    ? 'ring-2 ring-[#00C8FF]'
-                    : '',
-                ].join(' ')}
-              >
-                {cell.day}
-              </span>
-            </div>
-          )
-        })}
+      <div className="overflow-hidden">
+        <AnimatePresence mode="wait" initial={false} custom={slideDirection}>
+          <motion.div
+            key={viewKey}
+            custom={slideDirection}
+            variants={monthSlideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.28, ease: 'easeInOut' }}
+          >
+            <MonthGrid cells={cells} />
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       <div className="mt-4 space-y-2 border-t border-[#25252A] pt-4 text-[11px] text-[#737373]">
