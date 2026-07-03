@@ -218,9 +218,13 @@ export function useWorkspaceTabs() {
 /** Registra a página atual na barra de abas abertas (estilo VS Code). */
 export function useWorkspaceTab(tab: WorkspaceTab | null | undefined) {
   const { openTab } = useWorkspaceTabs();
+  const tabKey = tab?.key;
+  const tabHref = tab?.href;
+  const tabLabel = tab?.label;
+  const tabIcon = tab?.icon;
 
   useEffect(() => {
-    if (!tab?.key || !tab.href || !tab.label) return;
-    openTab(tab);
-  }, [tab?.key, tab?.href, tab?.label, tab?.icon, openTab]);
+    if (!tabKey || !tabHref || !tabLabel) return;
+    openTab({ key: tabKey, href: tabHref, label: tabLabel, icon: tabIcon });
+  }, [tabKey, tabHref, tabLabel, tabIcon, openTab]);
 }

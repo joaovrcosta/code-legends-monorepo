@@ -245,11 +245,12 @@ export default function CoursesPage() {
                                 className="h-8 w-8 object-contain"
                               />
                             ) : (
-                              <ImageIcon
-                                className="h-5 w-5 text-ch-muted"
-                                aria-hidden
-                                title="Sem ícone"
-                              />
+                              <span title="Sem ícone" className="inline-flex">
+                                <ImageIcon
+                                  className="h-5 w-5 text-ch-muted"
+                                  aria-hidden
+                                />
+                              </span>
                             )}
                           </TableCell>
                           <TableCell className="font-medium">{course.title}</TableCell>
