@@ -11,7 +11,9 @@ interface MyLearningRequest {
 interface CourseItem {
   id: string;
   title: string;
+  slug: string;
   icon: string | null;
+  kind: "CATALOG" | "PATH_UNIT";
   progress: number;
 }
 
@@ -128,7 +130,9 @@ export class MyLearningUseCase {
         const courseItem: CourseItem = {
           id: course.id,
           title: course.title,
+          slug: course.slug,
           icon: course.icon,
+          kind: course.kind,
           progress: courseProgress,
         };
 

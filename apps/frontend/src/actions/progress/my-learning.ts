@@ -5,7 +5,9 @@ import { getAuthToken } from "../auth/session";
 export interface MyLearningCourse {
   id: string;
   title: string;
+  slug: string;
   icon: string;
+  kind?: "CATALOG" | "PATH_UNIT";
   progress: number;
 }
 
