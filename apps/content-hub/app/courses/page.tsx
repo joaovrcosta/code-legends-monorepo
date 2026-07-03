@@ -213,7 +213,7 @@ export default function CoursesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[72px]">Ícone</TableHead>
+                    <TableHead className="w-12">Ícone</TableHead>
                     <TableHead>Título</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Slug</TableHead>
@@ -242,15 +242,14 @@ export default function CoursesPage() {
                               <img
                                 src={course.icon}
                                 alt=""
-                                className="h-10 w-10 rounded-lg object-cover border border-ch-border bg-ch-surface-raised"
+                                className="h-8 w-8 object-contain"
                               />
                             ) : (
-                              <div
-                                className="flex h-10 w-10 items-center justify-center rounded-lg border border-dashed border-ch-border bg-ch-canvas bg-ch-surface-raised/50 text-ch-muted"
+                              <ImageIcon
+                                className="h-5 w-5 text-ch-muted"
+                                aria-hidden
                                 title="Sem ícone"
-                              >
-                                <ImageIcon className="h-4 w-4" aria-hidden />
-                              </div>
+                              />
                             )}
                           </TableCell>
                           <TableCell className="font-medium">{course.title}</TableCell>

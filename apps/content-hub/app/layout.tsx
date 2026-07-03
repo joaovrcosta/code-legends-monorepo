@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import { ThemeProvider } from "@/contexts/theme-context";
+import { ContentHubProviders } from "@/components/providers/content-hub-providers";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -25,10 +25,10 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} antialiased`}
       >
-        <ThemeProvider>
+        <ContentHubProviders>
           {children}
           <Toaster position="top-right" richColors />
-        </ThemeProvider>
+        </ContentHubProviders>
       </body>
     </html>
   );

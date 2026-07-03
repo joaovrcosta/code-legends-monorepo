@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { MainLayout } from "@/components/layout/main-layout";
+import { useWorkspaceTab } from "@/components/layout/workspace-tabs-context";
 import { Button } from "@/components/ui/button";
 import { LessonEditView } from "@/components/course-builder/lesson-edit-modal";
 import { LessonContextBreadcrumb } from "@/components/course-builder/lesson-context-breadcrumb";
@@ -110,6 +111,16 @@ export default function EditCourseLessonPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useWorkspaceTab(
+    lesson
+      ? {
+          key: `lesson:${lessonId}`,
+          href: `/courses/${courseId}/lessons/${lessonId}/edit`,
+          label: lesson.title,
+        }
+      : null,
+  );
 
   if (loading) {
     return (

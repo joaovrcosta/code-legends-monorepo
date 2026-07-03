@@ -16,6 +16,7 @@ import {
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useWorkspaceTab } from "@/components/layout/workspace-tabs-context";
 import { toast } from "sonner";
 
 export default function EditPlanPage() {
@@ -40,6 +41,17 @@ export default function EditPlanPage() {
   useEffect(() => {
     loadPlan();
   }, [id]);
+
+  useWorkspaceTab(
+    formData.name
+      ? {
+          key: `plan:${id}`,
+          href: `/plans/${id}/edit`,
+          label: formData.name,
+          icon: formData.imageUrl || null,
+        }
+      : null,
+  );
 
   const loadPlan = async () => {
     try {

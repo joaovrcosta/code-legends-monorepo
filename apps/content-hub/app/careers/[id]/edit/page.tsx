@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, ArrowDown, ArrowUp, ChevronDown, Plus, Save, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { MainLayout } from "@/components/layout/main-layout";
+import { useWorkspaceTab } from "@/components/layout/workspace-tabs-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -112,6 +113,17 @@ export default function EditCareerPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useWorkspaceTab(
+    form.title
+      ? {
+          key: `career:${careerId}`,
+          href: `/careers/${careerId}/edit`,
+          label: form.title,
+          icon: form.icon || null,
+        }
+      : null,
+  );
 
   useEffect(() => {
     if (form.title && !slugManuallyEdited) {

@@ -39,6 +39,7 @@ import { mergeProductionIntoModules } from "@/lib/course-structure";
 import { CourseBuilder } from "@/components/course-builder/course-builder";
 import { CourseProductionKanban } from "@/components/course-builder/course-production-kanban";
 import { CourseMetricsTab } from "@/components/courses/course-metrics-tab";
+import { useWorkspaceTab } from "@/components/layout/workspace-tabs-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { verifyPassword } from "@/actions/user/verify-password";
@@ -104,6 +105,17 @@ export default function EditCoursePage() {
     loadCourseStructure();
     loadCourseSkills();
   }, [courseId]);
+
+  useWorkspaceTab(
+    formData.title
+      ? {
+          key: `course:${courseId}`,
+          href: `/courses/${courseId}/edit`,
+          label: formData.title,
+          icon: formData.icon || null,
+        }
+      : null,
+  );
 
   useEffect(() => {
     const searchTags = async () => {
@@ -532,6 +544,14 @@ export default function EditCoursePage() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
+            {formData.icon ? (
+              // eslint-disable-next-line @next/next/no-img-element -- URL de ícone varia (S3/CDN)
+              <img
+                src={formData.icon}
+                alt=""
+                className="h-9 w-9 shrink-0 object-contain"
+              />
+            ) : null}
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold text-ch">

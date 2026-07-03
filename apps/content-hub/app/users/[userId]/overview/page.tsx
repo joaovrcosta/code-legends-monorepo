@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/layout/main-layout";
+import { useWorkspaceTab } from "@/components/layout/workspace-tabs-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
@@ -87,6 +88,19 @@ function UserOverviewPageContent() {
       loadOverview();
     }
   }, [userId, loadOverview]);
+
+  const workspaceUser = overview?.user ?? skillsProfile?.user ?? null;
+
+  useWorkspaceTab(
+    workspaceUser?.name
+      ? {
+          key: `user:${userId}`,
+          href: `/users/${userId}/overview`,
+          label: workspaceUser.name,
+          icon: workspaceUser.avatar ?? null,
+        }
+      : null,
+  );
 
   const handleLessonsLimitChange = (value: string) => {
     const num = parseInt(value, 10);
