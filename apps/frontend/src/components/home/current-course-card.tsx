@@ -61,7 +61,7 @@ export async function CurrentCourseCard() {
         <div className="flex flex-col items-center lg:items-start w-full lg:w-auto">
           <div className="px-2 text-gray-500 rounded-full border border-[#25252A] mb-6">
             <p className="text-xs text-muted-foreground">
-              Curso ativo
+              Aprendizado ativo
             </p>
           </div>
 

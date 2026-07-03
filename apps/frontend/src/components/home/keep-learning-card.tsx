@@ -20,6 +20,9 @@ export function KeepLearningCard({ course, progress }: KeepLearningCardProps) {
         ? Math.min(Math.max(Number(progress) || 0, 0), 100)
         : Math.min(Math.max((Number(progress) || 0) * 100, 0), 100);
 
+    const typeLabel =
+        course.course.kind === "PATH_UNIT" ? "Unidade extra" : "Curso";
+
     const handleClick = async (e: React.MouseEvent) => {
         e.preventDefault();
         await startAndNavigate(course.courseId);
@@ -42,8 +45,8 @@ export function KeepLearningCard({ course, progress }: KeepLearningCardProps) {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                        <p className="text-muted-foreground text-[10px] font-light uppercase mb-1">
-                            CURSO
+                        <p className="text-[#8E8E8F] text-[10px] font-light uppercase mb-1">
+                            {typeLabel}
                         </p>
                         <h3 className={`font-semibold text-base truncate text-white`}>
                             {course.course.title}
