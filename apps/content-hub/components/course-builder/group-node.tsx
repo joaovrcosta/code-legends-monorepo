@@ -10,7 +10,6 @@ import { LessonNode } from './lesson-node'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  ChevronDown,
   ChevronRight,
   Edit,
   Trash2,
@@ -18,7 +17,9 @@ import {
   Save,
   X,
   FileJson,
+  GripVertical,
 } from 'lucide-react'
+import { GroupFolderIcon } from './course-tree-icons'
 import { updateGroup } from '@/actions/group/update-group'
 import { deleteGroup } from '@/actions/group/delete-group'
 import { createLesson } from '@/actions/lesson/create-lesson'
@@ -41,6 +42,8 @@ import {
 } from '@dnd-kit/sortable'
 import { reorderLessons } from '@/actions/lesson/reorder-lessons'
 import { toast } from 'sonner'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 export interface GroupNodeProps {
   group: GroupWithStructure
@@ -101,6 +104,21 @@ export function GroupNode({
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   )
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: group.id.toString() })
+
+  const sortableStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
@@ -273,17 +291,35 @@ export function GroupNode({
   }
 
   return (
-    <div className="border border-ch-border rounded-lg ml-4">
-      <div className="flex items-center gap-2 p-2 bg-ch-canvas bg-ch-surface-raised">
+    <div
+      ref={setNodeRef}
+      style={sortableStyle}
+      className="group overflow-hidden rounded-md border border-ch-border/80 bg-ch-canvas/40 transition-colors hover:border-ch-border"
+    >
+      <div className="flex items-center gap-2 p-2 bg-ch-surface-raised/40">
         <button
-          onClick={onToggle}
-          className="p-1 hover:bg-ch-surface-raised rounded"
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="cursor-grab rounded p-1 text-ch-muted active:cursor-grabbing hover:bg-ch-surface-raised hover:text-ch"
+          aria-label="Arrastar para reordenar submódulo"
         >
-          {isExpanded ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="group/toggle flex shrink-0 items-center gap-1.5 rounded-md p-1 transition-colors hover:bg-ch-surface-raised"
+          aria-expanded={isExpanded}
+          aria-label={isExpanded ? "Recolher submódulo" : "Expandir submódulo"}
+        >
+          <ChevronRight
+            className={`h-3 w-3 shrink-0 text-ch-muted transition-all duration-200 group-hover/toggle:text-ch ${isExpanded ? 'rotate-90' : ''}`}
+          />
+          <GroupFolderIcon
+            open={isExpanded}
+            className="text-amber-500 transition-colors group-hover/toggle:text-amber-400"
+          />
         </button>
 
         {isEditing ? (
@@ -322,10 +358,13 @@ export function GroupNode({
               <div className="text-[11px] font-medium text-ch-muted">
                 Submódulo {groupNumber ?? group.orderIndex + 1}
               </div>
-              <div className="text-sm text-ch-muted truncate">
+              <div className="truncate text-sm font-medium text-ch">
                 {group.title}
               </div>
             </div>
+            <span className="hidden shrink-0 rounded-md bg-ch-surface px-1.5 py-0.5 text-[10px] tabular-nums text-ch-muted sm:inline">
+              {lessons.length} {lessons.length === 1 ? 'arquivo' : 'arquivos'}
+            </span>
             <Button
               size="sm"
               variant="ghost"
@@ -365,9 +404,9 @@ export function GroupNode({
       </div>
 
       {isExpanded && (
-        <div className="p-2 space-y-1">
+        <div className="space-y-1 border-t border-ch-border/50 py-1.5 pl-3 pr-1.5 ml-2.5 border-l border-l-ch-border/40">
           {lessons.length === 0 ? (
-            <div className="text-xs text-ch-muted pl-6">
+            <div className="py-1.5 pl-2 text-xs text-ch-muted">
               Nenhuma aula. Clique no botão + para adicionar.
             </div>
           ) : (

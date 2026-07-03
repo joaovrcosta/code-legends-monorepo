@@ -6,6 +6,7 @@ import { GroupAlreadyExistsError } from "../../errors/group-already-exists";
 interface UpdateGroupRequest {
   id: number;
   title?: string;
+  orderIndex?: number;
 }
 
 interface UpdateGroupResponse {
@@ -38,6 +39,7 @@ export class UpdateGroupUseCase {
 
     const updatedGroup = await this.groupRepository.update(data.id, {
       title: data.title,
+      orderIndex: data.orderIndex,
     });
 
     return {

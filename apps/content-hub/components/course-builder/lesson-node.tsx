@@ -24,6 +24,7 @@ import {
   getLessonVideoIssue,
 } from "@/lib/lesson-video-issue";
 import type { LessonBreadcrumbContext } from "@/lib/course-structure";
+import { LessonFileIcon } from "./course-tree-icons";
 
 function lessonTypeLabel(type: string): string {
   const key = type.trim().toLowerCase();
@@ -209,7 +210,7 @@ export function LessonNode({
       <div
         ref={setNodeRef}
         style={style}
-        className="lesson-node-row grid items-center gap-x-2 gap-y-1 p-2 bg-ch-surface border border-ch-border rounded ml-4"
+        className="lesson-node-row grid items-center gap-x-2 gap-y-1 rounded-md border border-ch-border/70 bg-ch-surface p-2 transition-colors hover:border-ch-border hover:bg-ch-surface-raised/30"
       >
         <button
           {...attributes}
@@ -219,7 +220,8 @@ export function LessonNode({
         >
           <GripVertical className="h-4 w-4 text-ch-muted" />
         </button>
-        <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
+          <LessonFileIcon type={lesson.type} />
           {isEditingTitle ? (
             <div className="flex items-center gap-2">
               <Input
@@ -252,7 +254,7 @@ export function LessonNode({
               </Button>
             </div>
           ) : (
-            <span className="block min-w-0 text-sm text-ch-muted truncate">
+            <span className="block min-w-0 truncate text-sm text-ch">
               {lesson.title}
             </span>
           )}

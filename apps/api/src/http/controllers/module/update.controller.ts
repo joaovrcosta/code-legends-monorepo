@@ -12,10 +12,11 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
   const updateModuleBodySchema = z.object({
     title: z.string().optional(),
     slug: z.string().optional(),
+    orderIndex: z.number().int().optional(),
   });
 
   const { id } = updateModuleParamsSchema.parse(request.params);
-  const { title, slug } = updateModuleBodySchema.parse(request.body);
+  const { title, slug, orderIndex } = updateModuleBodySchema.parse(request.body);
 
   try {
     const updateModuleUseCase = makeUpdateModuleUseCase();
@@ -24,6 +25,7 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
       id,
       title,
       slug,
+      orderIndex,
     });
 
     return reply.status(200).send({ module });

@@ -9,6 +9,7 @@ interface CreateModuleData {
 interface UpdateModuleData {
   title?: string;
   slug?: string;
+  orderIndex?: number;
 }
 
 export interface IModuleRepository {

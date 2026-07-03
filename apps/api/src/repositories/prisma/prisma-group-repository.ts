@@ -9,6 +9,7 @@ interface CreateGroupData {
 
 interface UpdateGroupData {
   title?: string;
+  orderIndex?: number;
 }
 
 export class PrismaGroupRepository implements IGroupRepository {

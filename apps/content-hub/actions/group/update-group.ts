@@ -5,6 +5,7 @@ import type { Group } from "./list-groups";
 
 export interface UpdateGroupData {
   title?: string;
+  orderIndex?: number;
 }
 
 export interface UpdateGroupResponse {

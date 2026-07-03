@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, FileJson, X, Upload } from "lucide-react";
 import { createModule } from "@/actions/module/create-module";
+import { reorderModules } from "@/actions/module/reorder-modules";
 import { createGroup } from "@/actions/group/create-group";
 import {
   createLesson,
@@ -34,6 +35,25 @@ import {
   formatVideoIssueNote,
 } from "@/lib/lesson-video-issue";
 import { toast } from "sonner";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+
+function sortModules(modules: ModuleWithStructure[]) {
+  return [...modules].sort((a, b) => a.orderIndex - b.orderIndex);
+}
 
 interface ImportLessonData {
   title: string;
@@ -235,7 +255,34 @@ export function CourseBuilder({
     },
   );
   const [collapseAllKey, setCollapseAllKey] = useState(0);
+  const [expandAllKey, setExpandAllKey] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [sortedModules, setSortedModules] = useState<ModuleWithStructure[]>(() =>
+    sortModules(modules),
+  );
+
+  const moduleSensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  useEffect(() => {
+    const sorted = sortModules(modules);
+    setSortedModules((prev) => {
+      if (
+        prev.length !== sorted.length ||
+        prev.some(
+          (p, i) =>
+            p.id !== sorted[i]?.id || p.orderIndex !== sorted[i]?.orderIndex,
+        )
+      ) {
+        return sorted;
+      }
+      return prev;
+    });
+  }, [modules]);
 
   const [showStructureModal, setShowStructureModal] = useState(false);
   const [importJson, setImportJson] = useState("");
@@ -358,20 +405,58 @@ export function CourseBuilder({
     moduleId: string,
     updatedModule: ModuleWithStructure,
   ) => {
-    const updatedModules = modules.map((m) =>
+    const updatedModules = sortedModules.map((m) =>
       m.id === moduleId ? updatedModule : m,
     );
+    setSortedModules(updatedModules);
     onModulesChange(updatedModules);
   };
 
   const handleModuleDelete = (moduleId: string) => {
-    const updatedModules = modules.filter((m) => m.id !== moduleId);
+    const updatedModules = sortedModules.filter((m) => m.id !== moduleId);
+    setSortedModules(updatedModules);
     onModulesChange(updatedModules);
     setExpandedModules((prev) => {
       const newSet = new Set(prev);
       newSet.delete(moduleId);
       return newSet;
     });
+  };
+
+  const handleModuleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = sortedModules.findIndex((m) => m.id === active.id);
+    const newIndex = sortedModules.findIndex((m) => m.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newModules = arrayMove(sortedModules, oldIndex, newIndex);
+    setSortedModules(newModules);
+
+    try {
+      const token = getAuthTokenFromClient();
+      if (!token) {
+        setSortedModules(sortedModules);
+        return;
+      }
+
+      const reorderData = newModules.map((module, index) => ({
+        moduleId: module.id,
+        orderIndex: index,
+      }));
+      await reorderModules(reorderData, token);
+
+      const updatedModules = newModules.map((module, index) => ({
+        ...module,
+        orderIndex: index,
+      }));
+      onModulesChange(updatedModules);
+    } catch (error) {
+      console.error("Erro ao reordenar módulos:", error);
+      setSortedModules(sortedModules);
+      toast.error("Erro ao reordenar módulos. Tente novamente.");
+    }
   };
 
   const modulesForExport =
@@ -843,6 +928,32 @@ export function CourseBuilder({
     return counts;
   }, [modules]);
 
+  const isAllExpanded = useMemo(() => {
+    if (sortedModules.length === 0) return false;
+    return sortedModules.every((m) => expandedModules.has(m.id));
+  }, [sortedModules, expandedModules]);
+
+  const toggleExpandAll = () => {
+    if (isAllExpanded) {
+      setExpandedModules(new Set());
+      setCollapseAllKey((k) => k + 1);
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify([]));
+      } catch { }
+      return;
+    }
+
+    const allModuleIds = new Set(sortedModules.map((m) => m.id));
+    setExpandedModules(allModuleIds);
+    setExpandAllKey((k) => k + 1);
+    try {
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify([...allModuleIds]),
+      );
+    } catch { }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
@@ -882,15 +993,10 @@ export function CourseBuilder({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              setExpandedModules(new Set());
-              setCollapseAllKey((k) => k + 1);
-              try {
-                window.localStorage.setItem(storageKey, JSON.stringify([]));
-              } catch { }
-            }}
+            onClick={toggleExpandAll}
+            disabled={sortedModules.length === 0}
           >
-            Fechar tudo
+            {isAllExpanded ? "Fechar tudo" : "Abrir tudo"}
           </Button>
           <Button
             variant="outline"
@@ -907,30 +1013,42 @@ export function CourseBuilder({
         </div>
       </div>
 
-      <div className="space-y-2">
-        {modules.length === 0 ? (
+      <div className="rounded-xl border border-ch-border bg-ch-canvas/30 p-2 space-y-1.5">
+        {sortedModules.length === 0 ? (
           <div className="text-center py-8 text-ch-muted">
             Nenhum módulo cadastrado. Clique em "Adicionar Módulo" para começar.
           </div>
         ) : (
-          modules
-            .filter((module) => module.id) // Filtrar módulos sem ID válido
-            .map((module, idx) => (
-              <ModuleNode
-                key={module.id}
-                module={module}
-                moduleNumber={idx + 1}
-                collapseAllKey={collapseAllKey}
-                isExpanded={expandedModules.has(module.id)}
-                onToggle={() => toggleModule(module.id)}
-                onUpdate={(updated) => handleModuleUpdate(module.id, updated)}
-                onDelete={() => handleModuleDelete(module.id)}
-                onReloadStructure={onReloadStructure}
-                courseSkillIds={courseSkillIds}
-                courseTitle={courseTitle}
-                modules={modules}
-              />
-            ))
+          <DndContext
+            sensors={moduleSensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleModuleDragEnd}
+          >
+            <SortableContext
+              items={sortedModules.map((module) => module.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {sortedModules
+                .filter((module) => module.id)
+                .map((module, idx) => (
+                  <ModuleNode
+                    key={module.id}
+                    module={module}
+                    moduleNumber={idx + 1}
+                    collapseAllKey={collapseAllKey}
+                    expandAllKey={expandAllKey}
+                    isExpanded={expandedModules.has(module.id)}
+                    onToggle={() => toggleModule(module.id)}
+                    onUpdate={(updated) => handleModuleUpdate(module.id, updated)}
+                    onDelete={() => handleModuleDelete(module.id)}
+                    onReloadStructure={onReloadStructure}
+                    courseSkillIds={courseSkillIds}
+                    courseTitle={courseTitle}
+                    modules={sortedModules}
+                  />
+                ))}
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 

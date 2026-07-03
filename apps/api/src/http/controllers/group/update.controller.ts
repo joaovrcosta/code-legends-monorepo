@@ -11,10 +11,11 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
 
   const updateGroupBodySchema = z.object({
     title: z.string().optional(),
+    orderIndex: z.number().int().optional(),
   });
 
   const { id } = updateGroupParamsSchema.parse(request.params);
-  const { title } = updateGroupBodySchema.parse(request.body);
+  const { title, orderIndex } = updateGroupBodySchema.parse(request.body);
 
   try {
     const updateGroupUseCase = makeUpdateGroupUseCase();
@@ -22,6 +23,7 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
     const { group } = await updateGroupUseCase.execute({
       id,
       title,
+      orderIndex,
     });
 
     return reply.status(200).send({ group });

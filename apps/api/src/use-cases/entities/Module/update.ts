@@ -7,6 +7,7 @@ interface UpdateModuleRequest {
   id: string;
   title?: string;
   slug?: string;
+  orderIndex?: number;
 }
 
 interface UpdateModuleResponse {
@@ -39,6 +40,7 @@ export class UpdateModuleUseCase {
     const updatedModule = await this.moduleRepository.update(data.id, {
       title: data.title,
       slug: data.slug,
+      orderIndex: data.orderIndex,
     });
 
     return {

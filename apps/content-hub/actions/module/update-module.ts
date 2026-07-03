@@ -6,6 +6,7 @@ import type { Module } from "./list-modules";
 export interface UpdateModuleData {
   title?: string;
   slug?: string;
+  orderIndex?: number;
 }
 
 export interface UpdateModuleResponse {

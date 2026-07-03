@@ -7,6 +7,7 @@ interface CreateGroupData {
 
 interface UpdateGroupData {
   title?: string;
+  orderIndex?: number;
 }
 
 export interface IGroupRepository {
