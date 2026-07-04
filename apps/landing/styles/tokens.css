@@ -1,0 +1,34 @@
+:root {
+  --landing-canvas: #0c0c0d;
+  --landing-surface: #101013;
+  --landing-surface-raised: #18181f;
+  --landing-border: #25252a;
+  --landing-text: #ffffff;
+  --landing-text-muted: #c4c4cc;
+  --landing-text-subtle: #7e7e89;
+  --landing-accent: #00c8ff;
+  --landing-accent-hover: #35d4ff;
+  --landing-accent-soft: rgb(0 200 255 / 0.12);
+  --landing-orange: #f97316;
+
+  --landing-gradient-primary: linear-gradient(
+    267deg,
+    rgba(0, 78, 99, 1) 0%,
+    #00c8ff 100%
+  );
+  --landing-gradient-cta: linear-gradient(
+    180deg,
+    #0f0f10 0%,
+    rgba(0, 200, 255, 0.39) 100%
+  );
+  --landing-gradient-card: linear-gradient(
+    0deg,
+    rgba(32, 32, 32, 0.05) 0%,
+    rgba(26, 26, 30, 0.39) 100%
+  );
+
+  --landing-gap: 24px;
+  --landing-radius: 12px;
+  --landing-radius-lg: 20px;
+  --landing-max-width: 1200px;
+}

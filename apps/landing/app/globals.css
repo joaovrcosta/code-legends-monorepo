@@ -1,0 +1,123 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: var(--landing-canvas);
+  --foreground: var(--landing-text);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-poppins);
+
+  --color-landing-canvas: var(--landing-canvas);
+  --color-landing-surface: var(--landing-surface);
+  --color-landing-surface-raised: var(--landing-surface-raised);
+  --color-landing-border: var(--landing-border);
+  --color-landing: var(--landing-text);
+  --color-landing-muted: var(--landing-text-muted);
+  --color-landing-subtle: var(--landing-text-subtle);
+  --color-landing-accent: var(--landing-accent);
+  --color-landing-accent-hover: var(--landing-accent-hover);
+  --color-landing-accent-soft: var(--landing-accent-soft);
+  --color-landing-orange: var(--landing-orange);
+
+  --radius-landing: var(--landing-radius);
+  --radius-landing-lg: var(--landing-radius-lg);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.landing-container {
+  width: 100%;
+  max-width: var(--landing-max-width);
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 1280px) {
+  .landing-container {
+    padding-inline: 0;
+  }
+}
+
+.landing-gradient-text {
+  background: var(--landing-gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.landing-card {
+  background: var(--landing-gradient-card);
+  border: 1px solid var(--landing-border);
+  border-radius: var(--landing-radius-lg);
+}
+
+.landing-section {
+  padding-block: 4rem;
+}
+
+@media (min-width: 1024px) {
+  .landing-section {
+    padding-block: 6rem;
+  }
+}
+
+.landing-typing-cursor {
+  animation: landing-blink 1s step-end infinite;
+}
+
+@keyframes landing-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.landing-carousel {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.landing-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.landing-carousel-item {
+  flex: 0 0 min(100%, 720px);
+  scroll-snap-align: start;
+}
+
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}

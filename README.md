@@ -9,9 +9,10 @@ code-legends-repo/
 ├── apps/
 │   ├── api/              # API Backend (Fastify + Prisma)
 │   ├── frontend/         # Frontend Next.js (Aplicação principal)
-│   └── content-hub/      # Content Hub Next.js (Gerenciamento de conteúdo)
+│   ├── content-hub/      # Content Hub Next.js (Gerenciamento de conteúdo)
+│   └── landing/          # Landing page Next.js (Marketing / SEO)
 │
-└── packages/             # Pacotes compartilhados (futuro)
+└── packages/             # Pacotes compartilhados
 ```
 
 ## Tecnologias
@@ -71,8 +72,12 @@ pnpm --filter @code-legends/frontend dev
 pnpm --filter @code-legends/frontend build
 
 # Content Hub
-pnpm --filter @code-legends/content-hub dev
-pnpm --filter @code-legends/content-hub build
+pnpm --filter content-hub dev
+pnpm --filter content-hub build
+
+# Landing
+pnpm --filter landing dev
+pnpm --filter landing build
 ```
 
 ## Projetos
@@ -123,6 +128,19 @@ Sistema de gerenciamento de conteúdo Next.js.
 **Variáveis de ambiente:**
 - `NEXT_PUBLIC_API_URL` - URL da API (ex: http://localhost:3333)
 
+### Landing (`apps/landing/`)
+
+Landing page pública de marketing, otimizada para SEO e performance.
+
+**Scripts:**
+- `pnpm dev` - Inicia servidor de desenvolvimento (porta 3002)
+- `pnpm build` - Build de produção
+- `pnpm start` - Inicia servidor de produção
+
+**Variáveis de ambiente:**
+- `NEXT_PUBLIC_SITE_URL` - URL pública da landing (ex: http://localhost:3002)
+- `NEXT_PUBLIC_APP_URL` - URL do app do aluno para CTAs (ex: http://localhost:3000)
+
 ## Deploy
 
 Cada projeto mantém seu ambiente de deploy independente:
@@ -130,6 +148,7 @@ Cada projeto mantém seu ambiente de deploy independente:
 - **API**: Docker/Docker Compose
 - **Frontend**: Vercel (configurar root como `apps/frontend/`)
 - **Content Hub**: Vercel (configurar root como `apps/content-hub/`)
+- **Landing**: Vercel (configurar root como `apps/landing/`)
 
 ## Desenvolvimento
 

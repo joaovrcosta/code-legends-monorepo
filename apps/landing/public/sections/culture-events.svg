@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="450" viewBox="0 0 720 450">
+  <rect width="720" height="450" fill="#f97316"/>
+  <rect x="80" y="80" width="560" height="290" rx="16" fill="#18181f" opacity="0.9"/>
+  <text x="360" y="420" fill="#fff" font-family="system-ui" font-size="16" text-anchor="middle" opacity="0.8">Events placeholder</text>
+</svg>
