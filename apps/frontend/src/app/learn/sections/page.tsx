@@ -11,7 +11,7 @@ export default async function SectionsPage() {
     return (
       <div className="flex items-center justify-center w-full h-[100dvh]">
         <div className="text-center">
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted mb-4">
             Nenhum curso ativo encontrado.
           </p>
         </div>
@@ -25,7 +25,7 @@ export default async function SectionsPage() {
     return (
       <div className="flex items-center justify-center w-full h-[100dvh]">
         <div className="text-center">
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted mb-4">
             Nenhum módulo encontrado para este curso.
           </p>
         </div>

@@ -30,7 +30,7 @@ function MyLearningEmptyState({ message }: { message: string }) {
         className="mx-auto"
         aria-hidden
       />
-      <p className="mt-4 text-sm text-muted-foreground">{message}</p>
+      <p className="mt-4 text-sm text-muted">{message}</p>
     </div>
   )
 }
@@ -63,7 +63,7 @@ export function MyLearningPageContent({
       content: (
         <div className={learningCardsListClassName}>
           {inProgressCourses.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">
+            <p className="py-8 text-center text-muted">
               Nenhum curso em andamento
             </p>
           ) : (

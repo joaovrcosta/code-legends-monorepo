@@ -35,8 +35,8 @@ export function ProjectView({ lesson, moduleTitle }: ProjectViewProps) {
   const specs = project?.specs
   const hasTests = Boolean(
     specs &&
-      (specs.testFile ||
-        (specs.tests && Object.keys(specs.tests).length > 0)),
+    (specs.testFile ||
+      (specs.tests && Object.keys(specs.tests).length > 0)),
   )
   const canMarkComplete = !hasTests || testsPassed
 
@@ -99,7 +99,7 @@ export function ProjectView({ lesson, moduleTitle }: ProjectViewProps) {
             </span>
           </div>
           {lesson.description && (
-            <p className="text-muted-foreground mt-1 text-sm max-w-xl">
+            <p className="text-muted mt-1 text-sm max-w-xl">
               {lesson.description}
             </p>
           )}

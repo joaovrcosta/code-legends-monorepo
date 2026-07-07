@@ -19,7 +19,7 @@ export function MyLearningSkillsTab({ skills }: MyLearningSkillsTabProps) {
   if (progressedSkills.length === 0) {
     return (
       <div className="mt-6 flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted">
           Ainda não há habilidades evoluídas.
         </p>
         <p className="mt-2 max-w-sm text-xs text-[#737373]">

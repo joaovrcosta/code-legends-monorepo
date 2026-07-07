@@ -45,11 +45,11 @@ export default function EditPlanPage() {
   useWorkspaceTab(
     formData.name
       ? {
-          key: `plan:${id}`,
-          href: `/plans/${id}/edit`,
-          label: formData.name,
-          icon: formData.imageUrl || null,
-        }
+        key: `plan:${id}`,
+        href: `/plans/${id}/edit`,
+        label: formData.name,
+        icon: formData.imageUrl || null,
+      }
       : null,
   );
 
@@ -196,7 +196,7 @@ export default function EditPlanPage() {
                   }
                   placeholder="Ex: https://.../premium-plan.png"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted">
                   Opcional. Usada no frontend como ícone/imagem do plano.
                 </p>
               </div>
@@ -211,7 +211,7 @@ export default function EditPlanPage() {
                   }
                   placeholder="Ex: #8234E9"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted">
                   Opcional. Usada no frontend como cor do plano.
                 </p>
               </div>

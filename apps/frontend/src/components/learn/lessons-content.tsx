@@ -132,7 +132,7 @@ export function LessonsContent({
             !currentModuleToDisplay.isCompleted && (
               <div className="w-full flex items-center justify-center mt-12">
                 <section className="flex items-center justify-center p-8 border border-[#25252A] rounded-[20px] flex-col space-y-3 max-w-[384px] w-full">
-                  <p className="text-sm text-center text-muted-foreground">
+                  <p className="text-sm text-center text-muted">
                     Módulo {nextModuleIndex + 1}
                   </p>
                   <span className="font-bold bg-blue-gradient-500 bg-clip-text text-transparent text-center">

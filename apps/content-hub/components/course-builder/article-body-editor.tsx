@@ -628,18 +628,18 @@ function InsertChallengeModal({
             )}
 
             {!isBlockSlots && (
-            <div className="space-y-2">
-              <Label>Resposta correta</Label>
-              <Input
-                value={correctAnswer}
-                onChange={(e) => setCorrectAnswer(e.target.value)}
-                placeholder={
-                  hasOptions
-                    ? 'Digite ou escolha uma das opções acima'
-                    : 'Resposta esperada'
-                }
-              />
-            </div>
+              <div className="space-y-2">
+                <Label>Resposta correta</Label>
+                <Input
+                  value={correctAnswer}
+                  onChange={(e) => setCorrectAnswer(e.target.value)}
+                  placeholder={
+                    hasOptions
+                      ? 'Digite ou escolha uma das opções acima'
+                      : 'Resposta esperada'
+                  }
+                />
+              </div>
             )}
 
             <div className="space-y-2">
@@ -820,7 +820,7 @@ export function ArticleBodyEditor({
       <div className="flex items-center justify-between">
         <Label htmlFor={id}>Conteúdo do artigo (Markdown)</Label>
         {!isArticle && (
-          <span className="text-xs text-muted-foreground">Suporta GFM</span>
+          <span className="text-xs text-muted">Suporta GFM</span>
         )}
       </div>
 
@@ -843,11 +843,11 @@ export function ArticleBodyEditor({
           </div>
 
           <div className="pt-2">
-            <RichTextEditor 
-              ref={richTextRef} 
-              initialMarkdown={value} 
-              onChange={onChange} 
-              className="min-h-[400px]" 
+            <RichTextEditor
+              ref={richTextRef}
+              initialMarkdown={value}
+              onChange={onChange}
+              className="min-h-[400px]"
             />
           </div>
         </div>

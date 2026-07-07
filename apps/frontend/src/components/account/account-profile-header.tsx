@@ -44,7 +44,7 @@ export function AccountProfileHeader({ user }: AccountProfileHeaderProps) {
       <div className="space-y-1">
         <h1 className="text-xl font-semibold text-white">{user.name}</h1>
         <p className="text-sm text-muted">{user.email}</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted">
           Membro desde{' '}
           {new Date(user.createdAt).toLocaleDateString('pt-BR', {
             year: 'numeric',

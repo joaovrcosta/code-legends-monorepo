@@ -17,9 +17,9 @@ export async function MyCourses() {
         manageHref="/account/certificates"
       />
 
-      <CardContent className="px-0 pb-2 pt-0">
+      <CardContent className="px-6 pb-6 pt-0">
         {completedCoursesList.length > 0 ? (
-          <div>
+          <div className="-mx-6">
             {completedCoursesList.map((course, index) => (
               <div
                 key={course.id}
@@ -53,17 +53,15 @@ export async function MyCourses() {
             ))}
           </div>
         ) : (
-          <div className="px-6 pb-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              Você ainda não completou nenhum curso.
-            </p>
+          <p className="text-sm text-muted">
+            Você ainda não completou nenhum curso.{' '}
             <Link
               href="/learn/catalog"
-              className="mt-2 inline-block text-sm text-[#00c8ff] hover:underline"
+              className="text-[#00c8ff] hover:underline"
             >
               Explorar cursos
             </Link>
-          </div>
+          </p>
         )}
       </CardContent>
     </Card>

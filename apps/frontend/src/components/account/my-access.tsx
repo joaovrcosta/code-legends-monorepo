@@ -14,7 +14,7 @@ export async function MyAccess() {
       />
 
       <CardContent className="px-6 pb-6 pt-0">
-        <p className="text-sm text-muted-foreground">Conta atual</p>
+        <p className="text-sm text-muted">Conta atual</p>
         <p className="mt-1 text-sm font-medium text-white">{email || '—'}</p>
       </CardContent>
     </Card>

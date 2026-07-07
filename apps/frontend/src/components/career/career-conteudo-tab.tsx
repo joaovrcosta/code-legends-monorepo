@@ -177,7 +177,7 @@ export function CareerConteudoTab({
                         </div>
                         <div className="min-w-0">
                           <div className="text-[10px] text-white/50 mb-2 tracking-widest">
-                            <p className="text-muted-foreground text-[10px] font-light mb-1">Exame de certificação
+                            <p className="text-muted text-[10px] font-light mb-1">Exame de certificação
                             </p>
                           </div>
                           <div className="text-sm font-semibold text-white/90 leading-snug line-clamp-2 sm:line-clamp-1">

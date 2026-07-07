@@ -75,7 +75,7 @@ export default function AccountAccessPage() {
   if (loading) {
     return (
       <div className="flex justify-center w-full">
-        <div className="text-muted-foreground">Carregando...</div>
+        <div className="text-muted">Carregando...</div>
       </div>
     );
   }
@@ -83,7 +83,7 @@ export default function AccountAccessPage() {
   if (!userData) {
     return (
       <div className="flex justify-center w-full">
-        <div className="text-muted-foreground">Erro ao carregar dados</div>
+        <div className="text-muted">Erro ao carregar dados</div>
       </div>
     );
   }
@@ -114,7 +114,7 @@ export default function AccountAccessPage() {
 
             {/* Campo E-mail - Estilo Pill (rounded-full) */}
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground ml-1">Email</label>
+              <label className="text-sm text-muted ml-1">Email</label>
               <div className="flex items-center justify-between h-[52px] bg-transparent rounded-full px-5 border border-[#25252a] hover:border-[#00c8ff]/30 transition-colors">
                 <div className="flex items-center gap-3">
                   <Mail className="w-4 h-4 text-[#00c8ff]" />
@@ -122,7 +122,7 @@ export default function AccountAccessPage() {
                 </div>
                 <button
                   onClick={() => setShowEmailModal(true)}
-                  className="text-sm font-medium text-muted-foreground hover:text-[#00c8ff] transition-colors"
+                  className="text-sm font-medium text-muted hover:text-[#00c8ff] transition-colors"
                 >
                   Alterar
                 </button>
@@ -131,7 +131,7 @@ export default function AccountAccessPage() {
 
             {/* Campo Senha - Estilo Pill (rounded-full) */}
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground ml-1">Senha</label>
+              <label className="text-sm text-muted ml-1">Senha</label>
               <div className="flex items-center justify-between h-[52px] bg-transparent rounded-full px-5 border border-[#25252a] hover:border-[#00c8ff]/30 transition-colors">
                 <div className="flex items-center gap-3">
                   <Lock className="w-4 h-4 text-[#00c8ff]" />
@@ -139,7 +139,7 @@ export default function AccountAccessPage() {
                     {userData.hasPassword ? "********" : "Não definida"}
                   </span>
                 </div>
-                <button className="text-sm font-medium text-muted-foreground hover:text-[#00c8ff] transition-colors">
+                <button className="text-sm font-medium text-muted hover:text-[#00c8ff] transition-colors">
                   {userData.hasPassword ? "Alterar" : "Definir"}
                 </button>
               </div>
@@ -150,7 +150,7 @@ export default function AccountAccessPage() {
           {userData.googleId && (
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
-                <label className="text-sm text-muted-foreground ml-1">Conta vinculada</label>
+                <label className="text-sm text-muted ml-1">Conta vinculada</label>
                 <div className="flex items-center justify-between h-[64px] bg-transparent rounded-full px-5 border border-[#25252a] hover:border-[#00c8ff]/30 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-[#202024] rounded-full">

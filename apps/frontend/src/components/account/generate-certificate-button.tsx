@@ -68,7 +68,7 @@ export function GenerateCertificateButton({
           type="button"
           onClick={handleOpenModal}
           disabled={isGenerating}
-          className="shrink-0 text-sm text-muted-foreground transition-colors hover:text-white disabled:opacity-50"
+          className="shrink-0 text-sm text-muted transition-colors hover:text-white disabled:opacity-50"
         >
           {isGenerating ? "Gerando..." : "Ver certificado"}
         </button>

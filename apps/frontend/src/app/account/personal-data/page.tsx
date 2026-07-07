@@ -193,7 +193,7 @@ export default function PersonalDataPage() {
           ) : null}
 
           {loading ? (
-            <p className="text-sm text-muted-foreground">Carregando seus dados...</p>
+            <p className="text-sm text-muted">Carregando seus dados...</p>
           ) : (
             <>
               <section className="space-y-4">
@@ -225,7 +225,7 @@ export default function PersonalDataPage() {
                   />
 
                   <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm text-muted-foreground ml-1">
+                    <label className="text-sm text-muted ml-1">
                       Telefone <span className="text-red-400">*</span>
                     </label>
                     <Input
@@ -235,7 +235,7 @@ export default function PersonalDataPage() {
                         setPhone(e.target.value);
                         setStatusMessage(null);
                       }}
-                      className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted-foreground px-5"
+                      className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted px-5"
                     />
                   </div>
                 </div>
@@ -255,7 +255,7 @@ export default function PersonalDataPage() {
                     }}
                     className={`px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${addressInBrazil
                       ? "bg-[#00c8ff] text-white"
-                      : "text-muted-foreground hover:text-white"
+                      : "text-muted hover:text-white"
                       }`}
                   >
                     Moro no Brasil
@@ -268,7 +268,7 @@ export default function PersonalDataPage() {
                     }}
                     className={`px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${!addressInBrazil
                       ? "bg-[#00c8ff] text-white"
-                      : "text-muted-foreground hover:text-white"
+                      : "text-muted hover:text-white"
                       }`}
                   >
                     Moro no exterior
@@ -278,7 +278,7 @@ export default function PersonalDataPage() {
                 {addressInBrazil && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                     <div className="space-y-2">
-                      <label className="text-sm text-muted-foreground ml-1">
+                      <label className="text-sm text-muted ml-1">
                         CEP
                       </label>
                       <Input
@@ -289,10 +289,10 @@ export default function PersonalDataPage() {
                         }
                         onBlur={handleCepBlur}
                         disabled={cepLoading}
-                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted-foreground px-5"
+                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted px-5"
                       />
                       {cepLoading ? (
-                        <p className="text-xs text-muted-foreground">Buscando...</p>
+                        <p className="text-xs text-muted">Buscando...</p>
                       ) : null}
                       {cepError ? (
                         <p className="text-xs text-red-400">{cepError}</p>
@@ -300,7 +300,7 @@ export default function PersonalDataPage() {
                     </div>
 
                     <div className="space-y-2 md:col-span-2">
-                      <label className="text-sm text-muted-foreground ml-1">
+                      <label className="text-sm text-muted ml-1">
                         Rua
                       </label>
                       <Input
@@ -309,12 +309,12 @@ export default function PersonalDataPage() {
                         onChange={(e) =>
                           handleAddressChange("street", e.target.value)
                         }
-                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted-foreground px-5"
+                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted px-5"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm text-muted-foreground ml-1">
+                      <label className="text-sm text-muted ml-1">
                         Número
                       </label>
                       <Input
@@ -324,9 +324,9 @@ export default function PersonalDataPage() {
                           handleAddressChange("number", e.target.value)
                         }
                         disabled={address.noNumber}
-                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted-foreground px-5"
+                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted px-5"
                       />
-                      <label className="flex items-center gap-2 mt-2 cursor-pointer text-sm text-muted-foreground hover:text-white">
+                      <label className="flex items-center gap-2 mt-2 cursor-pointer text-sm text-muted hover:text-white">
                         <Checkbox
                           checked={address.noNumber}
                           onCheckedChange={(checked) => {
@@ -340,7 +340,7 @@ export default function PersonalDataPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm text-muted-foreground ml-1">
+                      <label className="text-sm text-muted ml-1">
                         Complemento
                       </label>
                       <Input
@@ -349,12 +349,12 @@ export default function PersonalDataPage() {
                         onChange={(e) =>
                           handleAddressChange("complement", e.target.value)
                         }
-                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted-foreground px-5"
+                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted px-5"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm text-muted-foreground ml-1">
+                      <label className="text-sm text-muted ml-1">
                         Bairro
                       </label>
                       <Input
@@ -363,12 +363,12 @@ export default function PersonalDataPage() {
                         onChange={(e) =>
                           handleAddressChange("neighborhood", e.target.value)
                         }
-                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted-foreground px-5"
+                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted px-5"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm text-muted-foreground ml-1">
+                      <label className="text-sm text-muted ml-1">
                         Cidade
                       </label>
                       <Input
@@ -377,12 +377,12 @@ export default function PersonalDataPage() {
                         onChange={(e) =>
                           handleAddressChange("city", e.target.value)
                         }
-                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted-foreground px-5"
+                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted px-5"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm text-muted-foreground ml-1">
+                      <label className="text-sm text-muted ml-1">
                         UF
                       </label>
                       <Input
@@ -395,14 +395,14 @@ export default function PersonalDataPage() {
                           )
                         }
                         maxLength={2}
-                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted-foreground px-5"
+                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted px-5"
                       />
                     </div>
                   </div>
                 )}
 
                 {!addressInBrazil && (
-                  <p className="text-sm text-muted-foreground py-4">
+                  <p className="text-sm text-muted py-4">
                     Em breve você poderá cadastrar endereço no exterior.
                   </p>
                 )}

@@ -61,7 +61,7 @@ export default async function AccountCertificatesPage() {
                         <h3 className="text-white font-medium">
                           {course.title}
                         </h3>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted mt-1">
                           Concluído
                         </p>
                       </div>
@@ -79,11 +79,11 @@ export default async function AccountCertificatesPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <Medal className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground text-lg mb-2">
+              <Medal className="w-16 h-16 text-muted mx-auto mb-4" />
+              <p className="text-muted text-lg mb-2">
                 Você ainda não possui certificados
               </p>
-              <p className="text-muted-foreground text-sm mb-4">
+              <p className="text-muted text-sm mb-4">
                 Complete seus cursos para ganhar certificados incríveis!
               </p>
               <Link

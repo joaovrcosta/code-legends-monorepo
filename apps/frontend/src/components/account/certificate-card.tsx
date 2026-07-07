@@ -32,7 +32,7 @@ export function CertificateCard({
           {courseName}
         </h3>
         {completedAt && (
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted mt-1">
             Concluído em {new Date(completedAt).toLocaleDateString("pt-BR")}
           </p>
         )}

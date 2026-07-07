@@ -95,7 +95,7 @@ export function XpHistoryModal({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-muted-foreground hover:text-white"
+                  className="text-muted hover:text-white"
                 >
                   <X className="h-5 w-5" />
                 </Button>

@@ -197,7 +197,7 @@ export function VideoProviderFields({
           ))}
         </Select>
         {selected?.helpText && (
-          <p className="text-xs text-muted-foreground">{selected.helpText}</p>
+          <p className="text-xs text-muted">{selected.helpText}</p>
         )}
       </div>
 

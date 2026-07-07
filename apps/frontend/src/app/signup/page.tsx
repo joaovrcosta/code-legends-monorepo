@@ -197,8 +197,8 @@ export default function SignupPage() {
                   <div>
                     <Input
                       className={`h-[52px] rounded-full bg-surface text-white border px-4 ${errors.email
-                          ? "border-red-500"
-                          : "border-[#25252A]"
+                        ? "border-red-500"
+                        : "border-[#25252A]"
                         }`}
                       placeholder="Seu e-mail"
                       type="email"
@@ -213,8 +213,8 @@ export default function SignupPage() {
                   <div>
                     <Input
                       className={`h-[52px] rounded-full bg-surface text-white border px-4 ${errors.password
-                          ? "border-red-500"
-                          : "border-[#25252A]"
+                        ? "border-red-500"
+                        : "border-[#25252A]"
                         }`}
                       placeholder="Deve ter no mínimo 8 caracteres"
                       type="password"
@@ -235,7 +235,7 @@ export default function SignupPage() {
                       ? "Criando conta..."
                       : "Cadastre-se gratuitamente"}
                   </PrimaryButton>
-                  <p className="text-[14px] text-muted-foreground text-center">
+                  <p className="text-[14px] text-muted text-center">
                     Ao se cadastrar, você aceita nossos{" "}
                     <span className="text-[#00C8FF]">termos de uso</span> e a
                     nossa{" "}

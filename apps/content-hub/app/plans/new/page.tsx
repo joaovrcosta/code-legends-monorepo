@@ -100,7 +100,7 @@ export default function NewPlanPage() {
                     placeholder="Ex: PRO, PREMIUM"
                     required
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted">
                     Identificador único (ex: FREE, PRO, PREMIUM). Será salvo em
                     maiúsculas.
                   </p>
@@ -142,7 +142,7 @@ export default function NewPlanPage() {
                   }
                   placeholder="Ex: https://.../pro-plan.png"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted">
                   Opcional. Usada no frontend como ícone/imagem do plano.
                 </p>
               </div>
@@ -157,7 +157,7 @@ export default function NewPlanPage() {
                   }
                   placeholder="Ex: #8234E9"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted">
                   Opcional. Usada no frontend como cor do plano.
                 </p>
               </div>
@@ -177,7 +177,7 @@ export default function NewPlanPage() {
                       })
                     }
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted">
                     Ex: 19700 = R$ 197,00
                   </p>
                 </div>

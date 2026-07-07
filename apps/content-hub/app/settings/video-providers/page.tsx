@@ -64,7 +64,7 @@ export default function VideoProvidersSettingsPage() {
       <div className="mx-auto max-w-5xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Provedores de vídeo</h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted mt-1">
             Catálogo global usado nos metadados das aulas. Provedores deprecados não
             aparecem em novas aulas.
           </p>
@@ -75,7 +75,7 @@ export default function VideoProvidersSettingsPage() {
             <CardTitle>Catálogo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {loading && <p className="text-sm text-muted-foreground">Carregando...</p>}
+            {loading && <p className="text-sm text-muted">Carregando...</p>}
             {!loading &&
               providers.map((p) => (
                 <div
@@ -92,7 +92,7 @@ export default function VideoProvidersSettingsPage() {
                         <Badge variant="destructive">{p.status}</Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-muted mt-1">
                       Handler: {p.handlerKey} · Aulas: {p._count?.videos ?? 0}
                     </p>
                   </div>

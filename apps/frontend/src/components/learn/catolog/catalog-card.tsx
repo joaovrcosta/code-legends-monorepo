@@ -169,8 +169,8 @@ export function CatalogCard({
                 className={`relative z-0 overflow-hidden w-full h-full flex flex-col rounded-[16px] border shadow-2xl cursor-pointer
     transition-[border-color,box-shadow,transform] duration-300 ease-out
     ${isGrid
-        ? 'md:hover:-translate-y-1 md:hover:border-[#3f3f48]'
-        : `md:w-[314px] md:max-w-[314px] md:hover:border-[#3f3f48]
+                        ? 'md:hover:-translate-y-1 md:hover:border-[#3f3f48]'
+                        : `md:w-[314px] md:max-w-[314px] md:hover:border-[#3f3f48]
     md:hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06),inset_0_-24px_24px_rgba(255,255,255,0.03)]`}
     ${isCurrent
                         ? 'bg-blue-gradient-second border-[#35BED5]'
@@ -193,7 +193,7 @@ export function CatalogCard({
                             className={`text-white ${statusClass} rounded-full px-2 border ${isCurrent ? 'border-white' : 'border-[#25252A]'
                                 }`}
                         >
-                            <p className="text-xs text-muted-foreground">{label}</p>
+                            <p className="text-xs text-muted">{label}</p>
                         </div>
                         <CatalogAccessBadge isFree={isFree} />
                     </div>

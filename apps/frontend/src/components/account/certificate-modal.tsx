@@ -383,7 +383,7 @@ export function CertificateModal({
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-white"
+                className="text-muted hover:text-white"
               >
                 <X className="h-5 w-5" />
               </Button>
@@ -498,7 +498,7 @@ export function CertificateModal({
                     onChange={(e) => setLanguage(e.target.value as "pt" | "en")}
                     className="w-4 h-4 text-[#00c8ff]"
                   />
-                  <span className="text-muted-foreground">Português</span>
+                  <span className="text-muted">Português</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -509,7 +509,7 @@ export function CertificateModal({
                     onChange={(e) => setLanguage(e.target.value as "pt" | "en")}
                     className="w-4 h-4 text-[#00c8ff]"
                   />
-                  <span className="text-muted-foreground">Inglês</span>
+                  <span className="text-muted">Inglês</span>
                 </label>
               </div>
             </div>

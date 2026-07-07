@@ -9,17 +9,17 @@ export default async function CareersPage() {
   return (
     <div className="w-full">
       <div className="mb-4 flex items-center space-x-2">
-        <span className="text-muted-foreground text-[14px] font-semibold">
+        <span className="text-muted text-[14px] font-semibold">
           Carreiras
         </span>
       </div>
 
       <div className="flex w-full flex-wrap gap-4">
-          {data.careers.map((c) => (
-            <div
-              key={c.id}
-              className="min-w-[min(100%,17.5rem)] max-w-full flex-[1_1_calc((100%-2rem)/3)]"
-            >
+        {data.careers.map((c) => (
+          <div
+            key={c.id}
+            className="min-w-[min(100%,17.5rem)] max-w-full flex-[1_1_calc((100%-2rem)/3)]"
+          >
             <CareerTrackCard
               title={c.title}
               href={`/learn/careers/${c.slug}`}
@@ -29,8 +29,8 @@ export default async function CareersPage() {
               colorHex={c.colorHex}
               modulesCount={c.modulesCount}
             />
-            </div>
-          ))}
+          </div>
+        ))}
       </div>
     </div>
   );

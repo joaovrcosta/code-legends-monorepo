@@ -459,7 +459,7 @@ export function LearnPageContent({
     return (
       <div className="flex items-center justify-center w-full h-[100dvh]">
         <div className="text-center">
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted mb-4">
             Carregando roadmap do curso...
           </p>
         </div>
@@ -509,7 +509,7 @@ export function LearnPageContent({
             <div className="flex items-center justify-between gap-2 flex-col w-full">
               {allLessons.length === 0 ? (
                 <>
-                  <p className="text-muted-foreground text-center">
+                  <p className="text-muted text-center">
                     Curso em construção...
                   </p>
                   <Button
@@ -542,7 +542,7 @@ export function LearnPageContent({
                   <h3 className="text-2xl text-center">
                     Parabéns! Você completou o curso!
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted">
                     Gere seu certificado de conclusão
                   </p>
                   <PrimaryButton

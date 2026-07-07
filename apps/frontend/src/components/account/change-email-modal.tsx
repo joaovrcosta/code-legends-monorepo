@@ -72,7 +72,7 @@ export function ChangeEmailModal({
       if (!passwordVerification.success) {
         setError(
           passwordVerification.message ||
-            "Senha incorreta. Verifique e tente novamente.",
+          "Senha incorreta. Verifique e tente novamente.",
         );
         setSubmitting(false);
         return;
@@ -122,12 +122,12 @@ export function ChangeEmailModal({
             <button
               type="button"
               onClick={handleClose}
-              className="text-muted-foreground hover:text-white transition-colors"
+              className="text-muted hover:text-white transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
-          <DialogDescription className="text-sm text-muted-foreground pt-2">
+          <DialogDescription className="text-sm text-muted pt-2">
             Por motivos de segurança, nossa equipe validará a alteração.
           </DialogDescription>
         </DialogHeader>
@@ -161,30 +161,30 @@ export function ChangeEmailModal({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-muted-foreground">Novo email</label>
+            <label className="text-sm text-muted">Novo email</label>
             <Input
               type="email"
               placeholder="Para qual e-mail você gostaria de alterar?"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
-              className="bg-transparent border-[#25252A] text-white placeholder:text-muted-foreground"
+              className="bg-transparent border-[#25252A] text-white placeholder:text-muted"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-muted-foreground">Senha</label>
+            <label className="text-sm text-muted">Senha</label>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
                 placeholder="Digite sua senha para confirmar"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-transparent border-[#25252A] text-white placeholder:text-muted-foreground pr-10"
+                className="bg-transparent border-[#25252A] text-white placeholder:text-muted pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors"
               >
                 {showPassword ? (
                   <EyeOff className="w-4 h-4" />
@@ -196,7 +196,7 @@ export function ChangeEmailModal({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-muted-foreground">
+            <label className="text-sm text-muted">
               Motivo da alteração
             </label>
             <div className="relative">
@@ -208,10 +208,10 @@ export function ChangeEmailModal({
                     setReason(e.target.value);
                   }
                 }}
-                className="bg-transparent border-[#25252A] text-white placeholder:text-muted-foreground min-h-[100px] resize-none"
+                className="bg-transparent border-[#25252A] text-white placeholder:text-muted min-h-[100px] resize-none"
                 maxLength={100}
               />
-              <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+              <div className="absolute bottom-2 right-2 text-xs text-muted">
                 {reason.length}/100
               </div>
             </div>
@@ -222,7 +222,7 @@ export function ChangeEmailModal({
           <Button
             variant="outline"
             onClick={handleClose}
-            className="bg-transparent border-[#25252A] text-muted-foreground hover:text-white rounded-[12px] h-[52px]"
+            className="bg-transparent border-[#25252A] text-muted hover:text-white rounded-[12px] h-[52px]"
           >
             Cancelar
           </Button>

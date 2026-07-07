@@ -19,7 +19,7 @@ export default async function LearnPage() {
     return (
       <div className="flex items-center justify-center w-full h-[100dvh]">
         <div className="text-center">
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted mb-4">
             Nenhum curso ativo encontrado. Selecione um curso para começar.
           </p>
           <Link href="/learn/catalog">
@@ -36,7 +36,7 @@ export default async function LearnPage() {
     return (
       <div className="flex items-center justify-center w-full h-[100dvh]">
         <div className="text-center">
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted mb-4">
             Erro ao carregar o roadmap do curso.
           </p>
           <Link href="/learn/catalog">

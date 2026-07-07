@@ -16,7 +16,7 @@ type CatalogPageClientProps = {
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-8 pb-4 pt-2">
-      <span className="text-[14px] font-semibold text-muted-foreground">
+      <span className="text-[14px] font-semibold text-muted">
         {children}
       </span>
     </div>

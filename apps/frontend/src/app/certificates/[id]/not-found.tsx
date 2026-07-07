@@ -23,15 +23,15 @@ export default function CertificateNotFound() {
           <h1 className="text-2xl font-bold text-white mb-2">
             Certificado Não Encontrado
           </h1>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-muted mb-6">
             O certificado que você está procurando não existe ou foi removido.
             Verifique se o ID do certificado está correto.
           </p>
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted">
               Possíveis razões:
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-md mx-auto">
+            <ul className="text-sm text-muted space-y-1 text-left max-w-md mx-auto">
               <li>• O ID do certificado está incorreto</li>
               <li>• O certificado foi removido</li>
               <li>• O link está incompleto ou inválido</li>

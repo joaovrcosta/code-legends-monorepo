@@ -123,7 +123,7 @@ export function LevelProgressBar() {
 
   return (
     <div className="flex justify-between items-center w-full gap-3">
-      <div className="flex items-center justify-center flex-col text-muted-foreground">
+      <div className="flex items-center justify-center flex-col text-muted">
         <div className="w-[32px] h-[32px] bg-blue-gradient-500 border-[#00C8FF] shadow-[0_0_12px_#00C8FF] rounded-full border flex items-center justify-center">
           <span className="text-white font-semibold text-sm">
             {currentLevel}
@@ -134,7 +134,7 @@ export function LevelProgressBar() {
 
       <ModuleProgressBar value={progressValue} showTrophy={false} />
 
-      <div className="flex items-center justify-center flex-col text-muted-foreground">
+      <div className="flex items-center justify-center flex-col text-muted">
         {isLastModule ? (
           <>
             {roadmap?.course.isCompleted ? (

@@ -44,7 +44,7 @@ export default async function CertificatePage({
           <h1 className="text-3xl font-bold text-white mb-2">
             Verificação de Certificado
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted">
             Verifique a autenticidade deste certificado
           </p>
         </div>
@@ -58,7 +58,7 @@ export default async function CertificatePage({
                 <p className="text-green-500 font-semibold text-lg">
                   Certificado Válido
                 </p>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted text-sm">
                   Este certificado foi emitido pela Code Legends e é autêntico
                 </p>
               </div>
@@ -136,33 +136,33 @@ export default async function CertificatePage({
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-muted-foreground text-sm mb-1">
+                <p className="text-muted text-sm mb-1">
                   ID do Certificado
                 </p>
                 <p className="text-white font-mono text-sm">{certificate.id}</p>
               </div>
               <div>
-                <p className="text-muted-foreground text-sm mb-1">Estudante</p>
+                <p className="text-muted text-sm mb-1">Estudante</p>
                 <p className="text-white">{certificate.user.name}</p>
                 {certificate.user.email && (
-                  <p className="text-muted-foreground text-xs mt-1">
+                  <p className="text-muted text-xs mt-1">
                     {certificate.user.email}
                   </p>
                 )}
               </div>
               <div>
-                <p className="text-muted-foreground text-sm mb-1">
+                <p className="text-muted text-sm mb-1">
                   {isCareerCert ? "Carreira" : "Curso"}
                 </p>
                 <p className="text-white">{programTitle}</p>
                 {!isCareerCert && certificate.course ? (
-                  <p className="text-muted-foreground text-xs mt-1">
+                  <p className="text-muted text-xs mt-1">
                     Instrutor: {certificate.course.instructor.name}
                   </p>
                 ) : null}
               </div>
               <div>
-                <p className="text-muted-foreground text-sm mb-1">
+                <p className="text-muted text-sm mb-1">
                   Data de Emissão
                 </p>
                 <p className="text-white">
@@ -179,7 +179,7 @@ export default async function CertificatePage({
 
         {/* Nota para Recrutadores */}
         <div className="mt-6 p-8 border border-[#25252a] rounded-lg">
-          <p className="text-muted-foreground text-sm text-center">
+          <p className="text-muted text-sm text-center">
             <strong className="text-white">Para recrutadores:</strong> Este
             certificado pode ser verificado a qualquer momento através desta
             URL. Certificados válidos exibem o status de validação acima.

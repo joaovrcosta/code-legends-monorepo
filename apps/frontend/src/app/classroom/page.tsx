@@ -263,7 +263,7 @@ export default function ClassroomPage() {
     return (
       <div className="flex flex-1 items-center justify-center w-full h-full">
         <div className="text-center text-white">
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted mb-4">
             Nenhum curso ativo encontrado. Selecione um curso para começar.
           </p>
           <Link href="/learn/catalog">
@@ -289,7 +289,7 @@ export default function ClassroomPage() {
         </header>
 
         <div className="flex flex-1 items-center justify-center">
-          <p className="text-muted-foreground">
+          <p className="text-muted">
             {roadmap?.modules?.length
               ? 'Selecione uma aula na lista ao lado'
               : 'Carregando aulas...'}

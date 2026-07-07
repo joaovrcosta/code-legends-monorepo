@@ -122,7 +122,7 @@ export function CourseDropdownMenu({
         <DropdownMenuSeparator className="border border-[#25252A]" />
 
         {userCourses.length === 0 ? (
-          <div className="px-4 py-2 text-sm text-muted-foreground">
+          <div className="px-4 py-2 text-sm text-muted">
             Nenhum curso inscrito
           </div>
         ) : (
@@ -191,7 +191,7 @@ export function CourseDropdownMenu({
                           {enrolledCourse.course.title}
                         </span>
                         {/* {enrolledCourse.progress > 0 && (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-muted">
                           {Math.round(enrolledCourse.progress * 100)}% concluído
                         </span>
                       )} */}

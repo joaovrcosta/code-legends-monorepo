@@ -36,7 +36,7 @@ export function NewsBanner() {
                             Bom dia, dev!
                         </h3>
 
-                        <p className="text-muted-foreground text-[14px] leading-relaxed max-w-[480px] line-clamp-2 lg:line-clamp-none">
+                        <p className="text-muted text-[14px] leading-relaxed max-w-[480px] line-clamp-2 lg:line-clamp-none">
                             Aprenda a programar do zero, partindo dos princípios da web até
                             criação de aplicações frontend e backend.
                         </p>
@@ -52,7 +52,7 @@ export function NewsBanner() {
                                 <p className="font-medium text-white">João Victor</p>
                             </div>
                             <div className="flex text-xs gap-2">
-                                <p className="text-muted-foreground">Curso</p>
+                                <p className="text-muted">Curso</p>
                                 <p className="text-green-500 font-medium">Para Iniciantes</p>
                             </div>
                         </div>

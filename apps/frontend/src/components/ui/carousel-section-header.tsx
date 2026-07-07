@@ -17,7 +17,7 @@ const titleVariantClass: Record<
   string
 > = {
   featured: 'text-base font-semibold text-[#eceeef]',
-  muted: 'text-base font-semibold text-muted-foreground',
+  muted: 'text-base font-semibold text-muted',
 }
 
 export function CarouselSectionHeader({

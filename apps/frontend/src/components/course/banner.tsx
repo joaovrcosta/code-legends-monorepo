@@ -469,7 +469,7 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
 
             {course.instructor && (
               <div className="mt-8 rounded-xllg:w-fit w-full z-0">
-                <p className="text-[10px] text-muted-foreground tracking-widest mb-3 uppercase">
+                <p className="text-[10px] text-muted tracking-widest mb-3 uppercase">
                   Instrutor
                 </p>
                 <div className="flex items-center gap-3">

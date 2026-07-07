@@ -188,7 +188,7 @@ export function CatalogCard({
               className={`text-white ${statusClass} rounded-full px-2 border ${isCurrent ? 'border-white' : 'border-[#25252A]'
                 }`}
             >
-              <p className="text-xs text-muted-foreground">{label}</p>
+              <p className="text-xs text-muted">{label}</p>
             </div>
             <CatalogAccessBadge
               isFree={isFree}
