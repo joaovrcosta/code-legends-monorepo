@@ -8,6 +8,7 @@ import {
   resolveCheckoutHandler,
   resolvePaymentProvider,
 } from '../../../lib/resolve-checkout'
+import { buildCheckoutCustomer } from '../../../lib/build-checkout-customer'
 import { IPaymentProviderRepository } from '../../../repositories/payment-provider-repository'
 
 const VALID_PAID_PLANS: UserPlan[] = ['PRO', 'PREMIUM']
@@ -63,9 +64,11 @@ export class CreateCheckoutUseCase {
       select: {
         id: true,
         name: true,
+        fullname: true,
         email: true,
         phone: true,
         document: true,
+        Address: true,
       },
     })
     if (!user) {
@@ -93,12 +96,14 @@ export class CreateCheckoutUseCase {
       const checkout = await handler.createCheckout({
         amountCents: planFromDb.amountCents,
         currency: 'BRL',
-        customer: {
-          name: user.name ?? undefined,
+        customer: buildCheckoutCustomer({
           email: user.email,
-          cellphone: user.phone ?? '',
-          taxId: user.document ?? '',
-        },
+          name: user.name,
+          fullname: user.fullname,
+          phone: user.phone,
+          document: user.document,
+          address: user.Address,
+        }),
         returnUrl: input.returnUrl,
         completionUrl: input.completionUrl,
         methods: [...handler.supportedMethods],

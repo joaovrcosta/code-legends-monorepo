@@ -12,6 +12,7 @@ import type {
 } from '../types'
 import { WEBHOOK_SECRET_HEADER } from '../constants'
 import { headerValue, secureCompare } from '../webhook-security'
+import { toAbacateCustomer } from './abacate-customer'
 
 const ABACATE_API_BASE = 'https://api.abacatepay.com/v1'
 
@@ -81,12 +82,7 @@ async function createAbacateBilling(
       ],
       returnUrl: ctx.returnUrl,
       completionUrl: ctx.completionUrl,
-      customer: {
-        name: ctx.customer.name,
-        email: ctx.customer.email,
-        cellphone: ctx.customer.cellphone ?? '',
-        taxId: ctx.customer.taxId ?? '',
-      },
+      customer: toAbacateCustomer(ctx.customer),
     }),
   })
 

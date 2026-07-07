@@ -10,11 +10,23 @@ export type RemotePaymentStatusValue =
 
 export type PaymentWebhookEventType = 'paid' | 'failed' | 'refunded'
 
+export interface CheckoutCustomerAddress {
+  postalCode?: string
+  street?: string
+  number?: string
+  complement?: string
+  neighborhood?: string
+  city?: string
+  state?: string
+  country?: string
+}
+
 export interface CheckoutCustomer {
   name?: string
   email: string
   cellphone?: string
   taxId?: string
+  address?: CheckoutCustomerAddress
 }
 
 /** Dados de checkout sem credenciais (seguro para logs). */
