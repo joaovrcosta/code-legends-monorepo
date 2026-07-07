@@ -11,7 +11,8 @@
     "build:challenges": "pnpm --filter @code-legends/challenges run build",
     "build:shared-types": "pnpm --filter @code-legends/shared-types run build",
     "build:video-providers": "pnpm --filter @code-legends/video-providers run build",
-    "build": "prisma generate && pnpm run build:shared-types && pnpm run build:challenges && pnpm run build:video-providers && tsup src",
+    "build:payment-providers": "pnpm --filter @code-legends/payment-providers run build",
+    "build": "prisma generate && pnpm run build:shared-types && pnpm run build:challenges && pnpm run build:video-providers && pnpm run build:payment-providers && tsup src",
     "start": "node dist/server.js",
     "test": "vitest run --dir src/use-cases",
     "test:watch": "vitest --dir src/use-cases",
@@ -43,9 +44,9 @@
     "vitest": "0.33.0"
   },
   "dependencies": {
-    "@abacatepay/sdk": "^1.2.0",
     "@code-legends/challenges": "workspace:*",
     "@code-legends/shared-types": "workspace:*",
+    "@code-legends/payment-providers": "workspace:*",
     "@code-legends/video-providers": "workspace:*",
     "@fastify/cookie": "8.3.0",
     "@fastify/cors": "8.3.0",

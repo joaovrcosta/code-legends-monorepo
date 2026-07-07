@@ -1,15 +1,23 @@
-import { prisma } from '../../../lib/prisma'
-import { createBilling } from '../../../lib/abacatepay'
-import { env } from '../../../env'
 import type { UserPlan } from '@prisma/client'
+import { prisma } from '../../../lib/prisma'
+import {
+  getPaymentProviderCredentials,
+  hasPaymentProviderCredentials,
+} from '../../../lib/payment-provider-credentials'
+import {
+  resolveCheckoutHandler,
+  resolvePaymentProvider,
+} from '../../../lib/resolve-checkout'
+import { IPaymentProviderRepository } from '../../../repositories/payment-provider-repository'
 
 const VALID_PAID_PLANS: UserPlan[] = ['PRO', 'PREMIUM']
 
 export interface CreateCheckoutInput {
   userId: string
-  planSlug: string // "pro" | "premium" (ou slug do Plan no banco)
+  planSlug: string
   returnUrl: string
   completionUrl: string
+  providerId?: string | null
 }
 
 export type CreateCheckoutResult =
@@ -20,6 +28,10 @@ export type CreateCheckoutResult =
     }
 
 export class CreateCheckoutUseCase {
+  constructor(
+    private paymentProviderRepository: IPaymentProviderRepository,
+  ) {}
+
   async execute(input: CreateCheckoutInput): Promise<CreateCheckoutResult> {
     const slug = input.planSlug?.toUpperCase()
     const planFromDb = await prisma.plan.findUnique({
@@ -32,17 +44,19 @@ export class CreateCheckoutUseCase {
     ) {
       return { ok: false, reason: 'invalid_plan' }
     }
-    const config = {
-      amountCents: planFromDb.amountCents,
-      plan: planFromDb.slug as UserPlan,
-      productName: planFromDb.productName ?? `Assinatura ${planFromDb.name}`,
-      externalId: planFromDb.externalId ?? `CODE-LEGENDS-${planFromDb.slug}`,
-    }
 
-    const apiKey = env.ABACATE_PAY_API_KEY
-    if (!apiKey) {
+    const provider = await resolvePaymentProvider({
+      providerId: input.providerId,
+      paymentProviderRepository: this.paymentProviderRepository,
+    })
+
+    const handler = resolveCheckoutHandler(provider)
+
+    if (!hasPaymentProviderCredentials(handler.handlerKey)) {
       return { ok: false, reason: 'api_not_configured' }
     }
+
+    const credentials = getPaymentProviderCredentials(handler.handlerKey)
 
     const user = await prisma.user.findUnique({
       where: { id: input.userId },
@@ -58,48 +72,50 @@ export class CreateCheckoutUseCase {
       return { ok: false, reason: 'user_not_found' }
     }
 
+    const productName =
+      planFromDb.productName ?? `Assinatura ${planFromDb.name}`
+    const externalId =
+      planFromDb.externalId ?? `CODE-LEGENDS-${planFromDb.slug}`
+
     const payment = await prisma.payment.create({
       data: {
         userId: user.id,
-        amountCents: config.amountCents,
+        amountCents: planFromDb.amountCents,
         currency: 'BRL',
         status: 'PENDING',
-        plan: config.plan as UserPlan,
-        gateway: 'ABACATE_PAY',
+        plan: planFromDb.slug as UserPlan,
+        gateway: handler.gatewayCode,
+        providerId: provider.id,
       },
     })
 
     try {
-      const billing = await createBilling(apiKey, {
-        frequency: 'ONE_TIME',
-        methods: ['CARD'],
-        products: [
-          {
-            externalId: config.externalId,
-            name: config.productName,
-            description: `Assinatura anual - ${config.productName}`,
-            quantity: 1,
-            price: config.amountCents,
-          },
-        ],
-        returnUrl: input.returnUrl,
-        completionUrl: input.completionUrl,
+      const checkout = await handler.createCheckout({
+        amountCents: planFromDb.amountCents,
+        currency: 'BRL',
         customer: {
           name: user.name ?? undefined,
           email: user.email,
           cellphone: user.phone ?? '',
           taxId: user.document ?? '',
         },
+        returnUrl: input.returnUrl,
+        completionUrl: input.completionUrl,
+        methods: [...handler.supportedMethods],
+        externalId,
+        productName,
+        productDescription: `Assinatura anual - ${productName}`,
+        getApiKey: credentials.getApiKey,
       })
 
       await prisma.payment.update({
         where: { id: payment.id },
-        data: { gatewayPaymentId: billing.id },
+        data: { gatewayPaymentId: checkout.gatewayPaymentId },
       })
 
       return {
         ok: true,
-        checkoutUrl: billing.url,
+        checkoutUrl: checkout.checkoutUrl,
         paymentId: payment.id,
       }
     } catch (err) {

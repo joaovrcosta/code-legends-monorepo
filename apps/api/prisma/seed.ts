@@ -1,5 +1,6 @@
 import { PrismaClient, LessonType } from '@prisma/client'
 import { hashSync } from 'bcryptjs'
+import { seedPaymentProviders } from './scripts/seed-payment-providers'
 
 /** Deve coincidir com apps/api/src/constants/default-certificate-template.ts */
 const DEFAULT_CERTIFICATE_TEMPLATE_ID = 'clseed_default_certificate_template'
@@ -752,6 +753,8 @@ async function main() {
   })
 
   console.log('✅ Career (Fullstack) seeded with 1 module + 2 exams!')
+
+  await seedPaymentProviders(prisma)
 }
 
 main()

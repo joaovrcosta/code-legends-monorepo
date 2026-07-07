@@ -22,11 +22,18 @@ import { dashboardRoutes } from './http/controllers/dashboard/routes'
 import { certificateTemplateRoutes } from './http/controllers/certificate-template/routes'
 import { systemSettingsRoutes } from './http/controllers/system-settings/routes'
 import { videoProviderRoutes } from './http/controllers/video-provider/routes'
+import { paymentProviderRoutes } from './http/controllers/payment-provider/routes'
 import { careerRoutes } from './http/controllers/career/routes'
 import { careerAdminRoutes } from './http/controllers/career/admin-routes'
 import { verifyCertificate } from './http/controllers/certificate/verify.controller'
-import { abacatePayWebhook } from './http/controllers/webhooks/abacatepay-webhook.controller'
+import {
+  abacatePayWebhook,
+  paymentWebhook,
+} from './http/controllers/webhooks/payment-webhook.controller'
+import { validatePaymentProviderRegistry } from './lib/resolve-checkout'
 import { env } from './env/index'
+
+validatePaymentProviderRegistry()
 
 export const app = fastify({
   trustProxy: true,
@@ -38,6 +45,8 @@ app.addContentTypeParser(
   { parseAs: 'string' },
   (req, body, done) => {
     try {
+      ;(req as { rawBody?: string }).rawBody =
+        typeof body === 'string' ? body : ''
       const json = body === '' || body == null ? {} : JSON.parse(body as string)
       done(null, json)
     } catch (err) {
@@ -146,6 +155,7 @@ app.get('/ping', async (_, reply) => {
 })
 
 app.post('/webhooks/abacatepay', abacatePayWebhook)
+app.post('/webhooks/payments/:handlerKey', paymentWebhook)
 
 app.register(usersRoutes)
 app.register(courseRoutes)
@@ -164,6 +174,7 @@ app.register(dashboardRoutes)
 app.register(certificateTemplateRoutes)
 app.register(systemSettingsRoutes)
 app.register(videoProviderRoutes)
+app.register(paymentProviderRoutes)
 app.register(careerRoutes)
 app.register(careerAdminRoutes)
 

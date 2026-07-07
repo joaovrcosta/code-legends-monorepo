@@ -1,76 +1,78 @@
 /**
  * Testa o retorno do GET /billing/list da Abacate Pay.
  * Uso: pnpm exec tsx scripts/test-billing-get.ts [billingId]
- * Se não passar billingId, usa o primeiro Payment com gatewayPaymentId do banco.
  */
-import "dotenv/config";
-import { env } from "../src/env";
-import { listBillings } from "../src/lib/abacatepay";
-import { prisma } from "../src/lib/prisma";
+import 'dotenv/config'
+import { getSyncHandler } from '@code-legends/payment-providers'
+import { env } from '../src/env'
+import { prisma } from '../src/lib/prisma'
 
-const ABACATE_API_BASE = "https://api.abacatepay.com/v1";
+const ABACATE_API_BASE = 'https://api.abacatepay.com/v1'
 
 async function main() {
-  const apiKey = env.ABACATE_PAY_API_KEY;
+  const apiKey = env.ABACATE_PAY_API_KEY
   if (!apiKey) {
-    console.error("Defina ABACATE_PAY_API_KEY no .env");
-    process.exit(1);
+    console.error('Defina ABACATE_PAY_API_KEY no .env')
+    process.exit(1)
   }
 
-  let billingId = process.argv[2];
+  let billingId = process.argv[2]
   if (!billingId) {
     const payment = await prisma.payment.findFirst({
-      where: { gateway: "ABACATE_PAY", gatewayPaymentId: { not: null } },
+      where: { gateway: 'ABACATE_PAY', gatewayPaymentId: { not: null } },
       select: { gatewayPaymentId: true },
-    });
-    billingId = payment?.gatewayPaymentId ?? null;
+    })
+    billingId = payment?.gatewayPaymentId ?? undefined
     if (!billingId) {
       console.error(
-        "Nenhum billingId passado e nenhum Payment com gatewayPaymentId no banco."
-      );
-      console.error("Uso: pnpm exec tsx scripts/test-billing-get.ts <billingId>");
-      process.exit(1);
+        'Nenhum billingId passado e nenhum Payment com gatewayPaymentId no banco.',
+      )
+      console.error('Uso: pnpm exec tsx scripts/test-billing-get.ts <billingId>')
+      process.exit(1)
     }
-    console.log("Usando gatewayPaymentId do primeiro Payment:", billingId);
+    console.log('Usando gatewayPaymentId do primeiro Payment:', billingId)
   }
 
-  const url = `${ABACATE_API_BASE}/billing/list`;
-  console.log("\n--- Request ---");
-  console.log("GET", url);
+  const url = `${ABACATE_API_BASE}/billing/list`
+  console.log('\n--- Request ---')
+  console.log('GET', url)
 
   const res = await fetch(url, {
-    method: "GET",
+    method: 'GET',
     headers: {
-      Accept: "application/json",
+      Accept: 'application/json',
       Authorization: `Bearer ${apiKey}`,
     },
-  });
+  })
 
-  const rawBody = await res.text();
-  let parsed: unknown;
+  const rawBody = await res.text()
+  let parsed: unknown
   try {
-    parsed = JSON.parse(rawBody);
+    parsed = JSON.parse(rawBody)
   } catch {
-    parsed = rawBody;
+    parsed = rawBody
   }
 
-  console.log("\n--- Resposta bruta (status", res.status, ") ---");
-  console.log(JSON.stringify(parsed, null, 2));
+  console.log('\n--- Resposta bruta (status', res.status, ') ---')
+  console.log(JSON.stringify(parsed, null, 2))
 
-  console.log("\n--- Resultado listBillings() ---");
-  const list = await listBillings(apiKey);
-  console.log("Total de cobranças:", list.length);
-  const one = billingId ? list.find((b) => b.id === billingId) : list[0];
+  console.log('\n--- Resultado listRemotePayments() ---')
+  const syncHandler = getSyncHandler('abacate')
+  const list = await syncHandler.listRemotePayments({
+    getApiKey: () => apiKey,
+  })
+  console.log('Total de cobranças:', list.length)
+  const one = billingId ? list.find((b) => b.gatewayPaymentId === billingId) : list[0]
   if (one) {
-    console.log("Cobrança encontrada:", JSON.stringify(one, null, 2));
+    console.log('Cobrança encontrada:', JSON.stringify(one, null, 2))
   } else if (billingId) {
-    console.log("Cobrança com id", billingId, "não encontrada na lista.");
+    console.log('Cobrança com id', billingId, 'não encontrada na lista.')
   }
 
-  await prisma.$disconnect();
+  await prisma.$disconnect()
 }
 
 main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+  console.error(e)
+  process.exit(1)
+})

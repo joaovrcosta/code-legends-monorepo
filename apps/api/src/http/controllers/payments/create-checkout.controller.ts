@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { makeCreateCheckoutUseCase } from "../../../utils/factories/make-create-checkout-use-case";
+import { makeCreateCheckoutUseCase } from "../../../utils/factories/make-payment-provider-use-cases";
 import type { CreateCheckoutResult } from "../../../use-cases/entities/Payment/create-checkout";
 
 const bodySchema = z.object({

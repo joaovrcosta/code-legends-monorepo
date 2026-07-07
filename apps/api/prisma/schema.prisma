@@ -913,10 +913,64 @@ model Notification {
   @@index([type])
 }
 
+enum PaymentProviderStatus {
+  ACTIVE
+  DEPRECATED
+  DISABLED
+}
+
+enum PaymentProviderAuditAction {
+  CREATE
+  UPDATE
+  SET_DEFAULT
+  SET_STATUS
+}
+
+enum PaymentProviderMethod {
+  CARD
+  PIX
+  BOLETO
+}
+
+model PaymentProvider {
+  id               String                   @id @default(cuid())
+  name             String
+  slug             String                   @unique
+  handlerKey       String
+  gatewayCode      String                   @unique
+  status           PaymentProviderStatus    @default(ACTIVE)
+  isDefault        Boolean                  @default(false)
+  isBuiltin        Boolean                  @default(false)
+  supportedMethods PaymentProviderMethod[]  @default([CARD])
+  sortOrder        Int                      @default(0)
+  helpText         String?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  payments         Payment[]
+  auditLogs        PaymentProviderAuditLog[]
+
+  @@index([status, sortOrder])
+}
+
+model PaymentProviderAuditLog {
+  id         String                     @id @default(cuid())
+  providerId String
+  provider   PaymentProvider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  actorId    String
+  action     PaymentProviderAuditAction
+  before     Json?
+  after      Json?
+  createdAt  DateTime                   @default(now())
+
+  @@index([providerId, createdAt])
+}
+
 model Payment {
-  id               String        @id @default(cuid())
+  id               String           @id @default(cuid())
   userId           String
-  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  providerId       String?
+  provider         PaymentProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
   amountCents      Int
   currency         String        @default("BRL")
   status           PaymentStatus @default(PENDING)
@@ -931,6 +985,7 @@ model Payment {
   @@index([userId])
   @@index([status])
   @@index([gatewayPaymentId])
+  @@index([providerId])
   @@index([userId, status, createdAt(sort: Desc)])
 }
 
