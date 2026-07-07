@@ -9,6 +9,7 @@ export interface SaveCheckoutDadosInput {
   email?: string;
   fullname?: string;
   document?: string;
+  birthDate?: string;
   phone?: string;
   livingAbroad?: boolean;
   address?: {

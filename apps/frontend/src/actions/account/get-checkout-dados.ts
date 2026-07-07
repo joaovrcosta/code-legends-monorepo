@@ -9,6 +9,7 @@ export interface CheckoutDadosResponse {
   email: string;
   fullname: string;
   document: string;
+  birthDate: string;
   phone: string;
   livingAbroad: boolean;
   address: {
@@ -61,6 +62,7 @@ export async function getCheckoutDados(): Promise<GetCheckoutDadosResult> {
         email: data.email ?? "",
         fullname: data.fullname ?? "",
         document: data.document ?? "",
+        birthDate: data.birthDate ?? "",
         phone: data.phone ?? "",
         livingAbroad: Boolean(data.livingAbroad),
         address: {

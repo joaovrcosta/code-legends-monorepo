@@ -14,6 +14,12 @@ import { INPUT_CLASS } from "./constants";
 import { getCheckoutDados } from "@/actions/account/get-checkout-dados";
 import { saveCheckoutDados } from "@/actions/account/save-checkout-dados";
 import { fetchAddressByCep } from "@/actions/address/fetch-address-by-cep";
+import {
+  ReadonlyDataField,
+  formatBirthDateDisplay,
+} from "@/components/account/readonly-data-field";
+import { ChangeNameModal } from "@/components/account/change-name-modal";
+import { ChangeEmailModal } from "@/components/account/change-email-modal";
 
 export interface CartMeusDadosFormHandle {
   advanceToPayment: () => Promise<void>;
@@ -53,15 +59,23 @@ export const CartMeusDadosForm = forwardRef<CartMeusDadosFormHandle, CartMeusDad
   const [email, setEmail] = useState("");
   const [fullname, setFullname] = useState("");
   const [document, setDocument] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [phone, setPhone] = useState("");
   const [livingAbroad, setLivingAbroad] = useState(false);
   const [address, setAddress] = useState(defaultAddress);
+  const [identityLocked, setIdentityLocked] = useState({
+    fullname: false,
+    document: false,
+    birthDate: false,
+  });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   const isFormValid = useMemo(() => {
     const emailValue = email.trim();
@@ -72,6 +86,7 @@ export const CartMeusDadosForm = forwardRef<CartMeusDadosFormHandle, CartMeusDad
     if (!emailValue || !/^\S+@\S+\.\S+$/.test(emailValue)) return false;
     if (!fullNameValue) return false;
     if (cpfDigits.length !== 11) return false;
+    if (!birthDate) return false;
     if (phoneDigits.length < 10) return false;
 
     if (livingAbroad) return true;
@@ -85,7 +100,7 @@ export const CartMeusDadosForm = forwardRef<CartMeusDadosFormHandle, CartMeusDad
     if (!address.noNumber && !address.number.trim()) return false;
 
     return true;
-  }, [email, fullname, document, phone, livingAbroad, address]);
+  }, [email, fullname, document, birthDate, phone, livingAbroad, address]);
 
   useEffect(() => {
     onValidityChange?.(isFormValid);
@@ -101,6 +116,7 @@ export const CartMeusDadosForm = forwardRef<CartMeusDadosFormHandle, CartMeusDad
     if (!/^\S+@\S+\.\S+$/.test(emailValue)) return "Informe um e-mail válido.";
     if (!fullNameValue) return "Informe seu nome completo.";
     if (cpfDigits.length !== 11) return "Informe um CPF válido.";
+    if (!birthDate) return "Informe sua data de nascimento.";
     if (phoneDigits.length < 10) return "Informe um telefone com DDD.";
 
     if (livingAbroad) return null;
@@ -130,8 +146,14 @@ export const CartMeusDadosForm = forwardRef<CartMeusDadosFormHandle, CartMeusDad
           setEmail(result.data.email);
           setFullname(result.data.fullname);
           setDocument(result.data.document);
+          setBirthDate(result.data.birthDate);
           setPhone(result.data.phone);
           setLivingAbroad(result.data.livingAbroad);
+          setIdentityLocked({
+            fullname: Boolean(result.data.fullname?.trim()),
+            document: result.data.document.replace(/\D/g, "").length === 11,
+            birthDate: Boolean(result.data.birthDate),
+          });
           setAddress({
             cep: result.data.address.cep,
             street: result.data.address.street,
@@ -164,9 +186,9 @@ export const CartMeusDadosForm = forwardRef<CartMeusDadosFormHandle, CartMeusDad
 
     setSaving(true);
     const result = await saveCheckoutDados({
-      email: email?.trim() || undefined,
-      fullname: fullname || undefined,
-      document: document || undefined,
+      fullname: identityLocked.fullname ? undefined : fullname || undefined,
+      document: identityLocked.document ? undefined : document || undefined,
+      birthDate: identityLocked.birthDate ? undefined : birthDate || undefined,
       phone: phone || undefined,
       livingAbroad,
       address: {
@@ -270,40 +292,66 @@ export const CartMeusDadosForm = forwardRef<CartMeusDadosFormHandle, CartMeusDad
         <>
           <p className="text-xs font-medium text-[#7e7e89] mb-2">Dados pessoais</p>
           <div className="space-y-4 mb-6">
-            <input
-              type="email"
-              placeholder="E-mail"
-              className={INPUT_CLASS}
+            <ReadonlyDataField
+              label="E-mail"
               value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setFormError(null);
-              }}
+              actionLabel="Alterar"
+              onAction={() => setShowEmailModal(true)}
             />
-            <input
-              type="text"
-              placeholder="Nome completo"
-              className={INPUT_CLASS}
-              value={fullname}
-              onChange={(e) => {
-                setFullname(e.target.value);
-                setFormError(null);
-              }}
-            />
-            <div className="flex gap-2">
+            {identityLocked.fullname ? (
+              <ReadonlyDataField
+                label="Nome completo"
+                value={fullname}
+                actionLabel="Alterar"
+                onAction={() => setShowNameModal(true)}
+              />
+            ) : (
               <input
                 type="text"
-                inputMode="numeric"
-                placeholder="CPF"
-                maxLength={14}
-                className={`flex-1 ${INPUT_CLASS}`}
-                value={document}
+                placeholder="Nome completo"
+                className={INPUT_CLASS}
+                value={fullname}
                 onChange={(e) => {
-                  setDocument(formatCpf(e.target.value));
+                  setFullname(e.target.value);
                   setFormError(null);
                 }}
               />
-            </div>
+            )}
+            {identityLocked.document ? (
+              <ReadonlyDataField label="CPF" value={document} />
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="CPF"
+                  maxLength={14}
+                  className={`flex-1 ${INPUT_CLASS}`}
+                  value={document}
+                  onChange={(e) => {
+                    setDocument(formatCpf(e.target.value));
+                    setFormError(null);
+                  }}
+                />
+              </div>
+            )}
+            {identityLocked.birthDate ? (
+              <ReadonlyDataField
+                label="Data de nascimento"
+                value={formatBirthDateDisplay(birthDate)}
+              />
+            ) : (
+              <input
+                type="date"
+                placeholder="Data de nascimento"
+                className={INPUT_CLASS}
+                value={birthDate}
+                onChange={(e) => {
+                  setBirthDate(e.target.value);
+                  setFormError(null);
+                }}
+              />
+            )}
             <div className="flex gap-2">
               <div className="flex items-center h-12 px-3 rounded-lg bg-[#25252A] border border-[#25252A] text-[#7e7e89] text-sm gap-1">
                 <span>🇧🇷</span>
@@ -431,6 +479,18 @@ export const CartMeusDadosForm = forwardRef<CartMeusDadosFormHandle, CartMeusDad
           </Button>
         </div>
       ) : null}
+
+      <ChangeEmailModal
+        open={showEmailModal}
+        onOpenChange={setShowEmailModal}
+        currentEmail={email}
+      />
+
+      <ChangeNameModal
+        open={showNameModal}
+        onOpenChange={setShowNameModal}
+        currentFullname={fullname}
+      />
     </>
   );
   },

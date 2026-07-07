@@ -14,6 +14,7 @@ export async function getCheckoutDados(request: FastifyRequest, reply: FastifyRe
       name: true,
       fullname: true,
       document: true,
+      birth_date: true,
       phone: true,
       Address: true,
     },
@@ -25,10 +26,15 @@ export async function getCheckoutDados(request: FastifyRequest, reply: FastifyRe
 
   const address = user.Address;
 
+  const birthDate = user.birth_date
+    ? user.birth_date.toISOString().slice(0, 10)
+    : "";
+
   return reply.status(200).send({
     email: user.email ?? "",
     fullname: user.fullname ?? user.name ?? "",
     document: user.document ?? "",
+    birthDate,
     phone: user.phone ?? "",
     livingAbroad: address?.foreign_country ?? false,
     address: {
