@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { makeCreateCheckoutUseCase } from "../../../utils/factories/make-payment-provider-use-cases";
 import type { CreateCheckoutResult } from "../../../use-cases/entities/Payment/create-checkout";
+import { PaymentProviderNotFoundError } from "../../../use-cases/errors/payment-provider-not-found";
 
 const bodySchema = z.object({
   plan: z.enum(["pro", "premium"]),
@@ -38,9 +39,19 @@ export async function createCheckout(
     });
   } catch (err) {
     request.log.error(err, "Create checkout use case threw");
+
+    if (err instanceof PaymentProviderNotFoundError) {
+      return reply.status(503).send({
+        message:
+          "Provedor de pagamento não configurado. Execute a migration e o seed de payment providers.",
+      });
+    }
+
     const message = err instanceof Error ? err.message : "Erro ao criar checkout";
     return reply.status(502).send({
-      message: message.includes("Abacate") ? message : "Falha no gateway de pagamento. Tente novamente.",
+      message: message.includes("Abacate")
+        ? message
+        : "Falha no gateway de pagamento. Tente novamente.",
     });
   }
 
