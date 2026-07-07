@@ -44,8 +44,8 @@ export default async function AccountPurchasesPage() {
   const lastPaymentDate = null
 
   return (
-    <div className="w-full mt-8">
-      <Card className="bg-surface border-[#25252a] lg:p-8 p-4 text-zinc-100">
+    <div className="w-full">
+      <Card className="bg-primary border-[#25252a] lg:p-8 p-4 text-zinc-100">
         <CardHeader className="px-0 pt-0 pb-8">
           <div className="flex items-center justify-between border-b border-[#25252a] pb-6">
             <div className="flex flex-col gap-1">

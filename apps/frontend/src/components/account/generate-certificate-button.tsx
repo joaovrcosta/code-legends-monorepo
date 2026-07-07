@@ -10,11 +10,13 @@ import { CertificateIcon } from "@phosphor-icons/react/dist/ssr";
 interface GenerateCertificateButtonProps {
   courseId: string;
   course: CompletedCourse;
+  variant?: "button" | "link";
 }
 
 export function GenerateCertificateButton({
   courseId,
   course,
+  variant = "button",
 }: GenerateCertificateButtonProps) {
   const initialCertificateId =
     !course.certificateId || course.certificateId === "null"
@@ -61,16 +63,27 @@ export function GenerateCertificateButton({
 
   return (
     <>
-      <Button
-        onClick={handleOpenModal}
-        disabled={isGenerating}
-        variant="outline"
-        size="sm"
-        className="w-full bg-gray-gradient-first hover:opacity-90 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 hover:shadow-[0_0_12px_#1a1a1a] h-[42px] border-[#272727]"
-      >
-        <CertificateIcon size={18} className="mr-2" />
-        {isGenerating ? "Gerando..." : "Ver certificado"}
-      </Button>
+      {variant === "link" ? (
+        <button
+          type="button"
+          onClick={handleOpenModal}
+          disabled={isGenerating}
+          className="shrink-0 text-sm text-muted-foreground transition-colors hover:text-white disabled:opacity-50"
+        >
+          {isGenerating ? "Gerando..." : "Ver certificado"}
+        </button>
+      ) : (
+        <Button
+          onClick={handleOpenModal}
+          disabled={isGenerating}
+          variant="outline"
+          size="sm"
+          className="w-full bg-gray-gradient-first hover:opacity-90 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 hover:shadow-[0_0_12px_#1a1a1a] h-[42px] border-[#272727]"
+        >
+          <CertificateIcon size={18} className="mr-2" />
+          {isGenerating ? "Gerando..." : "Ver certificado"}
+        </Button>
+      )}
       <CertificateModal
         open={isOpen}
         onOpenChange={setIsOpen}

@@ -15,16 +15,15 @@ export default async function AccountCertificatesPage() {
   const completedCoursesList = completedCourses.courses || [];
 
   return (
-    <div className="space-y-4 w-full mt-8">
-      <Card className="bg-surface border-[#25252a] lg:p-10 p-4">
+    <div className="space-y-4 w-full">
+      <Card className="bg-primary border-[#25252a] lg:px-6 lg:pt-6 py-6 rounded-[20px]">
         <CardHeader>
           <div className="flex items-center space-x-2">
-            <Medal className="w-6 h-6 text-[#00c8ff]" />
-            <h1 className="text-2xl font-semibold bg-blue-gradient-500 bg-clip-text text-transparent">
+            <h1 className="text-lg font-semibold text-white">
               Meus Certificados
             </h1>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted">
             Visualize e gerencie todos os seus certificados conquistados.
           </p>
         </CardHeader>

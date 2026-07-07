@@ -74,7 +74,7 @@ export default function AccountAccessPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center mt-8 w-full">
+      <div className="flex justify-center w-full">
         <div className="text-muted-foreground">Carregando...</div>
       </div>
     );
@@ -82,31 +82,26 @@ export default function AccountAccessPage() {
 
   if (!userData) {
     return (
-      <div className="flex justify-center mt-8 w-full">
+      <div className="flex justify-center w-full">
         <div className="text-muted-foreground">Erro ao carregar dados</div>
       </div>
     );
   }
   return (
-    <div className="w-full mt-8">
+    <div className="w-full">
       {/* Estilo do Card original: bg-surface e borda escura */}
-      <Card className="bg-surface border-[#25252a] lg:p-8 p-4 text-zinc-100">
+      <Card className="bg-primary border-[#25252a] lg:p-8 p-4 text-zinc-100 rounded-[20px]">
 
         {/* Cabeçalho com o estilo "Gradient" e Coroa */}
         <CardHeader className="px-0 pt-0 pb-8">
           <div className="flex items-center justify-between border-b border-[#25252a] pb-6">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
-                {/* Ícone Cyan */}
-                <span className="text-[#00c8ff]">
-                  <Key className="w-6 h-6" />
-                </span>
-                {/* Texto com Gradiente (simulado com classes Tailwind padrão para garantir funcionamento) */}
-                <h1 className="text-xl font-bold bg-gradient-to-r from-[#00c8ff] to-[#00ff88] bg-clip-text text-transparent">
+                <h1 className="text-lg font-semibold text-white">
                   Dados de acesso
                 </h1>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted">
                 Gerencie seus dados de acesso e contas vinculadas.
               </p>
             </div>

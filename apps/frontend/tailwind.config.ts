@@ -12,6 +12,7 @@ export default {
     extend: {
       colors: {
         primary: "#101013",
+        mutedDeep: "#25252a",
         secondary: "#18181f",
         muted: '#b2b3bf',
         mutedForeground: '#7e7e89',

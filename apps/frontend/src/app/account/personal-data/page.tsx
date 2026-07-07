@@ -141,15 +141,15 @@ export default function PersonalDataPage() {
       livingAbroad: !addressInBrazil,
       address: addressInBrazil
         ? {
-            cep: address.cep || undefined,
-            street: address.street || undefined,
-            number: address.noNumber ? "" : address.number || undefined,
-            complement: address.complement || undefined,
-            noNumber: address.noNumber,
-            neighborhood: address.neighborhood || undefined,
-            city: address.city || undefined,
-            state: address.state || undefined,
-          }
+          cep: address.cep || undefined,
+          street: address.street || undefined,
+          number: address.noNumber ? "" : address.number || undefined,
+          complement: address.complement || undefined,
+          noNumber: address.noNumber,
+          neighborhood: address.neighborhood || undefined,
+          city: address.city || undefined,
+          state: address.state || undefined,
+        }
         : undefined,
     });
 
@@ -162,20 +162,17 @@ export default function PersonalDataPage() {
   };
 
   return (
-    <div className="w-full mt-8">
-      <Card className="bg-surface border-[#25252a] lg:p-8 p-4 text-zinc-100">
+    <div className="w-full">
+      <Card className="bg-primary border-[#25252a] lg:p-8 p-4 text-zinc-100 rounded-[20px]">
         <CardHeader className="px-0 pt-0 pb-8">
           <div className="flex items-center justify-between border-b border-[#25252a] pb-6">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
-                <span className="text-[#00c8ff]">
-                  <User className="w-6 h-6" />
-                </span>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-[#00c8ff] to-[#00ff88] bg-clip-text text-transparent">
+                <h1 className="text-lg font-semibold text-white">
                   Dados pessoais
                 </h1>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted">
                 Os mesmos dados do checkout. Nome, e-mail, CPF e data de nascimento
                 não podem ser alterados aqui.
               </p>
@@ -186,11 +183,10 @@ export default function PersonalDataPage() {
         <CardContent className="px-0 space-y-10">
           {statusMessage ? (
             <p
-              className={`text-sm ${
-                statusMessage.type === "success"
-                  ? "text-[#00ff88]"
-                  : "text-red-400"
-              }`}
+              className={`text-sm ${statusMessage.type === "success"
+                ? "text-[#00ff88]"
+                : "text-red-400"
+                }`}
             >
               {statusMessage.text}
             </p>
@@ -257,11 +253,10 @@ export default function PersonalDataPage() {
                       setAddressInBrazil(true);
                       setStatusMessage(null);
                     }}
-                    className={`px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                      addressInBrazil
-                        ? "bg-[#00c8ff] text-white"
-                        : "text-muted-foreground hover:text-white"
-                    }`}
+                    className={`px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${addressInBrazil
+                      ? "bg-[#00c8ff] text-white"
+                      : "text-muted-foreground hover:text-white"
+                      }`}
                   >
                     Moro no Brasil
                   </button>
@@ -271,11 +266,10 @@ export default function PersonalDataPage() {
                       setAddressInBrazil(false);
                       setStatusMessage(null);
                     }}
-                    className={`px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                      !addressInBrazil
-                        ? "bg-[#00c8ff] text-white"
-                        : "text-muted-foreground hover:text-white"
-                    }`}
+                    className={`px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${!addressInBrazil
+                      ? "bg-[#00c8ff] text-white"
+                      : "text-muted-foreground hover:text-white"
+                      }`}
                   >
                     Moro no exterior
                   </button>
