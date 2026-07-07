@@ -47,6 +47,7 @@ export default async function AccountPurchasesPage() {
                   Assinatura e pagamento
                 </h1>
               </div>
+
               <p className="text-sm text-muted">
                 Gerencie seu plano e forma de pagamento.
               </p>
