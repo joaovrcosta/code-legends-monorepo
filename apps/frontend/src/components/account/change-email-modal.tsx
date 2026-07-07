@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createRequest } from "@/actions/request/create-request";
 import { verifyPassword } from "@/actions/auth/verify-password";
+import { showSuccessToast } from "@/lib/show-account-toast";
 
 interface ChangeEmailModalProps {
   open: boolean;
@@ -91,9 +92,9 @@ export function ChangeEmailModal({
       });
 
       if (result.success) {
-        alert(
-          "Solicitação de alteração enviada! Nossa equipe validará em breve.",
-        );
+        showSuccessToast({
+          message: "Solicitação de alteração de e-mail enviada com sucesso!",
+        });
         handleClose();
       } else {
         setError(result.message || "Erro ao enviar solicitação. Tente novamente.");

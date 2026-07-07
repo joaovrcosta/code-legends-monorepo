@@ -5,6 +5,7 @@ import type { ComponentProps } from "react";
 import { SessionProvider } from "next-auth/react";
 import { UserPlan } from "@code-legends/shared-types";
 import { Toaster } from "@/components/ui/toaster";
+import { AccountToastHost } from "@/lib/show-account-toast";
 import { UserPlanProvider } from "@/components/providers/user-plan-provider";
 
 export type ProvidersSession = ComponentProps<
@@ -37,6 +38,7 @@ export function Providers({ children, session, initialPlan }: ProvidersProps) {
       <UserPlanProvider initialPlan={initialPlan}>
         {children}
         <Toaster />
+        <AccountToastHost />
         <StreakCongratsModal />
         <WelcomePaidModal />
       </UserPlanProvider>

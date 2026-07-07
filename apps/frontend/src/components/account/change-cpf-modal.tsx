@@ -17,18 +17,26 @@ import { createRequest } from "@/actions/request/create-request";
 import { verifyPassword } from "@/actions/auth/verify-password";
 import { showSuccessToast } from "@/lib/show-account-toast";
 
-interface ChangeNameModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  currentFullname: string;
+function formatCpf(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  return digits
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
-export function ChangeNameModal({
+interface ChangeCpfModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  currentDocument: string;
+}
+
+export function ChangeCpfModal({
   open,
   onOpenChange,
-  currentFullname,
-}: ChangeNameModalProps) {
-  const [newFullname, setNewFullname] = useState("");
+  currentDocument,
+}: ChangeCpfModalProps) {
+  const [newDocument, setNewDocument] = useState("");
   const [password, setPassword] = useState("");
   const [reason, setReason] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -36,7 +44,7 @@ export function ChangeNameModal({
   const [error, setError] = useState<string | null>(null);
 
   const resetForm = () => {
-    setNewFullname("");
+    setNewDocument("");
     setPassword("");
     setReason("");
     setShowPassword(false);
@@ -49,13 +57,21 @@ export function ChangeNameModal({
   };
 
   const handleSubmit = async () => {
-    if (!newFullname.trim() || !password || !reason.trim()) {
+    const newDocumentDigits = newDocument.replace(/\D/g, "");
+    const currentDocumentDigits = currentDocument.replace(/\D/g, "");
+
+    if (!newDocumentDigits || !password || !reason.trim()) {
       setError("Por favor, preencha todos os campos");
       return;
     }
 
-    if (newFullname.trim() === currentFullname.trim()) {
-      setError("O novo nome deve ser diferente do nome atual");
+    if (newDocumentDigits.length !== 11) {
+      setError("Informe um CPF válido");
+      return;
+    }
+
+    if (newDocumentDigits === currentDocumentDigits) {
+      setError("O novo CPF deve ser diferente do CPF atual");
       return;
     }
 
@@ -68,27 +84,27 @@ export function ChangeNameModal({
       if (!passwordVerification.success) {
         setError(
           passwordVerification.message ||
-          "Senha incorreta. Verifique e tente novamente.",
+            "Senha incorreta. Verifique e tente novamente.",
         );
         setSubmitting(false);
         return;
       }
 
       const requestData = {
-        newFullname: newFullname.trim(),
+        newDocument: newDocumentDigits,
         reason: reason.trim(),
       };
 
       const result = await createRequest({
-        type: "NAME_CHANGE",
-        title: "Solicitação de alteração de nome",
+        type: "CPF_CHANGE",
+        title: "Solicitação de alteração de CPF",
         description: reason.trim(),
         data: JSON.stringify(requestData),
       });
 
       if (result.success) {
         showSuccessToast({
-          message: "Solicitação de alteração de nome enviada com sucesso!",
+          message: "Solicitação de alteração de CPF enviada com sucesso!",
         });
         handleClose();
       } else {
@@ -113,7 +129,7 @@ export function ChangeNameModal({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl font-bold text-white">
-              Alterar nome
+              Alterar CPF
             </DialogTitle>
             <button
               type="button"
@@ -153,16 +169,20 @@ export function ChangeNameModal({
           ) : null}
 
           <div className="p-3 bg-surface-2 rounded-lg border border-[#25252A]">
-            <span className="text-sm text-zinc-300">{currentFullname || "—"}</span>
+            <span className="text-sm text-zinc-300">
+              {formatCpf(currentDocument) || "—"}
+            </span>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-muted">Novo nome</label>
+            <label className="text-sm text-muted">Novo CPF</label>
             <Input
               type="text"
-              placeholder="Para qual nome você gostaria de alterar?"
-              value={newFullname}
-              onChange={(e) => setNewFullname(e.target.value)}
+              inputMode="numeric"
+              placeholder="000.000.000-00"
+              maxLength={14}
+              value={newDocument}
+              onChange={(e) => setNewDocument(formatCpf(e.target.value))}
               className="bg-transparent border-[#25252A] text-white placeholder:text-muted"
             />
           </div>
@@ -192,9 +212,7 @@ export function ChangeNameModal({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-muted">
-              Motivo da alteração
-            </label>
+            <label className="text-sm text-muted">Motivo da alteração</label>
             <div className="relative">
               <Textarea
                 placeholder="Descreva por que você precisa fazer essa alteração"
@@ -225,7 +243,10 @@ export function ChangeNameModal({
           <Button
             onClick={handleSubmit}
             disabled={
-              submitting || !newFullname.trim() || !password || !reason.trim()
+              submitting ||
+              newDocument.replace(/\D/g, "").length !== 11 ||
+              !password ||
+              !reason.trim()
             }
             className="bg-[#00c8ff] text-white hover:opacity-90 rounded-[12px] h-[52px]"
           >

@@ -15,6 +15,8 @@ import {
 } from "@/components/account/readonly-data-field";
 import { ChangeNameModal } from "@/components/account/change-name-modal";
 import { ChangeEmailModal } from "@/components/account/change-email-modal";
+import { ChangeCpfModal } from "@/components/account/change-cpf-modal";
+import { showErrorToast, showSuccessToast } from "@/lib/show-account-toast";
 
 const defaultAddress = () => ({
   cep: "",
@@ -46,7 +48,9 @@ export default function PersonalDataPage() {
   const [email, setEmail] = useState("");
   const [fullname, setFullname] = useState("");
   const [document, setDocument] = useState("");
+  const [documentLocked, setDocumentLocked] = useState(false);
   const [birthDate, setBirthDate] = useState("");
+  const [birthDateLocked, setBirthDateLocked] = useState(false);
   const [phone, setPhone] = useState("");
   const [addressInBrazil, setAddressInBrazil] = useState(true);
   const [address, setAddress] = useState(defaultAddress);
@@ -54,12 +58,10 @@ export default function PersonalDataPage() {
   const [saving, setSaving] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showNameModal, setShowNameModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showCpfModal, setShowCpfModal] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,7 +73,11 @@ export default function PersonalDataPage() {
           setEmail(result.data.email);
           setFullname(result.data.fullname);
           setDocument(formatCpf(result.data.document));
+          setDocumentLocked(
+            result.data.document.replace(/\D/g, "").length === 11,
+          );
           setBirthDate(result.data.birthDate);
+          setBirthDateLocked(Boolean(result.data.birthDate));
           setPhone(result.data.phone);
           setAddressInBrazil(!result.data.livingAbroad);
           setAddress({
@@ -85,16 +91,13 @@ export default function PersonalDataPage() {
             state: result.data.address.state,
           });
         } else if (!result.success) {
-          setStatusMessage({ type: "error", text: result.message });
+          setLoadError(result.message);
         }
       })
       .catch(() => {
         if (!cancelled) {
           setLoading(false);
-          setStatusMessage({
-            type: "error",
-            text: "Não foi possível carregar seus dados.",
-          });
+          setLoadError("Não foi possível carregar seus dados.");
         }
       });
     return () => {
@@ -105,7 +108,6 @@ export default function PersonalDataPage() {
   const handleAddressChange = (field: string, value: string | boolean) => {
     setAddress((prev) => ({ ...prev, [field]: value }));
     if (field === "cep") setCepError(null);
-    setStatusMessage(null);
   };
 
   const handleCepBlur = useCallback(async () => {
@@ -134,9 +136,10 @@ export default function PersonalDataPage() {
   const handleSave = async () => {
     if (saving) return;
     setSaving(true);
-    setStatusMessage(null);
 
     const result = await saveCheckoutDados({
+      document: documentLocked ? undefined : document.replace(/\D/g, "") || undefined,
+      birthDate: birthDateLocked ? undefined : birthDate || undefined,
       phone: phone || undefined,
       livingAbroad: !addressInBrazil,
       address: addressInBrazil
@@ -155,9 +158,17 @@ export default function PersonalDataPage() {
 
     setSaving(false);
     if (result.success) {
-      setStatusMessage({ type: "success", text: "Dados salvos com sucesso." });
+      if (document.replace(/\D/g, "").length === 11) {
+        setDocumentLocked(true);
+      }
+      if (birthDate) {
+        setBirthDateLocked(true);
+      }
+      showSuccessToast({
+        message: "Dados pessoais salvos com sucesso!",
+      });
     } else {
-      setStatusMessage({ type: "error", text: result.message });
+      showErrorToast({ message: result.message });
     }
   };
 
@@ -172,24 +183,13 @@ export default function PersonalDataPage() {
                   Dados pessoais
                 </h1>
               </div>
-              <p className="text-sm text-muted">
-                Os mesmos dados do checkout. Nome, e-mail, CPF e data de nascimento
-                não podem ser alterados aqui.
-              </p>
             </div>
           </div>
         </CardHeader>
 
         <CardContent className="px-0 space-y-10">
-          {statusMessage ? (
-            <p
-              className={`text-sm ${statusMessage.type === "success"
-                ? "text-[#00ff88]"
-                : "text-red-400"
-                }`}
-            >
-              {statusMessage.text}
-            </p>
+          {loadError ? (
+            <p className="text-sm text-red-400">{loadError}</p>
           ) : null}
 
           {loading ? (
@@ -217,12 +217,50 @@ export default function PersonalDataPage() {
                     onAction={() => setShowNameModal(true)}
                   />
 
-                  <ReadonlyDataField label="CPF" value={document} />
+                  {documentLocked ? (
+                    <ReadonlyDataField
+                      label="CPF"
+                      value={document}
+                      actionLabel="Alterar"
+                      onAction={() => setShowCpfModal(true)}
+                    />
+                  ) : (
+                    <div className="space-y-2">
+                      <label className="text-sm text-muted ml-1">CPF</label>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="000.000.000-00"
+                        maxLength={14}
+                        value={document}
+                        onChange={(e) => {
+                          setDocument(formatCpf(e.target.value));
+                        }}
+                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted px-5"
+                      />
+                    </div>
+                  )}
 
-                  <ReadonlyDataField
-                    label="Data de nascimento"
-                    value={formatBirthDateDisplay(birthDate)}
-                  />
+                  {birthDateLocked ? (
+                    <ReadonlyDataField
+                      label="Data de nascimento"
+                      value={formatBirthDateDisplay(birthDate)}
+                    />
+                  ) : (
+                    <div className="space-y-2">
+                      <label className="text-sm text-muted ml-1">
+                        Data de nascimento
+                      </label>
+                      <Input
+                        type="date"
+                        value={birthDate}
+                        onChange={(e) => {
+                          setBirthDate(e.target.value);
+                        }}
+                        className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white px-5 [color-scheme:dark]"
+                      />
+                    </div>
+                  )}
 
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-sm text-muted ml-1">
@@ -233,7 +271,6 @@ export default function PersonalDataPage() {
                       value={phone}
                       onChange={(e) => {
                         setPhone(e.target.value);
-                        setStatusMessage(null);
                       }}
                       className="h-[52px] rounded-full border-[#25252a] bg-transparent text-white placeholder:text-muted px-5"
                     />
@@ -251,7 +288,6 @@ export default function PersonalDataPage() {
                     type="button"
                     onClick={() => {
                       setAddressInBrazil(true);
-                      setStatusMessage(null);
                     }}
                     className={`px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${addressInBrazil
                       ? "bg-[#00c8ff] text-white"
@@ -264,7 +300,6 @@ export default function PersonalDataPage() {
                     type="button"
                     onClick={() => {
                       setAddressInBrazil(false);
-                      setStatusMessage(null);
                     }}
                     className={`px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${!addressInBrazil
                       ? "bg-[#00c8ff] text-white"
@@ -430,6 +465,12 @@ export default function PersonalDataPage() {
         open={showNameModal}
         onOpenChange={setShowNameModal}
         currentFullname={fullname}
+      />
+
+      <ChangeCpfModal
+        open={showCpfModal}
+        onOpenChange={setShowCpfModal}
+        currentDocument={document}
       />
     </div>
   );

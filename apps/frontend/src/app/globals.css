@@ -201,6 +201,16 @@ body {
     display: none;
   }
 
+  @keyframes account-toast-timer {
+    from {
+      transform: scaleX(1);
+    }
+
+    to {
+      transform: scaleX(0);
+    }
+  }
+
   @keyframes streak-bolinha-kick {
     0% {
       transform: scale(0.72);

@@ -20,6 +20,8 @@ import {
 } from "@/components/account/readonly-data-field";
 import { ChangeNameModal } from "@/components/account/change-name-modal";
 import { ChangeEmailModal } from "@/components/account/change-email-modal";
+import { ChangeCpfModal } from "@/components/account/change-cpf-modal";
+import { showErrorToast, showSuccessToast } from "@/lib/show-account-toast";
 
 export interface CartMeusDadosFormHandle {
   advanceToPayment: () => Promise<void>;
@@ -76,6 +78,7 @@ export const CartMeusDadosForm = forwardRef<CartMeusDadosFormHandle, CartMeusDad
   const [formError, setFormError] = useState<string | null>(null);
   const [showNameModal, setShowNameModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showCpfModal, setShowCpfModal] = useState(false);
 
   const isFormValid = useMemo(() => {
     const emailValue = email.trim();
@@ -205,10 +208,10 @@ export const CartMeusDadosForm = forwardRef<CartMeusDadosFormHandle, CartMeusDad
     setSaving(false);
     if (result.success) {
       setFormError(null);
+      showSuccessToast({ message: "Dados salvos com sucesso!" });
       onAdvanceToPayment();
     } else {
-      // TODO: toast ou mensagem de erro
-      console.error(result.message);
+      showErrorToast({ message: result.message });
     }
   };
 
@@ -318,7 +321,12 @@ export const CartMeusDadosForm = forwardRef<CartMeusDadosFormHandle, CartMeusDad
               />
             )}
             {identityLocked.document ? (
-              <ReadonlyDataField label="CPF" value={document} />
+              <ReadonlyDataField
+                label="CPF"
+                value={document}
+                actionLabel="Alterar"
+                onAction={() => setShowCpfModal(true)}
+              />
             ) : (
               <div className="flex gap-2">
                 <input
@@ -490,6 +498,12 @@ export const CartMeusDadosForm = forwardRef<CartMeusDadosFormHandle, CartMeusDad
         open={showNameModal}
         onOpenChange={setShowNameModal}
         currentFullname={fullname}
+      />
+
+      <ChangeCpfModal
+        open={showCpfModal}
+        onOpenChange={setShowCpfModal}
+        currentDocument={document}
       />
     </>
   );
