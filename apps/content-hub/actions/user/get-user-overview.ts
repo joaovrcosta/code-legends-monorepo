@@ -108,6 +108,14 @@ export interface UserOverview {
         totalActiveDays: number;
         lastActiveDate: string | null;
     };
+    certificates: Array<{
+        id: string;
+        title: string;
+        slug: string | null;
+        icon: string | null;
+        type: "course" | "career";
+        issuedAt: string;
+    }>;
 }
 
 export interface UserOverviewResponse {
@@ -120,6 +128,7 @@ export interface UserOverviewResponse {
     statistics: UserOverview["statistics"];
     skills: UserOverview["skills"];
     streak: UserOverview["streak"];
+    certificates: UserOverview["certificates"];
 }
 
 /**

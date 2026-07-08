@@ -18,8 +18,9 @@ import { unenrollUserFromCourse } from "@/actions/user/unenroll-course";
 import { resetUserSkills } from "@/actions/user/reset-user-skills";
 import { resetUserStreak } from "@/actions/user/reset-user-streak";
 import { getUserXpHistory, type UserXpHistoryRow } from "@/actions/user/get-user-xp-history";
+import { revokeCertificate } from "@/actions/certificates/revoke-certificate";
 import { getAuthTokenFromClient } from "@/lib/auth";
-import { ArrowLeft, User, BookOpen, CheckCircle2, TrendingUp, Award, Clock, Target, Edit, X, CreditCard, Calendar, Eraser } from "lucide-react";
+import { ArrowLeft, User, BookOpen, CheckCircle2, TrendingUp, Award, Clock, Target, Edit, X, CreditCard, Calendar, Eraser, ExternalLink, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -39,6 +40,7 @@ function UserOverviewPageContent() {
   const [saving, setSaving] = useState(false);
   const [resettingSkills, setResettingSkills] = useState(false);
   const [resettingStreak, setResettingStreak] = useState(false);
+  const [revokingCertificateId, setRevokingCertificateId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<UpdateUserOverviewData>({});
   const [xpLogsLoading, setXpLogsLoading] = useState(false);
   const [xpLogsRows, setXpLogsRows] = useState<UserXpHistoryRow[] | null>(null);
@@ -298,6 +300,36 @@ function UserOverviewPageContent() {
     }
   };
 
+  const handleRevokeCertificate = async (
+    certificateId: string,
+    certificateTitle: string,
+  ) => {
+    const confirmed = window.confirm(
+      `Tem certeza que deseja revogar o certificado "${certificateTitle}"?\n\nO aluno poderá gerar um novo certificado se ainda atender aos requisitos.`,
+    );
+    if (!confirmed) return;
+
+    try {
+      setRevokingCertificateId(certificateId);
+      const token = getAuthTokenFromClient();
+      if (!token) {
+        toast.error("Token de autenticação não encontrado");
+        return;
+      }
+
+      await revokeCertificate(certificateId, token);
+      toast.success("Certificado revogado com sucesso.");
+      await loadOverview();
+    } catch (error) {
+      console.error("Erro ao revogar certificado:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao revogar certificado",
+      );
+    } finally {
+      setRevokingCertificateId(null);
+    }
+  };
+
   const handleUnenrollFromCourse = async (courseId: string) => {
     if (!overview) return;
     const confirmed = window.confirm(
@@ -495,6 +527,7 @@ function UserOverviewPageContent() {
 
   const payments = overview.payments ?? [];
   const subscriptions = overview.subscriptions ?? [];
+  const certificates = overview.certificates ?? [];
 
   return (
     <MainLayout>
@@ -1215,6 +1248,122 @@ function UserOverviewPageContent() {
                   </div>
                 ))}
               </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Certificados */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5" />
+              Certificados ({certificates.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {certificates.length === 0 ? (
+              <p className="text-ch-muted text-center py-4">
+                Nenhum certificado emitido para este aluno
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Certificado</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Emitido em</TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {certificates.map((certificate) => (
+                    <TableRow key={certificate.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          {certificate.icon ? (
+                            <Image
+                              src={certificate.icon}
+                              alt=""
+                              width={32}
+                              height={32}
+                              className="h-8 w-8 shrink-0 object-contain"
+                            />
+                          ) : (
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ch-surface-raised text-ch-muted">
+                              <Award className="h-4 w-4" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-medium text-ch truncate">
+                              {certificate.title}
+                            </p>
+                            {certificate.slug ? (
+                              <p className="text-xs text-ch-muted truncate">
+                                {certificate.slug}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                            certificate.type === "career"
+                              ? "bg-purple-900/20 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300"
+                              : "bg-blue-900/20 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
+                          }`}
+                        >
+                          {certificate.type === "career" ? "Carreira" : "Curso"}
+                        </span>
+                      </TableCell>
+                      <TableCell>{formatDate(certificate.issuedAt)}</TableCell>
+                      <TableCell className="font-mono text-xs text-ch-muted">
+                        {certificate.id}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="gap-1"
+                            onClick={() =>
+                              window.open(
+                                `https://codelegends.com.br/certificates/${certificate.id}`,
+                                "_blank",
+                                "noopener,noreferrer",
+                              )
+                            }
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            Ver
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="border-red-500/60 text-red-600 hover:bg-red-500/10 dark:text-red-400"
+                            disabled={revokingCertificateId === certificate.id}
+                            onClick={() =>
+                              handleRevokeCertificate(
+                                certificate.id,
+                                certificate.title,
+                              )
+                            }
+                            title="Revogar certificado"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            {revokingCertificateId === certificate.id
+                              ? "Revogando…"
+                              : "Revogar"}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>

@@ -89,6 +89,14 @@ interface AccountOverviewResponse {
     totalActiveDays: number;
     lastActiveDate: string | null;
   };
+  certificates: {
+    id: string;
+    title: string;
+    slug: string | null;
+    icon: string | null;
+    type: "course" | "career";
+    issuedAt: Date;
+  }[];
 }
 
 export class GetAccountOverviewUseCase {
@@ -293,6 +301,50 @@ export class GetAccountOverviewUseCase {
 
     const streak = await resolveUserStreakForApi(userId);
 
+    const certificateRows = await prisma.certificate.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        createdAt: true,
+        course: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            icon: true,
+          },
+        },
+        career: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            icon: true,
+          },
+        },
+      },
+    });
+
+    const certificates = certificateRows.map((certificate) => {
+      const isCareer = Boolean(certificate.career && !certificate.course);
+
+      return {
+        id: certificate.id,
+        title: isCareer
+          ? certificate.career!.title
+          : (certificate.course?.title ?? "Certificado"),
+        slug: isCareer
+          ? certificate.career!.slug
+          : (certificate.course?.slug ?? null),
+        icon: isCareer
+          ? certificate.career!.icon
+          : (certificate.course?.icon ?? null),
+        type: isCareer ? ("career" as const) : ("course" as const),
+        issuedAt: certificate.createdAt,
+      };
+    });
+
     const userWithPlan = {
       ...responseUser,
       plan:
@@ -351,6 +403,7 @@ export class GetAccountOverviewUseCase {
         totalActiveDays: streak.totalActiveDays,
         lastActiveDate: streak.lastActiveDate,
       },
+      certificates,
     };
   }
 }
