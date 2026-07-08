@@ -11,6 +11,9 @@ export interface UserPublicDTO {
     role: Role;
     plan: string;
     planId?: string | null;
+    planName?: string | null;
+    planColorHex?: string | null;
+    planImageUrl?: string | null;
     createdAt: Date;
     updatedAt: Date;
 }

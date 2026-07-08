@@ -11,15 +11,35 @@ export type {
   UserFullDTO,
 } from "@code-legends/shared-types";
 
-type UserWithPlan = User & {
-  planRecord?: { slug: string } | null;
+type PlanRecordSelect = {
+  id: string;
+  slug: string;
+  name: string;
+  colorHex: string | null;
+  imageUrl: string | null;
 };
 
+type UserWithPlan = User & {
+  planRecord?: PlanRecordSelect | null;
+  subscriptions?: Array<{ planRecord: PlanRecordSelect | null }>;
+};
+
+function resolveEffectivePlanRecord(
+  user: UserWithPlan,
+): PlanRecordSelect | null {
+  const fromSubscription = user.subscriptions?.[0]?.planRecord;
+  if (fromSubscription) return fromSubscription;
+  if (user.planRecord) return user.planRecord;
+  return null;
+}
+
 export function resolveUserPlanSlug(user: UserWithPlan): string {
-  return user.planRecord?.slug ?? "FREE";
+  return resolveEffectivePlanRecord(user)?.slug ?? "FREE";
 }
 
 export function toUserPublicDTO(user: UserWithPlan): UserPublicDTO {
+  const effectivePlan = resolveEffectivePlanRecord(user);
+
   return {
     id: user.id,
     name: user.name,
@@ -28,8 +48,11 @@ export function toUserPublicDTO(user: UserWithPlan): UserPublicDTO {
     bio: user.bio,
     expertise: user.expertise,
     role: user.role,
-    plan: resolveUserPlanSlug(user),
-    planId: user.planId,
+    plan: effectivePlan?.slug ?? "FREE",
+    planId: effectivePlan?.id ?? user.planId,
+    planName: effectivePlan?.name ?? null,
+    planColorHex: effectivePlan?.colorHex ?? null,
+    planImageUrl: effectivePlan?.imageUrl ?? null,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

@@ -17,6 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { listUsers, deleteUser, getUserById, type UserFull } from "@/actions/user";
+import { listPlans, type Plan } from "@/actions/plan/list-plans";
+import { PlanBadge } from "@/components/plans/plan-badge";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { Users as UsersIcon, Trash2, Eye, X, Search, FilterX } from "lucide-react";
 import Image from "next/image";
@@ -25,6 +27,7 @@ import { toast } from "sonner";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<UserFull[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserFull | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -43,8 +46,14 @@ export default function UsersPage() {
     try {
       setLoading(true);
       const token = getAuthTokenFromClient();
-      const { users: data } = await listUsers(token || undefined);
+      const [{ users: data }, { plans: plansData }] = await Promise.all([
+        listUsers(token || undefined),
+        listPlans(token || undefined),
+      ]);
       setUsers(data);
+      setPlans(
+        [...plansData].sort((a, b) => a.order - b.order || a.name.localeCompare(b.name)),
+      );
     } catch (error) {
       console.error("Erro ao carregar usuários:", error);
     } finally {
@@ -138,19 +147,7 @@ export default function UsersPage() {
     }
   };
 
-  const getPlanBadgeColor = (plan: string | undefined) => {
-    switch (plan) {
-      case "PRO":
-        return "bg-purple-900/20 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300";
-      case "PREMIUM":
-        return "bg-amber-900/20 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300";
-      default:
-        return "bg-lime-900/20 dark:bg-lime-500/20 text-lime-700 dark:text-lime-300";
-    }
-  };
-
-  const getPlanLabel = (plan: string | undefined) =>
-    plan === "PREMIUM" ? "Premium" : plan === "PRO" ? "Pro" : "Free";
+  const getPlanSlug = (user: UserFull) => (user.plan ?? "FREE").toUpperCase();
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -161,8 +158,7 @@ export default function UsersPage() {
         if (!matchName && !matchEmail) return false;
       }
       if (filterRole && user.role !== filterRole) return false;
-      const userPlan = user.plan ?? "FREE";
-      if (filterPlan && userPlan !== filterPlan) return false;
+      if (filterPlan && getPlanSlug(user) !== filterPlan) return false;
       if (filterOnboarding === "complete" && !user.onboardingCompleted) return false;
       if (filterOnboarding === "pending" && user.onboardingCompleted) return false;
       return true;
@@ -231,9 +227,9 @@ export default function UsersPage() {
                     <option value="STUDENT">Estudante</option>
                   </Select>
                 </div>
-                <div className="w-[120px]">
+                <div className="w-[160px]">
                   <Label htmlFor="filter-plan" className="text-ch-muted text-xs">
-                    Plan
+                    Plano
                   </Label>
                   <Select
                     id="filter-plan"
@@ -242,9 +238,11 @@ export default function UsersPage() {
                     className="mt-1"
                   >
                     <option value="">Todos</option>
-                    <option value="FREE">Free</option>
-                    <option value="PRO">Pro</option>
-                    <option value="PREMIUM">Premium</option>
+                    {plans.map((plan) => (
+                      <option key={plan.id} value={plan.slug.toUpperCase()}>
+                        {plan.name}
+                      </option>
+                    ))}
                   </Select>
                 </div>
                 <div className="w-[160px]">
@@ -288,7 +286,7 @@ export default function UsersPage() {
                       <TableHead>Nome</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Função</TableHead>
-                      <TableHead>Plan</TableHead>
+                      <TableHead>Plano</TableHead>
                       <TableHead>Nível</TableHead>
                       <TableHead>XP Total</TableHead>
                       <TableHead>Onboarding</TableHead>
@@ -345,13 +343,12 @@ export default function UsersPage() {
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span
-                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getPlanBadgeColor(
-                                user.plan
-                              )}`}
-                            >
-                              {getPlanLabel(user.plan)}
-                            </span>
+                            <PlanBadge
+                              slug={user.plan}
+                              name={user.planName}
+                              colorHex={user.planColorHex}
+                              imageUrl={user.planImageUrl}
+                            />
                           </TableCell>
                           <TableCell>Nível {user.level}</TableCell>
                           <TableCell>{user.totalXp.toLocaleString("pt-BR")}</TableCell>
@@ -445,6 +442,15 @@ export default function UsersPage() {
                     >
                       {getRoleLabel(selectedUser.role)}
                     </span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-ch-muted">Plano</p>
+                    <PlanBadge
+                      slug={selectedUser.plan}
+                      name={selectedUser.planName}
+                      colorHex={selectedUser.planColorHex}
+                      imageUrl={selectedUser.planImageUrl}
+                    />
                   </div>
                   <div>
                     <p className="text-sm text-ch-muted">Slug</p>

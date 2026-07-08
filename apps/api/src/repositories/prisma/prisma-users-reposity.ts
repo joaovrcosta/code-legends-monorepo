@@ -3,6 +3,39 @@ import { IUsersRepository } from "../users-repository";
 import { prisma } from "../../lib/prisma";
 import bcrypt from "bcryptjs";
 
+function buildUserPlanInclude() {
+  return {
+    planRecord: {
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        colorHex: true,
+        imageUrl: true,
+      },
+    },
+    subscriptions: {
+      where: {
+        status: "ACTIVE" as const,
+        endsAt: { gt: new Date() },
+      },
+      orderBy: { endsAt: "desc" as const },
+      take: 1,
+      select: {
+        planRecord: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            colorHex: true,
+            imageUrl: true,
+          },
+        },
+      },
+    },
+  };
+}
+
 interface CreateUserData {
   name: string;
   email: string;
@@ -55,9 +88,7 @@ export class PrismaUsersRepository implements IUsersRepository {
       where: {
         id,
       },
-      include: {
-        planRecord: { select: { slug: true } },
-      },
+      include: buildUserPlanInclude(),
     });
     return user;
   }
@@ -69,7 +100,7 @@ export class PrismaUsersRepository implements IUsersRepository {
       },
       include: {
         Address: true,
-        planRecord: { select: { id: true, slug: true, name: true } },
+        ...buildUserPlanInclude(),
       },
     });
     return user;
@@ -79,6 +110,7 @@ export class PrismaUsersRepository implements IUsersRepository {
     const users = await prisma.user.findMany({
       include: {
         Address: true,
+        ...buildUserPlanInclude(),
       },
       orderBy: {
         createdAt: 'desc',
@@ -94,6 +126,7 @@ export class PrismaUsersRepository implements IUsersRepository {
       },
       include: {
         Address: true,
+        ...buildUserPlanInclude(),
       },
       orderBy: {
         createdAt: 'desc',
@@ -111,6 +144,7 @@ export class PrismaUsersRepository implements IUsersRepository {
       },
       include: {
         Address: true,
+        ...buildUserPlanInclude(),
       },
       orderBy: {
         createdAt: 'desc',
@@ -138,7 +172,7 @@ export class PrismaUsersRepository implements IUsersRepository {
       },
       include: {
         Address: true,
-        planRecord: { select: { slug: true } },
+        ...buildUserPlanInclude(),
       },
     });
   }

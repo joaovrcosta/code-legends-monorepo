@@ -10,7 +10,10 @@ export interface User {
   bio?: string | null;
   expertise?: string[];
   role: "STUDENT" | "INSTRUCTOR" | "ADMIN";
-  plan?: "FREE" | "PRO" | "PREMIUM";
+  plan?: string;
+  planName?: string | null;
+  planColorHex?: string | null;
+  planImageUrl?: string | null;
   createdAt: string;
   updatedAt: string;
   email: string;
