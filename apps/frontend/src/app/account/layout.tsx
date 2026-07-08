@@ -17,7 +17,7 @@ export default async function AccountLayout({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1080px] flex-col items-center px-4 pt-8 pb-12">
+    <div className="mx-auto flex w-full max-w-[1080px] flex-col items-center px-0 pt-0 pb-0 md:px-4 md:pt-8 md:pb-12">
       <AccountProfileHeader user={user} />
       <AccountAsideMenu />
       <main className="mt-8 w-full">{children}</main>
