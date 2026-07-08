@@ -78,7 +78,7 @@ export function GenerateCertificateButton({
           disabled={isGenerating}
           variant="outline"
           size="sm"
-          className="w-full bg-gray-gradient-first hover:opacity-90 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 hover:shadow-[0_0_12px_#1a1a1a] h-[42px] border-[#272727]"
+          className="h-[42px] shrink-0 border-[#272727] bg-gray-gradient-first px-4 font-semibold text-white hover:opacity-90"
         >
           <CertificateIcon size={18} className="mr-2" />
           {isGenerating ? "Gerando..." : "Ver certificado"}

@@ -6,6 +6,7 @@ const careerListSelect = {
   id: true,
   title: true,
   slug: true,
+  icon: true,
 } as const;
 
 const certificateInclude = {
@@ -22,6 +23,7 @@ const certificateInclude = {
       id: true,
       title: true,
       slug: true,
+      icon: true,
       thumbnail: true,
       instructorId: true,
       instructor: {

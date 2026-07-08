@@ -1,11 +1,11 @@
 import { CertificateCard } from "@/components/account/certificate-card";
+import { CompletedCourseCertificateRow } from "@/components/account/completed-course-certificate-row";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getUserCertificates } from "@/actions/user/get-user-certificates";
 import { getCompletedCourses } from "@/actions/course/completed";
+import type { CompletedCourse } from "@/types/user-course.ts";
 import { Medal } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
-import { GenerateCertificateButton } from "@/components/account/generate-certificate-button";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +14,67 @@ export default async function AccountCertificatesPage() {
   const completedCourses = await getCompletedCourses();
   const completedCoursesList = completedCourses.courses || [];
 
+  const issuedCourseIds = new Set(
+    certificates
+      .map((certificate) => certificate.course?.id)
+      .filter((id): id is string => Boolean(id)),
+  );
+
+  const pendingCertificateCourses = completedCoursesList.filter(
+    (course) => !issuedCourseIds.has(course.id),
+  );
+
+  const courseIconById = new Map(
+    completedCoursesList
+      .filter((course) => course.icon)
+      .map((course) => [course.id, course.icon]),
+  );
+
+  function resolveCertificateIcon(certificate: (typeof certificates)[number]) {
+    if (certificate.career?.icon) return certificate.career.icon;
+    const courseId = certificate.course?.id;
+    if (courseId && courseIconById.has(courseId)) {
+      return courseIconById.get(courseId) ?? null;
+    }
+    return certificate.course?.icon ?? null;
+  }
+
+  function toModalCourse(
+    certificate: (typeof certificates)[number],
+  ): CompletedCourse {
+    const title = certificate.career?.title
+      ? `Carreira: ${certificate.career.title}`
+      : (certificate.course?.title ?? "Certificado");
+
+    const completedAt =
+      typeof certificate.createdAt === "string"
+        ? certificate.createdAt
+        : certificate.createdAt.toISOString();
+
+    return {
+      id: certificate.course?.id ?? certificate.career?.id ?? certificate.id,
+      certificateId: certificate.id,
+      title,
+      icon: resolveCertificateIcon(certificate) ?? "",
+      progress: 1,
+      completedAt,
+    };
+  }
+
+  function formatStatusLabel(completedAt?: Date | string | null): string {
+    if (!completedAt) return "Concluído";
+    const date = new Date(completedAt);
+    if (Number.isNaN(date.getTime())) return "Concluído";
+    return `Concluído em ${date.toLocaleDateString("pt-BR")}`;
+  }
+
+  const hasCertificates = certificates.length > 0;
+  const hasPendingCourses = pendingCertificateCourses.length > 0;
+
   return (
-    <div className="space-y-4 w-full">
-      <Card className="bg-primary border-[#25252a] lg:px-6 lg:pt-6 py-6 rounded-[20px]">
-        <CardHeader>
+    <div className="w-full space-y-4">
+      <Card className="rounded-[20px] border-[#25252a] bg-primary py-6 lg:px-6 lg:pt-6">
+        <CardHeader className="mb-4">
           <div className="flex items-center space-x-2">
             <h1 className="text-lg font-semibold text-white">
               Meus Certificados
@@ -28,67 +85,38 @@ export default async function AccountCertificatesPage() {
           </p>
         </CardHeader>
 
-        <CardContent className="flex lg:flex-wrap flex-col lg:space-y-0 space-y-3 lg:gap-4 gap-0 px-0">
-          {certificates.length > 0 ? (
-            certificates.map((certificate) => (
-              <CertificateCard
-                key={certificate.id}
-                certificateId={certificate.id}
-                courseName={
-                  certificate.career?.title
-                    ? `Carreira: ${certificate.career.title}`
-                    : (certificate.course?.title ?? "Certificado")
-                }
-                completedAt={certificate.completedAt}
-              />
-            ))
-          ) : completedCoursesList.length > 0 ? (
-            <div className="w-full">
-              <div className="space-y-3 mt-6">
-                {completedCoursesList.map((course) => (
-                  <div
-                    key={course.id}
-                    className="flex items-center justify-between p-3 bg-transparent border border-[#333333] rounded-[20px]"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Image
-                        src={course.icon}
-                        alt={course.title}
-                        width={52}
-                        height={52}
-                      />
-                      <div>
-                        <h3 className="text-white font-medium">
-                          {course.title}
-                        </h3>
-                        <p className="text-xs text-muted mt-1">
-                          Concluído
-                        </p>
-                      </div>
-                    </div>
+        <CardContent className="space-y-3 px-0">
+          {hasCertificates || hasPendingCourses ? (
+            <>
+              {certificates
+                .filter((certificate) => Boolean(certificate?.id))
+                .map((certificate) => {
+                  const modalCourse = toModalCourse(certificate);
+                  return (
+                    <CertificateCard
+                      key={certificate.id}
+                      course={modalCourse}
+                      statusLabel={formatStatusLabel(certificate.createdAt)}
+                    />
+                  );
+                })}
 
-                    <div className="flex items-center space-x-4">
-                      <GenerateCertificateButton
-                        courseId={course.id}
-                        course={course}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+              {pendingCertificateCourses.map((course) => (
+                <CompletedCourseCertificateRow key={course.id} course={course} />
+              ))}
+            </>
           ) : (
-            <div className="text-center py-12">
-              <Medal className="w-16 h-16 text-muted mx-auto mb-4" />
-              <p className="text-muted text-lg mb-2">
+            <div className="py-12 text-center">
+              <Medal className="mx-auto mb-4 h-16 w-16 text-muted" />
+              <p className="mb-2 text-lg text-muted">
                 Você ainda não possui certificados
               </p>
-              <p className="text-muted text-sm mb-4">
+              <p className="mb-4 text-sm text-muted">
                 Complete seus cursos para ganhar certificados incríveis!
               </p>
               <Link
                 href="/learn/catalog"
-                className="text-[#00c8ff] text-sm hover:underline inline-block"
+                className="inline-block text-sm text-[#00c8ff] hover:underline"
               >
                 Explorar cursos disponíveis
               </Link>

@@ -15,13 +15,14 @@ export type {
 } from "@code-legends/shared-types";
 
 function toCareerSummaryDTO(
-  career: Pick<Career, "id" | "title" | "slug"> | null | undefined
+  career: Pick<Career, "id" | "title" | "slug" | "icon"> | null | undefined
 ): CertificateCareerSummaryDTO | null {
   if (!career) return null;
   return {
     id: career.id,
     title: career.title,
     slug: career.slug,
+    icon: career.icon ?? null,
   };
 }
 

@@ -6,6 +6,7 @@ export interface CertificateCareerSummaryDTO {
     id: string;
     title: string;
     slug: string;
+    icon?: string | null;
 }
 
 export interface CertificatePublicDTO {
