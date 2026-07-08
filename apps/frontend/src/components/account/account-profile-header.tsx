@@ -35,13 +35,13 @@ export function AccountProfileHeader({ user }: AccountProfileHeaderProps) {
           <h1 className="text-xl font-semibold text-white">{user.name}</h1>
         </div>
         <p className="text-sm text-muted">{user.email}</p>
-        <p className="text-sm text-muted">
+        {/* <p className="text-sm text-muted">
           Membro desde{' '}
           {new Date(user.createdAt).toLocaleDateString('pt-BR', {
             year: 'numeric',
             month: 'long',
           })}
-        </p>
+        </p> */}
       </div>
 
       {careerLabel && (
