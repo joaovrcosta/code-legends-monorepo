@@ -45,6 +45,7 @@ const envSchema = z.object({
     .default(true),
   ABACATE_PAY_WEBHOOK_SECRET: z.string().optional(),
   ABACATE_PAY_API_KEY: z.string().optional(),
+  JOBS_SECRET: z.string().optional(),
 });
 
 const _env = envSchema.safeParse(process.env);

@@ -25,6 +25,7 @@ import { videoProviderRoutes } from './http/controllers/video-provider/routes'
 import { paymentProviderRoutes } from './http/controllers/payment-provider/routes'
 import { careerRoutes } from './http/controllers/career/routes'
 import { careerAdminRoutes } from './http/controllers/career/admin-routes'
+import { internalRoutes } from './http/controllers/internal/routes'
 import { verifyCertificate } from './http/controllers/certificate/verify.controller'
 import {
   abacatePayWebhook,
@@ -177,6 +178,7 @@ app.register(videoProviderRoutes)
 app.register(paymentProviderRoutes)
 app.register(careerRoutes)
 app.register(careerAdminRoutes)
+app.register(internalRoutes)
 
 app.setErrorHandler((error, _, reply) => {
   if (error instanceof ZodError) {

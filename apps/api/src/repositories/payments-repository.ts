@@ -1,7 +1,8 @@
 export interface PaidPaymentRow {
   id: string;
   status: string;
-  plan: string;
+  planSlug: string;
+  planAmountCents: number;
   paidAt: Date | null;
   createdAt: Date;
   metadata: unknown;

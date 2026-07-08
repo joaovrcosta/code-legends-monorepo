@@ -13,6 +13,7 @@ export async function listPayments(request: FastifyRequest, reply: FastifyReply)
             email: true,
           },
         },
+        planRecord: { select: { slug: true } },
       },
     });
 
@@ -24,7 +25,8 @@ export async function listPayments(request: FastifyRequest, reply: FastifyReply)
       amountCents: p.amountCents,
       currency: p.currency,
       status: p.status,
-      plan: p.plan,
+      plan: p.planRecord.slug,
+      planId: p.planId,
       gateway: p.gateway,
       gatewayPaymentId: p.gatewayPaymentId,
       paidAt: p.paidAt,

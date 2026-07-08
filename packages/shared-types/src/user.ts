@@ -1,4 +1,4 @@
-import { Role, UserPlan } from "./common";
+import { Role } from "./common";
 import type { Address } from "./common";
 
 export interface UserPublicDTO {
@@ -9,7 +9,8 @@ export interface UserPublicDTO {
     bio: string | null;
     expertise: string[];
     role: Role;
-    plan: UserPlan;
+    plan: string;
+    planId?: string | null;
     createdAt: Date;
     updatedAt: Date;
 }

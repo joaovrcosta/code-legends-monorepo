@@ -247,7 +247,8 @@ export class GetAccountOverviewUseCase {
         amountCents: true,
         currency: true,
         status: true,
-        plan: true,
+        planId: true,
+        planRecord: { select: { slug: true } },
         gateway: true,
         gatewayPaymentId: true,
         paidAt: true,
@@ -260,7 +261,8 @@ export class GetAccountOverviewUseCase {
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        plan: true,
+        planId: true,
+        planRecord: { select: { slug: true } },
         status: true,
         startsAt: true,
         endsAt: true,
@@ -291,14 +293,23 @@ export class GetAccountOverviewUseCase {
 
     const streak = await resolveUserStreakForApi(userId);
 
+    const userWithPlan = {
+      ...responseUser,
+      plan:
+        (responseUser as { planRecord?: { slug: string } | null }).planRecord
+          ?.slug ?? "FREE",
+      planId: responseUser.planId,
+    };
+
     return {
-      user: responseUser,
+      user: userWithPlan,
       payments: payments.map((p) => ({
         id: p.id,
         amountCents: p.amountCents,
         currency: p.currency,
         status: p.status,
-        plan: p.plan,
+        plan: p.planRecord.slug,
+        planId: p.planId,
         gateway: p.gateway,
         gatewayPaymentId: p.gatewayPaymentId,
         paidAt: p.paidAt,
@@ -306,7 +317,8 @@ export class GetAccountOverviewUseCase {
       })),
       subscriptions: subscriptions.map((s) => ({
         id: s.id,
-        plan: s.plan,
+        plan: s.planRecord.slug,
+        planId: s.planId,
         status: s.status,
         startsAt: s.startsAt,
         endsAt: s.endsAt,

@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
+import { planFeaturesArraySchema } from "@code-legends/plans";
 import { prisma } from "../../../lib/prisma";
 
 const updatePlanBodySchema = z.object({
@@ -13,6 +14,7 @@ const updatePlanBodySchema = z.object({
   active: z.boolean().optional(),
   externalId: z.string().optional().nullable(),
   productName: z.string().optional().nullable(),
+  features: planFeaturesArraySchema.optional(),
 });
 
 export async function updatePlan(
@@ -41,6 +43,7 @@ export async function updatePlan(
         ...(body.active !== undefined && { active: body.active }),
         ...(body.externalId !== undefined && { externalId: body.externalId }),
         ...(body.productName !== undefined && { productName: body.productName }),
+        ...(body.features !== undefined && { features: body.features }),
       },
     });
     return reply.status(200).send(plan);

@@ -3,10 +3,8 @@
 import { buildApiHeaders } from "@/actions/auth";
 import type { UserOverview } from "./get-user-overview";
 
-export type UserPlanValue = "FREE" | "PRO" | "PREMIUM";
-
 export interface UpdateUserOverviewData {
-  plan?: UserPlanValue;
+  planId?: string;
   name?: string;
   bio?: string | null;
   expertise?: string[];

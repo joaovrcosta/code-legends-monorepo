@@ -7,12 +7,16 @@ export class PrismaPaymentsRepository implements IPaymentsRepository {
     const row = await prisma.payment.findFirst({
       where: { userId, status: PaymentStatus.PAID },
       orderBy: [{ paidAt: "desc" }, { createdAt: "desc" }],
+      include: {
+        planRecord: { select: { slug: true, amountCents: true } },
+      },
     });
     if (!row) return null;
     return {
       id: row.id,
       status: row.status,
-      plan: row.plan,
+      planSlug: row.planRecord.slug,
+      planAmountCents: row.planRecord.amountCents,
       paidAt: row.paidAt,
       createdAt: row.createdAt,
       metadata: row.metadata,

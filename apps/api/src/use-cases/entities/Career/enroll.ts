@@ -1,7 +1,9 @@
 import { UserCareer } from '@prisma/client'
+import { PlanFeatures } from '@code-legends/plans'
 import { ICareerRepository } from '../../../repositories/career-repository'
 import { IUserCareerRepository } from '../../../repositories/user-career-repository'
 import { IUsersRepository } from '../../../repositories/users-repository'
+import { PlanAccessPort } from '../../../domain/plan-access/plan-access.port'
 import { CareerNotFoundError } from '../../errors/career-not-found'
 import { CareerEnrollmentRequiresPremiumError } from '../../errors/career-enrollment-requires-premium'
 import { UserNotFoundError } from '../../errors/user-not-found'
@@ -21,6 +23,7 @@ export class EnrollCareerUseCase {
     private userCareerRepository: IUserCareerRepository,
     private careerRepository: ICareerRepository,
     private usersRepository: IUsersRepository,
+    private planAccess: PlanAccessPort,
   ) {}
 
   async execute({
@@ -44,9 +47,18 @@ export class EnrollCareerUseCase {
     if (!user) {
       throw new UserNotFoundError()
     }
-    if (user.plan !== 'PREMIUM') {
+
+    const canEnroll = await this.planAccess.hasFeature(
+      userId,
+      PlanFeatures.CAREER_ENROLL,
+    )
+    if (!canEnroll) {
+      const hasCatalogPaid = await this.planAccess.hasFeature(
+        userId,
+        PlanFeatures.CATALOG_PAID,
+      )
       throw new CareerEnrollmentRequiresPremiumError(
-        user.plan === 'PRO' ? 'PRO' : 'FREE',
+        hasCatalogPaid ? 'PRO' : 'FREE',
       )
     }
 
@@ -55,4 +67,3 @@ export class EnrollCareerUseCase {
     return { userCareer }
   }
 }
-

@@ -89,15 +89,15 @@ export class GetPostPurchaseWelcomeUseCase {
     let kind: PostPurchaseWelcomeKind = "generic";
     if (metaKind === "course") {
       kind = "course";
-    } else if (latestPaid.plan === "PRO" || latestPaid.plan === "PREMIUM") {
+    } else if (latestPaid.planAmountCents > 0) {
       kind = "subscription";
     }
 
     const planRow = await this.plansRepository.findFirstActiveBySlug(
-      latestPaid.plan
+      latestPaid.planSlug
     );
 
-    const planSlug = planRow?.slug ?? latestPaid.plan;
+    const planSlug = planRow?.slug ?? latestPaid.planSlug;
     const planName =
       (metadata?.title as string | undefined) ??
       planRow?.name ??

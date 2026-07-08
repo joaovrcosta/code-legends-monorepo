@@ -47,6 +47,9 @@ importers:
       '@code-legends/payment-providers':
         specifier: workspace:*
         version: link:../../packages/payment-providers
+      '@code-legends/plans':
+        specifier: workspace:*
+        version: link:../../packages/plans
       '@code-legends/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -141,6 +144,9 @@ importers:
       '@code-legends/challenges':
         specifier: workspace:*
         version: link:../../packages/challenges
+      '@code-legends/plans':
+        specifier: workspace:*
+        version: link:../../packages/plans
       '@code-legends/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -229,6 +235,9 @@ importers:
       '@code-legends/challenges':
         specifier: workspace:*
         version: link:../../packages/challenges
+      '@code-legends/plans':
+        specifier: workspace:*
+        version: link:../../packages/plans
       '@code-legends/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -475,6 +484,16 @@ importers:
       vitest:
         specifier: 0.33.0
         version: 0.33.0(lightningcss@1.30.2)
+
+  packages/plans:
+    dependencies:
+      zod:
+        specifier: 3.21.4
+        version: 3.21.4
+    devDependencies:
+      typescript:
+        specifier: ^5.1.6
+        version: 5.9.3
 
   packages/shared-types:
     dependencies:

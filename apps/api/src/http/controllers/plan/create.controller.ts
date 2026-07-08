@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
+import { planFeaturesArraySchema } from "@code-legends/plans";
 import { prisma } from "../../../lib/prisma";
 
 const createPlanBodySchema = z.object({
@@ -13,6 +14,7 @@ const createPlanBodySchema = z.object({
   active: z.boolean().optional(),
   externalId: z.string().optional().nullable(),
   productName: z.string().optional().nullable(),
+  features: planFeaturesArraySchema.optional(),
 });
 
 export async function createPlan(
@@ -33,6 +35,7 @@ export async function createPlan(
         active: body.active ?? true,
         externalId: body.externalId ?? null,
         productName: body.productName ?? null,
+        features: body.features ?? [],
       },
     });
     return reply.status(201).send(plan);

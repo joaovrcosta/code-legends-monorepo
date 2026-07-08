@@ -5,8 +5,8 @@ import Link from "next/link";
 import { enrollInCareer } from "@/actions/career";
 import { Button } from "@/components/ui/button";
 import { CareerEnrollPremiumGateDialog } from "@/components/career/career-enroll-premium-gate-dialog";
+import { PlanFeatures } from "@code-legends/plans";
 import { useUserPlan } from "@/hooks/use-user-plan";
-import { UserPlan } from "@code-legends/shared-types";
 import {
   CAREER_ENROLL_PREMIUM_REQUIRED,
   type CareerEnrollBlockedPlan,
@@ -23,9 +23,12 @@ function isPremiumGateError(
   );
 }
 
-function planToBlocked(plan: UserPlan): CareerEnrollBlockedPlan | null {
-  if (plan === UserPlan.PREMIUM) return null;
-  if (plan === UserPlan.PRO) return "PRO";
+function planToBlocked(
+  hasCareerEnroll: boolean,
+  hasCatalogPaid: boolean,
+): CareerEnrollBlockedPlan | null {
+  if (hasCareerEnroll) return null;
+  if (hasCatalogPaid) return "PRO";
   return "FREE";
 }
 
@@ -46,7 +49,7 @@ export function EnrollCareerButton({
   loadingLabel?: string;
   className?: string;
 }) {
-  const { plan, isPremium } = useUserPlan();
+  const { hasFeature, hasPaidPlan, capabilitiesReady } = useUserPlan();
   const [isLoading, setIsLoading] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
   const [gateVariant, setGateVariant] = useState<CareerEnrollBlockedPlan | null>(
@@ -58,11 +61,14 @@ export function EnrollCareerButton({
     setGateOpen(true);
   };
 
+  const hasCareerEnroll = hasFeature(PlanFeatures.CAREER_ENROLL);
+  const hasCatalogPaid = hasPaidPlan;
+
   const handleEnroll = async () => {
     if (isEnrolled || isLoading) return;
 
-    if (!isPremium) {
-      const blocked = planToBlocked(plan);
+    if (!hasCareerEnroll) {
+      const blocked = planToBlocked(hasCareerEnroll, hasCatalogPaid);
       if (blocked) {
         openGate(blocked);
         return;
@@ -87,7 +93,7 @@ export function EnrollCareerButton({
 
   const buttonClassName = ["rounded-full", className].filter(Boolean).join(" ");
 
-  if (isEnrolled && !isPremium) {
+  if (capabilitiesReady && isEnrolled && !hasCareerEnroll) {
     return (
       <Button asChild className={buttonClassName}>
         <Link href="/plans" className="flex w-full items-center justify-center">

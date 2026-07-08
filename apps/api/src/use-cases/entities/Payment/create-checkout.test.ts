@@ -56,6 +56,7 @@ describe('CreateCheckoutUseCase', () => {
     } as never)
     vi.mocked(resolveCheckoutHandler).mockReturnValue(mockHandler)
     vi.mocked(prisma.plan.findUnique).mockResolvedValue({
+      id: 'plan_premium',
       slug: 'PREMIUM',
       amountCents: 39700,
       name: 'Premium',

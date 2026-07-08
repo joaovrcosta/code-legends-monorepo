@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getUserOverview, type UserOverview } from "@/actions/user/get-user-overview";
+import { listPlans, type Plan } from "@/actions/plan";
 import { getUserSkills, type UserSkillsResponse } from "@/actions/user/get-user-skills";
 import { updateUserOverview, type UpdateUserOverviewData } from "@/actions/user/update-user-overview";
 import { unenrollUserFromCourse } from "@/actions/user/unenroll-course";
@@ -30,6 +31,7 @@ function UserOverviewPageContent() {
   const userId = params.userId as string;
   
   const [overview, setOverview] = useState<UserOverview | null>(null);
+  const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
   const [skillsProfile, setSkillsProfile] = useState<UserSkillsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -88,6 +90,15 @@ function UserOverviewPageContent() {
       loadOverview();
     }
   }, [userId, loadOverview]);
+
+  useEffect(() => {
+    const loadPlans = async () => {
+      const token = getAuthTokenFromClient();
+      const { plans } = await listPlans(token ?? undefined);
+      setAvailablePlans(plans);
+    };
+    void loadPlans();
+  }, []);
 
   const workspaceUser = overview?.user ?? skillsProfile?.user ?? null;
 
@@ -517,7 +528,7 @@ function UserOverviewPageContent() {
           <Button
             onClick={() => {
               setEditFormData({
-                plan: overview.user.plan as "FREE" | "PRO" | "PREMIUM",
+                planId: overview.user.planId ?? undefined,
                 name: overview.user.name,
                 bio: overview.user.bio,
                 expertise: overview.user.expertise,
@@ -779,27 +790,29 @@ function UserOverviewPageContent() {
               <div>
                 <p className="text-sm text-ch-muted">Plano</p>
                 <Select
-                  value={overview.user.plan ?? "FREE"}
+                  value={overview.user.planId ?? ""}
                   onChange={async (e) => {
-                    const newPlan = e.target.value as "FREE" | "PRO" | "PREMIUM";
+                    const newPlanId = e.target.value;
                     try {
                       const token = getAuthTokenFromClient();
                       if (!token) {
                         toast.error("Token não encontrado");
                         return;
                       }
-                      await updateUserOverview(userId, { plan: newPlan }, token);
+                      await updateUserOverview(userId, { planId: newPlanId }, token);
                       toast.success("Plano atualizado");
                       loadOverview();
                     } catch (err: unknown) {
                       toast.error(err instanceof Error ? err.message : "Erro ao atualizar plano");
                     }
                   }}
-                  className="mt-1 w-[130px]"
+                  className="mt-1 w-[180px]"
                 >
-                  <option value="FREE">Free</option>
-                  <option value="PRO">Pro</option>
-                  <option value="PREMIUM">Premium</option>
+                  {availablePlans.map((plan) => (
+                    <option key={plan.id} value={plan.id}>
+                      {plan.name}
+                    </option>
+                  ))}
                 </Select>
               </div>
               <div>
@@ -1299,20 +1312,22 @@ function UserOverviewPageContent() {
                   <h3 className="text-lg font-semibold mb-4">Informações Básicas</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="plan">Plano</Label>
+                      <Label htmlFor="planId">Plano</Label>
                       <Select
-                        id="plan"
-                        value={editFormData.plan ?? "FREE"}
+                        id="planId"
+                        value={editFormData.planId ?? ""}
                         onChange={(e) =>
                           setEditFormData({
                             ...editFormData,
-                            plan: e.target.value as "FREE" | "PRO" | "PREMIUM",
+                            planId: e.target.value,
                           })
                         }
                       >
-                        <option value="FREE">Free</option>
-                        <option value="PRO">Pro</option>
-                        <option value="PREMIUM">Premium</option>
+                        {availablePlans.map((plan) => (
+                          <option key={plan.id} value={plan.id}>
+                            {plan.name}
+                          </option>
+                        ))}
                       </Select>
                     </div>
                     <div className="space-y-2">

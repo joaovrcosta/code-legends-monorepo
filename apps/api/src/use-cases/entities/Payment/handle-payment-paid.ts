@@ -13,7 +13,7 @@ export type HandlePaymentPaidResult =
 
 /**
  * Processa pagamento confirmado no gateway: atualiza Payment para PAID,
- * User.plan e cria Subscription (1 ano). Idempotente.
+ * User.planId e cria Subscription (1 ano). Idempotente.
  */
 export class HandlePaymentPaidUseCase {
   async execute({
@@ -22,7 +22,7 @@ export class HandlePaymentPaidUseCase {
   }: HandlePaymentPaidInput): Promise<HandlePaymentPaidResult> {
     const payment = await prisma.payment.findFirst({
       where: { gatewayPaymentId, gateway },
-      select: { id: true, userId: true, plan: true, status: true },
+      select: { id: true, userId: true, planId: true, status: true },
     })
 
     if (!payment) {
@@ -44,13 +44,13 @@ export class HandlePaymentPaidUseCase {
 
       await tx.user.update({
         where: { id: payment.userId },
-        data: { plan: payment.plan },
+        data: { planId: payment.planId },
       })
 
       await tx.subscription.create({
         data: {
           userId: payment.userId,
-          plan: payment.plan,
+          planId: payment.planId,
           status: 'ACTIVE',
           startsAt: now,
           endsAt,

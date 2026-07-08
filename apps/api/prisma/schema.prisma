@@ -223,19 +223,24 @@ model Category {
 }
 
 model Plan {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  name        String
-  description String?
-  imageUrl    String?
-  colorHex    String?
-  amountCents Int      @default(0)
-  order       Int      @default(0)
-  active      Boolean  @default(true)
-  externalId  String?
-  productName String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  name          String
+  description   String?
+  imageUrl      String?
+  colorHex      String?
+  amountCents   Int            @default(0)
+  order         Int            @default(0)
+  active        Boolean        @default(true)
+  externalId    String?
+  productName   String?
+  /// v1: Json array de feature keys; upgrade para JSONB+GIN se precisar query reversa frequente.
+  features      Json           @default("[]")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  users         User[]
+  payments      Payment[]
+  subscriptions Subscription[]
 }
 
 model User {
@@ -257,7 +262,8 @@ model User {
   gender                          String?
   marital_status                  MaritalStatus @default(SINGLE)
   role                            Role          @default(STUDENT)
-  plan                            UserPlan      @default(FREE)
+  planId                          String?
+  planRecord                      Plan?         @relation(fields: [planId], references: [id], onDelete: SetNull)
   occupation                      String?
   phone                           String?
   rg                              String?
@@ -302,6 +308,8 @@ model User {
   userCareers        UserCareer[]
   careerExamAttempts UserCareerExamAttempt[]
   careerModuleStatus UserCareerModuleStatus[]
+
+  @@index([planId])
 }
 
 model UserStreak {
@@ -855,12 +863,6 @@ enum Role {
   STUDENT
 }
 
-enum UserPlan {
-  FREE
-  PRO
-  PREMIUM
-}
-
 enum PaymentStatus {
   PENDING
   PAID
@@ -974,7 +976,8 @@ model Payment {
   amountCents      Int
   currency         String        @default("BRL")
   status           PaymentStatus @default(PENDING)
-  plan             UserPlan
+  planId           String
+  planRecord       Plan          @relation(fields: [planId], references: [id])
   gateway          String
   gatewayPaymentId String?
   metadata         Json?
@@ -993,7 +996,8 @@ model Subscription {
   id                    String             @id @default(cuid())
   userId                String
   user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan                  UserPlan
+  planId                String
+  planRecord            Plan               @relation(fields: [planId], references: [id])
   status                SubscriptionStatus @default(ACTIVE)
   startsAt              DateTime
   endsAt                DateTime

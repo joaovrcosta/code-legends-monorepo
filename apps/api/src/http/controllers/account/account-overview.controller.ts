@@ -55,7 +55,7 @@ export async function updateAccountData(request: FastifyRequest, reply: FastifyR
   });
 
   const updateAccountBodySchema = z.object({
-    plan: z.enum(["FREE", "PRO", "PREMIUM"]).optional(),
+    planId: z.string().optional(),
     onboardingCompleted: z.boolean().optional(),
     onboardingGoal: z.string().nullable().optional(),
     onboardingCareer: z.string().nullable().optional(),

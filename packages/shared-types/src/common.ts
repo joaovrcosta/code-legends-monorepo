@@ -4,6 +4,7 @@ export enum Role {
     STUDENT = "STUDENT",
 }
 
+/** Slugs conhecidos de planos seed. Preferir capabilities de @code-legends/plans para lógica de acesso. */
 export enum UserPlan {
     FREE = "FREE",
     PRO = "PRO",

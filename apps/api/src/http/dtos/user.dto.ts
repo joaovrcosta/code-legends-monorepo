@@ -11,7 +11,15 @@ export type {
   UserFullDTO,
 } from "@code-legends/shared-types";
 
-export function toUserPublicDTO(user: User): UserPublicDTO {
+type UserWithPlan = User & {
+  planRecord?: { slug: string } | null;
+};
+
+export function resolveUserPlanSlug(user: UserWithPlan): string {
+  return user.planRecord?.slug ?? "FREE";
+}
+
+export function toUserPublicDTO(user: UserWithPlan): UserPublicDTO {
   return {
     id: user.id,
     name: user.name,
@@ -20,13 +28,14 @@ export function toUserPublicDTO(user: User): UserPublicDTO {
     bio: user.bio,
     expertise: user.expertise,
     role: user.role,
-    plan: user.plan,
+    plan: resolveUserPlanSlug(user),
+    planId: user.planId,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
 }
 
-export function toUserPrivateDTO(user: User): UserPrivateDTO {
+export function toUserPrivateDTO(user: UserWithPlan): UserPrivateDTO {
   return {
     ...toUserPublicDTO(user),
     email: user.email,
@@ -39,7 +48,9 @@ export function toUserPrivateDTO(user: User): UserPrivateDTO {
   };
 }
 
-export function toUserFullDTO(user: User & { Address?: Address | null }): UserFullDTO {
+export function toUserFullDTO(
+  user: UserWithPlan & { Address?: Address | null },
+): UserFullDTO {
   return {
     ...toUserPrivateDTO(user),
     lastLogin: user.lastLogin,
@@ -56,4 +67,3 @@ export function toUserFullDTO(user: User & { Address?: Address | null }): UserFu
     address: user.Address || null,
   };
 }
-

@@ -1,5 +1,5 @@
-import type { UserPlan } from '@prisma/client'
 import { prisma } from '../../../lib/prisma'
+import { buildCheckoutCustomer } from '../../../lib/build-checkout-customer'
 import {
   getPaymentProviderCredentials,
   hasPaymentProviderCredentials,
@@ -8,10 +8,7 @@ import {
   resolveCheckoutHandler,
   resolvePaymentProvider,
 } from '../../../lib/resolve-checkout'
-import { buildCheckoutCustomer } from '../../../lib/build-checkout-customer'
 import { IPaymentProviderRepository } from '../../../repositories/payment-provider-repository'
-
-const VALID_PAID_PLANS: UserPlan[] = ['PRO', 'PREMIUM']
 
 export interface CreateCheckoutInput {
   userId: string
@@ -38,11 +35,7 @@ export class CreateCheckoutUseCase {
     const planFromDb = await prisma.plan.findUnique({
       where: { slug, active: true },
     })
-    if (
-      !planFromDb ||
-      planFromDb.amountCents <= 0 ||
-      !VALID_PAID_PLANS.includes(planFromDb.slug as UserPlan)
-    ) {
+    if (!planFromDb || planFromDb.amountCents <= 0) {
       return { ok: false, reason: 'invalid_plan' }
     }
 
@@ -86,7 +79,7 @@ export class CreateCheckoutUseCase {
         amountCents: planFromDb.amountCents,
         currency: 'BRL',
         status: 'PENDING',
-        plan: planFromDb.slug as UserPlan,
+        planId: planFromDb.id,
         gateway: handler.gatewayCode,
         providerId: provider.id,
       },

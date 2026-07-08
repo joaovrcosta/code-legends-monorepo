@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createPlan, type CreatePlanData } from "@/actions/plan";
+import { PlanFeatureCheckboxes } from "@/components/plans/plan-feature-checkboxes";
+import type { PlanFeature } from "@code-legends/plans";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +30,7 @@ export default function NewPlanPage() {
     active: true,
     externalId: "",
     productName: "",
+    features: [] as PlanFeature[],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -222,6 +225,13 @@ export default function NewPlanPage() {
                   />
                 </div>
               </div>
+
+              <PlanFeatureCheckboxes
+                value={formData.features ?? []}
+                onChange={(features) =>
+                  setFormData({ ...formData, features })
+                }
+              />
 
               <div className="flex items-center space-x-2">
                 <input

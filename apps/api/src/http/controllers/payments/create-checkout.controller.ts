@@ -5,7 +5,7 @@ import type { CreateCheckoutResult } from "../../../use-cases/entities/Payment/c
 import { PaymentProviderNotFoundError } from "../../../use-cases/errors/payment-provider-not-found";
 
 const bodySchema = z.object({
-  plan: z.enum(["pro", "premium"]),
+  plan: z.string().min(1),
   returnUrl: z.string().url().optional(),
   completionUrl: z.string().url().optional(),
 });
@@ -33,7 +33,7 @@ export async function createCheckout(
     const useCase = makeCreateCheckoutUseCase();
     result = await useCase.execute({
       userId,
-      planSlug: parsed.data.plan,
+      planSlug: parsed.data.plan.toUpperCase(),
       returnUrl,
       completionUrl,
     });

@@ -1,19 +1,20 @@
 import { FastifyReply, FastifyRequest } from "fastify";
+import { PlanFeatures } from "@code-legends/plans";
 import { prisma } from "../../lib/prisma";
 import { PrismaUserCourseRepository } from "../../repositories/prisma/prisma-user-course-repository";
 import { PrismaUserProgressRepository } from "../../repositories/prisma/prisma-user-progress-repository";
+import { makePlanAccessService } from "../../utils/factories/make-plan-access-service";
 import {
   ensureUserCourseForPathUnit,
   userHasPathUnitCareerAccess,
-  userHasPremiumPlan,
+  userHasPathUnitAccess,
 } from "../../utils/path-unit-access";
 
 interface VerifyLessonAccessOptions {
-  lessonIdParam?: string; // Nome do parâmetro que contém o lessonId (ex: "id")
-  lessonSlugParam?: string; // Nome do parâmetro que contém o lessonSlug (ex: "slug")
-  /** Quando a rota tem courseId (ex: /courses/:courseId/lessons/:lessonSlug), passar o nome do param para buscar a aula no curso correto. Evita que slug ambíguo em outro curso libere acesso. */
+  lessonIdParam?: string;
+  lessonSlugParam?: string;
   courseIdParam?: string;
-  allowInstructors?: boolean; // Permitir instrutores acessarem mesmo sem estar inscrito
+  allowInstructors?: boolean;
 }
 
 export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
@@ -32,7 +33,6 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         return reply.status(401).send({ message: "Unauthorized" });
       }
 
-      // Tentar obter lessonId ou slug dos parâmetros
       const params = request.params as Record<string, string>;
       const query = (request.query as Record<string, string>) || {};
       const lessonId = params[lessonIdParam]
@@ -48,7 +48,6 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
           .send({ message: "Lesson ID or slug is required" });
       }
 
-      // Buscar a aula (por slug sempre no contexto do curso quando courseId vier na rota; moduleSlug desambigua quando há slugs iguais em módulos diferentes)
       let lesson;
       if (lessonId) {
         lesson = await prisma.lesson.findUnique({
@@ -104,18 +103,18 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
       const course = lesson.submodule.module.course;
       const courseIsFree = course.isFree;
       const lessonIsFree = lesson.isFree;
+      const planAccess = makePlanAccessService();
 
-      // Verificar se é o instrutor do curso (se permitido)
       if (
         allowInstructors &&
         course.instructorId === userId
       ) {
-        return; // Permite acesso
+        return;
       }
 
       if (course.kind === "PATH_UNIT") {
-        const isPremium = await userHasPremiumPlan(userId);
-        if (!isPremium) {
+        const hasPathUnit = await userHasPathUnitAccess(userId);
+        if (!hasPathUnit) {
           return reply.status(403).send({
             message:
               "Unidades Extras estão disponíveis apenas no plano Premium.",
@@ -133,13 +132,11 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         await ensureUserCourseForPathUnit(userId, course);
       }
 
-      // Usuário FREE só pode acessar aulas gratuitas
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { plan: true },
-      });
-      const isPaidUser = user?.plan === "PRO" || user?.plan === "PREMIUM";
-      if (!isPaidUser && !lessonIsFree && !courseIsFree) {
+      const hasCatalogPaid = await planAccess.hasFeature(
+        userId,
+        PlanFeatures.CATALOG_PAID,
+      );
+      if (!hasCatalogPaid && !lessonIsFree && !courseIsFree) {
         return reply.status(403).send({
           message:
             "Conteúdo exclusivo para assinantes. Faça upgrade para acessar.",
@@ -160,7 +157,6 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
         }
       }
 
-      // Verificar se a aula foi concluída (permitir revisão)
       const userProgressRepository = new PrismaUserProgressRepository();
       const userProgress = await userProgressRepository.findByUserAndTask(
         userId,
@@ -169,21 +165,15 @@ export function verifyLessonAccess(options: VerifyLessonAccessOptions = {}) {
 
       const isCompleted = userProgress?.isCompleted ?? false;
 
-      // Se a aula foi concluída, sempre permite acesso (revisão)
       if (isCompleted) {
-        return; // Permite acesso para revisão
+        return;
       }
 
-      // Nova regra de bloqueio:
-      // - Apenas respeita o flag manual "locked" da lição
-      // - Não depende mais da conclusão de aulas anteriores
       if (lesson.locked) {
         return reply.status(403).send({
           message: "This lesson is locked by the instructor.",
         });
       }
-
-      // Acesso permitido
     } catch (error) {
       console.error("Error in verifyLessonAccess:", error);
       return reply.status(500).send({ message: "Internal server error" });

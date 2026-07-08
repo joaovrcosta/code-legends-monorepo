@@ -1,17 +1,20 @@
 import { Course } from "@prisma/client";
+import { PlanFeatures } from "@code-legends/plans";
 import { prisma } from "../lib/prisma";
 import { CourseNotFoundError } from "../use-cases/errors/course-not-found";
 import { PrismaUserCourseRepository } from "../repositories/prisma/prisma-user-course-repository";
+import { makePlanAccessService } from "./factories/make-plan-access-service";
 
 type PathUnitCourseRef = Pick<Course, "kind" | "exclusiveCareerId">;
 
-export async function userHasPremiumPlan(userId: string): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { plan: true },
-  });
+export async function userHasPathUnitAccess(userId: string): Promise<boolean> {
+  const planAccess = makePlanAccessService();
+  return planAccess.hasFeature(userId, PlanFeatures.PATH_UNIT_ACCESS);
+}
 
-  return user?.plan === "PREMIUM";
+/** @deprecated Use userHasPathUnitAccess — mantido para compatibilidade interna */
+export async function userHasPremiumPlan(userId: string): Promise<boolean> {
+  return userHasPathUnitAccess(userId);
 }
 
 export async function userHasPathUnitCareerAccess(
@@ -26,11 +29,9 @@ export async function userHasPathUnitCareerAccess(
     return false;
   }
 
-  const [user, userCareer] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: { plan: true },
-    }),
+  const planAccess = makePlanAccessService();
+  const [hasPathUnitFeature, userCareer] = await Promise.all([
+    planAccess.hasFeature(userId, PlanFeatures.PATH_UNIT_ACCESS),
     prisma.userCareer.findUnique({
       where: {
         userId_careerId: {
@@ -41,7 +42,7 @@ export async function userHasPathUnitCareerAccess(
     }),
   ]);
 
-  return user?.plan === "PREMIUM" && userCareer != null;
+  return hasPathUnitFeature && userCareer != null;
 }
 
 export async function assertUserCanAccessPathUnitCourse(
@@ -57,8 +58,8 @@ export async function assertUserCanAccessPathUnitCourse(
     throw new CourseNotFoundError();
   }
 
-  const isPremium = await userHasPremiumPlan(userId);
-  if (!isPremium) {
+  const hasAccess = await userHasPathUnitAccess(userId);
+  if (!hasAccess) {
     throw new CourseNotFoundError();
   }
 

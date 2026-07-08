@@ -1,6 +1,7 @@
 "use server";
 
 import { buildApiHeaders } from "@/actions/auth";
+import type { PlanFeature } from "@code-legends/plans";
 
 export interface UpdatePlanData {
   slug?: string;
@@ -13,6 +14,7 @@ export interface UpdatePlanData {
   active?: boolean;
   externalId?: string | null;
   productName?: string | null;
+  features?: PlanFeature[];
 }
 
 export async function updatePlan(
@@ -31,6 +33,7 @@ export async function updatePlan(
   if (data.active !== undefined) payload.active = data.active;
   if (data.externalId !== undefined) payload.externalId = data.externalId;
   if (data.productName !== undefined) payload.productName = data.productName;
+  if (data.features !== undefined) payload.features = data.features;
 
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/plans/${id}`,

@@ -1,6 +1,7 @@
 import { PrismaCareerRepository } from '../../repositories/prisma/prisma-career-repository'
 import { PrismaUserCareerRepository } from '../../repositories/prisma/prisma-user-career-repository'
 import { PrismaUsersRepository } from '../../repositories/prisma/prisma-users-reposity'
+import { makePlanAccessService } from './make-plan-access-service'
 import { EnrollCareerUseCase } from '../../use-cases/entities/Career/enroll'
 
 export function makeEnrollCareerUseCase() {
@@ -11,6 +12,7 @@ export function makeEnrollCareerUseCase() {
     userCareerRepository,
     careerRepository,
     usersRepository,
+    makePlanAccessService(),
   )
 }
 

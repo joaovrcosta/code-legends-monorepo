@@ -1,5 +1,6 @@
 import { PrismaClient, LessonType } from '@prisma/client'
 import { hashSync } from 'bcryptjs'
+import { SEED_PLAN_FEATURES } from '@code-legends/plans'
 import { seedPaymentProviders } from './scripts/seed-payment-providers'
 
 /** Deve coincidir com apps/api/src/constants/default-certificate-template.ts */
@@ -99,10 +100,11 @@ async function main() {
 
   // 0. Planos
   for (const plan of PLANS) {
+    const features = SEED_PLAN_FEATURES[plan.slug] ?? []
     await prisma.plan.upsert({
       where: { slug: plan.slug },
-      update: {},
-      create: plan,
+      update: { features },
+      create: { ...plan, features },
     })
   }
   console.log('✅ Plans seeded!')

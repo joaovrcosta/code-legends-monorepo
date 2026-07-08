@@ -5,7 +5,7 @@ vi.mock('../../../lib/prisma', () => {
   const payment = {
     id: 'pay_1',
     userId: 'user_1',
-    plan: 'PRO',
+    planId: 'plan_pro',
     status: 'PENDING',
   }
   return {
@@ -36,7 +36,7 @@ describe('HandlePaymentPaidUseCase', () => {
     vi.mocked(prisma.payment.findFirst).mockResolvedValue({
       id: 'pay_1',
       userId: 'user_1',
-      plan: 'PRO',
+      planId: 'plan_pro',
       status: 'PAID',
     } as never)
 

@@ -13,13 +13,17 @@ export class PrismaSubscriptionsRepository
     const row = await prisma.subscription.findFirst({
       where: { userId },
       orderBy: { endsAt: "desc" },
-      select: { id: true, endsAt: true, plan: true },
+      select: {
+        id: true,
+        endsAt: true,
+        planRecord: { select: { slug: true } },
+      },
     });
     if (!row) return null;
     return {
       id: row.id,
       endsAt: row.endsAt,
-      plan: row.plan,
+      planSlug: row.planRecord.slug,
     };
   }
 }

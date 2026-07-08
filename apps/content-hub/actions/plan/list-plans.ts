@@ -1,6 +1,7 @@
 "use server";
 
 import { buildApiHeaders } from "@/actions/auth";
+import type { PlanFeature } from "@code-legends/plans";
 
 export interface Plan {
   id: string;
@@ -14,6 +15,7 @@ export interface Plan {
   active: boolean;
   externalId: string | null;
   productName: string | null;
+  features?: PlanFeature[];
   createdAt: string;
   updatedAt: string;
 }

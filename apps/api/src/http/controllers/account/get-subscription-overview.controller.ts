@@ -1,5 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
+import { PlanFeatures } from "@code-legends/plans";
 import { prisma } from "../../../lib/prisma";
+import { makePlanAccessService } from "../../../utils/factories/make-plan-access-service";
 
 export async function getSubscriptionOverview(
   request: FastifyRequest,
@@ -7,51 +9,56 @@ export async function getSubscriptionOverview(
 ) {
   try {
     const userId = request.user.id;
+    const planAccess = makePlanAccessService();
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { plan: true },
-    });
-
-    if (!user) {
-      return reply.status(404).send({ message: "User not found" });
-    }
-
-    const hasPaidPlan =
-      user.plan === "PRO" || user.plan === "PREMIUM";
-
-    const [subscription, plan] = await Promise.all([
+    const [activePlan, capabilities, subscription] = await Promise.all([
+      planAccess.getActivePlan(userId),
+      planAccess.getCapabilities(userId),
       prisma.subscription.findFirst({
         where: { userId },
         orderBy: { endsAt: "desc" },
         select: {
           id: true,
-          plan: true,
           status: true,
           startsAt: true,
           endsAt: true,
-        },
-      }),
-      prisma.plan.findFirst({
-        where: { slug: user.plan, active: true },
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          description: true,
-          imageUrl: true,
-          colorHex: true,
-          amountCents: true,
+          planRecord: {
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              description: true,
+              imageUrl: true,
+              colorHex: true,
+              amountCents: true,
+            },
+          },
         },
       }),
     ]);
 
+    const hasPaidPlan =
+      capabilities[PlanFeatures.CATALOG_PAID] ||
+      (activePlan?.amountCents ?? 0) > 0;
+
+    const plan = activePlan
+      ? {
+          id: activePlan.id,
+          slug: activePlan.slug,
+          name: activePlan.name,
+          description: null as string | null,
+          imageUrl: activePlan.imageUrl,
+          colorHex: activePlan.colorHex,
+          amountCents: activePlan.amountCents,
+        }
+      : null;
+
     return reply.status(200).send({
-      plan: plan ?? null,
+      plan,
       subscription: subscription
         ? {
             id: subscription.id,
-            plan: subscription.plan,
+            plan: subscription.planRecord.slug,
             status: subscription.status,
             startsAt: subscription.startsAt,
             endsAt: subscription.endsAt,

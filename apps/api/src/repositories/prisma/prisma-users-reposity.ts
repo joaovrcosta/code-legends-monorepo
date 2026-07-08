@@ -17,11 +17,17 @@ export class PrismaUsersRepository implements IUsersRepository {
       ? await bcrypt.hash(data.password, 6)
       : null;
 
+    const freePlan = await prisma.plan.findFirst({
+      where: { slug: 'FREE', active: true },
+      select: { id: true },
+    });
+
     try {
       const user = await prisma.user.create({
         data: {
           ...data,
           password: hashedPassword,
+          planId: freePlan?.id ?? null,
         },
       });
 
@@ -49,6 +55,9 @@ export class PrismaUsersRepository implements IUsersRepository {
       where: {
         id,
       },
+      include: {
+        planRecord: { select: { slug: true } },
+      },
     });
     return user;
   }
@@ -60,6 +69,7 @@ export class PrismaUsersRepository implements IUsersRepository {
       },
       include: {
         Address: true,
+        planRecord: { select: { id: true, slug: true, name: true } },
       },
     });
     return user;
@@ -109,18 +119,27 @@ export class PrismaUsersRepository implements IUsersRepository {
     return users;
   }
 
-  async findByPlan(plan: string): Promise<User[]> {
-    if (plan === "ALL") {
+  async findByPlan(planSlug: string): Promise<User[]> {
+    if (planSlug === "ALL") {
       return this.findAll();
     }
-    
+
+    const plan = await prisma.plan.findFirst({
+      where: { slug: planSlug },
+      select: { id: true },
+    });
+    if (!plan) {
+      return [];
+    }
+
     return prisma.user.findMany({
       where: {
-        plan: plan as any,
+        planId: plan.id,
       },
       include: {
-        Address: true
-      }
+        Address: true,
+        planRecord: { select: { slug: true } },
+      },
     });
   }
 

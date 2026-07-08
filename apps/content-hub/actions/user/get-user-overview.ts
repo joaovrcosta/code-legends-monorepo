@@ -12,6 +12,7 @@ export interface UserOverview {
         expertise: string[];
         role: string;
         plan?: string;
+        planId?: string | null;
         createdAt: string;
         updatedAt: string;
         lastLogin: string | null;

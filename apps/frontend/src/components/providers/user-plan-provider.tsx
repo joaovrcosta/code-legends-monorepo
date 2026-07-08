@@ -11,21 +11,34 @@ import {
 } from "react";
 import { useSession } from "next-auth/react";
 import { UserPlan } from "@code-legends/shared-types";
-import { getUserFromAPI } from "@/actions/user/get-user-from-api";
 import {
-  canAccessPathUnit,
-  hasPaidPlan,
-  isFreePlan,
-  isPremium,
+  type CapabilitiesMap,
+  type PlanFeature,
+} from "@code-legends/plans";
+import {
+  getCapabilitiesFromAPI,
+  type ActivePlanSummary,
+} from "@/actions/user/get-capabilities";
+import {
+  hasCatalogPaidFromCapabilities,
+  hasPathUnitFromCapabilities,
+  hasCareerEnrollFromCapabilities,
   normalizeUserPlan,
+  capabilitiesFromPlanSlug,
 } from "@/lib/user-plan";
 
 export type UserPlanContextValue = {
   plan: UserPlan;
+  planSlug: string;
+  activePlan: ActivePlanSummary;
+  capabilities: CapabilitiesMap;
+  /** true após /me/capabilities responder (ou usuário deslogado). */
+  capabilitiesReady: boolean;
   isPremium: boolean;
   hasPaidPlan: boolean;
   isFree: boolean;
   canAccessPathUnit: boolean;
+  hasFeature: (feature: PlanFeature) => boolean;
   refreshPlan: () => Promise<void>;
 };
 
@@ -45,7 +58,11 @@ export function UserPlanProvider({
     (session?.user as { plan?: string } | undefined)?.plan,
   );
 
-  const [planFromApi, setPlanFromApi] = useState<UserPlan | null>(null);
+  const [capabilitiesData, setCapabilitiesData] = useState<{
+    capabilities: CapabilitiesMap;
+    activePlan: ActivePlanSummary;
+    hasPaidPlan: boolean;
+  } | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -54,13 +71,17 @@ export function UserPlanProvider({
 
   const refreshPlan = useCallback(async () => {
     if (!session?.user) {
-      setPlanFromApi(null);
+      setCapabilitiesData(null);
       return;
     }
 
-    const user = await getUserFromAPI();
-    if (user) {
-      setPlanFromApi(normalizeUserPlan(user.plan));
+    const data = await getCapabilitiesFromAPI();
+    if (data) {
+      setCapabilitiesData({
+        capabilities: data.capabilities,
+        activePlan: data.activePlan,
+        hasPaidPlan: data.hasPaidPlan,
+      });
     }
   }, [session?.user]);
 
@@ -69,20 +90,47 @@ export function UserPlanProvider({
     void refreshPlan();
   }, [isHydrated, status, refreshPlan, sessionPlan]);
 
-  const plan = !isHydrated
-    ? initialPlan
-    : (planFromApi ?? (status === "loading" ? initialPlan : sessionPlan));
+  const activePlan = capabilitiesData?.activePlan ?? null;
+  const planSlug =
+    activePlan?.slug ??
+    (!isHydrated
+      ? initialPlan
+      : status === "loading"
+        ? initialPlan
+        : sessionPlan);
+
+  const capabilities =
+    capabilitiesData?.capabilities ?? capabilitiesFromPlanSlug(planSlug);
+  const capabilitiesReady = !session?.user || capabilitiesData !== null;
+
+  const plan = normalizeUserPlan(planSlug);
 
   const value = useMemo<UserPlanContextValue>(
     () => ({
       plan,
-      isPremium: isPremium(plan),
-      hasPaidPlan: hasPaidPlan(plan),
-      isFree: isFreePlan(plan),
-      canAccessPathUnit: canAccessPathUnit(plan),
+      planSlug,
+      activePlan,
+      capabilities,
+      capabilitiesReady,
+      isPremium: hasCareerEnrollFromCapabilities(capabilities) &&
+        hasPathUnitFromCapabilities(capabilities),
+      hasPaidPlan:
+        capabilitiesData?.hasPaidPlan ??
+        hasCatalogPaidFromCapabilities(capabilities),
+      isFree: !hasCatalogPaidFromCapabilities(capabilities),
+      canAccessPathUnit: hasPathUnitFromCapabilities(capabilities),
+      hasFeature: (feature: PlanFeature) => capabilities[feature] === true,
       refreshPlan,
     }),
-    [plan, refreshPlan],
+    [
+      plan,
+      planSlug,
+      activePlan,
+      capabilities,
+      capabilitiesReady,
+      capabilitiesData?.hasPaidPlan,
+      refreshPlan,
+    ],
   );
 
   return (

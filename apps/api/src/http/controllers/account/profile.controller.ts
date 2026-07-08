@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { makeGetUserProfileUseCase } from "../../../utils/factories/make-get-user-profile-use-case";
 import { UserNotFoundError } from "../../../use-cases/errors/user-not-found";
+import { resolveUserPlanSlug } from "../../dtos/user.dto";
 
 export async function profile(request: FastifyRequest, reply: FastifyReply) {
   try {
@@ -26,7 +27,8 @@ export async function profile(request: FastifyRequest, reply: FastifyReply) {
         level: user.level ?? 1,
         totalXp: user.totalXp ?? 0,
         xpToNextLevel: user.xpToNextLevel ?? 100,
-        plan: user.plan,
+        plan: resolveUserPlanSlug(user),
+        planId: user.planId,
       },
     });
   } catch (error) {

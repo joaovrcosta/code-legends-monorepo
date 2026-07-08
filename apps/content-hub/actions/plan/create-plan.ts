@@ -1,6 +1,7 @@
 "use server";
 
 import { buildApiHeaders } from "@/actions/auth";
+import type { PlanFeature } from "@code-legends/plans";
 
 export interface CreatePlanData {
   slug: string;
@@ -13,6 +14,7 @@ export interface CreatePlanData {
   active?: boolean;
   externalId?: string | null;
   productName?: string | null;
+  features?: PlanFeature[];
 }
 
 export async function createPlan(
@@ -35,6 +37,7 @@ export async function createPlan(
         active: data.active ?? true,
         externalId: data.externalId ?? null,
         productName: data.productName ?? null,
+        features: data.features ?? [],
       }),
       cache: "no-store",
     }

@@ -1,12 +1,12 @@
 import { INotificationRepository } from "../../../repositories/notification-repository";
 import { IUsersRepository } from "../../../repositories/users-repository";
-import { NotificationType, UserPlan } from "@prisma/client";
+import { NotificationType } from "@prisma/client";
 
 interface SendBroadcastUseCaseRequest {
   title: string;
   message: string;
   type: NotificationType;
-  targetPlan?: UserPlan | "ALL";
+  targetPlan?: string | "ALL";
   data?: any;
 }
 

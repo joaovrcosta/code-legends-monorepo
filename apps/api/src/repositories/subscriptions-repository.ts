@@ -1,7 +1,7 @@
 export interface SubscriptionRow {
   id: string;
   endsAt: Date;
-  plan: string;
+  planSlug: string;
 }
 
 export interface ISubscriptionsRepository {

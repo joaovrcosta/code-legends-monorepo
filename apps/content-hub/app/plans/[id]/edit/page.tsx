@@ -13,6 +13,8 @@ import {
   getPlanById,
   type UpdatePlanData,
 } from "@/actions/plan";
+import { PlanFeatureCheckboxes } from "@/components/plans/plan-feature-checkboxes";
+import type { PlanFeature } from "@code-legends/plans";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -36,6 +38,7 @@ export default function EditPlanPage() {
     active: true,
     externalId: "",
     productName: "",
+    features: [] as PlanFeature[],
   });
 
   useEffect(() => {
@@ -70,6 +73,7 @@ export default function EditPlanPage() {
           active: plan.active,
           externalId: plan.externalId ?? "",
           productName: plan.productName ?? "",
+          features: (plan.features ?? []) as PlanFeature[],
         });
       }
     } catch (error) {
@@ -273,6 +277,13 @@ export default function EditPlanPage() {
                   />
                 </div>
               </div>
+
+              <PlanFeatureCheckboxes
+                value={formData.features ?? []}
+                onChange={(features) =>
+                  setFormData({ ...formData, features })
+                }
+              />
 
               <div className="flex items-center space-x-2">
                 <input
