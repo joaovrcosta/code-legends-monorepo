@@ -8,15 +8,17 @@ export function moduleAccordionValue(moduleId: string): string {
 
 /**
  * Mantém o accordion do sidebar alinhado com a aula atual:
- * - não abre automaticamente módulos já 100% concluídos
- * - remove módulos concluídos da lista aberta ao carregar o roadmap (ex.: race no redirect)
+ * - abre o módulo da aula em que o usuário está
+ * - ao atualizar o roadmap, fecha módulos concluídos que ainda estavam abertos
+ *   (ex.: race no redirect) — sem bloquear reabertura manual depois
  */
 export function useSyncClassroomModuleAccordion(
   organizedLessons: Module[],
   currentModule: Module | null,
 ) {
-  const { openModuleIds, setOpenModuleIds, ensureModuleOpen } =
-    useClassroomSidebarStore()
+  const ensureModuleOpen = useClassroomSidebarStore(
+    (state) => state.ensureModuleOpen,
+  )
 
   useEffect(() => {
     if (!organizedLessons.length) return
@@ -27,6 +29,8 @@ export function useSyncClassroomModuleAccordion(
         .map((module) => moduleAccordionValue(module.id)),
     )
 
+    const { openModuleIds, setOpenModuleIds } =
+      useClassroomSidebarStore.getState()
     const withoutCompleted = openModuleIds.filter(
       (id) => !completedModuleValues.has(id),
     )
@@ -34,10 +38,10 @@ export function useSyncClassroomModuleAccordion(
     if (withoutCompleted.length !== openModuleIds.length) {
       setOpenModuleIds(withoutCompleted)
     }
-  }, [organizedLessons, openModuleIds, setOpenModuleIds])
+  }, [organizedLessons])
 
   useEffect(() => {
-    if (!currentModule || currentModule.isCompleted) return
+    if (!currentModule) return
     ensureModuleOpen(moduleAccordionValue(currentModule.id))
-  }, [currentModule?.id, currentModule?.isCompleted, ensureModuleOpen])
+  }, [currentModule?.id, ensureModuleOpen])
 }
