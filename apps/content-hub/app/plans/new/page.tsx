@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createPlan, type CreatePlanData } from "@/actions/plan";
 import { PlanFeatureCheckboxes } from "@/components/plans/plan-feature-checkboxes";
+import { PlanPriceInput } from "@/components/plans/plan-price-input";
 import type { PlanFeature } from "@code-legends/plans";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft } from "lucide-react";
@@ -167,21 +168,17 @@ export default function NewPlanPage() {
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="amountCents">Valor (centavos) *</Label>
-                  <Input
-                    id="amountCents"
-                    type="number"
-                    min={0}
-                    value={formData.amountCents ?? 0}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        amountCents: parseInt(e.target.value, 10) || 0,
-                      })
+                  <Label htmlFor="planPrice">Valor *</Label>
+                  <PlanPriceInput
+                    id="planPrice"
+                    valueCents={formData.amountCents ?? 0}
+                    onChange={(amountCents) =>
+                      setFormData({ ...formData, amountCents })
                     }
+                    required
                   />
                   <p className="text-xs text-muted">
-                    Ex: 19700 = R$ 197,00
+                    Valor anual em reais. Use 0 para plano gratuito.
                   </p>
                 </div>
                 <div className="space-y-2">

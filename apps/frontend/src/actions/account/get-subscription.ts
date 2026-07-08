@@ -6,11 +6,12 @@ import type { PlanInfo } from "@/components/cart/constants";
 
 export async function getSubscriptionForAccount(): Promise<{
   planInfo: PlanInfo | null;
+  planSlug: string | null;
   hasPaidPlan: boolean;
 }> {
   const token = await getAuthToken();
   if (!token) {
-    return { planInfo: null, hasPaidPlan: false };
+    return { planInfo: null, planSlug: null, hasPaidPlan: false };
   }
 
   const response = await fetch(
@@ -23,14 +24,18 @@ export async function getSubscriptionForAccount(): Promise<{
   );
 
   if (!response.ok) {
-    return { planInfo: null, hasPaidPlan: false };
+    return { planInfo: null, planSlug: null, hasPaidPlan: false };
   }
 
   const data = await response.json();
   const { plan, subscription, hasPaidPlan } = data;
 
   if (!plan) {
-    return { planInfo: null, hasPaidPlan: hasPaidPlan ?? false };
+    return {
+      planInfo: null,
+      planSlug: null,
+      hasPaidPlan: hasPaidPlan ?? false,
+    };
   }
 
   const planInfo = planFromApiToPlanInfo({
@@ -42,5 +47,9 @@ export async function getSubscriptionForAccount(): Promise<{
     expirationDate: subscription?.endsAt ?? null,
   });
 
-  return { planInfo, hasPaidPlan: hasPaidPlan ?? false };
+  return {
+    planInfo,
+    planSlug: plan.slug ?? null,
+    hasPaidPlan: hasPaidPlan ?? false,
+  };
 }

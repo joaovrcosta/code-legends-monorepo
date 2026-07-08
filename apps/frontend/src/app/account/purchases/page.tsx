@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { CreditCard, Calendar, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getSubscriptionForAccount } from '@/actions/account/get-subscription'
+import { listPlans } from '@/actions/plan/list-plans'
+import { isOnHighestPaidPlan } from '@/lib/plan-utils'
 import { getCurrentSession } from '@/actions/auth'
 
 export default async function AccountPurchasesPage() {
@@ -15,13 +17,17 @@ export default async function AccountPurchasesPage() {
   }
 
   const subscription = await getSubscriptionForAccount()
+  const { plans } = await listPlans()
 
   const userPlan = session.plan ?? 'FREE'
 
   const planInfo = subscription?.planInfo ?? null
+  const currentPlanSlug = subscription.planSlug ?? userPlan
 
   const hasActiveSubscription =
     subscription?.hasPaidPlan ?? (userPlan === 'PRO' || userPlan === 'PREMIUM')
+
+  const isHighestPlan = isOnHighestPaidPlan(currentPlanSlug, plans)
 
   const nextRenewalDate = planInfo?.expirationDate ?? null
 
@@ -104,15 +110,17 @@ export default async function AccountPurchasesPage() {
                   </div>
                 )}
 
-                <div className="shrink-0">
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="h-[52px] rounded-full border-[#25252a] text-muted hover:text-[#00c8ff] hover:border-[#00c8ff]/30 px-6"
-                  >
-                    <Link href="/plans">Alterar plano</Link>
-                  </Button>
-                </div>
+                {!isHighestPlan && (
+                  <div className="shrink-0">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="h-[52px] rounded-full border-[#25252a] text-muted hover:text-[#00c8ff] hover:border-[#00c8ff]/30 px-6"
+                    >
+                      <Link href="/plans">Alterar plano</Link>
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-sm text-muted">

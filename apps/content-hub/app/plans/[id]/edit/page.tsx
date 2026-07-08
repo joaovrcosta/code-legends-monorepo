@@ -14,6 +14,7 @@ import {
   type UpdatePlanData,
 } from "@/actions/plan";
 import { PlanFeatureCheckboxes } from "@/components/plans/plan-feature-checkboxes";
+import { PlanPriceInput } from "@/components/plans/plan-price-input";
 import type { PlanFeature } from "@code-legends/plans";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft } from "lucide-react";
@@ -222,19 +223,18 @@ export default function EditPlanPage() {
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="amountCents">Valor (centavos) *</Label>
-                  <Input
-                    id="amountCents"
-                    type="number"
-                    min={0}
-                    value={formData.amountCents ?? 0}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        amountCents: parseInt(e.target.value, 10) || 0,
-                      })
+                  <Label htmlFor="planPrice">Valor *</Label>
+                  <PlanPriceInput
+                    id="planPrice"
+                    valueCents={formData.amountCents ?? 0}
+                    onChange={(amountCents) =>
+                      setFormData({ ...formData, amountCents })
                     }
+                    required
                   />
+                  <p className="text-xs text-muted">
+                    Valor anual em reais. Use 0 para plano gratuito.
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="order">Ordem</Label>

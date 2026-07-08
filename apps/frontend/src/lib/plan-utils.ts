@@ -1,4 +1,5 @@
 import type { PlanInfo } from "@/components/cart/constants";
+import type { PlanFromAPI } from "@/actions/plan/list-plans";
 
 export interface PlanFromAPIInput {
   slug: string;
@@ -66,4 +67,29 @@ export function planFromApiToPlanInfo(p: PlanFromAPIInput): PlanInfo {
       features.length > 0 ? features : [p.description ?? "Acesso completo ao plano."],
     expirationDate: expirationDate ?? undefined,
   };
+}
+
+/** Plano pago ativo com maior `order` (empate: maior `amountCents`). */
+export function findHighestPaidPlan(
+  plans: PlanFromAPI[],
+): PlanFromAPI | null {
+  const paid = plans.filter((p) => p.active && p.amountCents > 0);
+  if (paid.length === 0) return null;
+
+  return paid.reduce((best, plan) => {
+    if (plan.order !== best.order) {
+      return plan.order > best.order ? plan : best;
+    }
+    return plan.amountCents > best.amountCents ? plan : best;
+  });
+}
+
+export function isOnHighestPaidPlan(
+  currentSlug: string | null | undefined,
+  plans: PlanFromAPI[],
+): boolean {
+  if (!currentSlug) return false;
+  const highest = findHighestPaidPlan(plans);
+  if (!highest) return false;
+  return highest.slug.toLowerCase() === currentSlug.toLowerCase();
 }
