@@ -2,11 +2,10 @@ import { getCurrentUser } from '@/actions/user'
 import { getMySkills } from '@/actions/user/get-my-skills'
 import { SkillsTrackingCard } from '@/components/learn/skills-tracking-card'
 import {
-  Avatar,
+  PlanAvatarRing,
   AvatarFallback,
   AvatarImage,
-  type AvatarRingVariant,
-} from '@/components/ui/avatar'
+} from '@/components/ui/plan-avatar-ring'
 import { CompactNumber } from '@/components/ui/compact-number'
 import { PageContentWidth } from '@/components/layout/page-container'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -22,12 +21,6 @@ import { Progress } from '@/components/ui/progress'
 import { getWeeklyXp } from '@/actions/user/get-weekly-xp'
 import { WeeklyXpCard } from '@/components/learn/weekly-xp-card'
 import { UserPlanSubscriberBadge } from '@/components/ui/subscriber-badge'
-
-function planToRingVariant(plan?: string): AvatarRingVariant {
-  if (plan === 'PRO') return 'pro'
-  if (plan === 'PREMIUM') return 'premium'
-  return 'free'
-}
 
 type TrackingStatsPillsProps = {
   coursesCount: number
@@ -136,15 +129,15 @@ export default async function TrackingPage() {
             >
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-col items-start gap-4 min-w-0 -mt-[86px]">
-                  <Avatar
+                  <PlanAvatarRing
                     className="h-[100px] w-[100px] shrink-0 sm:h-[100px] sm:w-[100px]"
-                    ringVariant={planToRingVariant(userFromAPI?.plan ?? user.plan)}
+                    fallbackPlan={userFromAPI?.plan ?? user.plan}
                   >
                     <AvatarImage src={userFromAPI?.avatar ?? user.avatar ?? ''} alt="" />
                     <AvatarFallback className="bg-[#25252A] text-white font-semibold">
                       {user.name?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>
-                  </Avatar>
+                  </PlanAvatarRing>
 
                   <div className="flex items-center justify-between w-full">
                     <div className="min-w-0">

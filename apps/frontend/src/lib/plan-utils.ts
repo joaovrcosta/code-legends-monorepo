@@ -1,27 +1,20 @@
 import type { PlanInfo } from "@/components/cart/constants";
 import type { PlanFromAPI } from "@/actions/plan/list-plans";
+import {
+  resolvePlanColorHex,
+  resolvePlanIcon,
+} from "@/lib/plan-display-utils";
 
 export interface PlanFromAPIInput {
   slug: string;
   name: string;
   description: string | null;
   colorHex?: string | null;
+  imageUrl?: string | null;
   amountCents: number;
   /** Data de expiração (Date, ISO string ou null) - opcional */
   expirationDate?: Date | string | null;
 }
-
-const PLAN_ICON_BY_SLUG: Record<string, string> = {
-  pro: "/pro-plan-icon.svg",
-  premium: "/premium-plan-icon.svg",
-  free: "/free-plan-icon.svg",
-};
-
-const PLAN_COLOR_BY_SLUG: Record<string, string> = {
-  pro: "#8234E9",
-  premium: "#FF6200",
-  free: "#B8E62E",
-};
 
 function formatBRL(cents: number): string {
   const value = cents / 100;
@@ -40,8 +33,8 @@ export function planFromApiToPlanInfo(p: PlanFromAPIInput): PlanInfo {
     ? p.description.split(/[.;]\s*/).filter(Boolean).map((s) => s.trim())
     : [];
   const slug = p.slug.toLowerCase();
-  const icon = PLAN_ICON_BY_SLUG[slug] ?? "/pro-plan-icon.svg";
-  const colorHex = p.colorHex ?? PLAN_COLOR_BY_SLUG[slug] ?? null;
+  const icon = resolvePlanIcon(slug, p.imageUrl);
+  const colorHex = resolvePlanColorHex(slug, p.colorHex);
   let expirationDate: string | null = null;
   if (p.expirationDate != null) {
     const d =

@@ -33,17 +33,22 @@ export interface AvatarProps extends React.ComponentPropsWithoutRef<
   typeof AvatarPrimitive.Root
 > {
   ringVariant?: AvatarRingVariant
+  ringStyle?: React.CSSProperties
 }
 
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
   AvatarProps
->(({ className, ringVariant, ...props }, ref) => {
-  if (ringVariant) {
+>(({ className, ringVariant, ringStyle, ...props }, ref) => {
+  const ringBackgroundStyle =
+    ringStyle ??
+    (ringVariant ? RING_GRADIENT_BY_VARIANT[ringVariant] : undefined)
+
+  if (ringBackgroundStyle) {
     return (
       <div
         className="rounded-full p-[2px] flex-shrink-0 w-fit"
-        style={RING_GRADIENT_BY_VARIANT[ringVariant]}
+        style={ringBackgroundStyle}
       >
         <div className="bg-surface-2 rounded-full p-[6px]">
           <AvatarPrimitive.Root

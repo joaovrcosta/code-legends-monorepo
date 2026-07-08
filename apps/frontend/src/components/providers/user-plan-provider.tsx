@@ -18,6 +18,7 @@ import {
 import {
   getCapabilitiesFromAPI,
   type ActivePlanSummary,
+  type CapabilitiesResponse,
 } from "@/actions/user/get-capabilities";
 import {
   hasCatalogPaidFromCapabilities,
@@ -26,6 +27,10 @@ import {
   normalizeUserPlan,
   capabilitiesFromPlanSlug,
 } from "@/lib/user-plan";
+import {
+  isPaidPlanSlug,
+  toDisplayPlanSlug,
+} from "@/lib/plan-display-utils";
 
 export type UserPlanContextValue = {
   plan: UserPlan;
@@ -44,66 +49,104 @@ export type UserPlanContextValue = {
 
 const UserPlanContext = createContext<UserPlanContextValue | null>(null);
 
+type CapabilitiesState = {
+  capabilities: CapabilitiesMap;
+  activePlan: ActivePlanSummary;
+  hasPaidPlan: boolean;
+};
+
+function mapCapabilitiesResponse(
+  data: CapabilitiesResponse,
+): CapabilitiesState {
+  return {
+    capabilities: data.capabilities,
+    activePlan: data.activePlan,
+    hasPaidPlan: data.hasPaidPlan,
+  };
+}
+
 type UserPlanProviderProps = {
   children: ReactNode;
   initialPlan: UserPlan;
+  initialCapabilities: CapabilitiesResponse | null;
+  serverCapabilitiesFetched: boolean;
 };
 
 export function UserPlanProvider({
   children,
   initialPlan,
+  initialCapabilities,
+  serverCapabilitiesFetched,
 }: UserPlanProviderProps) {
   const { data: session, status } = useSession();
   const sessionPlan = normalizeUserPlan(
     (session?.user as { plan?: string } | undefined)?.plan,
   );
 
-  const [capabilitiesData, setCapabilitiesData] = useState<{
-    capabilities: CapabilitiesMap;
-    activePlan: ActivePlanSummary;
-    hasPaidPlan: boolean;
-  } | null>(null);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [capabilitiesData, setCapabilitiesData] = useState<CapabilitiesState | null>(
+    () =>
+      initialCapabilities ? mapCapabilitiesResponse(initialCapabilities) : null,
+  );
+  const [capabilitiesFetchDone, setCapabilitiesFetchDone] = useState(
+    () => serverCapabilitiesFetched,
+  );
+
+  const sessionPlanSlug = String(
+    (session?.user as { plan?: string } | undefined)?.plan ?? "",
+  ).toUpperCase();
+
+  const refreshPlan = useCallback(
+    async (options?: { background?: boolean }) => {
+      if (!session?.user) {
+        setCapabilitiesData(null);
+        setCapabilitiesFetchDone(true);
+        return;
+      }
+
+      const isBackground = options?.background ?? true;
+
+      if (!isBackground) {
+        setCapabilitiesFetchDone(false);
+      }
+
+      const data = await getCapabilitiesFromAPI();
+      setCapabilitiesData(
+        data
+          ? mapCapabilitiesResponse(data)
+          : {
+              capabilities: capabilitiesFromPlanSlug(
+                sessionPlanSlug || String(initialPlan),
+              ),
+              activePlan: null,
+              hasPaidPlan: false,
+            },
+      );
+      setCapabilitiesFetchDone(true);
+    },
+    [session?.user, sessionPlanSlug, initialPlan],
+  );
 
   useEffect(() => {
-    setIsHydrated(true);
-  }, []);
-
-  const refreshPlan = useCallback(async () => {
-    if (!session?.user) {
-      setCapabilitiesData(null);
-      return;
-    }
-
-    const data = await getCapabilitiesFromAPI();
-    if (data) {
-      setCapabilitiesData({
-        capabilities: data.capabilities,
-        activePlan: data.activePlan,
-        hasPaidPlan: data.hasPaidPlan,
-      });
-    }
-  }, [session?.user]);
-
-  useEffect(() => {
-    if (!isHydrated || status === "loading") return;
-    void refreshPlan();
-  }, [isHydrated, status, refreshPlan, sessionPlan]);
+    if (status === "loading") return;
+    void refreshPlan({ background: serverCapabilitiesFetched });
+  }, [status, refreshPlan, sessionPlan, serverCapabilitiesFetched]);
 
   const activePlan = capabilitiesData?.activePlan ?? null;
+  const capabilitiesSeedSlug =
+    activePlan?.slug ?? (sessionPlanSlug || String(initialPlan));
   const planSlug =
-    activePlan?.slug ??
-    (!isHydrated
-      ? initialPlan
-      : status === "loading"
-        ? initialPlan
-        : sessionPlan);
+    toDisplayPlanSlug(activePlan?.slug) ||
+    toDisplayPlanSlug(sessionPlanSlug) ||
+    toDisplayPlanSlug(String(initialPlan));
 
   const capabilities =
-    capabilitiesData?.capabilities ?? capabilitiesFromPlanSlug(planSlug);
-  const capabilitiesReady = !session?.user || capabilitiesData !== null;
+    capabilitiesData?.capabilities ??
+    capabilitiesFromPlanSlug(capabilitiesSeedSlug);
+  const hasServerSnapshot = serverCapabilitiesFetched && capabilitiesFetchDone;
+  const capabilitiesReady =
+    hasServerSnapshot || !session?.user || capabilitiesFetchDone;
 
-  const plan = normalizeUserPlan(planSlug);
+  const plan = normalizeUserPlan(planSlug || capabilitiesSeedSlug);
 
   const value = useMemo<UserPlanContextValue>(
     () => ({
@@ -112,15 +155,17 @@ export function UserPlanProvider({
       activePlan,
       capabilities,
       capabilitiesReady,
-      isPremium: hasCareerEnrollFromCapabilities(capabilities) &&
+      isPremium:
+        hasCareerEnrollFromCapabilities(capabilities) &&
         hasPathUnitFromCapabilities(capabilities),
       hasPaidPlan:
         capabilitiesData?.hasPaidPlan ??
-        hasCatalogPaidFromCapabilities(capabilities),
+        (isPaidPlanSlug(sessionPlanSlug) ||
+          hasCatalogPaidFromCapabilities(capabilities)),
       isFree: !hasCatalogPaidFromCapabilities(capabilities),
       canAccessPathUnit: hasPathUnitFromCapabilities(capabilities),
       hasFeature: (feature: PlanFeature) => capabilities[feature] === true,
-      refreshPlan,
+      refreshPlan: () => refreshPlan(),
     }),
     [
       plan,
@@ -129,6 +174,7 @@ export function UserPlanProvider({
       capabilities,
       capabilitiesReady,
       capabilitiesData?.hasPaidPlan,
+      sessionPlanSlug,
       refreshPlan,
     ],
   );

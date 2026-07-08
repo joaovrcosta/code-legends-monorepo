@@ -12,6 +12,7 @@ import { createPlan, type CreatePlanData } from "@/actions/plan";
 import { PlanFeatureCheckboxes } from "@/components/plans/plan-feature-checkboxes";
 import { PlanPriceInput } from "@/components/plans/plan-price-input";
 import type { PlanFeature } from "@code-legends/plans";
+import { PlanBadgePreview } from "@/components/plans/plan-badge-preview";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -165,6 +166,12 @@ export default function NewPlanPage() {
                   Opcional. Usada no frontend como cor do plano.
                 </p>
               </div>
+
+              <PlanBadgePreview
+                name={formData.name}
+                colorHex={formData.colorHex}
+                imageUrl={formData.imageUrl}
+              />
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">

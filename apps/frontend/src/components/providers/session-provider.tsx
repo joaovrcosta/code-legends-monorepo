@@ -7,6 +7,7 @@ import { UserPlan } from "@code-legends/shared-types";
 import { Toaster } from "@/components/ui/toaster";
 import { AccountToastHost } from "@/lib/show-account-toast";
 import { UserPlanProvider } from "@/components/providers/user-plan-provider";
+import type { CapabilitiesResponse } from "@/actions/user/get-capabilities";
 
 export type ProvidersSession = ComponentProps<
   typeof SessionProvider
@@ -30,12 +31,24 @@ interface ProvidersProps {
   children: React.ReactNode;
   session: ProvidersSession;
   initialPlan: UserPlan;
+  initialCapabilities: CapabilitiesResponse | null;
+  serverCapabilitiesFetched: boolean;
 }
 
-export function Providers({ children, session, initialPlan }: ProvidersProps) {
+export function Providers({
+  children,
+  session,
+  initialPlan,
+  initialCapabilities,
+  serverCapabilitiesFetched,
+}: ProvidersProps) {
   return (
     <SessionProvider session={session ?? undefined}>
-      <UserPlanProvider initialPlan={initialPlan}>
+      <UserPlanProvider
+        initialPlan={initialPlan}
+        initialCapabilities={initialCapabilities}
+        serverCapabilitiesFetched={serverCapabilitiesFetched}
+      >
         {children}
         <Toaster />
         <AccountToastHost />

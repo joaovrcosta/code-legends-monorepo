@@ -6,6 +6,7 @@ import { Providers, type ProvidersSession } from '@/components/providers/session
 import { AppShellWithData } from '@/components/layout/app-shell-with-data'
 import { AppShellStreamingFallback } from '@/components/layout/app-shell-streaming-fallback'
 import { getResolvedUserPlan } from '@/actions/user/get-user-from-api'
+import { getCapabilitiesFromAPI } from '@/actions/user/get-capabilities'
 import { auth } from '@/auth/authSetup'
 import type { Metadata } from 'next'
 
@@ -44,6 +45,10 @@ export default async function RootLayout({
 }>) {
   const session = (await auth()) as ProvidersSession
   const initialPlan = await getResolvedUserPlan()
+  const isLoggedIn = Boolean(session?.user)
+  const initialCapabilities = isLoggedIn
+    ? await getCapabilitiesFromAPI()
+    : null
 
   return (
     <html
@@ -51,7 +56,12 @@ export default async function RootLayout({
       className={`${poppins.variable} ${instrumentSans.variable} ${wotfard.variable}`}
     >
       <body className="font-instrumentSans antialiased">
-        <Providers session={session} initialPlan={initialPlan}>
+        <Providers
+          session={session}
+          initialPlan={initialPlan}
+          initialCapabilities={initialCapabilities}
+          serverCapabilitiesFetched={isLoggedIn}
+        >
           <Suspense
             fallback={<AppShellStreamingFallback>{children}</AppShellStreamingFallback>}
           >

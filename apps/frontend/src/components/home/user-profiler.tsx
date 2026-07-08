@@ -1,14 +1,12 @@
-import { UserPlan } from '@code-legends/shared-types'
 import Link from 'next/link'
 import { Progress } from '../ui/progress'
 import { ActivityCalendar } from './activity-calendar'
 import { CaretRight, Flame } from '@phosphor-icons/react/dist/ssr'
 import {
-  Avatar,
+  PlanAvatarRing,
   AvatarFallback,
   AvatarImage,
-  type AvatarRingVariant,
-} from '../ui/avatar'
+} from '../ui/plan-avatar-ring'
 import { getCurrentUser } from '@/actions/user/get-current-user'
 import { getUserFromAPI, getResolvedUserPlan } from '@/actions/user/get-user-from-api'
 import { getMySkills } from '@/actions/user/get-my-skills'
@@ -45,13 +43,6 @@ export async function UserProfiler() {
       ? Math.max(0, Math.min(100, (totalXp / xpForNextLevel) * 100))
       : 0
 
-  const avatarRingVariant: AvatarRingVariant =
-    userPlan === UserPlan.PRO
-      ? 'pro'
-      : userPlan === UserPlan.PREMIUM
-        ? 'premium'
-        : 'free'
-
   return (
     <div className="relative z-10 w-full lg:mb-0 mb-6 lg:max-w-[360px] flex-shrink-0 self-stretch lg:mt-9 mt-0 flex flex-col gap-8 lg:sticky lg:top-[32px] h-fit">
       <div className="bg-surface-2 p-6 border border-[#25252A] rounded-[20px] w-full">
@@ -60,13 +51,15 @@ export async function UserProfiler() {
           <UserPlanSubscriberBadge />
         </div>
         <div className="flex items-center gap-4 mt-6">
-          {/* Avatar com anel na cor do plano */}
-          <Avatar ringVariant={avatarRingVariant} className="h-16 w-16">
+          <PlanAvatarRing
+            className="h-16 w-16"
+            fallbackPlan={userFromAPI?.plan ?? user?.plan}
+          >
             <AvatarImage src={user?.avatar || undefined} />
             <AvatarFallback className="bg-[#25252A] text-white text-lg font-semibold">
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </AvatarFallback>
-          </Avatar>
+          </PlanAvatarRing>
 
           {/* Botão Meu perfil */}
           <Link href="/account" className="flex-1">

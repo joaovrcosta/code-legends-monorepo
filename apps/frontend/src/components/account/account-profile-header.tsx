@@ -1,17 +1,9 @@
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  type AvatarRingVariant,
-} from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import {
+  AccountPlanAvatar,
+  AccountPlanBadge,
+} from '@/components/account/account-plan-visuals'
 import type { User } from '@/types/user'
-
-function planToRingVariant(plan?: string): AvatarRingVariant {
-  if (plan === 'PRO') return 'pro'
-  if (plan === 'PREMIUM') return 'premium'
-  return 'free'
-}
 
 function formatCareerLabel(career: string): string {
   return career
@@ -31,18 +23,17 @@ export function AccountProfileHeader({ user }: AccountProfileHeaderProps) {
 
   return (
     <div className="flex w-full flex-col items-center gap-3 text-center">
-      <Avatar
-        className="h-32 w-32"
-        ringVariant={planToRingVariant(user.plan)}
-      >
-        <AvatarImage src={user.avatar || ''} />
-        <AvatarFallback className="text-xl">
-          {user.name?.charAt(0).toUpperCase() || 'U'}
-        </AvatarFallback>
-      </Avatar>
+      <AccountPlanAvatar
+        avatarSrc={user.avatar}
+        avatarFallback={user.name?.charAt(0).toUpperCase() || 'U'}
+        fallbackPlan={user.plan}
+      />
 
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold text-white">{user.name}</h1>
+        <div className="flex flex-col items-center gap-2">
+          <AccountPlanBadge />
+          <h1 className="text-xl font-semibold text-white">{user.name}</h1>
+        </div>
         <p className="text-sm text-muted">{user.email}</p>
         <p className="text-sm text-muted">
           Membro desde{' '}
