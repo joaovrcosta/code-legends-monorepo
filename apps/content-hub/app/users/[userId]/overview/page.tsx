@@ -135,11 +135,33 @@ function UserOverviewPageContent() {
         return;
       }
 
-      // Remove campos vazios ou undefined
+      // Remove campos undefined; campos vazios em dados pessoais viram null
+      const nullableFields = new Set<keyof UpdateUserOverviewData>([
+        "bio",
+        "onboardingGoal",
+        "onboardingCareer",
+        "birth_date",
+        "born_in",
+        "document",
+        "foreign_phone",
+        "fullname",
+        "gender",
+        "marital_status",
+        "occupation",
+        "phone",
+        "rg",
+        "address",
+      ]);
       const dataToSend: UpdateUserOverviewData = {};
       Object.entries(editFormData).forEach(([key, value]) => {
-        if (value !== undefined && value !== "") {
-          dataToSend[key as keyof UpdateUserOverviewData] = value;
+        if (value === undefined) return;
+        const field = key as keyof UpdateUserOverviewData;
+        if (value === "" && nullableFields.has(field)) {
+          dataToSend[field] = null as never;
+          return;
+        }
+        if (value !== "") {
+          dataToSend[field] = value as never;
         }
       });
 
@@ -560,6 +582,23 @@ function UserOverviewPageContent() {
           </div>
           <Button
             onClick={() => {
+              const rawAddress = overview.user.address as unknown;
+              const addressText =
+                typeof rawAddress === "string"
+                  ? rawAddress
+                  : rawAddress && typeof rawAddress === "object"
+                    ? [
+                        (rawAddress as { street_name?: string }).street_name,
+                        (rawAddress as { number?: string }).number,
+                        (rawAddress as { neighborhood?: string }).neighborhood,
+                        (rawAddress as { city?: string }).city,
+                        (rawAddress as { state?: string }).state,
+                        (rawAddress as { foreign_address?: string }).foreign_address,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")
+                    : null;
+
               setEditFormData({
                 planId: overview.user.planId ?? undefined,
                 name: overview.user.name,
@@ -571,7 +610,9 @@ function UserOverviewPageContent() {
                 totalXp: overview.user.totalXp,
                 level: overview.user.level,
                 xpToNextLevel: overview.user.xpToNextLevel,
-                birth_date: overview.user.birth_date,
+                birth_date: overview.user.birth_date
+                  ? String(overview.user.birth_date).slice(0, 10)
+                  : null,
                 born_in: overview.user.born_in,
                 document: overview.user.document,
                 foreign_phone: overview.user.foreign_phone,
@@ -581,7 +622,7 @@ function UserOverviewPageContent() {
                 occupation: overview.user.occupation,
                 phone: overview.user.phone,
                 rg: overview.user.rg,
-                address: overview.user.address,
+                address: addressText,
               });
               setShowEditModal(true);
             }}

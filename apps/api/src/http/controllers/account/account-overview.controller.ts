@@ -65,6 +65,17 @@ export async function updateAccountData(request: FastifyRequest, reply: FastifyR
     totalXp: z.number().optional(),
     level: z.number().optional(),
     xpToNextLevel: z.number().optional(),
+    birth_date: z.string().nullable().optional(),
+    born_in: z.string().nullable().optional(),
+    document: z.string().nullable().optional(),
+    foreign_phone: z.string().nullable().optional(),
+    fullname: z.string().nullable().optional(),
+    gender: z.string().nullable().optional(),
+    marital_status: z.string().nullable().optional(),
+    occupation: z.string().nullable().optional(),
+    phone: z.string().nullable().optional(),
+    rg: z.string().nullable().optional(),
+    address: z.string().nullable().optional(),
   });
 
   const { userId } = updateAccountParamsSchema.parse(request.params);
