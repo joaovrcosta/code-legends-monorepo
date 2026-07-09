@@ -14,4 +14,4 @@ jobs:
           curl -sf -X POST \
             --max-time 90 \
             -H "Authorization: Bearer ${{ secrets.JOBS_SECRET }}" \
-            "${{ secrets.API_URL }}/internal/jobs/expire-subscriptions"
+            "${{ vars.API_URL }}/internal/jobs/expire-subscriptions"
