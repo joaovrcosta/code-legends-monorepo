@@ -39,14 +39,6 @@ const planSelect = {
 } as const
 
 export class PlanAccessRepository {
-  async findFreePlan(): Promise<ResolvedPlan | null> {
-    const plan = await prisma.plan.findFirst({
-      where: { slug: 'FREE', active: true },
-      select: planSelect,
-    })
-    return plan ? toResolvedPlan(plan) : null
-  }
-
   async findPlanById(planId: string): Promise<ResolvedPlan | null> {
     const plan = await prisma.plan.findUnique({
       where: { id: planId },
@@ -97,7 +89,6 @@ export class PlanAccessRepository {
   async expireSubscriptionAndRevertUser(
     subscriptionId: string,
     userId: string,
-    freePlanId: string,
   ): Promise<void> {
     await prisma.$transaction([
       prisma.subscription.update({
@@ -106,7 +97,7 @@ export class PlanAccessRepository {
       }),
       prisma.user.update({
         where: { id: userId },
-        data: { planId: freePlanId },
+        data: { planId: null },
       }),
     ])
   }

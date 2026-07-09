@@ -50,17 +50,12 @@ export class PrismaUsersRepository implements IUsersRepository {
       ? await bcrypt.hash(data.password, 6)
       : null;
 
-    const freePlan = await prisma.plan.findFirst({
-      where: { slug: 'FREE', active: true },
-      select: { id: true },
-    });
-
     try {
       const user = await prisma.user.create({
         data: {
           ...data,
           password: hashedPassword,
-          planId: freePlan?.id ?? null,
+          planId: null,
         },
       });
 

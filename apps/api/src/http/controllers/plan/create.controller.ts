@@ -23,6 +23,13 @@ export async function createPlan(
 ) {
   try {
     const body = createPlanBodySchema.parse(request.body);
+
+    if (body.slug.toUpperCase() === 'FREE') {
+      return reply.status(400).send({
+        message: 'O plano FREE já existe via seed e não pode ser criado manualmente',
+      });
+    }
+
     const plan = await prisma.plan.create({
       data: {
         slug: body.slug.toUpperCase(),

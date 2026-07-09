@@ -1,7 +1,7 @@
 import type { PlanFeature } from '@code-legends/plans'
 
 export type ResolvedPlan = {
-  id: string
+  id: string | null
   slug: string
   name: string
   features: PlanFeature[]
@@ -12,6 +12,6 @@ export type ResolvedPlan = {
 
 export interface PlanAccessPort {
   hasFeature(userId: string, feature: PlanFeature): Promise<boolean>
-  getActivePlan(userId: string): Promise<ResolvedPlan | null>
+  getActivePlan(userId: string): Promise<ResolvedPlan>
   getCapabilities(userId: string): Promise<Record<PlanFeature, boolean>>
 }

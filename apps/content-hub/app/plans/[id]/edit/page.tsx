@@ -16,6 +16,7 @@ import {
 import { PlanFeatureCheckboxes } from "@/components/plans/plan-feature-checkboxes";
 import { PlanPriceInput } from "@/components/plans/plan-price-input";
 import type { PlanFeature } from "@code-legends/plans";
+import { isImplicitFreeSlug } from "@code-legends/plans";
 import { PlanBadgePreview } from "@/components/plans/plan-badge-preview";
 import { getAuthTokenFromClient } from "@/lib/auth";
 import { ArrowLeft } from "lucide-react";
@@ -85,6 +86,8 @@ export default function EditPlanPage() {
     }
   };
 
+  const isFreePlan = isImplicitFreeSlug(formData.slug);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -104,6 +107,7 @@ export default function EditPlanPage() {
           colorHex: formData.colorHex || null,
           externalId: formData.externalId || null,
           productName: formData.productName || null,
+          ...(isFreePlan ? {} : { features: formData.features }),
         },
         token
       );
@@ -285,12 +289,19 @@ export default function EditPlanPage() {
                 </div>
               </div>
 
-              <PlanFeatureCheckboxes
-                value={formData.features ?? []}
-                onChange={(features) =>
-                  setFormData({ ...formData, features })
-                }
-              />
+              {isFreePlan ? (
+                <p className="rounded-md border border-ch-border bg-ch-muted/40 px-4 py-3 text-sm text-ch-muted-foreground">
+                  O plano gratuito não possui funcionalidades editáveis — as
+                  capabilities são definidas pelo sistema.
+                </p>
+              ) : (
+                <PlanFeatureCheckboxes
+                  value={formData.features ?? []}
+                  onChange={(features) =>
+                    setFormData({ ...formData, features })
+                  }
+                />
+              )}
 
               <div className="flex items-center space-x-2">
                 <input

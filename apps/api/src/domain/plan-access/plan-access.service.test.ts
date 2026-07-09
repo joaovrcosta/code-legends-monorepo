@@ -1,5 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { PlanFeatures } from '@code-legends/plans'
+import {
+  IMPLICIT_FREE_PLAN,
+  PlanFeatures,
+} from '@code-legends/plans'
 import { PlanAccessService } from './plan-access.service'
 import { PlanAccessRepository } from './plan-access.repository'
 import type { ResolvedPlan } from './plan-access.port'
@@ -21,7 +24,6 @@ function makePlan(
 
 describe('PlanAccessService', () => {
   const repository = {
-    findFreePlan: vi.fn(),
     findPlanById: vi.fn(),
     findUserPlanId: vi.fn(),
     findActiveSubscriptionPlanId: vi.fn(),
@@ -32,9 +34,15 @@ describe('PlanAccessService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     service = new PlanAccessService(repository)
-    vi.mocked(repository.findFreePlan).mockResolvedValue(
-      makePlan('FREE', []),
-    )
+  })
+
+  it('retorna IMPLICIT_FREE_PLAN quando não há subscription nem planId', async () => {
+    vi.mocked(repository.findActiveSubscriptionPlanId).mockResolvedValue(null)
+    vi.mocked(repository.findUserPlanId).mockResolvedValue(null)
+
+    await expect(service.getActivePlan('user-1')).resolves.toEqual({
+      ...IMPLICIT_FREE_PLAN,
+    })
   })
 
   it('FREE não tem catalog.paid', async () => {
@@ -45,6 +53,22 @@ describe('PlanAccessService', () => {
     await expect(
       service.hasFeature('user-1', PlanFeatures.CATALOG_PAID),
     ).resolves.toBe(false)
+  })
+
+  it('normaliza FREE do banco com features adulteradas para IMPLICIT_FREE_PLAN', async () => {
+    vi.mocked(repository.findActiveSubscriptionPlanId).mockResolvedValue(null)
+    vi.mocked(repository.findUserPlanId).mockResolvedValue('plan-FREE')
+    vi.mocked(repository.findPlanById).mockResolvedValue(
+      makePlan('FREE', [PlanFeatures.CATALOG_PAID]),
+    )
+
+    await expect(
+      service.hasFeature('user-1', PlanFeatures.CATALOG_PAID),
+    ).resolves.toBe(false)
+
+    const plan = await service.getActivePlan('user-1')
+    expect(plan.features).toEqual([])
+    expect(plan.id).toBeNull()
   })
 
   it('PRO tem catalog.paid', async () => {
@@ -83,11 +107,18 @@ describe('PlanAccessService', () => {
 
   it('subscription expirada nega acesso antes do job rodar', async () => {
     vi.mocked(repository.findActiveSubscriptionPlanId).mockResolvedValue(null)
-    vi.mocked(repository.findUserPlanId).mockResolvedValue('plan-FREE')
-    vi.mocked(repository.findPlanById).mockResolvedValue(makePlan('FREE', []))
+    vi.mocked(repository.findUserPlanId).mockResolvedValue(null)
 
     await expect(
       service.hasFeature('user-1', PlanFeatures.CATALOG_PAID),
     ).resolves.toBe(false)
+  })
+
+  it('usuário com planId null tem todas capabilities false', async () => {
+    vi.mocked(repository.findActiveSubscriptionPlanId).mockResolvedValue(null)
+    vi.mocked(repository.findUserPlanId).mockResolvedValue(null)
+
+    const capabilities = await service.getCapabilities('user-1')
+    expect(Object.values(capabilities).every((v) => v === false)).toBe(true)
   })
 })

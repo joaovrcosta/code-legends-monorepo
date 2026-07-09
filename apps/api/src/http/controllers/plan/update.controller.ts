@@ -30,6 +30,12 @@ export async function updatePlan(
       return reply.status(404).send({ message: "Plan not found" });
     }
 
+    if (existing.slug === 'FREE' && body.features !== undefined) {
+      return reply.status(400).send({
+        message: 'As funcionalidades do plano FREE são fixas no sistema e não podem ser editadas',
+      });
+    }
+
     const plan = await prisma.plan.update({
       where: { id },
       data: {
