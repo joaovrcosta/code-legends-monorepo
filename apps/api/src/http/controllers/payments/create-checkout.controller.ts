@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { makeCreateCheckoutUseCase } from "../../../utils/factories/make-payment-provider-use-cases";
 import type { CreateCheckoutResult } from "../../../use-cases/entities/Payment/create-checkout";
+import { checkoutRejectionMessage } from "../../../use-cases/entities/Payment/checkout-rejection-messages";
 import { PaymentProviderNotFoundError } from "../../../use-cases/errors/payment-provider-not-found";
 
 const bodySchema = z.object({
@@ -9,6 +10,20 @@ const bodySchema = z.object({
   returnUrl: z.string().url().optional(),
   completionUrl: z.string().url().optional(),
 });
+
+function mapCheckoutFailure(result: Extract<CreateCheckoutResult, { ok: false }>) {
+  const message = checkoutRejectionMessage(result.reason);
+  const clientErrors = new Set([
+    'invalid_plan',
+    'already_on_plan',
+    'downgrade_not_allowed',
+    'ambiguous_plan_tier',
+    'subscription_ending_soon',
+    'invalid_upgrade_amount',
+  ]);
+  const status = clientErrors.has(result.reason) ? 400 : result.reason === 'user_not_found' ? 404 : result.reason === 'api_not_configured' ? 503 : 500;
+  return { status, message, reason: result.reason };
+}
 
 export async function createCheckout(
   request: FastifyRequest,
@@ -56,16 +71,11 @@ export async function createCheckout(
   }
 
   if (!result.ok) {
-    if (result.reason === "invalid_plan") {
-      return reply.status(400).send({ message: "Plano inválido" });
-    }
-    if (result.reason === "api_not_configured") {
-      return reply.status(503).send({ message: "Pagamento temporariamente indisponível" });
-    }
-    if (result.reason === "user_not_found") {
-      return reply.status(404).send({ message: "Usuário não encontrado" });
-    }
-    return reply.status(500).send({ message: "Erro ao criar checkout" });
+    const mapped = mapCheckoutFailure(result);
+    return reply.status(mapped.status).send({
+      message: mapped.message,
+      reason: mapped.reason,
+    });
   }
 
   if (!result.checkoutUrl) {

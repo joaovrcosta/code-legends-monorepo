@@ -21,6 +21,7 @@ interface CartCheckoutAccordionProps {
   onMeusDadosValidityChange?: (isValid: boolean) => void;
   selectedPaymentMethod: PaymentMethodId | null;
   onSelectedPaymentMethodChange: (method: PaymentMethodId) => void;
+  checkoutDisabled?: boolean;
 }
 
 const TRIGGER_CLASS =
@@ -37,6 +38,7 @@ export function CartCheckoutAccordion({
   onMeusDadosValidityChange,
   selectedPaymentMethod,
   onSelectedPaymentMethodChange,
+  checkoutDisabled = false,
 }: CartCheckoutAccordionProps) {
   return (
     <div ref={accordionRef}>
@@ -85,6 +87,7 @@ export function CartCheckoutAccordion({
               planSlug={planSlug}
               value={selectedPaymentMethod}
               onChange={onSelectedPaymentMethodChange}
+              disabled={checkoutDisabled}
             />
           </AccordionContent>
         </AccordionItem>

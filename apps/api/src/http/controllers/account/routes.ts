@@ -25,6 +25,7 @@ import { postPostPurchaseWelcomeAck } from './post-post-purchase-welcome-ack.con
 import { listPayments } from './list-payments.controller'
 import { syncPayments } from './sync-payments.controller'
 import { createCheckout } from '../payments/create-checkout.controller'
+import { getUpgradeQuote } from '../payments/get-upgrade-quote.controller'
 import { remove } from './delete.controller'
 import { unlinkGoogle } from './unlink-google.controller'
 import { verifyJWT } from '../../middlewares/verify-jwt'
@@ -82,6 +83,7 @@ export async function usersRoutes(app: FastifyInstance) {
   app.delete('/users/unlink-google', { onRequest: [verifyJWT] }, unlinkGoogle)
 
   // Checkout (usuário autenticado)
+  app.get('/payments/upgrade-quote', { onRequest: [verifyJWT] }, getUpgradeQuote)
   app.post('/payments/checkout', { onRequest: [verifyJWT] }, createCheckout as RouteHandlerMethod)
 
   // Rotas protegidas - apenas ADMIN

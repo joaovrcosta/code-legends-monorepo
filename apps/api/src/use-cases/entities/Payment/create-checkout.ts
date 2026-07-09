@@ -8,6 +8,13 @@ import {
   resolveCheckoutHandler,
   resolvePaymentProvider,
 } from '../../../lib/resolve-checkout'
+import {
+  resolveBillingState,
+  validateUpgradeEligibility,
+  type PlanBillingInfo,
+  type UpgradePaymentMetadata,
+  type UpgradeRejectionReason,
+} from '../../../domain/subscription-upgrade'
 import { IPaymentProviderRepository } from '../../../repositories/payment-provider-repository'
 
 export interface CreateCheckoutInput {
@@ -22,8 +29,28 @@ export type CreateCheckoutResult =
   | { ok: true; checkoutUrl: string; paymentId: string }
   | {
       ok: false
-      reason: 'invalid_plan' | 'api_not_configured' | 'user_not_found'
+      reason:
+        | UpgradeRejectionReason
+        | 'invalid_plan'
+        | 'api_not_configured'
+        | 'user_not_found'
     }
+
+function toPlanBillingInfo(plan: {
+  id: string
+  slug: string
+  name: string
+  order: number
+  amountCents: number
+}): PlanBillingInfo {
+  return {
+    id: plan.id,
+    slug: plan.slug,
+    name: plan.name,
+    order: plan.order,
+    amountCents: plan.amountCents,
+  }
+}
 
 export class CreateCheckoutUseCase {
   constructor(
@@ -34,9 +61,26 @@ export class CreateCheckoutUseCase {
     const slug = input.planSlug?.toUpperCase()
     const planFromDb = await prisma.plan.findUnique({
       where: { slug, active: true },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        order: true,
+        amountCents: true,
+        productName: true,
+        externalId: true,
+      },
     })
     if (!planFromDb || planFromDb.amountCents <= 0) {
       return { ok: false, reason: 'invalid_plan' }
+    }
+
+    const targetPlan = toPlanBillingInfo(planFromDb)
+    const billing = await resolveBillingState(input.userId)
+    const eligibility = validateUpgradeEligibility(billing, targetPlan)
+
+    if (!eligibility.ok) {
+      return { ok: false, reason: eligibility.reason }
     }
 
     const provider = await resolvePaymentProvider({
@@ -68,26 +112,47 @@ export class CreateCheckoutUseCase {
       return { ok: false, reason: 'user_not_found' }
     }
 
+    const amountDueCents = eligibility.amountDueCents
     const productName =
       planFromDb.productName ?? `Assinatura ${planFromDb.name}`
     const externalId =
       planFromDb.externalId ?? `CODE-LEGENDS-${planFromDb.slug}`
 
+    let productDescription: string
+    let metadata: UpgradePaymentMetadata | undefined
+
+    if (eligibility.mode === 'upgrade') {
+      productDescription = `Upgrade ${eligibility.currentPlan.name} → ${eligibility.targetPlan.name} (${eligibility.daysRemaining} dias restantes)`
+      metadata = {
+        kind: 'upgrade',
+        fromSubscriptionId: eligibility.activeSubscription.id,
+        fromPlanId: eligibility.currentPlan.id,
+        toPlanId: eligibility.targetPlan.id,
+        preservedEndsAt: eligibility.preservedEndsAt.toISOString(),
+        listPriceCents: eligibility.listPriceCents,
+        amountDueCents: eligibility.amountDueCents,
+        daysRemaining: eligibility.daysRemaining,
+      }
+    } else {
+      productDescription = `Assinatura anual - ${productName}`
+    }
+
     const payment = await prisma.payment.create({
       data: {
         userId: user.id,
-        amountCents: planFromDb.amountCents,
+        amountCents: amountDueCents,
         currency: 'BRL',
         status: 'PENDING',
         planId: planFromDb.id,
         gateway: handler.gatewayCode,
         providerId: provider.id,
+        ...(metadata ? { metadata } : {}),
       },
     })
 
     try {
       const checkout = await handler.createCheckout({
-        amountCents: planFromDb.amountCents,
+        amountCents: amountDueCents,
         currency: 'BRL',
         customer: buildCheckoutCustomer({
           email: user.email,
@@ -102,7 +167,7 @@ export class CreateCheckoutUseCase {
         methods: [...handler.supportedMethods],
         externalId,
         productName,
-        productDescription: `Assinatura anual - ${productName}`,
+        productDescription,
         getApiKey: credentials.getApiKey,
       })
 

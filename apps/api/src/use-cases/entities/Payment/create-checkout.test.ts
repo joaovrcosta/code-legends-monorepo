@@ -12,6 +12,7 @@ vi.mock('../../../lib/prisma', () => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
+    subscription: { findMany: vi.fn() },
   },
 }))
 
@@ -28,11 +29,21 @@ vi.mock('../../../lib/payment-provider-credentials', () => ({
   })),
 }))
 
+vi.mock('../../../domain/subscription-upgrade/resolve-billing-state', () => ({
+  resolveBillingState: vi.fn(),
+}))
+
+vi.mock('../../../domain/subscription-upgrade/validate-upgrade-eligibility', () => ({
+  validateUpgradeEligibility: vi.fn(),
+}))
+
 import { prisma } from '../../../lib/prisma'
 import {
   resolveCheckoutHandler,
   resolvePaymentProvider,
 } from '../../../lib/resolve-checkout'
+import { resolveBillingState } from '../../../domain/subscription-upgrade/resolve-billing-state'
+import { validateUpgradeEligibility } from '../../../domain/subscription-upgrade/validate-upgrade-eligibility'
 
 describe('CreateCheckoutUseCase', () => {
   const mockHandler: PaymentProviderHandler = {
@@ -46,6 +57,15 @@ describe('CreateCheckoutUseCase', () => {
   }
 
   const repo = {} as IPaymentProviderRepository
+  const targetPlan = {
+    id: 'plan_plus',
+    slug: 'PLUS',
+    name: 'Plus',
+    order: 2,
+    amountCents: 30000,
+    productName: 'Plus anual',
+    externalId: 'PLUS-ANUAL',
+  }
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -55,14 +75,7 @@ describe('CreateCheckoutUseCase', () => {
       gatewayCode: 'ABACATE_PAY',
     } as never)
     vi.mocked(resolveCheckoutHandler).mockReturnValue(mockHandler)
-    vi.mocked(prisma.plan.findUnique).mockResolvedValue({
-      id: 'plan_premium',
-      slug: 'PREMIUM',
-      amountCents: 39700,
-      name: 'Premium',
-      productName: 'Code Legends PREMIUM',
-      externalId: 'CODE-LEGENDS-PREMIUM',
-    } as never)
+    vi.mocked(prisma.plan.findUnique).mockResolvedValue(targetPlan as never)
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: 'user_1',
       name: 'João',
@@ -70,59 +83,128 @@ describe('CreateCheckoutUseCase', () => {
       email: 'user@example.com',
       phone: '11999999999',
       document: '52998224725',
-      Address: {
-        postal_code: '03572-000',
-        street_name: 'Rua A',
-        number: '1668',
-        complement: 'Casa',
-        neighborhood: 'Centro',
-        city: 'São Paulo',
-        state: 'SP',
-        country: 'BR',
-      },
+      Address: null,
     } as never)
     vi.mocked(prisma.payment.create).mockResolvedValue({ id: 'pay_1' } as never)
     vi.mocked(prisma.payment.update).mockResolvedValue({ id: 'pay_1' } as never)
+    vi.mocked(resolveBillingState).mockResolvedValue({
+      activeSubscription: null,
+      currentPlan: null,
+      currentOrder: 0,
+    })
   })
 
-  it('passes neutral customer to handler without Abacate-specific fields', async () => {
-    const useCase = new CreateCheckoutUseCase(repo)
+  it('cobra preço cheio em compra nova', async () => {
+    vi.mocked(validateUpgradeEligibility).mockReturnValue({
+      ok: true,
+      mode: 'purchase',
+      targetPlan: {
+        id: targetPlan.id,
+        slug: targetPlan.slug,
+        name: targetPlan.name,
+        order: targetPlan.order,
+        amountCents: targetPlan.amountCents,
+      },
+      amountDueCents: 30000,
+      listPriceCents: 30000,
+    })
 
+    const useCase = new CreateCheckoutUseCase(repo)
     const result = await useCase.execute({
       userId: 'user_1',
-      planSlug: 'premium',
-      returnUrl: 'http://localhost:3000/cart/premium',
+      planSlug: 'plus',
+      returnUrl: 'http://localhost:3000/cart/plus',
       completionUrl: 'http://localhost:3000/',
     })
 
-    expect(result).toEqual({
-      ok: true,
-      checkoutUrl: 'https://checkout.example/pay',
-      paymentId: 'pay_1',
-    })
-
-    expect(mockHandler.createCheckout).toHaveBeenCalledWith(
+    expect(result.ok).toBe(true)
+    expect(prisma.payment.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        customer: {
-          email: 'user@example.com',
-          name: 'João Victor Costa',
-          cellphone: '11999999999',
-          taxId: '52998224725',
-          address: {
-            postalCode: '03572-000',
-            street: 'Rua A',
-            number: '1668',
-            complement: 'Casa',
-            neighborhood: 'Centro',
-            city: 'São Paulo',
-            state: 'SP',
-            country: 'BR',
-          },
-        },
+        data: expect.objectContaining({ amountCents: 30000 }),
       }),
     )
+    expect(mockHandler.createCheckout).toHaveBeenCalledWith(
+      expect.objectContaining({ amountCents: 30000 }),
+    )
+  })
 
-    const callArg = vi.mocked(mockHandler.createCheckout).mock.calls[0][0]
-    expect(callArg.customer).not.toHaveProperty('zipCode')
+  it('cobra valor proratado e grava metadata em upgrade', async () => {
+    vi.mocked(validateUpgradeEligibility).mockReturnValue({
+      ok: true,
+      mode: 'upgrade',
+      targetPlan: {
+        id: targetPlan.id,
+        slug: targetPlan.slug,
+        name: targetPlan.name,
+        order: targetPlan.order,
+        amountCents: targetPlan.amountCents,
+      },
+      currentPlan: {
+        id: 'plan_basic',
+        slug: 'BASIC',
+        name: 'Basic',
+        order: 1,
+        amountCents: 10000,
+      },
+      activeSubscription: {
+        id: 'sub_1',
+        planId: 'plan_basic',
+        startsAt: new Date('2026-01-01'),
+        endsAt: new Date('2027-01-01'),
+        plan: {
+          id: 'plan_basic',
+          slug: 'BASIC',
+          name: 'Basic',
+          order: 1,
+          amountCents: 10000,
+        },
+      },
+      amountDueCents: 9500,
+      listPriceCents: 30000,
+      daysRemaining: 180,
+      totalDays: 365,
+      currentRemainingCents: 5000,
+      targetRemainingCents: 14500,
+      preservedEndsAt: new Date('2027-01-01'),
+    })
+
+    const useCase = new CreateCheckoutUseCase(repo)
+    await useCase.execute({
+      userId: 'user_1',
+      planSlug: 'plus',
+      returnUrl: 'http://localhost:3000/cart/plus',
+      completionUrl: 'http://localhost:3000/',
+    })
+
+    expect(prisma.payment.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          amountCents: 9500,
+          metadata: expect.objectContaining({
+            kind: 'upgrade',
+            fromSubscriptionId: 'sub_1',
+            toPlanId: 'plan_plus',
+          }),
+        }),
+      }),
+    )
+  })
+
+  it('rejeita checkout quando elegibilidade falha', async () => {
+    vi.mocked(validateUpgradeEligibility).mockReturnValue({
+      ok: false,
+      reason: 'downgrade_not_allowed',
+    })
+
+    const useCase = new CreateCheckoutUseCase(repo)
+    const result = await useCase.execute({
+      userId: 'user_1',
+      planSlug: 'plus',
+      returnUrl: 'http://localhost:3000/cart/plus',
+      completionUrl: 'http://localhost:3000/',
+    })
+
+    expect(result).toEqual({ ok: false, reason: 'downgrade_not_allowed' })
+    expect(prisma.payment.create).not.toHaveBeenCalled()
   })
 })

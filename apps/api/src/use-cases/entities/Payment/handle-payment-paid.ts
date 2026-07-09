@@ -1,4 +1,5 @@
 import { prisma } from '../../../lib/prisma'
+import { isUpgradePaymentMetadata } from '../../../domain/subscription-upgrade'
 
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000
 
@@ -13,7 +14,7 @@ export type HandlePaymentPaidResult =
 
 /**
  * Processa pagamento confirmado no gateway: atualiza Payment para PAID,
- * User.planId e cria Subscription (1 ano). Idempotente.
+ * User.planId e cria Subscription. Upgrades preservam endsAt e cancelam subs anteriores.
  */
 export class HandlePaymentPaidUseCase {
   async execute({
@@ -22,7 +23,13 @@ export class HandlePaymentPaidUseCase {
   }: HandlePaymentPaidInput): Promise<HandlePaymentPaidResult> {
     const payment = await prisma.payment.findFirst({
       where: { gatewayPaymentId, gateway },
-      select: { id: true, userId: true, planId: true, status: true },
+      select: {
+        id: true,
+        userId: true,
+        planId: true,
+        status: true,
+        metadata: true,
+      },
     })
 
     if (!payment) {
@@ -34,7 +41,9 @@ export class HandlePaymentPaidUseCase {
     }
 
     const now = new Date()
-    const endsAt = new Date(now.getTime() + ONE_YEAR_MS)
+    const upgradeMetadata = isUpgradePaymentMetadata(payment.metadata)
+      ? payment.metadata
+      : null
 
     await prisma.$transaction(async (tx) => {
       await tx.payment.update({
@@ -47,6 +56,41 @@ export class HandlePaymentPaidUseCase {
         data: { planId: payment.planId },
       })
 
+      const targetPlan = await tx.plan.findUnique({
+        where: { id: payment.planId },
+        select: { order: true },
+      })
+
+      if (upgradeMetadata && targetPlan) {
+        await tx.subscription.update({
+          where: { id: upgradeMetadata.fromSubscriptionId },
+          data: { status: 'CANCELLED' },
+        })
+
+        await tx.subscription.updateMany({
+          where: {
+            userId: payment.userId,
+            status: 'ACTIVE',
+            id: { not: upgradeMetadata.fromSubscriptionId },
+            planRecord: { order: { lt: targetPlan.order } },
+          },
+          data: { status: 'CANCELLED' },
+        })
+
+        await tx.subscription.create({
+          data: {
+            userId: payment.userId,
+            planId: payment.planId,
+            status: 'ACTIVE',
+            startsAt: now,
+            endsAt: new Date(upgradeMetadata.preservedEndsAt),
+            gatewaySubscriptionId: gatewayPaymentId,
+          },
+        })
+        return
+      }
+
+      const endsAt = new Date(now.getTime() + ONE_YEAR_MS)
       await tx.subscription.create({
         data: {
           userId: payment.userId,

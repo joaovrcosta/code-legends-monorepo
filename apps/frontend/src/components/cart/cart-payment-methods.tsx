@@ -41,9 +41,16 @@ interface CartPaymentMethodsProps {
   planSlug: string;
   value?: PaymentMethodId | null;
   onChange?: (method: PaymentMethodId) => void;
+  disabled?: boolean;
 }
 
-export function CartPayWithCardButton({ planSlug }: { planSlug: string }) {
+export function CartPayWithCardButton({
+  planSlug,
+  disabled = false,
+}: {
+  planSlug: string;
+  disabled?: boolean;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,7 +87,7 @@ export function CartPayWithCardButton({ planSlug }: { planSlug: string }) {
       <Button
         type="button"
         onClick={handlePayWithCard}
-        disabled={loading}
+        disabled={loading || disabled}
         className="w-full h-12 rounded-full bg-blue-gradient-500 hover:opacity-90 border-0 font-semibold text-sm"
       >
         {loading ? "Redirecionando..." : "Pagar com cartão"}
@@ -97,7 +104,12 @@ export function CartPayWithCardButton({ planSlug }: { planSlug: string }) {
   );
 }
 
-export function CartPaymentMethods({ planSlug, value = null, onChange }: CartPaymentMethodsProps) {
+export function CartPaymentMethods({
+  planSlug,
+  value = null,
+  onChange,
+  disabled = false,
+}: CartPaymentMethodsProps) {
   const [selected, setSelected] = useState<PaymentMethodId | null>(value ?? null);
   // (Desktop) o CTA de pagar fica na sidebar; aqui exibimos só no mobile.
 
@@ -147,7 +159,7 @@ export function CartPaymentMethods({ planSlug, value = null, onChange }: CartPay
 
       {selected === "card" && (
         <div className="pt-2 lg:hidden">
-          <CartPayWithCardButton planSlug={planSlug} />
+          <CartPayWithCardButton planSlug={planSlug} disabled={disabled} />
         </div>
       )}
 

@@ -1,5 +1,6 @@
 import { PrismaPaymentProviderRepository } from '../../repositories/prisma/prisma-payment-provider-repository'
 import { CreateCheckoutUseCase } from '../../use-cases/entities/Payment/create-checkout'
+import { GetUpgradeQuoteUseCase } from '../../use-cases/entities/Payment/get-upgrade-quote'
 import { HandlePaymentPaidUseCase } from '../../use-cases/entities/Payment/handle-payment-paid'
 import { SyncPaymentsUseCase } from '../../use-cases/entities/Payment/sync-payments'
 import {
@@ -18,6 +19,10 @@ export function makePaymentProviderRepository() {
 
 export function makeCreateCheckoutUseCase() {
   return new CreateCheckoutUseCase(paymentProviderRepo)
+}
+
+export function makeGetUpgradeQuoteUseCase() {
+  return new GetUpgradeQuoteUseCase()
 }
 
 export function makeHandlePaymentPaidUseCase() {
