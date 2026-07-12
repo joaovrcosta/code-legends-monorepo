@@ -22,6 +22,7 @@
     "test:ui": "vitest --ui",
     "backfill:xp-cache": "tsx prisma/backfill-xp-cache.ts",
     "seed": "tsx prisma/seed.ts",
+    "seed:payment-providers": "tsx prisma/scripts/seed-payment-providers.ts",
     "postinstall": "pnpm exec prisma generate || npx prisma generate || true"
   },
   "prisma": {
