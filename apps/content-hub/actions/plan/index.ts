@@ -12,3 +12,4 @@ export {
   updatePlan,
   type UpdatePlanData,
 } from "./update-plan";
+export { deletePlan } from "./delete-plan";

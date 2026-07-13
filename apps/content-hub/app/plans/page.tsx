@@ -12,10 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { listPlans, type Plan } from "@/actions/plan";
+import { listPlans, deletePlan, type Plan } from "@/actions/plan";
 import { getAuthTokenFromClient } from "@/lib/auth";
-import { Plus, Edit, Crown } from "lucide-react";
+import { Plus, Edit, Crown, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+import { isImplicitFreeSlug } from "@code-legends/plans";
 
 export default function PlansPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -35,6 +37,37 @@ export default function PlansPage() {
       console.error("Erro ao carregar planos:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (plan: Plan) => {
+    if (isImplicitFreeSlug(plan.slug)) {
+      toast.error("O plano gratuito (FREE) não pode ser excluído.");
+      return;
+    }
+
+    if (
+      !confirm(
+        `Tem certeza que deseja excluir o plano "${plan.name}"? Esta ação não pode ser desfeita.`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const token = getAuthTokenFromClient();
+      if (!token) {
+        toast.error("Token de autenticação não encontrado");
+        return;
+      }
+      await deletePlan(plan.id, token);
+      toast.success("Plano excluído com sucesso");
+      await loadPlans();
+    } catch (error) {
+      console.error("Erro ao excluir plano:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao excluir plano",
+      );
     }
   };
 
@@ -118,12 +151,25 @@ export default function PlansPage() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <Link href={`/plans/${plan.id}/edit`}>
-                            <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4 mr-1" />
-                              Editar
-                            </Button>
-                          </Link>
+                          <div className="flex items-center gap-1">
+                            <Link href={`/plans/${plan.id}/edit`}>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="h-4 w-4 mr-1" />
+                                Editar
+                              </Button>
+                            </Link>
+                            {!isImplicitFreeSlug(plan.slug) ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-500 hover:text-red-400"
+                                onClick={() => void handleDelete(plan)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Excluir
+                              </Button>
+                            ) : null}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))

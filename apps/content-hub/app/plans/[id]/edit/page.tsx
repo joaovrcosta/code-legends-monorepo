@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   updatePlan,
   getPlanById,
+  deletePlan,
   type UpdatePlanData,
 } from "@/actions/plan";
 import { PlanFeatureCheckboxes } from "@/components/plans/plan-feature-checkboxes";
@@ -19,7 +20,7 @@ import type { PlanFeature } from "@code-legends/plans";
 import { isImplicitFreeSlug } from "@code-legends/plans";
 import { PlanBadgePreview } from "@/components/plans/plan-badge-preview";
 import { getAuthTokenFromClient } from "@/lib/auth";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useWorkspaceTab } from "@/components/layout/workspace-tabs-context";
 import { toast } from "sonner";
@@ -87,6 +88,40 @@ export default function EditPlanPage() {
   };
 
   const isFreePlan = isImplicitFreeSlug(formData.slug);
+
+  const handleDelete = async () => {
+    if (isFreePlan) {
+      toast.error("O plano gratuito (FREE) não pode ser excluído.");
+      return;
+    }
+
+    if (
+      !confirm(
+        `Tem certeza que deseja excluir o plano "${formData.name}"? Esta ação não pode ser desfeita.`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = getAuthTokenFromClient();
+      if (!token) {
+        toast.error("Token de autenticação não encontrado");
+        return;
+      }
+      await deletePlan(id, token);
+      toast.success("Plano excluído com sucesso");
+      router.push("/plans");
+    } catch (error: unknown) {
+      console.error("Erro ao excluir plano:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao excluir plano",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -318,15 +353,31 @@ export default function EditPlanPage() {
                 </Label>
               </div>
 
-              <div className="flex justify-end gap-4">
-                <Link href="/plans">
-                  <Button type="button" variant="outline">
-                    Cancelar
+              <div className="flex justify-between gap-4">
+                {!isFreePlan ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-red-500/40 text-red-500 hover:bg-red-500/10 hover:text-red-400"
+                    disabled={loading}
+                    onClick={() => void handleDelete()}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Excluir plano
                   </Button>
-                </Link>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Salvando..." : "Salvar Alterações"}
-                </Button>
+                ) : (
+                  <div />
+                )}
+                <div className="flex gap-4">
+                  <Link href="/plans">
+                    <Button type="button" variant="outline">
+                      Cancelar
+                    </Button>
+                  </Link>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? "Salvando..." : "Salvar Alterações"}
+                  </Button>
+                </div>
               </div>
             </form>
           </CardContent>

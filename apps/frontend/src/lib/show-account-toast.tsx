@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +22,24 @@ interface AccountToastOptions {
 const listeners = new Set<(toasts: AccountToastItem[]) => void>();
 let toasts: AccountToastItem[] = [];
 
+/** Rotas sem AppShell (header fixo) — alinhado a conditional-app-shell */
+const ROUTES_WITHOUT_FIXED_HEADER = [
+  "/login",
+  "/signup",
+  "/onboarding",
+  "/classroom",
+  "/cart",
+  "/plans",
+  "/certificates",
+];
+
+function hasFixedAppHeader(pathname: string | null) {
+  if (!pathname) return true;
+  return !ROUTES_WITHOUT_FIXED_HEADER.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
+}
+
 function emit() {
   for (const listener of listeners) {
     listener(toasts);
@@ -35,10 +54,6 @@ function addToast(message: string, tone: AccountToastTone, duration: number) {
   const id = createToastId(tone);
   toasts = [{ id, message, tone, duration }, ...toasts].slice(0, 3);
   emit();
-
-  window.setTimeout(() => {
-    removeToast(id);
-  }, duration);
 }
 
 function removeToast(id: string) {
@@ -72,6 +87,52 @@ function AccountToastCard({
   const iconClass = isSuccess ? "text-[#28a78d]" : "text-red-400";
   const Icon = isSuccess ? CheckCircle2 : XCircle;
 
+  const [paused, setPaused] = useState(false);
+  const remainingRef = useRef(toast.duration);
+  const timerStartRef = useRef(Date.now());
+  const timeoutRef = useRef<number | undefined>(undefined);
+
+  const clearDismissTimer = useCallback(() => {
+    if (timeoutRef.current !== undefined) {
+      window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = undefined;
+    }
+  }, []);
+
+  const scheduleDismiss = useCallback(() => {
+    clearDismissTimer();
+    if (remainingRef.current <= 0) {
+      onDismiss(toast.id);
+      return;
+    }
+    timerStartRef.current = Date.now();
+    timeoutRef.current = window.setTimeout(() => {
+      onDismiss(toast.id);
+    }, remainingRef.current);
+  }, [clearDismissTimer, onDismiss, toast.id]);
+
+  useEffect(() => {
+    remainingRef.current = toast.duration;
+    scheduleDismiss();
+    return clearDismissTimer;
+  }, [clearDismissTimer, scheduleDismiss, toast.duration]);
+
+  const handleMouseEnter = () => {
+    clearDismissTimer();
+    const elapsed = Date.now() - timerStartRef.current;
+    remainingRef.current = Math.max(0, remainingRef.current - elapsed);
+    setPaused(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (remainingRef.current <= 0) {
+      onDismiss(toast.id);
+      return;
+    }
+    setPaused(false);
+    scheduleDismiss();
+  };
+
   return (
     <div
       className={cn(
@@ -80,12 +141,15 @@ function AccountToastCard({
       )}
       role="status"
       aria-live="polite"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-hidden">
         <div
           className={cn("h-full w-full origin-left", accentClass)}
           style={{
             animation: `account-toast-timer ${toast.duration}ms linear forwards`,
+            animationPlayState: paused ? "paused" : "running",
           }}
         />
       </div>
@@ -111,7 +175,9 @@ function AccountToastCard({
 }
 
 export function AccountToastHost() {
+  const pathname = usePathname();
   const [items, setItems] = useState<AccountToastItem[]>(toasts);
+  const belowHeader = hasFixedAppHeader(pathname);
 
   useEffect(() => {
     listeners.add(setItems);
@@ -126,9 +192,13 @@ export function AccountToastHost() {
     <div
       className={cn(
         "pointer-events-none fixed z-[100] flex w-[min(calc(100vw-2rem),380px)] flex-col gap-2",
-        "top-[calc(var(--header-height-mobile)+var(--top-banner-height)+var(--header-top-offset)+1rem)]",
-        "lg:top-[calc(var(--header-height-desktop)+var(--top-banner-height)+var(--header-top-offset)+2.25rem)]",
         "right-4 lg:right-8",
+        belowHeader
+          ? [
+              "top-[calc(var(--header-height-mobile)+var(--top-banner-height)+var(--header-top-offset)+1rem)]",
+              "lg:top-[calc(var(--header-height-desktop)+var(--top-banner-height)+var(--header-top-offset)+1rem)]",
+            ]
+          : "top-4",
       )}
     >
       {items.map((item) => (

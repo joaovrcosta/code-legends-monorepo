@@ -3,6 +3,7 @@ import { listPlans, listPublicPlans } from "./list.controller";
 import { getPlanById } from "./get-by-id.controller";
 import { createPlan } from "./create.controller";
 import { updatePlan } from "./update.controller";
+import { deletePlan } from "./delete.controller";
 import { verifyAdmin } from "../../middlewares/verify-admin";
 
 export async function planRoutes(app: FastifyInstance) {
@@ -14,4 +15,5 @@ export async function planRoutes(app: FastifyInstance) {
   app.get("/plans/:id", { onRequest: [verifyAdmin] }, getPlanById);
   app.post("/plans", { onRequest: [verifyAdmin] }, createPlan);
   app.patch("/plans/:id", { onRequest: [verifyAdmin] }, updatePlan);
+  app.delete("/plans/:id", { onRequest: [verifyAdmin] }, deletePlan);
 }
