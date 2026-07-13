@@ -4,7 +4,7 @@ import VideoComponent from '@/components/classroom/video'
 import { ComponentsArticle } from '@/components/classroom/article/components'
 import { QuizView } from '@/components/classroom/challenge/QuizView'
 import { ProjectView } from '@/components/classroom/project-view'
-import type { Lesson } from '@/types/roadmap'
+import type { LessonWithContent, RoadmapLesson } from '@/types/roadmap'
 import { memo } from 'react'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { SkillStatsOverview } from '@/components/classroom/skill-stats-overview'
@@ -15,7 +15,7 @@ import {
 } from '@/lib/classroom-content-layout'
 
 interface LessonContentProps {
-  lesson: Lesson
+  lesson: RoadmapLesson | LessonWithContent
   courseTitle?: string
   moduleTitle?: string
   groupTitle?: string
@@ -32,6 +32,7 @@ export const LessonContent = memo(function LessonContent({
   startVideoPlaybackAutoplay,
 }: LessonContentProps) {
   const { lastModuleCompletion, showModuleStatsOnce } = useCourseModalStore()
+  const contentLesson = lesson as LessonWithContent
 
   const shouldShowStats =
     lastModuleCompletion?.moduleCompleted && showModuleStatsOnce
@@ -64,26 +65,31 @@ export const LessonContent = memo(function LessonContent({
             <VideoComponent
               description={lesson.description}
               title={lesson.title}
-              src={lesson.video?.url ?? lesson.video_url ?? undefined}
-              providerHandlerKey={lesson.video?.provider?.handlerKey}
+              src={
+                contentLesson.video?.url ?? contentLesson.video_url ?? undefined
+              }
+              providerHandlerKey={contentLesson.video?.provider?.handlerKey}
               onVideoEnded={onVideoEnded}
               startPlaybackAutoplay={startVideoPlaybackAutoplay}
             />
           )}
           {(lesson?.type === 'article' || lesson?.type === 'text') && (
-            <ComponentsArticle lesson={lesson} moduleTitle={moduleTitle} />
+            <ComponentsArticle
+              lesson={contentLesson}
+              moduleTitle={moduleTitle}
+            />
           )}
           {(lesson?.type === 'quiz' || lesson?.type === 'multi_quiz') && (
             <QuizView
               lessonId={lesson.id}
               title={lesson.title}
               description={lesson.description}
-              challenges={lesson.quiz?.content ?? []}
+              challenges={contentLesson.quiz?.content ?? []}
               isMultiQuiz={lesson.type === 'multi_quiz'}
             />
           )}
           {lesson?.type === 'project' && (
-            <ProjectView lesson={lesson} moduleTitle={moduleTitle} />
+            <ProjectView lesson={contentLesson} moduleTitle={moduleTitle} />
           )}
         </div>
       </div>

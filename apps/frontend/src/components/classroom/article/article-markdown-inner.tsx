@@ -20,7 +20,7 @@ import { CalloutBlockquote } from './CalloutBlockquote'
 import { ChallengeBlock } from '@/components/classroom/article/challenge-block-dynamic'
 import { CodePlayground } from '@/components/code-playground'
 import { useArticlePlayground } from '@/contexts/article-playground-context'
-import type { Lesson, Challenge, PlaygroundBlock } from '@/types/roadmap'
+import type { LessonWithContent, Challenge, PlaygroundBlock } from '@/types/roadmap'
 import { normalizeChallengeType } from '@code-legends/challenges'
 import { HashIcon } from '@phosphor-icons/react/dist/ssr'
 import {
@@ -217,7 +217,7 @@ export function ArticleMarkdownInner({
   lesson,
 }: {
   body: string
-  lesson: Lesson
+  lesson: LessonWithContent
 }) {
   const h2SerialRef = useRef(0)
   h2SerialRef.current = 0

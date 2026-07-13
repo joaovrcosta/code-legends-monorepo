@@ -1,6 +1,6 @@
 // store/courseModalStore.ts
 import { create } from 'zustand'
-import type { Lesson, LessonStatus, LessonType } from '@/types/roadmap'
+import type { RoadmapLesson, LessonStatus, LessonType } from '@/types/roadmap'
 import { playLessonCompleteSuccess } from '@/lib/play-correct-chime'
 import type { Task } from '../../db'
 
@@ -16,21 +16,21 @@ interface ModuleCompletionInfo {
 
 interface CourseModalStore {
   isOpen: boolean
-  lessons: Lesson[]
+  lessons: RoadmapLesson[]
   currentIndex: number
-  openModalWithLessons: (lessons: Lesson[], startIndex?: number) => void
+  openModalWithLessons: (lessons: RoadmapLesson[], startIndex?: number) => void
   closeModal: () => void
   goToNextLesson: () => void
   goToPreviousLesson: () => void
-  openModalWithLesson: (lesson: Lesson) => void
+  openModalWithLesson: (lesson: RoadmapLesson) => void
   openModalWithTask: (task: Task) => void
-  setLessonsForPage: (lessons: Lesson[], startIndex?: number) => void
-  setLessonForPage: (lesson: Lesson) => void
+  setLessonsForPage: (lessons: RoadmapLesson[], startIndex?: number) => void
+  setLessonForPage: (lesson: RoadmapLesson) => void
   setTaskForPage: (task: Task) => void
   /** Sala de aula: paywall / upgrade — não há `currentLesson` novo, mas o header deve mostrar “Aula exclusiva”. */
   exclusiveAccessBlocked: boolean
   setExclusiveAccessBlocked: (blocked: boolean) => void
-  currentLesson: Lesson | null
+  currentLesson: RoadmapLesson | null
   updateCurrentLessonStatus: (status: LessonStatus) => void
   lessonCompletedTimestamp: number | null
   moduleUnlockedTimestamp: number | null
@@ -108,7 +108,7 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
     }
   },
 
-  openModalWithLesson: (lesson: Lesson) =>
+  openModalWithLesson: (lesson: RoadmapLesson) =>
     set({
       isOpen: true,
       lessons: [lesson],
@@ -117,14 +117,12 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
     }),
 
   openModalWithTask: (task: Task) => {
-    // Converte Task para Lesson
-    const lesson: Lesson = {
+    const lesson: RoadmapLesson = {
       id: task.id,
       title: task.title,
-      slug: `task-${task.id}`, // Gera um slug baseado no ID
+      slug: `task-${task.id}`,
       description: task.category || '',
       type: (task.type as LessonType) || 'video',
-      video_url: task.videoUrl || '',
       video_duration: '',
       order: task.id,
       status: task.locked
@@ -154,7 +152,7 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
       exclusiveAccessBlocked: false,
     }),
 
-  setLessonForPage: (lesson: Lesson) =>
+  setLessonForPage: (lesson: RoadmapLesson) =>
     set({
       isOpen: false, // Não abre o modal
       lessons: [lesson],
@@ -164,14 +162,12 @@ export const useCourseModalStore = create<CourseModalStore>((set, get) => ({
     }),
 
   setTaskForPage: (task: Task) => {
-    // Converte Task para Lesson
-    const lesson: Lesson = {
+    const lesson: RoadmapLesson = {
       id: task.id,
       title: task.title,
       slug: `task-${task.id}`,
       description: task.category || '',
       type: (task.type as LessonType) || 'video',
-      video_url: task.videoUrl || '',
       video_duration: '',
       order: task.id,
       status: task.locked

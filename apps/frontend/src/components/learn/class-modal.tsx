@@ -114,20 +114,33 @@ export const AulaModal = () => {
                   description={currentLesson.description}
                   title={currentLesson.title}
                   src={
-                    currentLesson.video?.url ??
-                    currentLesson.video_url ??
+                    (currentLesson as { video?: { url?: string | null }; video_url?: string | null })
+                      .video?.url ??
+                    (currentLesson as { video_url?: string | null }).video_url ??
                     undefined
                   }
-                  providerHandlerKey={currentLesson.video?.provider?.handlerKey}
+                  providerHandlerKey={
+                    (
+                      currentLesson as {
+                        video?: { provider?: { handlerKey?: string } | null }
+                      }
+                    ).video?.provider?.handlerKey
+                  }
                 />
               )}
               {(currentLesson?.type === 'article' ||
                 currentLesson?.type === 'text') &&
-                currentLesson && <ComponentsArticle lesson={currentLesson} />}
+                currentLesson && (
+                  <ComponentsArticle
+                    lesson={currentLesson as import('@/types/roadmap').LessonWithContent}
+                  />
+                )}
               {currentLesson?.type === 'quiz' && <p>Quiz bb</p>}
               {currentLesson?.type === 'project' &&
                 currentLesson && (
-                  <ProjectView lesson={currentLesson} />
+                  <ProjectView
+                    lesson={currentLesson as import('@/types/roadmap').LessonWithContent}
+                  />
                 )}
             </div>
           </>

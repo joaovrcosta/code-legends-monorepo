@@ -1,7 +1,7 @@
-import type { Lesson } from "@/types/roadmap";
+import type { LessonWithContent } from "@/types/roadmap";
 
 export interface LessonResponse {
-  lesson: Lesson;
+  lesson: LessonWithContent;
   moduleTitle: string;
   groupTitle: string;
   status: "completed" | "unlocked" | "locked";

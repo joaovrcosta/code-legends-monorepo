@@ -20,14 +20,32 @@ export interface PlaygroundBlock {
   playgroundId?: string;
 }
 
-export type Lesson = {
+/**
+ * Metadados de aula no GET roadmap (sem conteúdo pesado).
+ * Conteúdo completo vem de GET lesson-by-slug → LessonWithContent.
+ */
+export type RoadmapLesson = {
   id: number;
   title: string;
   slug: string;
   description: string;
   type: LessonType;
-  video_url?: string | null;
   video_duration?: string | null;
+  video?: {
+    duration?: string | null;
+  } | null;
+  order: number;
+  status: LessonStatus;
+  isCurrent: boolean;
+  canReview: boolean;
+  isFree?: boolean;
+  /** XP base estimado (sem challengeCount no roadmap). */
+  xpReward?: number;
+};
+
+/** Aula com conteúdo completo (player / artigo / quiz / projeto). */
+export type LessonWithContent = RoadmapLesson & {
+  video_url?: string | null;
   video?: {
     url?: string | null;
     duration?: string | null;
@@ -41,20 +59,16 @@ export type Lesson = {
   article?: { body: string } | null;
   quiz?: { content: Challenge[] } | null;
   project?: { description: string; specs?: PlaygroundBlock | null } | null;
-  order: number;
-  status: LessonStatus;
-  isCurrent: boolean;
-  canReview: boolean;
-  isFree?: boolean;
-  /** XP estimado ao concluir a aula (primeira vez). */
-  xpReward?: number;
 };
+
+/** @deprecated Prefer RoadmapLesson (lista) ou LessonWithContent (detalhe). */
+export type Lesson = LessonWithContent;
 
 export type Group = {
   id: number;
   title: string;
   slug?: string;
-  lessons: Lesson[];
+  lessons: RoadmapLesson[];
 };
 
 export type Module = {

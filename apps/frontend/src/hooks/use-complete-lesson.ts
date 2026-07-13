@@ -7,9 +7,9 @@ import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { applyModuleCompletionStatsIfNeeded } from '@/lib/apply-module-completion-stats'
-import type { Lesson } from '@/types/roadmap'
+import type { RoadmapLesson } from '@/types/roadmap'
 
-export function useCompleteLesson(lesson: Lesson | null, moduleTitle?: string) {
+export function useCompleteLesson(lesson: RoadmapLesson | null, moduleTitle?: string) {
   const [isMarking, setIsMarking] = useState(false)
   const { activeCourse, fetchActiveCourse } = useActiveCourseStore()
   const {

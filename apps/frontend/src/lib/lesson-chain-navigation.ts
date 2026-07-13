@@ -1,4 +1,4 @@
-import type { Lesson, LessonType } from '@/types/roadmap'
+import type { RoadmapLesson, LessonType } from '@/types/roadmap'
 import type { LessonResponse } from '@/actions/course/lesson-by-slug-shared'
 
 const NON_VIDEO_TYPES: LessonType[] = [
@@ -19,9 +19,9 @@ export function blocksAutoplayChain(type: LessonType | string | undefined): bool
 }
 
 export function findLessonBySlug(
-  lessons: Lesson[],
+  lessons: RoadmapLesson[],
   slug: string,
-): Lesson | undefined {
+): RoadmapLesson | undefined {
   return lessons.find((l) => l.slug === slug)
 }
 
@@ -31,7 +31,7 @@ type LessonNavNext = NonNullable<
 
 export function resolveAutoplayNextVideo(
   navigation: LessonResponse['navigation'] | undefined,
-  allLessons: Lesson[],
+  allLessons: RoadmapLesson[],
 ): LessonNavNext | null {
   const next = navigation?.next
   if (!next) return null

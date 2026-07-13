@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { pickContinueTargetLesson } from './lesson-url'
-import type { Lesson } from '../types/roadmap'
+import type { RoadmapLesson } from '../types/roadmap'
 
 function lesson(
   id: number,
-  status: Lesson['status'],
+  status: RoadmapLesson['status'],
   isCurrent = false,
-): Lesson {
+): RoadmapLesson {
   return {
     id,
     title: `Lesson ${id}`,

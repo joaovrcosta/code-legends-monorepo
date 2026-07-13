@@ -4,7 +4,7 @@ import DividerWithText from "@/components/divider-with-text";
 import type { RoadmapResponse } from "@/types/roadmap";
 import type { ActiveCourse } from "@/types/user-course.ts";
 import { LessonPopover } from "@/components/learn/lesson-popover";
-import type { Lesson } from "@/types/roadmap";
+import type { RoadmapLesson } from "@/types/roadmap";
 
 interface LessonsContentProps {
   roadmap: RoadmapResponse;
@@ -13,8 +13,8 @@ interface LessonsContentProps {
   togglePopover: (id: number) => void;
   showContinue: boolean;
   setShowContinue: (show: boolean) => void;
-  firstIncompleteLesson: Lesson | undefined;
-  allLessons: Lesson[];
+  firstIncompleteLesson: RoadmapLesson | undefined;
+  allLessons: RoadmapLesson[];
   taskRefs: React.MutableRefObject<{ [key: number]: HTMLDivElement | null }>;
   isPaidUser?: boolean;
 }

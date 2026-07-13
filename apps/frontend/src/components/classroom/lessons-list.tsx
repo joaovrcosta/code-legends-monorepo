@@ -1,7 +1,7 @@
 'use client'
 
 import { useCourseModalStore } from '@/stores/course-modal-store'
-import type { Lesson, RoadmapResponse } from '@/types/roadmap'
+import type { RoadmapLesson, RoadmapResponse } from '@/types/roadmap'
 import {
   appendCourseIdToClassroomHref,
   findLessonContext,
@@ -23,7 +23,7 @@ import { ProgressRing } from '@/components/classroom/module-progress-ring'
 import { Skeleton } from '@/components/skeleton'
 import { CheckIcon } from '@phosphor-icons/react'
 
-function getLessonMeta(lesson: Lesson) {
+function getLessonMeta(lesson: RoadmapLesson) {
   const typeLabel =
     lesson.type === 'video'
       ? 'Vídeo'
@@ -43,7 +43,7 @@ function getLessonMeta(lesson: Lesson) {
 }
 
 interface LessonsListProps {
-  lessons: Lesson[]
+  lessons: RoadmapLesson[]
   currentLessonId?: number
   activeLessonId?: number
   paywallLessonId?: number
@@ -77,7 +77,7 @@ export const LessonsList = memo(function LessonsList({
   }, [roadmap])
 
   const handleLessonClick = useCallback(
-    (lesson: Lesson, index: number) => {
+    (lesson: RoadmapLesson, index: number) => {
       if (!roadmap?.modules) return
 
       const context = findLessonContext(lesson.id, roadmap.modules)

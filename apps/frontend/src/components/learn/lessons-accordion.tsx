@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/skeleton'
 import { useClassroomRoadmap } from '@/components/classroom/classroom-roadmap-context'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
 import { useMemo, useCallback } from 'react'
-import type { Lesson } from '@/types/roadmap'
+import type { RoadmapLesson } from '@/types/roadmap'
 import { useSyncClassroomModuleAccordion } from '@/hooks/use-sync-classroom-module-accordion'
 import {
   appendCourseIdToClassroomHref,
@@ -22,7 +22,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { ChevronDown } from 'lucide-react'
 
-function getLessonMeta(lesson: Lesson) {
+function getLessonMeta(lesson: RoadmapLesson) {
   const typeLabel =
     lesson.type === 'video'
       ? 'Vídeo'
@@ -60,7 +60,7 @@ export function LessonsAccordion() {
   }, [roadmap])
 
   const handleLessonClick = useCallback(
-    (lesson: Lesson) => {
+    (lesson: RoadmapLesson) => {
       if (!roadmap?.modules) return
 
       const context = findLessonContext(lesson.id, roadmap.modules)

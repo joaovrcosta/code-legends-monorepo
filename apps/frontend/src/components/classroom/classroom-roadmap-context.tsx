@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
-import type { Lesson, LessonStatus, RoadmapResponse } from '@/types/roadmap'
+import type { LessonStatus, RoadmapLesson, RoadmapResponse } from '@/types/roadmap'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import useClassroomSidebarStore from '@/stores/classroom-sidebar'
@@ -31,7 +31,7 @@ export type ClassroomRoadmapContextValue = {
   activeLessonId: number | undefined
   /** Aula da URL com paywall — destaque sutil (não confundir com aula ativa). */
   paywallLessonId: number | undefined
-  allLessons: Lesson[]
+  allLessons: RoadmapLesson[]
   refreshRoadmap: (options?: RefreshRoadmapOptions) => Promise<RoadmapResponse | null>
   patchLessonStatus: (lessonId: number, status: LessonStatus) => void
 }

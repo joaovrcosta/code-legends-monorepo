@@ -11,7 +11,7 @@ import { SkipBack, LockOpen } from '@phosphor-icons/react/dist/ssr'
 import { useEffect, useMemo, useCallback, useState } from 'react'
 import { unlockNextModule } from '@/actions/course'
 import { isLessonAccessibleForUser } from '@/utils/lesson-access'
-import type { Lesson } from '@/types/roadmap'
+import type { RoadmapLesson } from '@/types/roadmap'
 import { useClassroomRoadmap } from '@/components/classroom/classroom-roadmap-context'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -139,7 +139,7 @@ export default function ClassroomPage() {
   }, [currentIndex, lessons])
 
   const navigateToLesson = useCallback(
-    (lesson: Lesson) => {
+    (lesson: RoadmapLesson) => {
       if (!roadmap?.modules) return
 
       const context = findLessonContext(lesson.id, roadmap.modules)

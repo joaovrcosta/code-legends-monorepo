@@ -1,13 +1,13 @@
-import type { Lesson, Module, Group } from "@/types/roadmap";
+import type { RoadmapLesson, Module, Group } from "@/types/roadmap";
 
 /**
  * Escolhe a aula para "continuar" ao entrar no classroom: primeira não concluída
  * na ordem do roadmap, depois fallbacks (isCurrent, unlocked, etc.).
  */
 export function pickContinueTargetLesson(
-  allLessons: Lesson[],
-  isAccessible: (lesson: Lesson) => boolean = () => true,
-): Lesson | null {
+  allLessons: RoadmapLesson[],
+  isAccessible: (lesson: RoadmapLesson) => boolean = () => true,
+): RoadmapLesson | null {
   const firstPending = allLessons.find(
     (l) => l.status !== "completed" && isAccessible(l),
   );
@@ -60,7 +60,7 @@ export function generateSlug(text: string): string {
  * /classroom/{module-slug}/group/{group-slug}/lesson/{lesson-slug}
  */
 export function generateLessonUrl(
-  lesson: Lesson,
+  lesson: RoadmapLesson,
   module: Module,
   group: Group
 ): string {

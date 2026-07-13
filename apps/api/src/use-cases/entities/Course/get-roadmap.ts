@@ -41,24 +41,19 @@ interface RoadmapLesson {
   slug: string
   description: string
   type: string
-  video_url: string | null
   video_duration: string | null
-  video?: {
-    url: string | null
+  video: {
     duration: string | null
-    provider?: {
-      id: string
-      slug: string
-      name: string
-      handlerKey: string
-    } | null
   } | null
-  article?: { body: string } | null
   order: number
   status: 'locked' | 'unlocked' | 'completed'
   isCurrent: boolean
   canReview: boolean
   isFree: boolean
+  /**
+   * XP base estimado (challengeCount=0).
+   * Não carrega Quiz.content no roadmap — follow-up: Quiz.challengeCount.
+   */
   xpReward: number
 }
 
@@ -151,10 +146,8 @@ export class GetRoadmapUseCase {
                 order: 'asc',
               },
               include: {
-                video: true,
-                article: true,
-                quiz: true,
-                project: true,
+                // Roadmap leve: só metadados. Conteúdo vem de GET lesson-by-slug.
+                video: { select: { duration: true } },
               },
             },
           },
@@ -286,55 +279,25 @@ export class GetRoadmapUseCase {
           const isCurrent = lesson.id === validCurrentTaskId
           const canReview = isCompleted
 
-          const lessonWithContent = lesson as typeof lesson & {
-            video?: {
-              url: string | null
-              duration: string | null
-              provider?: {
-                id: string
-                slug: string
-                name: string
-                handlerKey: string
-              } | null
-            } | null
-            article?: { body: string } | null
-            quiz?: { content: unknown } | null
-            project?: { description: string; specs: unknown } | null
-          }
-          const videoRow = lessonWithContent.video
-          const videoPayload = videoRow
-            ? {
-                url: videoRow.url,
-                duration: videoRow.duration,
-                provider: videoRow.provider
-                  ? {
-                      id: videoRow.provider.id,
-                      slug: videoRow.provider.slug,
-                      name: videoRow.provider.name,
-                      handlerKey: videoRow.provider.handlerKey,
-                    }
-                  : null,
-              }
-            : null
+          const videoDuration = lesson.video?.duration ?? null
           const lessonType = lesson.type.toLowerCase()
-          const challengeCount = Array.isArray(lessonWithContent.quiz?.content)
-            ? lessonWithContent.quiz.content.length
-            : 0
-          const xpReward = computeEstimatedLessonXpReward(lessonType, gamification, {
-            challengeCount,
-          })
+          // Base XP only — do not load Quiz.content here (I/O). Accurate quiz XP
+          // needs Quiz.challengeCount denormalized later.
+          const xpReward = computeEstimatedLessonXpReward(
+            lessonType,
+            gamification,
+            { challengeCount: 0 },
+          )
           return {
             id: lesson.id,
             title: lesson.title,
             slug: lesson.slug,
             description: lesson.description,
             type: lessonType,
-            video_url: videoRow?.url ?? null,
-            video_duration: videoRow?.duration ?? null,
-            video: videoPayload,
-            article: lessonWithContent.article ?? null,
-            quiz: lessonWithContent.quiz ?? null,
-            project: lessonWithContent.project ?? null,
+            video_duration: videoDuration,
+            video: videoDuration !== null || lesson.video
+              ? { duration: videoDuration }
+              : null,
             order: lesson.order,
             status,
             isCurrent,
@@ -489,10 +452,7 @@ export class GetRoadmapUseCase {
             if (isCompleted) {
               progress = 100
             } else if (userProgress?.timeSpent) {
-              const lessonWithContent = lesson as typeof lesson & {
-                video?: { duration: string | null } | null
-              }
-              const duration = lessonWithContent.video?.duration
+              const duration = lesson.video?.duration
               if (duration) {
                 const durationSeconds = parseDurationToSeconds(duration)
                 if (durationSeconds > 0) {
@@ -506,14 +466,11 @@ export class GetRoadmapUseCase {
               }
             }
 
-            const lessonWithContent = lesson as typeof lesson & {
-              video?: { duration: string | null } | null
-            }
             currentLessonInfo = {
               id: lesson.id,
               title: lesson.title,
               description: lesson.description,
-              duration: lessonWithContent.video?.duration ?? null,
+              duration: lesson.video?.duration ?? null,
               progress,
             }
             break

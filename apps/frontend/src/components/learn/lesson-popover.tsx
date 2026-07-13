@@ -12,7 +12,7 @@ import { FastForward, Lock } from "@phosphor-icons/react/dist/ssr";
 import { CirclePlay } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Lesson, RoadmapResponse } from "@/types/roadmap";
+import type { RoadmapLesson, RoadmapResponse } from "@/types/roadmap";
 import { useCourseModalStore } from "@/stores/course-modal-store";
 import { generateLessonUrl, findLessonContext } from "@/utils/lesson-url";
 import { LessonPlatformIcon } from "./svgs/lesson-platform-icon";
@@ -30,7 +30,7 @@ export const LessonPopover = ({
   allLessons,
   roadmap,
 }: {
-  lesson: Lesson;
+  lesson: RoadmapLesson;
   openPopover: number | null;
   togglePopover: (id: number) => void;
   showContinue: boolean;
@@ -39,7 +39,7 @@ export const LessonPopover = ({
   locked: boolean;
   lockedByPlan?: boolean;
   currentCourseSlug: string;
-  allLessons?: Lesson[];
+  allLessons?: RoadmapLesson[];
   roadmap?: RoadmapResponse;
   isFirstInModule?: boolean;
 }) => {

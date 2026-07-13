@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import { ArticlePlaygroundProvider, useArticlePlayground } from '@/contexts/article-playground-context'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
 import { useCompleteLesson } from '@/hooks/use-complete-lesson'
-import type { Lesson } from '@/types/roadmap'
+import type { LessonWithContent } from '@/types/roadmap'
 import { CLASSROOM_CONTENT_NESTED_RADIUS_CLASS } from '@/lib/classroom-content-layout'
 
 const ArticleMarkdownInner = dynamic(
@@ -28,7 +28,7 @@ export function ComponentsArticle({
   lesson,
   moduleTitle,
 }: {
-  lesson: Lesson
+  lesson: LessonWithContent
   moduleTitle?: string
 }) {
   const body = lesson.article?.body?.trim()

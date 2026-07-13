@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { Lesson } from '@/types/roadmap'
+import type { LessonWithContent } from '@/types/roadmap'
 import { CodePlayground } from '@/components/code-playground'
 import { continueCourse } from '@/actions/course'
 import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
@@ -13,7 +13,7 @@ import { CompleteLessonButton } from '@/components/classroom/complete-lesson-but
 import { CLASSROOM_CONTENT_NESTED_RADIUS_CLASS } from '@/lib/classroom-content-layout'
 
 interface ProjectViewProps {
-  lesson: Lesson
+  lesson: LessonWithContent
   moduleTitle?: string
 }
 
