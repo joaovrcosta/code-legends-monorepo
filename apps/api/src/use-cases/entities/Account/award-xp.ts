@@ -101,35 +101,37 @@ export class AwardXpUseCase {
       throw err
     }
 
-    for (const entry of normalizedEntries) {
-      await tx.userSkillXp.upsert({
-        where: {
-          userId_skillId: {
+    await Promise.all(
+      normalizedEntries.map((entry) =>
+        tx.userSkillXp.upsert({
+          where: {
+            userId_skillId: {
+              userId,
+              skillId: entry.skillId,
+            },
+          },
+          update: {
+            xp: { increment: entry.xpAmount },
+          },
+          create: {
             userId,
             skillId: entry.skillId,
+            xp: entry.xpAmount,
           },
-        },
-        update: {
-          xp: { increment: entry.xpAmount },
-        },
-        create: {
-          userId,
-          skillId: entry.skillId,
-          xp: entry.xpAmount,
-        },
-      })
+        }),
+      ),
+    )
 
-      await tx.userSkillXpHistory.create({
-        data: {
-          userId,
-          skillId: entry.skillId,
-          xpAmount: entry.xpAmount,
-          source,
-          sourceId: sourceId ?? null,
-          description,
-        },
-      })
-    }
+    await tx.userSkillXpHistory.createMany({
+      data: normalizedEntries.map((entry) => ({
+        userId,
+        skillId: entry.skillId,
+        xpAmount: entry.xpAmount,
+        source,
+        sourceId: sourceId ?? null,
+        description,
+      })),
+    })
 
     // Mantém o histórico global (útil para timeline), mas o total/cache vem da soma das skills.
     await tx.userXpHistory.create({

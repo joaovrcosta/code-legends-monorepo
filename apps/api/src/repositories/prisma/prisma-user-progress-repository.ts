@@ -61,35 +61,48 @@ export class PrismaUserProgressRepository implements IUserProgressRepository {
     score?: number;
     timeSpent?: number;
     lastPosition?: number;
+    wasAlreadyCompleted?: boolean;
   }): Promise<UserProgress> {
-    const existing = await this.findByUserAndTask(data.userId, data.taskId);
-
-    if (existing) {
-      const userProgress = await prisma.userProgress.update({
-        where: {
-          userId_taskId: {
-            userId: data.userId,
-            taskId: data.taskId,
-          },
-        },
-        data: {
-          isCompleted: data.isCompleted,
-          completedAt: data.isCompleted ? new Date() : existing.completedAt,
-          score: data.score ?? existing.score,
-          timeSpent: data.timeSpent
-            ? existing.timeSpent + data.timeSpent
-            : existing.timeSpent,
-          lastPosition: data.lastPosition ?? existing.lastPosition,
-          attempts:
-            existing.attempts +
-            (data.isCompleted && !existing.isCompleted ? 1 : 0),
-        },
-      });
-
-      return userProgress;
+    let wasAlreadyCompleted = data.wasAlreadyCompleted;
+    if (wasAlreadyCompleted === undefined) {
+      const existing = await this.findByUserAndTask(data.userId, data.taskId);
+      wasAlreadyCompleted = existing?.isCompleted ?? false;
     }
 
-    return this.create(data);
+    const transitionToCompleted =
+      data.isCompleted && !wasAlreadyCompleted;
+
+    return prisma.userProgress.upsert({
+      where: {
+        userId_taskId: {
+          userId: data.userId,
+          taskId: data.taskId,
+        },
+      },
+      create: {
+        userId: data.userId,
+        taskId: data.taskId,
+        userCourseId: data.userCourseId,
+        isCompleted: data.isCompleted,
+        completedAt: data.isCompleted ? new Date() : null,
+        score: data.score ?? null,
+        timeSpent: data.timeSpent ?? 0,
+        lastPosition: data.lastPosition ?? null,
+        attempts: 1,
+      },
+      update: {
+        isCompleted: data.isCompleted,
+        ...(data.isCompleted ? { completedAt: new Date() } : {}),
+        ...(data.score !== undefined ? { score: data.score } : {}),
+        ...(data.timeSpent
+          ? { timeSpent: { increment: data.timeSpent } }
+          : {}),
+        ...(data.lastPosition !== undefined
+          ? { lastPosition: data.lastPosition }
+          : {}),
+        ...(transitionToCompleted ? { attempts: { increment: 1 } } : {}),
+      },
+    });
   }
 
   async countCompletedInModule(
@@ -120,5 +133,17 @@ export class PrismaUserProgressRepository implements IUserProgressRepository {
     });
 
     return userProgresses;
+  }
+
+  async findSlimByUserCourse(
+    userCourseId: string,
+  ): Promise<Array<{ taskId: number; isCompleted: boolean }>> {
+    return prisma.userProgress.findMany({
+      where: { userCourseId },
+      select: {
+        taskId: true,
+        isCompleted: true,
+      },
+    });
   }
 }

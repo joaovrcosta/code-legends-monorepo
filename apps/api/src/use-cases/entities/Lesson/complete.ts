@@ -1,9 +1,6 @@
 import { IUserProgressRepository } from '../../../repositories/user-progress-repository'
 import { IUserModuleProgressRepository } from '../../../repositories/user-module-progress-repository'
 import { IUserCourseRepository } from '../../../repositories/user-course-repository'
-import { ILessonRepository } from '../../../repositories/lesson-repository'
-import { IModuleRepository } from '../../../repositories/module-repository'
-import { ICourseRepository } from '../../../repositories/course-repository'
 import { IUsersRepository } from '../../../repositories/users-repository'
 import { LessonNotFoundError } from '../../errors/lesson-not-found'
 import { CourseNotFoundError } from '../../errors/course-not-found'
@@ -20,12 +17,17 @@ import {
   lessonCompletedXpReasonId,
   shouldGrantLessonCompletionXp,
 } from './lesson-complete-xp-gate'
-import { resolveUserStreakForApi } from '../../../lib/user-streak-resolve'
 import {
   addDaysToISODateKeySP,
+  effectiveCurrentStreak,
   formatYYYYMMDDInTZSP,
 } from '../../../utils/streak-calendar'
 import { aggregateModuleXpBySkill } from '../../../utils/module-xp-aggregation'
+
+const COMPLETE_LESSON_TX = {
+  maxWait: 10_000,
+  timeout: 15_000,
+} as const
 
 interface CompleteLessonRequest {
   userId: string
@@ -58,6 +60,34 @@ interface CompleteLessonResponse {
   }
 }
 
+type CourseLessonRef = { id: number; order: number; moduleId: string }
+
+function isLessonUnlockedFromMap(
+  lessonIndex: number,
+  allLessons: CourseLessonRef[],
+  completedByTaskId: Map<number, boolean>,
+): boolean {
+  if (lessonIndex <= 0) return true
+  const previous = allLessons[lessonIndex - 1]
+  return completedByTaskId.get(previous.id) === true
+}
+
+export function findNextUnlockedLessonId(
+  allLessons: CourseLessonRef[],
+  currentLessonId: number,
+  completedByTaskId: Map<number, boolean>,
+): number | null {
+  const currentIndex = allLessons.findIndex((l) => l.id === currentLessonId)
+  if (currentIndex === -1) return null
+
+  for (let i = currentIndex + 1; i < allLessons.length; i++) {
+    if (isLessonUnlockedFromMap(i, allLessons, completedByTaskId)) {
+      return allLessons[i].id
+    }
+  }
+  return null
+}
+
 export class CompleteLessonUseCase {
   private readonly awardXpUseCase = new AwardXpUseCase()
 
@@ -65,92 +95,184 @@ export class CompleteLessonUseCase {
     private userProgressRepository: IUserProgressRepository,
     private userModuleProgressRepository: IUserModuleProgressRepository,
     private userCourseRepository: IUserCourseRepository,
-    private lessonRepository: ILessonRepository,
-    private moduleRepository: IModuleRepository,
-    private courseRepository: ICourseRepository,
     private usersRepository: IUsersRepository,
-  ) { }
+  ) {}
 
   async execute({
     userId,
     lessonId,
     score,
   }: CompleteLessonRequest): Promise<CompleteLessonResponse> {
-    const lesson = await this.lessonRepository.findById(lessonId)
-    if (!lesson) {
-      throw new LessonNotFoundError()
-    }
-
-    const group = await prisma.submodule.findUnique({
-      where: { id: lesson.submoduleId },
-      include: {
-        module: true,
+    const lesson = await prisma.lesson.findUnique({
+      where: { id: lessonId },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        submoduleId: true,
+        submodule: {
+          select: {
+            id: true,
+            moduleId: true,
+            module: {
+              select: {
+                id: true,
+                title: true,
+                courseId: true,
+                course: {
+                  select: {
+                    id: true,
+                    title: true,
+                    slug: true,
+                    status: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     })
 
-    if (!group) {
-      throw new Error('Group not found')
+    if (!lesson?.submodule?.module?.course) {
+      throw new LessonNotFoundError()
     }
 
-    const courseId = group.module.courseId
-
-    const courseSkills = await prisma.courseSkill.findMany({
-      where: { courseId },
-    })
-
-    const lessonSkills = await prisma.lessonSkill.findMany({
-      where: { lessonId },
-    })
-
-    const course = await this.courseRepository.findById(courseId)
-    if (!course) {
-      throw new CourseNotFoundError()
-    }
+    const moduleId = lesson.submodule.moduleId
+    const moduleTitle = lesson.submodule.module.title
+    const course = lesson.submodule.module.course
+    const courseId = course.id
 
     if (course.status !== 'PUBLISHED') {
       throw new CourseNotFoundError()
     }
 
-    // Regra nova: não dependemos mais de inscrição explícita.
-    // Se o usuário ainda não tem UserCourse, criamos automaticamente ao concluir a primeira lição.
+    const [courseSkills, lessonSkills, existingUserCourse] = await Promise.all([
+      prisma.courseSkill.findMany({ where: { courseId } }),
+      prisma.lessonSkill.findMany({ where: { lessonId } }),
+      this.userCourseRepository.findByUserAndCourse(userId, courseId),
+    ])
+
     const userCourse =
-      (await this.userCourseRepository.findByUserAndCourse(userId, courseId)) ??
+      existingUserCourse ??
       (await this.userCourseRepository.enroll(userId, courseId))
 
-    const existingProgress =
-      await this.userProgressRepository.findByUserAndTask(userId, lessonId)
-    const wasAlreadyCompleted = existingProgress?.isCompleted ?? false
+    const [modulesTree, progressRows, existingModuleProgress, user, gamification] =
+      await Promise.all([
+        prisma.module.findMany({
+          where: { courseId },
+          select: {
+            id: true,
+            title: true,
+            submodules: {
+              select: {
+                id: true,
+                lessons: {
+                  select: { id: true, order: true },
+                  orderBy: { order: 'asc' },
+                },
+              },
+              orderBy: { id: 'asc' },
+            },
+          },
+          orderBy: { id: 'asc' },
+        }),
+        this.userProgressRepository.findSlimByUserCourse(userCourse.id),
+        this.userModuleProgressRepository.findByUserAndModule(userId, moduleId),
+        this.usersRepository.findById(userId),
+        getGamificationSettingsCached(),
+      ])
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    const allLessons: CourseLessonRef[] = []
+    const moduleLessonIds = new Set<number>()
+    for (const mod of modulesTree) {
+      for (const submodule of mod.submodules) {
+        for (const l of submodule.lessons) {
+          allLessons.push({ id: l.id, order: l.order, moduleId: mod.id })
+          if (mod.id === moduleId) {
+            moduleLessonIds.add(l.id)
+          }
+        }
+      }
+    }
+
+    const completedByTaskId = new Map<number, boolean>()
+    for (const row of progressRows) {
+      completedByTaskId.set(row.taskId, row.isCompleted)
+    }
+
+    const wasAlreadyCompleted = completedByTaskId.get(lessonId) === true
 
     const lessonType = lesson.type as string
     const isMultiQuiz = lessonType === 'MULTI_QUIZ'
     const isCompleted = isMultiQuiz && score != null ? score >= 70 : true
 
-    await this.userProgressRepository.upsert({
-      userId,
-      taskId: lessonId,
-      userCourseId: userCourse.id,
-      isCompleted,
-      score,
-    })
+    // Contagens / unlock após aplicar o resultado desta conclusão em memória.
+    completedByTaskId.set(lessonId, isCompleted)
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd6a1ea' }, body: JSON.stringify({ sessionId: 'd6a1ea', runId: 'pre-fix', hypothesisId: 'H2', location: 'complete.ts:after_progress_upsert', message: 'User progress upserted', data: { lessonId, isCompleted, wasAlreadyCompleted }, timestamp: Date.now() }) }).catch(() => { });
-    // #endregion
+    const totalTasksInModule = moduleLessonIds.size
+    let tasksCompleted = 0
+    for (const id of moduleLessonIds) {
+      if (completedByTaskId.get(id) === true) tasksCompleted++
+    }
+
+    const moduleProgress =
+      totalTasksInModule > 0 ? tasksCompleted / totalTasksInModule : 0
+    const moduleCompleted =
+      totalTasksInModule > 0 && tasksCompleted === totalTasksInModule
+    const wasModuleAlreadyCompleted =
+      existingModuleProgress?.isCompleted ?? false
+    const moduleNewlyCompleted =
+      moduleCompleted && !wasModuleAlreadyCompleted
+
+    const nextLessonId = findNextUnlockedLessonId(
+      allLessons,
+      lessonId,
+      completedByTaskId,
+    )
+
+    let completedLessons = 0
+    for (const l of allLessons) {
+      if (completedByTaskId.get(l.id) === true) completedLessons++
+    }
+
+    const courseProgress =
+      allLessons.length > 0 ? completedLessons / allLessons.length : 0
+    const courseCompleted =
+      allLessons.length > 0 && completedLessons === allLessons.length
+    const wasCourseCompleted = userCourse.isCompleted
+    const isNewlyCompleted = courseCompleted && !wasCourseCompleted
+
+    const effectiveNextTaskId = isCompleted ? nextLessonId : lessonId
+    const nextLessonRef = effectiveNextTaskId
+      ? allLessons.find((l) => l.id === effectiveNextTaskId)
+      : null
+    const nextModuleId = nextLessonRef?.moduleId
+    const currentModuleIdForPointer = userCourse.currentModuleId ?? moduleId
 
     let xpGained = 0
     let totalXp = 0
     let level = 1
     let xpToNextLevel = 100
     let streak:
-      | { current: number; best: number; totalActiveDays: number; increasedToday: boolean }
+      | {
+          current: number
+          best: number
+          totalActiveDays: number
+          increasedToday: boolean
+        }
       | undefined
-
-    const user = await this.usersRepository.findById(userId)
-    if (!user) {
-      throw new Error('User not found')
-    }
-
-    const gamification = await getGamificationSettingsCached()
+    let levelUpNotification:
+      | {
+          level: number
+          totalXp: number
+          xpToNextLevel: number
+        }
+      | null = null
 
     const xpAmount =
       isMultiQuiz && score != null && score >= 70
@@ -167,6 +289,7 @@ export class CompleteLessonUseCase {
             reasonId: lessonXpReasonId,
           },
         },
+        select: { userId: true },
       })
       lessonXpEventExists = existingLessonXpEvent != null
     }
@@ -177,13 +300,72 @@ export class CompleteLessonUseCase {
       lessonXpEventExists,
     })
 
-    if (isCompleted) {
-      const todayKey = formatYYYYMMDDInTZSP(new Date())
-      if (todayKey) {
-        await resolveUserStreakForApi(userId)
-        const yesterdayKey = addDaysToISODateKeySP(todayKey, -1)
+    const applySkillsXp = (
+      skillRows: Array<{ skillId: string; weight: number }>,
+    ) => {
+      if (skillRows.length === 0 || xpAmount <= 0) return []
+      return skillRows
+        .map((row) => ({
+          skillId: row.skillId,
+          xpAmount: Math.round(xpAmount * (row.weight / 100)),
+        }))
+        .filter((e) => e.xpAmount > 0)
+    }
 
-        const row = await prisma.$transaction(async (tx) => {
+    const userCourseUpdateData =
+      nextLessonRef && effectiveNextTaskId !== null
+      ? {
+          currentTaskId: effectiveNextTaskId,
+          currentModuleId:
+            nextModuleId && nextModuleId !== moduleId
+              ? (userCourse.currentModuleId ?? nextModuleId)
+              : currentModuleIdForPointer,
+          progress: courseProgress,
+          isCompleted: courseCompleted,
+          completedAt: courseCompleted ? new Date() : null,
+          lastAccessedAt: new Date(),
+        }
+      : {
+          currentTaskId: null,
+          progress: courseProgress,
+          isCompleted: courseCompleted,
+          completedAt: courseCompleted ? new Date() : null,
+          lastAccessedAt: new Date(),
+        }
+
+    await prisma.$transaction(async (tx) => {
+      const transitionToCompleted = isCompleted && !wasAlreadyCompleted
+
+      await tx.userProgress.upsert({
+        where: {
+          userId_taskId: {
+            userId,
+            taskId: lessonId,
+          },
+        },
+        create: {
+          userId,
+          taskId: lessonId,
+          userCourseId: userCourse.id,
+          isCompleted,
+          completedAt: isCompleted ? new Date() : null,
+          score: score ?? null,
+          timeSpent: 0,
+          lastPosition: null,
+          attempts: 1,
+        },
+        update: {
+          isCompleted,
+          ...(isCompleted ? { completedAt: new Date() } : {}),
+          ...(score !== undefined ? { score } : {}),
+          ...(transitionToCompleted ? { attempts: { increment: 1 } } : {}),
+        },
+      })
+
+      if (isCompleted) {
+        const todayKey = formatYYYYMMDDInTZSP(new Date())
+        if (todayKey) {
+          const yesterdayKey = addDaysToISODateKeySP(todayKey, -1)
           const existing = await tx.userStreak.findUnique({
             where: { userId },
             select: {
@@ -194,6 +376,25 @@ export class CompleteLessonUseCase {
             },
           })
 
+          const effective = existing
+            ? effectiveCurrentStreak(
+                existing.currentStreak,
+                existing.lastActiveDate,
+              )
+            : 0
+
+          if (
+            existing &&
+            effective === 0 &&
+            existing.currentStreak !== 0
+          ) {
+            await tx.userStreak.update({
+              where: { userId },
+              data: { currentStreak: 0 },
+            })
+            existing.currentStreak = 0
+          }
+
           const wasReset =
             existing != null &&
             existing.currentStreak === 0 &&
@@ -201,10 +402,18 @@ export class CompleteLessonUseCase {
             existing.lastActiveDate == null
 
           if (wasAlreadyCompleted && !wasReset) {
-            return existing ? { ...existing, increasedToday: false } : null
-          }
-
-          if (!existing) {
+            if (existing) {
+              streak = {
+                current: effectiveCurrentStreak(
+                  existing.currentStreak,
+                  existing.lastActiveDate,
+                ),
+                best: existing.bestStreak,
+                totalActiveDays: existing.totalActiveDays,
+                increasedToday: false,
+              }
+            }
+          } else if (!existing) {
             const created = await tx.userStreak.create({
               data: {
                 userId,
@@ -217,63 +426,55 @@ export class CompleteLessonUseCase {
                 currentStreak: true,
                 bestStreak: true,
                 totalActiveDays: true,
-                lastActiveDate: true,
               },
             })
-            return { ...created, increasedToday: true }
-          }
-
-          if (existing.lastActiveDate === todayKey) {
-            return { ...existing, increasedToday: false }
-          }
-
-          const isConsecutive = yesterdayKey != null && existing.lastActiveDate === yesterdayKey
-          const nextCurrent = isConsecutive ? existing.currentStreak + 1 : 1
-          const nextBest = Math.max(existing.bestStreak, nextCurrent)
-          const updated = await tx.userStreak.update({
-            where: { userId },
-            data: {
-              currentStreak: nextCurrent,
-              bestStreak: nextBest,
-              totalActiveDays: existing.totalActiveDays + 1,
-              lastActiveDate: todayKey,
-            },
-            select: {
-              currentStreak: true,
-              bestStreak: true,
-              totalActiveDays: true,
-              lastActiveDate: true,
-            },
-          })
-          return { ...updated, increasedToday: true }
-        })
-
-        if (row) {
-          streak = {
-            current: row.currentStreak,
-            best: row.bestStreak,
-            totalActiveDays: row.totalActiveDays,
-            increasedToday: row.increasedToday,
+            streak = {
+              current: created.currentStreak,
+              best: created.bestStreak,
+              totalActiveDays: created.totalActiveDays,
+              increasedToday: true,
+            }
+          } else if (existing.lastActiveDate === todayKey) {
+            streak = {
+              current: existing.currentStreak,
+              best: existing.bestStreak,
+              totalActiveDays: existing.totalActiveDays,
+              increasedToday: false,
+            }
+          } else {
+            const isConsecutive =
+              yesterdayKey != null && existing.lastActiveDate === yesterdayKey
+            const nextCurrent = isConsecutive ? existing.currentStreak + 1 : 1
+            const nextBest = Math.max(existing.bestStreak, nextCurrent)
+            const updated = await tx.userStreak.update({
+              where: { userId },
+              data: {
+                currentStreak: nextCurrent,
+                bestStreak: nextBest,
+                totalActiveDays: existing.totalActiveDays + 1,
+                lastActiveDate: todayKey,
+              },
+              select: {
+                currentStreak: true,
+                bestStreak: true,
+                totalActiveDays: true,
+              },
+            })
+            streak = {
+              current: updated.currentStreak,
+              best: updated.bestStreak,
+              totalActiveDays: updated.totalActiveDays,
+              increasedToday: true,
+            }
           }
         }
       }
-    }
 
-    if (shouldGrantLessonXp) {
-      const applySkillsXp = (
-        skillRows: Array<{ skillId: string; weight: number }>,
-      ) => {
-        if (skillRows.length === 0 || xpAmount <= 0) return []
-        return skillRows
-          .map((row) => ({
-            skillId: row.skillId,
-            xpAmount: Math.round(xpAmount * (row.weight / 100)),
-          }))
-          .filter((e) => e.xpAmount > 0)
-      }
-
-      await prisma.$transaction(async (tx) => {
-        const entries = [...applySkillsXp(courseSkills), ...applySkillsXp(lessonSkills)]
+      if (shouldGrantLessonXp) {
+        const entries = [
+          ...applySkillsXp(courseSkills),
+          ...applySkillsXp(lessonSkills),
+        ]
         const distributedXp = entries.reduce((acc, e) => acc + e.xpAmount, 0)
 
         if (distributedXp < xpAmount) {
@@ -283,7 +484,8 @@ export class CompleteLessonUseCase {
             create: {
               slug: 'general',
               name: 'Geral',
-              description: 'XP global/bônus não atribuído a uma skill específica.',
+              description:
+                'XP global/bônus não atribuído a uma skill específica.',
             },
             select: { id: true },
           })
@@ -309,24 +511,50 @@ export class CompleteLessonUseCase {
         xpToNextLevel = awardResult.xpToNextLevel
 
         if (awardResult.levelUp) {
-          try {
-            const notificationData =
-              NotificationBuilder.createLevelUpNotification(userId, {
-                level: awardResult.level,
-                totalXp: awardResult.totalXp,
-                xpToNextLevel: awardResult.xpToNextLevel,
-              })
-
-            await createNotification({
-              ...notificationData,
-              tx,
-            })
-          } catch (error) {
-            console.error('Erro ao criar notificação de level up:', error)
+          levelUpNotification = {
+            level: awardResult.level,
+            totalXp: awardResult.totalXp,
+            xpToNextLevel: awardResult.xpToNextLevel,
           }
         }
+      }
+
+      const newlyModuleCompleted =
+        moduleCompleted && !wasModuleAlreadyCompleted
+
+      await tx.userModuleProgress.upsert({
+        where: {
+          userId_moduleId: {
+            userId,
+            moduleId,
+          },
+        },
+        create: {
+          userId,
+          moduleId,
+          userCourseId: userCourse.id,
+          totalTasks: totalTasksInModule,
+          tasksCompleted,
+          progress: moduleProgress,
+          isCompleted: moduleCompleted,
+          completedAt: moduleCompleted ? new Date() : null,
+        },
+        update: {
+          totalTasks: totalTasksInModule,
+          tasksCompleted,
+          progress: moduleProgress,
+          isCompleted: moduleCompleted,
+          ...(newlyModuleCompleted ? { completedAt: new Date() } : {}),
+        },
       })
-    } else {
+
+      await tx.userCourse.update({
+        where: { id: userCourse.id },
+        data: userCourseUpdateData,
+      })
+    }, COMPLETE_LESSON_TX)
+
+    if (!shouldGrantLessonXp) {
       const agg = await prisma.userSkillXp.aggregate({
         where: { userId },
         _sum: { xp: true },
@@ -351,174 +579,16 @@ export class CompleteLessonUseCase {
       }
     }
 
-    const moduleWithLessons = await prisma.module.findUnique({
-      where: { id: group.moduleId },
-      include: {
-        submodules: {
-          include: {
-            lessons: {
-              orderBy: {
-                order: 'asc',
-              },
-            },
-          },
-          orderBy: {
-            id: 'asc',
-          },
-        },
-      },
-    })
-
-    if (!moduleWithLessons) {
-      throw new Error('Module not found')
-    }
-
-    const totalTasksInModule = moduleWithLessons.submodules.reduce(
-      (acc, group) => acc + group.lessons.length,
-      0,
-    )
-
-    const tasksCompleted =
-      await this.userProgressRepository.countCompletedInModule(
-        userId,
-        group.moduleId,
-      )
-
-    const moduleProgress =
-      totalTasksInModule > 0 ? tasksCompleted / totalTasksInModule : 0
-    const moduleCompleted = tasksCompleted === totalTasksInModule
-
-    const existingModuleProgress =
-      await this.userModuleProgressRepository.findByUserAndModule(
-        userId,
-        group.moduleId,
-      )
-    const wasModuleAlreadyCompleted =
-      existingModuleProgress?.isCompleted ?? false
-    const moduleNewlyCompleted =
-      moduleCompleted && !wasModuleAlreadyCompleted
-
-    await this.userModuleProgressRepository.upsert({
-      userId,
-      moduleId: group.moduleId,
-      userCourseId: userCourse.id,
-      totalTasks: totalTasksInModule,
-      tasksCompleted,
-      progress: moduleProgress,
-      isCompleted: moduleCompleted,
-    })
-
-    const allLessons = await this.getAllLessonsInOrder(courseId)
-
-    let nextLessonId: number | null = null
-    const currentLessonIndex = allLessons.findIndex((l) => l.id === lessonId)
-
-    if (currentLessonIndex !== -1) {
-      for (let i = currentLessonIndex + 1; i < allLessons.length; i++) {
-        const nextLesson = allLessons[i]
-        const isUnlocked = await this.isLessonUnlocked(
+    if (levelUpNotification) {
+      try {
+        const notificationData = NotificationBuilder.createLevelUpNotification(
           userId,
-          nextLesson.id,
-          allLessons,
+          levelUpNotification,
         )
-
-        if (isUnlocked) {
-          nextLessonId = nextLesson.id
-          break
-        }
+        await createNotification(notificationData)
+      } catch (error) {
+        console.error('Erro ao criar notificação de level up:', error)
       }
-    }
-
-    const completedLessons = await prisma.userProgress.count({
-      where: {
-        userId,
-        isCompleted: true,
-        task: {
-          submodule: {
-            module: {
-              courseId,
-            },
-          },
-        },
-      },
-    })
-
-    const courseProgress =
-      allLessons.length > 0 ? completedLessons / allLessons.length : 0
-    const courseCompleted = completedLessons === allLessons.length
-    const wasCourseCompleted = userCourse.isCompleted
-    const isNewlyCompleted = courseCompleted && !wasCourseCompleted
-
-    const totalLessonsInDb = await prisma.lesson.count({
-      where: {
-        submodule: { module: { courseId } },
-      },
-    })
-    if (allLessons.length !== totalLessonsInDb) {
-      const lessonsWithTypes = await prisma.lesson.findMany({
-        where: { submodule: { module: { courseId } } },
-        select: { id: true, type: true, title: true },
-        orderBy: [{ submoduleId: 'asc' }, { order: 'asc' }],
-      })
-      console.warn('[COURSE_COMPLETION_DEBUG] Inconsistência na contagem de lições', {
-        courseId,
-        courseTitle: course.title,
-        allLessonsFromGetAll: allLessons.length,
-        totalLessonsInDb,
-        completedLessons,
-        courseProgress: Math.round(courseProgress * 100),
-        courseCompleted,
-        lessonIdsFromGetAll: allLessons.map((l) => l.id),
-        lessonsInDb: lessonsWithTypes.map((l) => ({ id: l.id, type: l.type, title: l.title })),
-      })
-    }
-
-    const effectiveNextTaskId = isCompleted ? nextLessonId : lessonId
-    const nextLesson = effectiveNextTaskId
-      ? allLessons.find((l) => l.id === effectiveNextTaskId)
-      : null
-
-    if (nextLesson && effectiveNextTaskId !== null) {
-      const nextLessonGroup = await prisma.submodule.findFirst({
-        where: {
-          lessons: {
-            some: {
-              id: effectiveNextTaskId,
-            },
-          },
-        },
-        include: {
-          module: true,
-        },
-      })
-
-      const nextModuleId = nextLessonGroup?.moduleId
-      const currentModuleId = group.moduleId
-
-      if (nextModuleId && nextModuleId !== currentModuleId) {
-        await this.userCourseRepository.update(userCourse.id, {
-          currentTaskId: effectiveNextTaskId,
-          currentModuleId: userCourse.currentModuleId ?? nextModuleId,
-          progress: courseProgress,
-          isCompleted: courseCompleted,
-          completedAt: courseCompleted ? new Date() : null,
-        })
-      } else {
-        await this.userCourseRepository.update(userCourse.id, {
-          currentTaskId: effectiveNextTaskId,
-          currentModuleId: userCourse.currentModuleId ?? currentModuleId,
-          progress: courseProgress,
-          isCompleted: courseCompleted,
-          completedAt: courseCompleted ? new Date() : null,
-        })
-      }
-    } else {
-      await this.userCourseRepository.update(userCourse.id, {
-        currentTaskId: null,
-        progress: courseProgress,
-        isCompleted: courseCompleted,
-        completedAt: courseCompleted ? new Date() : null,
-      })
     }
 
     if (isNewlyCompleted) {
@@ -540,35 +610,31 @@ export class CompleteLessonUseCase {
     let xpGainedInModuleBySkill: { skillId: string; xp: number }[] | undefined
 
     if (moduleCompleted) {
-      const moduleLessonIds = moduleWithLessons.submodules.flatMap((s) =>
-        s.lessons.map((l) => l.id),
-      )
-
+      const moduleLessonIdList = [...moduleLessonIds]
       const historyRows = await prisma.userSkillXpHistory.findMany({
         where: {
           userId,
           source: { in: ['lesson_completed', 'challenge_first_correct'] },
-          sourceId: { in: moduleLessonIds },
+          sourceId: { in: moduleLessonIdList },
         },
         select: { skillId: true, xpAmount: true, source: true, sourceId: true },
       })
 
-      const aggregated = aggregateModuleXpBySkill(historyRows, moduleLessonIds)
+      const aggregated = aggregateModuleXpBySkill(
+        historyRows,
+        moduleLessonIdList,
+      )
       xpGainedInModule = aggregated.xpGainedInModule
       xpGainedInModuleBySkill = aggregated.xpGainedInModuleBySkill
     }
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/61681d87-9b85-44a2-a3f8-024fd9404ca8', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd6a1ea' }, body: JSON.stringify({ sessionId: 'd6a1ea', runId: 'pre-fix', hypothesisId: 'H3', location: 'complete.ts:before_return', message: 'Complete lesson success path', data: { lessonId, moduleCompleted, courseCompleted, xpGained }, timestamp: Date.now() }) }).catch(() => { });
-    // #endregion
 
     return {
       success: true,
       nextLessonId,
       moduleCompleted,
       moduleNewlyCompleted,
-      moduleId: group.moduleId,
-      moduleTitle: group.module.title,
+      moduleId,
+      moduleTitle,
       courseCompleted,
       courseProgress,
       xpGained,
@@ -582,89 +648,5 @@ export class CompleteLessonUseCase {
         xpGainedInModuleBySkill,
       }),
     }
-  }
-
-  private calculateXpForLevel(level: number): number {
-    if (level <= 1) return 100
-    return 100 * level + 25 * (level - 1) * level
-  }
-
-  private calculateXpRequiredForNextLevel(level: number): number {
-    return 100 + (level - 1) * 50
-  }
-
-  private calculateLevel(totalXp: number): number {
-    if (totalXp < 100) return 1
-
-    let level = 1
-    while (this.calculateXpForLevel(level + 1) <= totalXp) {
-      level++
-    }
-    return level
-  }
-
-  private calculateXpToNextLevel(level: number, totalXp: number): number {
-    const xpForCurrentLevel = this.calculateXpForLevel(level)
-    const xpForNextLevel = this.calculateXpForLevel(level + 1)
-    const xpNeeded = xpForNextLevel - totalXp
-    return Math.max(0, xpNeeded)
-  }
-
-  private async getAllLessonsInOrder(courseId: string) {
-    const modules = await prisma.module.findMany({
-      where: { courseId },
-      include: {
-        submodules: {
-          include: {
-            lessons: {
-              orderBy: {
-                order: 'asc',
-              },
-            },
-          },
-          orderBy: {
-            id: 'asc',
-          },
-        },
-      },
-      orderBy: {
-        id: 'asc',
-      },
-    })
-
-    const allLessons: Array<{ id: number; order: number }> = []
-    for (const module of modules) {
-      for (const group of module.submodules) {
-        for (const lesson of group.lessons) {
-          allLessons.push({
-            id: lesson.id,
-            order: lesson.order,
-          })
-        }
-      }
-    }
-
-    return allLessons
-  }
-
-  private async isLessonUnlocked(
-    userId: string,
-    lessonId: number,
-    allLessons: Array<{ id: number }>,
-  ): Promise<boolean> {
-    const lessonIndex = allLessons.findIndex((l) => l.id === lessonId)
-
-    if (lessonIndex === 0) {
-      return true
-    }
-
-    const previousLesson = allLessons[lessonIndex - 1]
-    const previousProgress =
-      await this.userProgressRepository.findByUserAndTask(
-        userId,
-        previousLesson.id,
-      )
-
-    return previousProgress?.isCompleted ?? false
   }
 }

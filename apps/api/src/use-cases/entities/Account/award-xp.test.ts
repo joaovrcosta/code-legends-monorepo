@@ -82,6 +82,7 @@ function makeFakePrisma() {
     },
     userSkillXpHistory: {
       create: vi.fn(async () => ({})),
+      createMany: vi.fn(async () => ({ count: 0 })),
     },
     userXpHistory: {
       create: vi.fn(async () => ({})),

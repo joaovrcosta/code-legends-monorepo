@@ -54,33 +54,37 @@ export class PrismaUserModuleProgressRepository
     tasksCompleted: number;
     progress: number;
     isCompleted: boolean;
+    /** Se false e isCompleted, seta completedAt; se já era complete, preserva via omit no caller. */
+    wasAlreadyCompleted?: boolean;
   }): Promise<UserModuleProgress> {
-    const existing = await this.findByUserAndModule(data.userId, data.moduleId);
+    const newlyCompleted =
+      data.isCompleted && !(data.wasAlreadyCompleted ?? false);
 
-    if (existing) {
-      const userModuleProgress = await prisma.userModuleProgress.update({
-        where: {
-          userId_moduleId: {
-            userId: data.userId,
-            moduleId: data.moduleId,
-          },
+    return prisma.userModuleProgress.upsert({
+      where: {
+        userId_moduleId: {
+          userId: data.userId,
+          moduleId: data.moduleId,
         },
-        data: {
-          totalTasks: data.totalTasks,
-          tasksCompleted: data.tasksCompleted,
-          progress: data.progress,
-          isCompleted: data.isCompleted,
-          completedAt:
-            data.isCompleted && !existing.isCompleted
-              ? new Date()
-              : existing.completedAt,
-        },
-      });
-
-      return userModuleProgress;
-    }
-
-    return this.create(data);
+      },
+      create: {
+        userId: data.userId,
+        moduleId: data.moduleId,
+        userCourseId: data.userCourseId,
+        totalTasks: data.totalTasks,
+        tasksCompleted: data.tasksCompleted,
+        progress: data.progress,
+        isCompleted: data.isCompleted,
+        completedAt: data.isCompleted ? new Date() : null,
+      },
+      update: {
+        totalTasks: data.totalTasks,
+        tasksCompleted: data.tasksCompleted,
+        progress: data.progress,
+        isCompleted: data.isCompleted,
+        ...(newlyCompleted ? { completedAt: new Date() } : {}),
+      },
+    });
   }
 
   async findByUserCourse(userCourseId: string): Promise<UserModuleProgress[]> {

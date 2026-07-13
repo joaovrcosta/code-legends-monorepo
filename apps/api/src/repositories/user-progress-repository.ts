@@ -23,7 +23,12 @@ export interface IUserProgressRepository {
     score?: number;
     timeSpent?: number;
     lastPosition?: number;
+    wasAlreadyCompleted?: boolean;
   }): Promise<UserProgress>;
   countCompletedInModule(userId: string, moduleId: string): Promise<number>;
   findByUserCourse(userCourseId: string): Promise<UserProgress[]>;
+  /** Progresso mínimo por enrollment — evita JOIN com Lesson. */
+  findSlimByUserCourse(
+    userCourseId: string,
+  ): Promise<Array<{ taskId: number; isCompleted: boolean }>>;
 }

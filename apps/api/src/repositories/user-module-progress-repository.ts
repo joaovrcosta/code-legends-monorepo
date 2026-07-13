@@ -22,6 +22,7 @@ export interface IUserModuleProgressRepository {
     tasksCompleted: number;
     progress: number;
     isCompleted: boolean;
+    wasAlreadyCompleted?: boolean;
   }): Promise<UserModuleProgress>;
   findByUserCourse(userCourseId: string): Promise<UserModuleProgress[]>;
 }
