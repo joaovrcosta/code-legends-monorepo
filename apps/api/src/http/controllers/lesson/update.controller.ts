@@ -14,7 +14,7 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
   const updateLessonBodySchema = z.object({
     title: z.string().optional(),
     description: z.string().optional(),
-    type: z.enum(["video", "article", "text", "quiz", "multi_quiz", "project"]).optional(),
+    type: z.enum(["video", "article", "text", "quiz", "multi_quiz", "project", "lab"]).optional(),
     slug: z.string().optional(),
     url: z.string().optional(),
     isFree: z.boolean().optional(),
@@ -25,6 +25,12 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
     quiz_content: z.array(z.unknown()).optional(),
     project_description: z.string().optional(),
     project_specs: z.unknown().optional(),
+    lab_description: z.string().optional(),
+    lab_category: z.string().nullable().optional(),
+    lab_learn_title: z.string().nullable().optional(),
+    lab_duration_minutes: z.number().int().nullable().optional(),
+    lab_learn_body: z.string().nullable().optional(),
+    lab_specs: z.unknown().optional(),
     locked: z.boolean().optional(),
     order: z.number().optional(),
   });

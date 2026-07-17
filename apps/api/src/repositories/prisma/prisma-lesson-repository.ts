@@ -33,6 +33,7 @@ const LESSON_TYPE_MAP: Record<string, string> = {
   quiz: 'QUIZ',
   multi_quiz: 'MULTI_QUIZ',
   project: 'PROJECT',
+  lab: 'LAB',
 }
 
 export class PrismaLessonRepository implements ILessonRepository {
@@ -70,6 +71,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         article: true,
         quiz: true,
         project: true,
+        lab: true,
       },
     })
 
@@ -92,7 +94,7 @@ export class PrismaLessonRepository implements ILessonRepository {
       include: {
         video: { include: { provider: true } },
         ...(includeContent
-          ? { article: true, quiz: true, project: true }
+          ? { article: true, quiz: true, project: true, lab: true }
           : {}),
       },
       orderBy: {
@@ -138,6 +140,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         article: true,
         quiz: true,
         project: true,
+        lab: true,
       },
     })
 
@@ -196,6 +199,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         article: true,
         quiz: true,
         project: true,
+        lab: true,
       },
     })
 
@@ -245,6 +249,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         article: true,
         quiz: true,
         project: true,
+        lab: true,
       },
     })
 
@@ -296,6 +301,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         article: true,
         quiz: true,
         project: true,
+        lab: true,
       },
     })
     return lesson
@@ -340,6 +346,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         article: true,
         quiz: true,
         project: true,
+        lab: true,
       },
     })
 
@@ -377,6 +384,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         article: true,
         quiz: true,
         project: true,
+        lab: true,
       },
     })
 

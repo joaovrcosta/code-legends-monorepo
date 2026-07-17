@@ -24,6 +24,8 @@ export function mapLessonTypeToCategoryLabel(type: LessonType): string {
       return 'Questionário'
     case 'project':
       return 'Projeto'
+    case 'lab':
+      return 'Lab'
     default:
       return 'Lição'
   }

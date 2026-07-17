@@ -7,6 +7,7 @@ import { InvalidVideoUrlForProviderError } from "../../errors/invalid-video-url-
 import { IArticleRepository } from "../../../repositories/article-repository";
 import { IQuizRepository } from "../../../repositories/quiz-repository";
 import { IProjectRepository } from "../../../repositories/project-repository";
+import { ILabRepository } from "../../../repositories/lab-repository";
 import { LessonNotFoundError } from "../../errors/lesson-not-found";
 import { LessonAlreadyExistsError } from "../../errors/lesson-already-exists";
 
@@ -25,6 +26,12 @@ interface UpdateLessonRequest {
   quiz_content?: unknown[];
   project_description?: string;
   project_specs?: unknown;
+  lab_description?: string;
+  lab_category?: string | null;
+  lab_learn_title?: string | null;
+  lab_duration_minutes?: number | null;
+  lab_learn_body?: string | null;
+  lab_specs?: unknown;
   locked?: boolean;
   order?: number;
 }
@@ -41,7 +48,8 @@ export class UpdateLessonUseCase {
     private videoProviderRepository: IVideoProviderRepository,
     private articleRepository: IArticleRepository,
     private quizRepository: IQuizRepository,
-    private projectRepository: IProjectRepository
+    private projectRepository: IProjectRepository,
+    private labRepository: ILabRepository
   ) {}
 
   async execute(data: UpdateLessonRequest): Promise<UpdateLessonResponse> {
@@ -68,6 +76,12 @@ export class UpdateLessonUseCase {
       quiz_content,
       project_description,
       project_specs,
+      lab_description,
+      lab_category,
+      lab_learn_title,
+      lab_duration_minutes,
+      lab_learn_body,
+      lab_specs,
       ...updateData
     } = data;
     const updatedLesson = await this.lessonRepository.update(data.id, updateData);
@@ -140,6 +154,16 @@ export class UpdateLessonUseCase {
       await this.projectRepository.upsert(lesson.id, {
         description: project_description,
         specs: project_specs,
+      });
+    }
+    if (data.type === "lab") {
+      await this.labRepository.upsert(lesson.id, {
+        description: lab_description,
+        category: lab_category,
+        learnTitle: lab_learn_title,
+        durationMinutes: lab_duration_minutes,
+        learnBody: lab_learn_body,
+        specs: lab_specs,
       });
     }
 

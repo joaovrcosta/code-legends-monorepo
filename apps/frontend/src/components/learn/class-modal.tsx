@@ -14,6 +14,7 @@ import { useActiveCourseStore } from '@/stores/active-course-store'
 import VideoComponent from '../classroom/video'
 import { ComponentsArticle } from '../classroom/article/components'
 import { ProjectView } from '../classroom/project-view'
+import { LabView } from '../classroom/lab/lab-view'
 import { Menu, X } from 'lucide-react'
 import { LevelProgressBar } from './level-progress-bar'
 import { SkipForward } from '@phosphor-icons/react'
@@ -139,6 +140,12 @@ export const AulaModal = () => {
               {currentLesson?.type === 'project' &&
                 currentLesson && (
                   <ProjectView
+                    lesson={currentLesson as import('@/types/roadmap').LessonWithContent}
+                  />
+                )}
+              {currentLesson?.type === 'lab' &&
+                currentLesson && (
+                  <LabView
                     lesson={currentLesson as import('@/types/roadmap').LessonWithContent}
                   />
                 )}

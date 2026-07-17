@@ -1,0 +1,26 @@
+{
+  "template": "react",
+  "files": {
+    "/App.js": "// Crie a variável favoriteFood abaixo:\n\n\n// Crie a variável numOfSlices abaixo:\n\n\n// Use console.log() para imprimir o valor de favoriteFood abaixo:\n\n\n// Use console.log() para imprimir o valor de numOfSlices abaixo:\n"
+  },
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "Declare uma variável chamada `favoriteFood` usando a palavra-chave `var` e atribua a ela a string `'pizza'`.",
+      "hint": "var favoriteFood = 'pizza';",
+      "testFile": "import fs from 'fs';\nimport * as mod from './App.js';\n\nconst code = fs.readFileSync('/App.js', 'utf8');\n\ntest('declara favoriteFood com var', () => {\n  expect(code).toMatch(/var\\s+favoriteFood\\s*=/);\n});\n\ntest('favoriteFood é pizza', () => {\n  expect(mod.favoriteFood).toBe('pizza');\n});\n"
+    },
+    {
+      "id": "step-2",
+      "title": "Declare uma variável chamada `numOfSlices` usando a palavra-chave `var` e atribua a ela o número `8`.",
+      "hint": "var numOfSlices = 8;",
+      "testFile": "import fs from 'fs';\nimport * as mod from './App.js';\n\nconst code = fs.readFileSync('/App.js', 'utf8');\n\ntest('declara numOfSlices com var', () => {\n  expect(code).toMatch(/var\\s+numOfSlices\\s*=/);\n});\n\ntest('numOfSlices é 8', () => {\n  expect(mod.numOfSlices).toBe(8);\n});\n"
+    },
+    {
+      "id": "step-3",
+      "title": "Abaixo da variável `numOfSlices`, use `console.log()` para imprimir `favoriteFood`. Na linha seguinte, use `console.log()` para imprimir `numOfSlices`.",
+      "hint": "console.log(favoriteFood);\\nconsole.log(numOfSlices);",
+      "testFile": "import fs from 'fs';\n\nconst code = fs.readFileSync('/App.js', 'utf8');\n\ntest('faz console.log de favoriteFood', () => {\n  expect(code).toMatch(/console\\.log\\s*\\(\\s*favoriteFood\\s*\\)/);\n});\n\ntest('faz console.log de numOfSlices', () => {\n  expect(code).toMatch(/console\\.log\\s*\\(\\s*numOfSlices\\s*\\)/);\n});\n"
+    }
+  ]
+}

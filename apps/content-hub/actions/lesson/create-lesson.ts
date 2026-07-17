@@ -17,6 +17,12 @@ export interface CreateLessonData {
   quiz_content?: unknown[];
   project_description?: string;
   project_specs?: unknown;
+  lab_description?: string;
+  lab_category?: string | null;
+  lab_learn_title?: string | null;
+  lab_duration_minutes?: number | null;
+  lab_learn_body?: string | null;
+  lab_specs?: unknown;
   locked?: boolean;
   order?: number;
 }

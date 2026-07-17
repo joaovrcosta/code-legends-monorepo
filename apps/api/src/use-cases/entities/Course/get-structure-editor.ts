@@ -95,6 +95,16 @@ function mapLessonForEditor(
         specs: lesson.project.specs ?? null,
       }
     }
+    if (lesson.lab) {
+      mapped.lab = {
+        description: lesson.lab.description,
+        category: lesson.lab.category ?? null,
+        learnTitle: lesson.lab.learnTitle ?? null,
+        durationMinutes: lesson.lab.durationMinutes ?? null,
+        learnBody: lesson.lab.learnBody ?? null,
+        specs: lesson.lab.specs ?? null,
+      }
+    }
   }
 
   return mapped
@@ -141,7 +151,7 @@ export class GetCourseStructureEditorUseCase {
                   include: {
                     video: { include: { provider: true } },
                     ...(includeContent
-                      ? { article: true, quiz: true, project: true }
+                      ? { article: true, quiz: true, project: true, lab: true }
                       : {}),
                   },
                 },

@@ -47,6 +47,14 @@ export interface LessonWithStructure {
   article?: { body: string } | null;
   quiz?: { content: import('../lesson/list-lessons').Challenge[] } | null;
   project?: { description: string; specs?: Record<string, unknown> | null } | null;
+  lab?: {
+    description: string;
+    category?: string | null;
+    learnTitle?: string | null;
+    durationMinutes?: number | null;
+    learnBody?: string | null;
+    specs?: Record<string, unknown> | null;
+  } | null;
   locked: boolean;
   completed: boolean;
   submoduleId: number;
@@ -91,6 +99,7 @@ function mapLessonFromApi(lesson: Record<string, unknown>): LessonWithStructure 
     article: (lesson.article as LessonWithStructure["article"]) ?? null,
     quiz: (lesson.quiz as LessonWithStructure["quiz"]) ?? null,
     project: (lesson.project as LessonWithStructure["project"]) ?? null,
+    lab: (lesson.lab as LessonWithStructure["lab"]) ?? null,
     locked: Boolean(lesson.locked),
     completed: false,
     submoduleId: Number(lesson.submoduleId ?? 0),
@@ -197,6 +206,7 @@ async function getCourseWithStructureLegacy(
               article: lesson.article ?? null,
               quiz: lesson.quiz ?? null,
               project: lesson.project ?? null,
+              lab: (lesson as { lab?: LessonWithStructure["lab"] }).lab ?? null,
               locked: lesson.locked,
               completed: false,
               submoduleId: lesson.submoduleId,

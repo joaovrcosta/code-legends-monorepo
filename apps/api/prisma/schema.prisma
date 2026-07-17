@@ -387,6 +387,7 @@ model Lesson {
   article        Article?
   quiz           Quiz?
   project        Project?
+  lab            Lab?
   skills         LessonSkill[]
   production     LessonProduction?
   productionLogs LessonProductionLog[]
@@ -451,6 +452,7 @@ enum LessonType {
   QUIZ       @map("quiz")
   MULTI_QUIZ @map("multi_quiz")
   PROJECT    @map("project")
+  LAB        @map("lab")
 }
 
 enum VideoProviderStatus {
@@ -546,6 +548,20 @@ model Project {
   specs       Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Lab {
+  id              String   @id @default(cuid())
+  lessonId        Int      @unique
+  lesson          Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  description     String   @db.Text
+  category        String?
+  learnTitle      String?
+  durationMinutes Int?
+  learnBody       String?  @db.Text
+  specs           Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Skill {

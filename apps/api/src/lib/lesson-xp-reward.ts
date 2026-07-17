@@ -25,6 +25,6 @@ export function computeEstimatedLessonXpReward(
     return gamification.xpPerLesson + challenges * perChallenge
   }
 
-  // complete.ts usa xpPerLesson para vídeo, artigo, texto e projeto
+  // complete.ts usa xpPerLesson para vídeo, artigo, texto, projeto e lab
   return gamification.xpPerLesson
 }

@@ -7,6 +7,7 @@ const NON_VIDEO_TYPES: LessonType[] = [
   'quiz',
   'multi_quiz',
   'project',
+  'lab',
 ]
 
 export function isVideoLessonType(type: LessonType | string | undefined): boolean {

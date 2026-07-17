@@ -13,6 +13,20 @@ export interface ProjectSpecs {
   tests?: Record<string, string>;
 }
 
+export interface LabStep {
+  id: string;
+  title: string;
+  hint?: string;
+  testFile?: string;
+  tests?: Record<string, string>;
+}
+
+export interface LabSpecs {
+  files?: Record<string, string>;
+  template?: string;
+  steps?: LabStep[];
+}
+
 export interface LessonWithContentDTO {
   id: number;
   title: string;
@@ -40,6 +54,14 @@ export interface LessonWithContentDTO {
   project?: {
     description: string;
     specs?: ProjectSpecs | null;
+  } | null;
+  lab?: {
+    description: string;
+    category?: string | null;
+    learnTitle?: string | null;
+    durationMinutes?: number | null;
+    learnBody?: string | null;
+    specs?: LabSpecs | null;
   } | null;
   xpReward?: number;
 }

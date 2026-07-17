@@ -53,6 +53,7 @@ import {
   type LessonBreadcrumbContext,
   type VideoLessonNeighbor,
 } from '@/lib/course-structure'
+import { LAB_SPECS_PLACEHOLDER } from '@/lib/lab-specs-placeholder'
 import { LessonContextBreadcrumb } from './lesson-context-breadcrumb'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SegmentedControl } from '@/components/ui/segmented-control'
@@ -94,12 +95,14 @@ function mergeLessonPropPreservingContent(
   const nextHasQuiz =
     Array.isArray(next.quiz?.content) && next.quiz.content.length > 0
   const nextHasProject = Boolean(next.project)
+  const nextHasLab = Boolean(next.lab)
 
   return {
     ...next,
     article: nextHasArticleBody ? next.article : (prev.article ?? next.article),
     quiz: nextHasQuiz ? next.quiz : (prev.quiz ?? next.quiz),
     project: nextHasProject ? next.project : (prev.project ?? next.project),
+    lab: nextHasLab ? next.lab : (prev.lab ?? next.lab),
   }
 }
 
@@ -159,6 +162,7 @@ export function LessonEditView({
       'quiz',
       'multi_quiz',
       'project',
+      'lab',
     ] as const
     const raw = (type ?? '').toString().trim().toLowerCase()
     if (!raw) return 'video'
@@ -171,6 +175,7 @@ export function LessonEditView({
       quiz: 'quiz',
       multi_quiz: 'multi_quiz',
       project: 'project',
+      lab: 'lab',
     }
     return fromEnum[raw] ?? 'video'
   }
@@ -188,6 +193,15 @@ export function LessonEditView({
     body: resolvedLesson.article?.body ?? '',
     project_description: resolvedLesson.project?.description ?? '',
     project_specs: JSON.stringify(resolvedLesson.project?.specs ?? {}, null, 2),
+    lab_description: resolvedLesson.lab?.description ?? '',
+    lab_category: resolvedLesson.lab?.category ?? '',
+    lab_learn_title: resolvedLesson.lab?.learnTitle ?? '',
+    lab_duration_minutes:
+      resolvedLesson.lab?.durationMinutes != null
+        ? String(resolvedLesson.lab.durationMinutes)
+        : '',
+    lab_learn_body: resolvedLesson.lab?.learnBody ?? '',
+    lab_specs: JSON.stringify(resolvedLesson.lab?.specs ?? {}, null, 2),
     isFree: false,
     locked: resolvedLesson.locked,
     order: resolvedLesson.order,
@@ -271,6 +285,15 @@ export function LessonEditView({
         body: resolvedLesson.article?.body ?? '',
         project_description: resolvedLesson.project?.description ?? '',
         project_specs: JSON.stringify(resolvedLesson.project?.specs ?? {}, null, 2),
+        lab_description: resolvedLesson.lab?.description ?? '',
+        lab_category: resolvedLesson.lab?.category ?? '',
+        lab_learn_title: resolvedLesson.lab?.learnTitle ?? '',
+        lab_duration_minutes:
+          resolvedLesson.lab?.durationMinutes != null
+            ? String(resolvedLesson.lab.durationMinutes)
+            : '',
+        lab_learn_body: resolvedLesson.lab?.learnBody ?? '',
+        lab_specs: JSON.stringify(resolvedLesson.lab?.specs ?? {}, null, 2),
         isFree: resolvedLesson.isFree,
         locked: resolvedLesson.locked,
         order: resolvedLesson.order,
@@ -595,6 +618,24 @@ Vamos passar por cada linha juntos...`
                 }
               })(),
             }
+            : formData.type === 'lab'
+              ? {
+                ...basePayload,
+                lab_description: formData.lab_description,
+                lab_category: formData.lab_category || null,
+                lab_learn_title: formData.lab_learn_title || null,
+                lab_duration_minutes: formData.lab_duration_minutes
+                  ? Number(formData.lab_duration_minutes)
+                  : null,
+                lab_learn_body: formData.lab_learn_body || null,
+                lab_specs: (() => {
+                  try {
+                    return JSON.parse(formData.lab_specs || '{}')
+                  } catch {
+                    return {}
+                  }
+                })(),
+              }
             : formData.type === 'video'
               ? {
                 ...basePayload,
@@ -717,6 +758,25 @@ Vamos passar por cada linha juntos...`
               })(),
             }
             : null,
+        lab:
+          formData.type === 'lab'
+            ? {
+              description: formData.lab_description,
+              category: formData.lab_category || null,
+              learnTitle: formData.lab_learn_title || null,
+              durationMinutes: formData.lab_duration_minutes
+                ? Number(formData.lab_duration_minutes)
+                : null,
+              learnBody: formData.lab_learn_body || null,
+              specs: (() => {
+                try {
+                  return JSON.parse(formData.lab_specs || '{}')
+                } catch {
+                  return {}
+                }
+              })(),
+            }
+            : null,
         production: nextProduction,
       })
       toast.success('Aula salva com sucesso')
@@ -766,7 +826,8 @@ Vamos passar por cada linha juntos...`
                   | 'text'
                   | 'quiz'
                   | 'multi_quiz'
-                  | 'project',
+                  | 'project'
+                  | 'lab',
               })
             }
             required
@@ -777,6 +838,7 @@ Vamos passar por cada linha juntos...`
             <option value="quiz">Quiz</option>
             <option value="multi_quiz">Multi quiz</option>
             <option value="project">Projeto</option>
+            <option value="lab">Lab</option>
           </Select>
         </div>
       </div>
@@ -1221,7 +1283,8 @@ Vamos passar por cada linha juntos...`
                         | 'text'
                         | 'quiz'
                         | 'multi_quiz'
-                        | 'project',
+                        | 'project'
+                        | 'lab',
                     })
                   }
                   required
@@ -1232,6 +1295,7 @@ Vamos passar por cada linha juntos...`
                   <option value="quiz">Quiz</option>
                   <option value="multi_quiz">Multi quiz</option>
                   <option value="project">Projeto</option>
+                  <option value="lab">Lab</option>
                 </Select>
               </div>
             </div>
@@ -1392,6 +1456,118 @@ Vamos passar por cada linha juntos...`
                   <p className="text-xs text-muted">
                     Objeto com files, template (vanilla|react), testFile (código do teste) ou tests (Record path - conteúdo).
                   </p>
+                </div>
+              </div>
+            )}
+
+            {formData.type === 'lab' && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="lab_description">Descrição (fallback plain text)</Label>
+                  <Textarea
+                    id="lab_description"
+                    value={formData.lab_description}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        lab_description: e.target.value,
+                      })
+                    }
+                    rows={3}
+                    placeholder="Usado se learnBody estiver vazio (texto simples, sem markdown)."
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="lab_category">Categoria</Label>
+                    <Input
+                      id="lab_category"
+                      value={formData.lab_category}
+                      onChange={(e) =>
+                        setFormData({ ...formData, lab_category: e.target.value })
+                      }
+                      placeholder="OBJECTS"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lab_learn_title">Título Learn</Label>
+                    <Input
+                      id="lab_learn_title"
+                      value={formData.lab_learn_title}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          lab_learn_title: e.target.value,
+                        })
+                      }
+                      placeholder="Pass By Reference"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lab_duration_minutes">Duração (min)</Label>
+                    <Input
+                      id="lab_duration_minutes"
+                      type="number"
+                      min={0}
+                      value={formData.lab_duration_minutes}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          lab_duration_minutes: e.target.value,
+                        })
+                      }
+                      placeholder="15"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lab_learn_body">Learn body (Markdown)</Label>
+                  <Textarea
+                    id="lab_learn_body"
+                    value={formData.lab_learn_body}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        lab_learn_body: e.target.value,
+                      })
+                    }
+                    rows={8}
+                    className="font-mono text-sm"
+                    placeholder={'Objects are passed by reference...\n\n```js\nconst x = {};\n```'}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lab_specs">Specs do lab (JSON: files + steps)</Label>
+                  <Textarea
+                    id="lab_specs"
+                    value={formData.lab_specs}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        lab_specs: e.target.value,
+                      })
+                    }
+                    rows={16}
+                    className="font-mono text-sm"
+                    placeholder={LAB_SPECS_PLACEHOLDER}
+                  />
+                  <p className="text-xs text-muted">
+                    Inclua <code>files</code>, <code>template</code> e <code>steps[]</code> com
+                    id, title, hint e testFile/tests por passo.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        lab_specs: LAB_SPECS_PLACEHOLDER,
+                      })
+                    }
+                  >
+                    Inserir exemplo de specs
+                  </Button>
                 </div>
               </div>
             )}

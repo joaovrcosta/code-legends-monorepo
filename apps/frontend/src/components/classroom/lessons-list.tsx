@@ -35,6 +35,8 @@ function getLessonMeta(lesson: RoadmapLesson) {
             ? 'Desafios'
             : lesson.type === 'project'
               ? 'Projeto'
+              : lesson.type === 'lab'
+                ? 'Lab'
               : lesson.type
 
   const duration = lesson.video?.duration ?? lesson.video_duration

@@ -4,6 +4,7 @@ import VideoComponent from '@/components/classroom/video'
 import { ComponentsArticle } from '@/components/classroom/article/components'
 import { QuizView } from '@/components/classroom/challenge/QuizView'
 import { ProjectView } from '@/components/classroom/project-view'
+import { LabView } from '@/components/classroom/lab/lab-view'
 import type { LessonWithContent, RoadmapLesson } from '@/types/roadmap'
 import { memo } from 'react'
 import { useCourseModalStore } from '@/stores/course-modal-store'
@@ -90,6 +91,9 @@ export const LessonContent = memo(function LessonContent({
           )}
           {lesson?.type === 'project' && (
             <ProjectView lesson={contentLesson} moduleTitle={moduleTitle} />
+          )}
+          {lesson?.type === 'lab' && (
+            <LabView lesson={contentLesson} moduleTitle={moduleTitle} />
           )}
         </div>
       </div>

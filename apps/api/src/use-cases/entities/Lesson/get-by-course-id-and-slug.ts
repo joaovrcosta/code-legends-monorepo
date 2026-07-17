@@ -216,6 +216,7 @@ export class GetLessonByCourseIdAndSlugUseCase {
 
     const rawQuiz = (lessonEntity as any).quiz ?? null;
     const rawProject = (lessonEntity as any).project ?? null;
+    const rawLab = (lessonEntity as any).lab ?? null;
     const quizContent = rawQuiz
       ? normalizeQuizContentToArray(rawQuiz.content)
       : [];
@@ -241,6 +242,16 @@ export class GetLessonByCourseIdAndSlugUseCase {
         ? {
             description: rawProject.description,
             specs: rawProject.specs ?? null,
+          }
+        : null,
+      lab: rawLab
+        ? {
+            description: rawLab.description,
+            category: rawLab.category ?? null,
+            learnTitle: rawLab.learnTitle ?? null,
+            durationMinutes: rawLab.durationMinutes ?? null,
+            learnBody: rawLab.learnBody ?? null,
+            specs: rawLab.specs ?? null,
           }
         : null,
     }

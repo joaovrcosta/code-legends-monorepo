@@ -134,6 +134,8 @@ function lessonTypePillClass(type: string) {
       return "border-violet-400/20 bg-violet-400/10 text-violet-200";
     case "project":
       return "border-orange-400/20 bg-orange-400/10 text-orange-200";
+    case "lab":
+      return "border-cyan-400/20 bg-cyan-400/10 text-cyan-200";
     case "text":
       return "border-white/10 bg-white/5 text-zinc-200";
     default:
