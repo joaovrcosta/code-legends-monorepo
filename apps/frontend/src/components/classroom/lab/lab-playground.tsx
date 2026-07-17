@@ -706,11 +706,10 @@ function LabPlaygroundInner({
         <button
           type="button"
           onClick={() => setFilesOpen((open) => !open)}
-          className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium ${
-            filesOpen
-              ? 'bg-white/15 text-white'
-              : 'text-white/70 hover:bg-white/10 hover:text-white'
-          }`}
+          className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium ${filesOpen
+            ? 'bg-white/15 text-white'
+            : 'text-white/70 hover:bg-white/10 hover:text-white'
+            }`}
           aria-pressed={filesOpen}
           aria-label={filesOpen ? 'Fechar arquivos' : 'Abrir arquivos'}
           title={filesOpen ? 'Fechar arquivos' : 'Arquivos'}
@@ -766,7 +765,7 @@ function LabPlaygroundInner({
           type="button"
           onClick={handleCheckWork}
           disabled={checking}
-          className="rounded-md bg-[#86efac] px-3 h-[42px] py-1.5 text-sm font-semibold text-black hover:bg-[#6ee7a0] disabled:opacity-60"
+          className="rounded-[16px] bg-[#86efac] px-3 h-[42px] py-1.5 text-sm font-semibold text-black hover:bg-[#6ee7a0] disabled:opacity-60"
         >
           {checking ? 'Checking…' : 'Verificar'}
         </button>
@@ -776,11 +775,10 @@ function LabPlaygroundInner({
             key={id}
             type="button"
             onClick={() => toggleRightTab(id)}
-            className={`rounded-md px-2.5 py-1.5 text-xs font-medium uppercase tracking-wide ${
-              rightTab === id
-                ? 'bg-white/15 text-white'
-                : 'text-white/60 hover:bg-white/10 hover:text-white'
-            }`}
+            className={`rounded-md px-2.5 py-1.5 text-xs font-medium uppercase tracking-wide ${rightTab === id
+              ? 'bg-white/15 text-white'
+              : 'text-white/60 hover:bg-white/10 hover:text-white'
+              }`}
           >
             {label}
           </button>

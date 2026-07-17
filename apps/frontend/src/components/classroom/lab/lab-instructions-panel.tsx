@@ -28,12 +28,6 @@ export function LabInstructionsPanel({
         </h3>
       </div>
 
-      {alreadyDone ? (
-        <p className="bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
-          Lab já concluído — todos os steps abaixo estão liberados como feitos.
-        </p>
-      ) : null}
-
       <ol className="space-y-3">
         {steps.map((step, index) => {
           const done = completedStepIds.includes(step.id)

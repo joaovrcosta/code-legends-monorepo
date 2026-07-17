@@ -13,6 +13,7 @@ import { applyModuleCompletionStatsIfNeeded } from '@/lib/apply-module-completio
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
+import { CheckCircle } from '@phosphor-icons/react/dist/ssr'
 // import { CLASSROOM_CONTENT_NESTED_RADIUS_CLASS } from '@/lib/classroom-content-layout'
 
 interface LabViewProps {
@@ -169,10 +170,12 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
 
           <div className="rounded-lg border border-[#25252A] bg-[#101012] p-4">
             {lessonAlreadyDone ? (
-              <p className="mb-2 text-sm text-emerald-300/90">
-                Este lab já foi concluído. Os steps ficam salvos neste
-                navegador; só são apagados se você resetar o curso.
-              </p>
+              <div className="flex items-center gap-2 mb-4">
+                <CheckCircle className=" text-emerald-300/90" weight="fill" size={20} />
+                <p className="text-sm text-white/70">
+                  Lab concluído.
+                </p>
+              </div>
             ) : !canMarkComplete ? (
               <p className="mb-2 text-sm text-white/70">
                 Complete todos os steps com Verificar para desbloquear a
