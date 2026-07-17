@@ -7,9 +7,11 @@ import {
   SandpackCodeEditor,
   SandpackPreview,
   SandpackConsole,
+  SandpackFileExplorer,
   useSandpack,
   useSandpackClient,
 } from '@codesandbox/sandpack-react'
+import { Folder, FolderOpen } from '@phosphor-icons/react'
 
 const DEFAULT_TEST_PATH = '/lab.step.test.js'
 const CHECK_TIMEOUT_MS = 30000
@@ -27,6 +29,8 @@ type SpecsMap = Record<
 
 type TestStatus = 'idle' | 'starting' | 'running' | 'complete'
 
+type SandpackFileInput = string | { code: string; hidden?: boolean }
+
 function resolveTestFiles(activeTests: {
   testFile?: string
   tests?: Record<string, string>
@@ -38,6 +42,77 @@ function resolveTestFiles(activeTests: {
     return { [DEFAULT_TEST_PATH]: activeTests.testFile }
   }
   return {}
+}
+
+function isTestFilePath(path: string): boolean {
+  return (
+    path === DEFAULT_TEST_PATH ||
+    /\.(test|spec)\.[tj]sx?$/i.test(path) ||
+    /\/lab\.step\.test\.[tj]sx?$/i.test(path)
+  )
+}
+
+function getEntryFile(template: 'vanilla' | 'react'): string {
+  return template === 'react' ? '/App.js' : '/index.js'
+}
+
+/**
+ * Arquivos que o aluno pode ver/abrir. Independente de filesOpen.
+ * Testes e bootstrap React ficam de fora (e marcados hidden no sandbox).
+ */
+function getStudentVisibleFiles(
+  template: 'vanilla' | 'react',
+  contentFiles: Record<string, string> | undefined,
+  sandboxPaths: string[],
+): { entryFile: string; visibleFiles: string[] } {
+  const entryFile = getEntryFile(template)
+  const visible = new Set<string>()
+  visible.add(entryFile)
+
+  for (const path of Object.keys(contentFiles ?? {})) {
+    if (isTestFilePath(path)) continue
+    // No react, /index.js do autor vira /App.js; o bootstrap /index.js não é do aluno.
+    if (template === 'react' && path === '/index.js') continue
+    visible.add(path)
+  }
+
+  const sandboxSet = new Set(sandboxPaths)
+  const visibleFiles = [...visible].filter(
+    (path) => path === entryFile || sandboxSet.has(path),
+  )
+
+  return {
+    entryFile,
+    visibleFiles: visibleFiles.length > 0 ? visibleFiles : [entryFile],
+  }
+}
+
+/** Paths do sandbox que não devem aparecer no explorer/abas. */
+function getHiddenFilePaths(
+  sandboxPaths: string[],
+  visibleFiles: string[],
+): string[] {
+  const visible = new Set(visibleFiles)
+  return sandboxPaths.filter((path) => !visible.has(path))
+}
+
+/**
+ * Marca arquivos internos como hidden.
+ * Esta versão do sandpack-react não tem options.hiddenFiles; usamos file.hidden
+ * + options.visibleFiles (lista = getStudentVisibleFiles).
+ */
+function applyHiddenFlags(
+  files: Record<string, string>,
+  visibleFiles: string[],
+): Record<string, SandpackFileInput> {
+  const hiddenPaths = new Set(
+    getHiddenFilePaths(Object.keys(files), visibleFiles),
+  )
+  const out: Record<string, SandpackFileInput> = {}
+  for (const [path, code] of Object.entries(files)) {
+    out[path] = hiddenPaths.has(path) ? { code, hidden: true } : code
+  }
+  return out
 }
 
 function getSpecFileError(specs: SpecsMap): string | null {
@@ -148,6 +223,9 @@ function SyncStepTests({
   stepId: string
   testFiles: Record<string, string>
 }) {
+  // Troca só o arquivo de teste do step; ortogonal ao FileExplorer (visibleFiles
+  // filtrada). Se Plano C (dois providers) existir, manter SyncStepTests no
+  // provider ativo junto com filesOpen/activeFile.
   const { sandpack } = useSandpack()
   const prevStepRef = useRef<string | null>(null)
 
@@ -416,6 +494,8 @@ function LabPlaygroundInner({
   const [rightTab, setRightTab] = useState<
     'preview' | 'console' | 'tests' | null
   >(null)
+  /** Pasta fechada por padrão; fechar NÃO reseta activeFile. */
+  const [filesOpen, setFilesOpen] = useState(false)
   const passCalledRef = useRef(false)
   const checkingRef = useRef(false)
   const stepIdRef = useRef(stepId)
@@ -623,11 +703,44 @@ function LabPlaygroundInner({
         />
       ) : null}
 
+      <div className="flex items-center gap-1 border-b border-[#25252A] bg-[#2a2d31] px-2 py-1.5">
+        <button
+          type="button"
+          onClick={() => setFilesOpen((open) => !open)}
+          className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium ${
+            filesOpen
+              ? 'bg-white/15 text-white'
+              : 'text-white/70 hover:bg-white/10 hover:text-white'
+          }`}
+          aria-pressed={filesOpen}
+          aria-label={filesOpen ? 'Fechar arquivos' : 'Abrir arquivos'}
+          title={filesOpen ? 'Fechar arquivos' : 'Arquivos'}
+        >
+          {filesOpen ? (
+            <FolderOpen className="h-4 w-4" weight="duotone" />
+          ) : (
+            <Folder className="h-4 w-4" weight="duotone" />
+          )}
+          <span>Arquivos</span>
+        </button>
+      </div>
+
       <SandpackLayout>
+        {filesOpen ? (
+          <SandpackFileExplorer
+            autoHiddenFiles
+            style={{
+              width: 200,
+              minWidth: 160,
+              height: '100%',
+              borderRight: '1px solid #25252A',
+            }}
+          />
+        ) : null}
         <SandpackCodeEditor
           style={{ height: '100%', flex: 1 }}
           showLineNumbers
-          showTabs={false}
+          showTabs={filesOpen}
         />
         {rightTab ? (
           <div className="flex min-h-0 flex-1 flex-col border-l border-[#25252A]">
@@ -753,6 +866,23 @@ export function LabPlayground({
     )
   }
 
+  const initialPlainFiles = initialFilesRef.current!
+
+  const { entryFile, visibleFiles } = useMemo(
+    () =>
+      getStudentVisibleFiles(
+        effectiveTemplate,
+        files,
+        Object.keys(initialPlainFiles),
+      ),
+    [effectiveTemplate, files, initialPlainFiles, lessonId],
+  )
+
+  const providerFiles = useMemo(
+    () => applyHiddenFlags(initialPlainFiles, visibleFiles),
+    [initialPlainFiles, visibleFiles],
+  )
+
   const heightValue = typeof height === 'number' ? `${height}px` : height
 
   return (
@@ -760,22 +890,27 @@ export function LabPlayground({
       className={`flex min-h-0 w-full flex-col overflow-hidden rounded-lg border border-[#25252A] bg-[#1A1A1A] ${className}`}
       style={{ height: heightValue, minHeight: 360 }}
     >
+      {/*
+        Plano C (dois SandpackProviders ativo↔standby): ao swapear, preservar
+        filesOpen, activeFile e visibleFiles filtrada — este explorer vive no
+        mesmo provider e é ortogonal à SyncStepTests.
+      */}
       <SandpackProvider
         key={lessonId}
         template={effectiveTemplate}
         theme="dark"
-        files={initialFilesRef.current}
+        files={providerFiles}
         options={{
           autorun: true,
           recompileMode: 'delayed',
-          activeFile: effectiveTemplate === 'react' ? '/App.js' : '/index.js',
-          visibleFiles:
-            effectiveTemplate === 'react' ? ['/App.js'] : ['/index.js'],
+          activeFile: entryFile,
+          visibleFiles,
           classes: {
             'sp-wrapper': '!h-full !min-h-0 !rounded-none !border-0 !bg-transparent',
             'sp-layout': '!h-full !min-h-0 !flex !flex-row !border-0 !bg-[#1A1A1A]',
             'sp-stack': '!h-full !w-full !bg-[#1A1A1A] !min-h-0',
             'sp-code-editor': '!bg-[#1A1A1A]',
+            'sp-file-explorer': '!bg-[#1A1A1A] !border-0',
           },
         }}
       >
