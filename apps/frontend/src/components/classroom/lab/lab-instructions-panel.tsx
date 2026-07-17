@@ -20,14 +20,7 @@ export function LabInstructionsPanel({
   const [hintOpenFor, setHintOpenFor] = useState<string | null>(null)
 
   return (
-    <section className="space-y-3 border-t border-[#25252A] pt-5">
-      <div className="flex items-center gap-2 px-4">
-        <CheckSquare className="h-4 w-4 text-white/80" weight="bold" />
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-white">
-          Instructions
-        </h3>
-      </div>
-
+    <section className="space-y-3">
       <ol className="space-y-3">
         {steps.map((step, index) => {
           const done = completedStepIds.includes(step.id)
