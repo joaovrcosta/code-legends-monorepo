@@ -13,7 +13,7 @@ import { applyModuleCompletionStatsIfNeeded } from '@/lib/apply-module-completio
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
 import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
-import { CLASSROOM_CONTENT_NESTED_RADIUS_CLASS } from '@/lib/classroom-content-layout'
+// import { CLASSROOM_CONTENT_NESTED_RADIUS_CLASS } from '@/lib/classroom-content-layout'
 
 interface LabViewProps {
   lesson: LessonWithContent
@@ -116,6 +116,7 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
 
   return (
     <div className="flex min-h-[70vh] flex-col gap-4 lg:h-[calc(100vh-12rem)]">
+      {/* Header do lab — oculto por enquanto (título já aparece no painel Learn)
       <div
         className={`bg-gradient-to-r from-[#101012] to-[rgba(0,200,255,0.18)] px-6 py-4 ${CLASSROOM_CONTENT_NESTED_RADIUS_CLASS}`}
       >
@@ -131,6 +132,7 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
         </div>
         <h1 className="mt-1 text-2xl font-semibold text-white">{lesson.title}</h1>
       </div>
+      */}
 
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.4fr)]">
         <aside className="min-h-0 space-y-5 overflow-y-auto rounded-lg border border-[#25252A] bg-[#101012]">

@@ -33,7 +33,9 @@ export function LabLearnPanel({
             {category}
           </p>
         ) : null}
+        {/* Título omitido — o learnBody já traz o heading principal e evita duplicar o nome da aula
         <h2 className="text-2xl font-semibold text-white">{title}</h2>
+        */}
         {typeof durationMinutes === 'number' && durationMinutes > 0 ? (
           <p className="text-sm text-white/60">{durationMinutes} min</p>
         ) : null}

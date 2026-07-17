@@ -412,9 +412,10 @@ function LabPlaygroundInner({
   const [checkId, setCheckId] = useState(0)
   const [testStatus, setTestStatus] = useState<TestStatus>('idle')
   const [liveSpecs, setLiveSpecs] = useState<SpecsMap>({})
-  const [rightTab, setRightTab] = useState<'preview' | 'console' | 'tests'>(
-    hasTests ? 'tests' : 'console',
-  )
+  /** null = só editor; usuário abre Result/Console/Testes pelos botões */
+  const [rightTab, setRightTab] = useState<
+    'preview' | 'console' | 'tests' | null
+  >(null)
   const passCalledRef = useRef(false)
   const checkingRef = useRef(false)
   const stepIdRef = useRef(stepId)
@@ -586,6 +587,13 @@ function LabPlaygroundInner({
     [],
   )
 
+  const toggleRightTab = useCallback(
+    (tab: 'preview' | 'console' | 'tests') => {
+      setRightTab((current) => (current === tab ? null : tab))
+    },
+    [],
+  )
+
   const handleCheckWork = useCallback(() => {
     if (!hasTests) {
       if (!passCalledRef.current) {
@@ -596,6 +604,14 @@ function LabPlaygroundInner({
     }
     startCheckRun()
   }, [hasTests, startCheckRun])
+
+  const sideTabs = (
+    [
+      ['preview', 'Result'],
+      ['console', 'Console'],
+      ...(hasTests ? ([['tests', 'Testes']] as const) : []),
+    ] as const
+  )
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -608,41 +624,29 @@ function LabPlaygroundInner({
       ) : null}
 
       <SandpackLayout>
-        <SandpackCodeEditor style={{ height: '100%' }} showLineNumbers />
-        <div className="flex min-h-0 flex-1 flex-col border-l border-[#25252A]">
-          <div className="flex items-center gap-2 border-b border-[#25252A] bg-[#373A3E] px-3 py-2">
-            {(
-              [
-                ['preview', 'Result'],
-                ['console', 'Console'],
-                ...(hasTests ? ([['tests', 'Testes']] as const) : []),
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setRightTab(id)}
-                className={`text-xs font-medium uppercase tracking-wide ${rightTab === id
-                    ? 'border-b-2 border-white/80 text-white'
-                    : 'text-white/60 hover:text-white'
-                  }`}
-              >
-                {label}
-              </button>
-            ))}
+        <SandpackCodeEditor
+          style={{ height: '100%', flex: 1 }}
+          showLineNumbers
+          showTabs={false}
+        />
+        {rightTab ? (
+          <div className="flex min-h-0 flex-1 flex-col border-l border-[#25252A]">
+            <div className="relative min-h-0 flex-1 bg-[#1A1A1A]">
+              {rightTab === 'preview' ? (
+                <SandpackPreview
+                  showNavigator={false}
+                  showRefreshButton={false}
+                />
+              ) : null}
+              {rightTab === 'console' ? (
+                <SandpackConsole showHeader={false} />
+              ) : null}
+              {hasTests && rightTab === 'tests' ? (
+                <LabTestsPanel status={testStatus} specs={liveSpecs} />
+              ) : null}
+            </div>
           </div>
-          <div className="relative min-h-0 flex-1 bg-[#1A1A1A]">
-            {rightTab === 'preview' ? (
-              <SandpackPreview showNavigator={false} showRefreshButton={false} />
-            ) : null}
-            {rightTab === 'console' ? (
-              <SandpackConsole showHeader={false} />
-            ) : null}
-            {hasTests && rightTab === 'tests' ? (
-              <LabTestsPanel status={testStatus} specs={liveSpecs} />
-            ) : null}
-          </div>
-        </div>
+        ) : null}
       </SandpackLayout>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-[#25252A] bg-[#373A3E] px-3 py-2">
@@ -654,6 +658,21 @@ function LabPlaygroundInner({
         >
           {checking ? 'Checking…' : 'Verificar'}
         </button>
+        <div className="mx-1 h-6 w-px bg-white/15" />
+        {sideTabs.map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => toggleRightTab(id)}
+            className={`rounded-md px-2.5 py-1.5 text-xs font-medium uppercase tracking-wide ${
+              rightTab === id
+                ? 'bg-white/15 text-white'
+                : 'text-white/60 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
         {checkError ? (
           <p className="text-xs text-red-300">{checkError}</p>
         ) : null}
@@ -749,10 +768,13 @@ export function LabPlayground({
         options={{
           autorun: true,
           recompileMode: 'delayed',
+          activeFile: effectiveTemplate === 'react' ? '/App.js' : '/index.js',
+          visibleFiles:
+            effectiveTemplate === 'react' ? ['/App.js'] : ['/index.js'],
           classes: {
             'sp-wrapper': '!h-full !min-h-0 !rounded-none !border-0 !bg-transparent',
             'sp-layout': '!h-full !min-h-0 !flex !flex-row !border-0 !bg-[#1A1A1A]',
-            'sp-stack': '!h-full !bg-[#1A1A1A] !min-h-0',
+            'sp-stack': '!h-full !w-full !bg-[#1A1A1A] !min-h-0',
             'sp-code-editor': '!bg-[#1A1A1A]',
           },
         }}
