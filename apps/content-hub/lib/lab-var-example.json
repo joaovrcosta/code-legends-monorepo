@@ -1,26 +1,26 @@
 {
   "template": "react",
   "files": {
-    "/App.js": "// Crie a variável favoriteFood abaixo:\n\n\n// Crie a variável numOfSlices abaixo:\n\n\n// Use console.log() para imprimir o valor de favoriteFood abaixo:\n\n\n// Use console.log() para imprimir o valor de numOfSlices abaixo:\n"
+    "/App.js": "// Create a favoriteFood variable below:\n\n\n// Create a numOfSlices variable below:\n\n\n// Use console.log() to print the value of favoriteFood below:\n\n\n// Use console.log() to print the value of numOfSlices below:\n"
   },
   "steps": [
     {
       "id": "step-1",
-      "title": "Declare uma variável chamada `favoriteFood` usando a palavra-chave `var` e atribua a ela a string `'pizza'`.",
+      "title": "Declare a variable named `favoriteFood` using the `var` keyword and assign to it the string `'pizza'`.",
       "hint": "var favoriteFood = 'pizza';",
-      "testFile": "import fs from 'fs';\nimport * as mod from './App.js';\n\nconst code = fs.readFileSync('/App.js', 'utf8');\n\ntest('declara favoriteFood com var', () => {\n  expect(code).toMatch(/var\\s+favoriteFood\\s*=/);\n});\n\ntest('favoriteFood é pizza', () => {\n  expect(mod.favoriteFood).toBe('pizza');\n});\n"
+      "testFile": "import {\n  readStudentCode,\n  assertVarKeyword,\n  assertBindingValue,\n} from '/lab-test-helpers.js';\n\nconst code = readStudentCode('/App.js');\n\ntest('declara favoriteFood com var', () => {\n  assertVarKeyword(code, 'var', 'favoriteFood');\n});\n\ntest('favoriteFood é pizza', async () => {\n  await assertBindingValue('favoriteFood', 'pizza', { type: 'string' });\n});\n"
     },
     {
       "id": "step-2",
-      "title": "Declare uma variável chamada `numOfSlices` usando a palavra-chave `var` e atribua a ela o número `8`.",
+      "title": "Declare a variable named `numOfSlices` using the `var` keyword and assign to it the number `8`.",
       "hint": "var numOfSlices = 8;",
-      "testFile": "import fs from 'fs';\nimport * as mod from './App.js';\n\nconst code = fs.readFileSync('/App.js', 'utf8');\n\ntest('declara numOfSlices com var', () => {\n  expect(code).toMatch(/var\\s+numOfSlices\\s*=/);\n});\n\ntest('numOfSlices é 8', () => {\n  expect(mod.numOfSlices).toBe(8);\n});\n"
+      "testFile": "import {\n  readStudentCode,\n  assertVarKeyword,\n  assertBindingValue,\n} from '/lab-test-helpers.js';\n\nconst code = readStudentCode('/App.js');\n\ntest('declara numOfSlices com var', () => {\n  assertVarKeyword(code, 'var', 'numOfSlices');\n});\n\ntest('numOfSlices é 8', async () => {\n  await assertBindingValue('numOfSlices', 8, { type: 'number' });\n});\n"
     },
     {
       "id": "step-3",
-      "title": "Abaixo da variável `numOfSlices`, use `console.log()` para imprimir `favoriteFood`. Na linha seguinte, use `console.log()` para imprimir `numOfSlices`.",
+      "title": "Under the `numOfSlices` variable, use `console.log()` to print the value saved to `favoriteFood`.\\n\\nOn the following line, use `console.log()` to print the value saved to `numOfSlices`.",
       "hint": "console.log(favoriteFood);\\nconsole.log(numOfSlices);",
-      "testFile": "import fs from 'fs';\n\nconst code = fs.readFileSync('/App.js', 'utf8');\n\ntest('faz console.log de favoriteFood', () => {\n  expect(code).toMatch(/console\\.log\\s*\\(\\s*favoriteFood\\s*\\)/);\n});\n\ntest('faz console.log de numOfSlices', () => {\n  expect(code).toMatch(/console\\.log\\s*\\(\\s*numOfSlices\\s*\\)/);\n});\n"
+      "testFile": "import {\n  readStudentCode,\n  assertConsoleLogArg,\n} from '/lab-test-helpers.js';\n\nconst code = readStudentCode('/App.js');\n\ntest('faz console.log de favoriteFood', () => {\n  assertConsoleLogArg(code, 'favoriteFood');\n});\n\ntest('faz console.log de numOfSlices', () => {\n  assertConsoleLogArg(code, 'numOfSlices');\n});\n"
     }
   ]
 }

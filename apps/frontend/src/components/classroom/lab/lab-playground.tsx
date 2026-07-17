@@ -12,6 +12,10 @@ import {
   useSandpackClient,
 } from '@codesandbox/sandpack-react'
 import { Folder, FolderOpen } from '@phosphor-icons/react'
+import {
+  LAB_TEST_HELPERS_PATH,
+  buildLabTestHelpersSource,
+} from '@/lib/lab/lab-test-helpers-source'
 
 const DEFAULT_TEST_PATH = '/lab.step.test.js'
 const CHECK_TIMEOUT_MS = 30000
@@ -47,6 +51,7 @@ function resolveTestFiles(activeTests: {
 function isTestFilePath(path: string): boolean {
   return (
     path === DEFAULT_TEST_PATH ||
+    path === LAB_TEST_HELPERS_PATH ||
     /\.(test|spec)\.[tj]sx?$/i.test(path) ||
     /\/lab\.step\.test\.[tj]sx?$/i.test(path)
   )
@@ -421,12 +426,6 @@ function LabTestsPanel({
           {status === 'complete' && 'Concluído'}
         </span>
       </div>
-
-      {status === 'idle' || status === 'starting' ? (
-        <p className="text-white/50">
-          Clique em Verificar para rodar os testes deste step.
-        </p>
-      ) : null}
 
       {status === 'running' && total === 0 ? (
         <p className="text-white/50">Executando testes…</p>
@@ -826,6 +825,10 @@ function buildInitialFiles(
   files: Record<string, string> | undefined,
   testFiles: Record<string, string>,
 ): Record<string, string> {
+  const helpers: Record<string, string> = {
+    [LAB_TEST_HELPERS_PATH]: buildLabTestHelpersSource(),
+  }
+
   if (template === 'react') {
     const studentIndex = files?.['/index.js']
     const merged = { ...REACT_BOOTSTRAP, ...(files ?? {}) }
@@ -833,12 +836,13 @@ function buildInitialFiles(
       merged['/App.js'] = studentIndex
     }
     merged['/index.js'] = REACT_BOOTSTRAP['/index.js']
-    return { ...merged, ...testFiles }
+    return { ...merged, ...testFiles, ...helpers }
   }
 
   return {
     ...(files ?? { '/index.js': '// escreva seu código aqui\n' }),
     ...testFiles,
+    ...helpers,
   }
 }
 

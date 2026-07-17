@@ -24,3 +24,8 @@ pnpm exec prisma migrate deploy
 Or configure a Render **Release Command** to run the same.
 
 Without migrate deploy, create/update of `lab` lessons will fail.
+
+## Autoria de testes (`testFile`)
+
+Contrato e helpers oficiais (estilo Codecademy):  
+[`apps/content-hub/docs/lab-tests.md`](../../content-hub/docs/lab-tests.md)
