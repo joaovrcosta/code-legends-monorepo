@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { CaretDown } from '@phosphor-icons/react'
 import { CheckCircle } from '@phosphor-icons/react/dist/ssr'
 import type { LessonWithContent } from '@/types/roadmap'
@@ -30,6 +30,10 @@ interface LabViewProps {
 const LAB_ACCORDION_TRIGGER =
   'px-4 py-3 hover:no-underline text-white [&[data-state=open]>svg]:rotate-180'
 
+const SIDEBAR_DEFAULT_PX = 360
+const SIDEBAR_MIN_PX = 240
+const SIDEBAR_MAX_PX = 720
+
 export function LabView({ lesson, moduleTitle }: LabViewProps) {
   const lab = lesson.lab
   const steps = useMemo(() => lab?.specs?.steps ?? [], [lab?.specs?.steps])
@@ -58,6 +62,9 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
   })
 
   const [isMarking, setIsMarking] = useState(false)
+  const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_PX)
+  const [isResizing, setIsResizing] = useState(false)
+  const layoutRef = useRef<HTMLDivElement>(null)
 
   const canMarkComplete =
     steps.length === 0 || allStepsDone || lessonAlreadyDone
@@ -68,6 +75,40 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
       tests: currentStep?.tests,
     }),
     [currentStep],
+  )
+
+  const clampSidebarWidth = useCallback((width: number) => {
+    const layoutWidth = layoutRef.current?.clientWidth ?? 0
+    const maxFromLayout =
+      layoutWidth > 0
+        ? Math.min(SIDEBAR_MAX_PX, Math.floor(layoutWidth * 0.65))
+        : SIDEBAR_MAX_PX
+    return Math.min(maxFromLayout, Math.max(SIDEBAR_MIN_PX, width))
+  }, [])
+
+  const handleResizeStart = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      const handle = event.currentTarget
+      handle.setPointerCapture(event.pointerId)
+      setIsResizing(true)
+
+      const onPointerMove = (moveEvent: PointerEvent) => {
+        const left = layoutRef.current?.getBoundingClientRect().left ?? 0
+        setSidebarWidth(clampSidebarWidth(moveEvent.clientX - left))
+      }
+
+      const onPointerUp = (upEvent: PointerEvent) => {
+        handle.releasePointerCapture(upEvent.pointerId)
+        handle.removeEventListener('pointermove', onPointerMove)
+        handle.removeEventListener('pointerup', onPointerUp)
+        setIsResizing(false)
+      }
+
+      handle.addEventListener('pointermove', onPointerMove)
+      handle.addEventListener('pointerup', onPointerUp)
+    },
+    [clampSidebarWidth],
   )
 
   const handleMarkAsComplete = async () => {
@@ -146,14 +187,29 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
 
   return (
     <div className="flex min-h-[70vh] flex-col gap-4 lg:h-[calc(100vh-12rem)]">
-      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.4fr)]">
-        <aside className="min-h-0 overflow-y-auto rounded-lg border border-[#25252A] bg-[#101012]">
+      <div
+        ref={layoutRef}
+        className={`flex min-h-0 flex-1 flex-col lg:flex-row ${
+          isResizing ? 'select-none' : ''
+        }`}
+      >
+        <aside
+          className="min-h-0 w-full overflow-y-auto rounded-lg border border-[#25252A] bg-[#101012] lg:w-[var(--lab-sidebar-width)] lg:shrink-0"
+          style={
+            {
+              '--lab-sidebar-width': `${sidebarWidth}px`,
+            } as CSSProperties
+          }
+        >
           <Accordion
             type="multiple"
             defaultValue={['desafio', 'instrucoes']}
             className="w-full"
           >
-            <AccordionItem value="desafio" className="border-b border-[#25252A]">
+            <AccordionItem
+              value="desafio"
+              className="border-b border-[#25252A]"
+            >
               <AccordionTrigger className={LAB_ACCORDION_TRIGGER}>
                 <span className="text-sm font-semibold uppercase tracking-wide">
                   Desafio
@@ -184,7 +240,33 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
           </Accordion>
         </aside>
 
-        <div className="flex min-h-0 flex-col gap-3">
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Redimensionar painel de instruções"
+          aria-valuenow={sidebarWidth}
+          aria-valuemin={SIDEBAR_MIN_PX}
+          aria-valuemax={SIDEBAR_MAX_PX}
+          tabIndex={0}
+          onPointerDown={handleResizeStart}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowLeft') {
+              event.preventDefault()
+              setSidebarWidth((w) => clampSidebarWidth(w - 16))
+            }
+            if (event.key === 'ArrowRight') {
+              event.preventDefault()
+              setSidebarWidth((w) => clampSidebarWidth(w + 16))
+            }
+          }}
+          className={`relative hidden w-3 shrink-0 cursor-col-resize touch-none items-stretch justify-center lg:flex ${
+            isResizing ? 'bg-white/10' : 'hover:bg-white/5'
+          }`}
+        >
+          <span className="my-auto h-10 w-1 rounded-full bg-white/25" />
+        </div>
+
+        <div className="mt-4 flex min-h-0 min-w-0 flex-1 flex-col gap-3 lg:mt-0">
           {currentStep ? (
             <LabPlayground
               lessonId={lesson.id}
@@ -201,7 +283,11 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
           <div className="rounded-lg border border-[#25252A] bg-[#101012] p-4">
             {lessonAlreadyDone ? (
               <div className="mb-4 flex items-center gap-2">
-                <CheckCircle className=" text-[#278b4d]" weight="fill" size={20} />
+                <CheckCircle
+                  className=" text-[#278b4d]"
+                  weight="fill"
+                  size={20}
+                />
                 <p className="text-sm text-white/70">Lab concluído.</p>
               </div>
             ) : !canMarkComplete ? (

@@ -42,12 +42,12 @@ export function LabInstructionsPanel({
                 <span className="mt-0.5 shrink-0">
                   {done ? (
                     <CheckSquare
-                      className="h-5 w-5 text-[#278b4d]"
+                      className="h-6 w-6 text-[#278b4d]"
                       weight="fill"
                     />
                   ) : (
                     <Square
-                      className={`h-5 w-5 ${active ? 'text-white' : 'text-white/30'}`}
+                      className={`h-6 w-6 ${active ? 'text-white' : 'text-white/30'}`}
                     />
                   )}
                 </span>
