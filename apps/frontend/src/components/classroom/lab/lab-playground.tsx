@@ -766,7 +766,7 @@ function LabPlaygroundInner({
           type="button"
           onClick={handleCheckWork}
           disabled={checking}
-          className="rounded-md bg-amber-400 px-3 h-[42px] py-1.5 text-sm font-semibold text-black hover:bg-amber-300 disabled:opacity-60"
+          className="rounded-md bg-[#86efac] px-3 h-[42px] py-1.5 text-sm font-semibold text-black hover:bg-[#6ee7a0] disabled:opacity-60"
         >
           {checking ? 'Checking…' : 'Verificar'}
         </button>
