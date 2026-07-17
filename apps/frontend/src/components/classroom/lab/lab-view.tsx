@@ -171,15 +171,14 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
           <div className="rounded-lg border border-[#25252A] bg-[#101012] p-4">
             {lessonAlreadyDone ? (
               <div className="flex items-center gap-2 mb-4">
-                <CheckCircle className=" text-emerald-300/90" weight="fill" size={20} />
+                <CheckCircle className=" text-[#278b4d]" weight="fill" size={20} />
                 <p className="text-sm text-white/70">
                   Lab concluído.
                 </p>
               </div>
             ) : !canMarkComplete ? (
               <p className="mb-2 text-sm text-white/70">
-                Complete todos os steps com Verificar para desbloquear a
-                conclusão.
+                Complete todas as instruções para desbloquear a conclusão.
               </p>
             ) : (
               <p className="mb-2 text-sm text-white/70">

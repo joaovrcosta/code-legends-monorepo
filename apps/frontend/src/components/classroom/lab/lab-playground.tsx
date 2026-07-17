@@ -12,6 +12,7 @@ import {
   useSandpackClient,
 } from '@codesandbox/sandpack-react'
 import { Folder, FolderOpen } from '@phosphor-icons/react'
+import { Loader2 } from 'lucide-react'
 import {
   LAB_TEST_HELPERS_PATH,
   buildLabTestHelpersSource,
@@ -765,9 +766,15 @@ function LabPlaygroundInner({
           type="button"
           onClick={handleCheckWork}
           disabled={checking}
-          className="rounded-[16px] bg-[#86efac] px-3 h-[42px] py-1.5 text-sm font-semibold text-black hover:bg-[#6ee7a0] disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-[16px] bg-[#86efac] px-3 h-[42px] py-1.5 text-sm font-semibold text-black hover:bg-[#6ee7a0] disabled:opacity-60"
         >
-          {checking ? 'Checking…' : 'Verificar'}
+          {checking ? (
+            <Loader2
+              className="h-4 w-4 animate-spin motion-reduce:animate-none"
+              aria-hidden
+            />
+          ) : null}
+          Verificar
         </button>
         <div className="mx-1 h-6 w-px bg-white/15" />
         {sideTabs.map(([id, label]) => (
