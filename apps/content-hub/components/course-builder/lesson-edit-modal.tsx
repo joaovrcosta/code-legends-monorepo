@@ -54,6 +54,7 @@ import {
   type VideoLessonNeighbor,
 } from '@/lib/course-structure'
 import { LAB_SPECS_PLACEHOLDER } from '@/lib/lab-specs-placeholder'
+import { buildLabSpecsPrompt } from '@/lib/build-lab-specs-prompt'
 import { LessonContextBreadcrumb } from './lesson-context-breadcrumb'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SegmentedControl } from '@/components/ui/segmented-control'
@@ -559,6 +560,31 @@ Vamos passar por cada linha juntos...`
     }
   }
 
+  const handleCopyLabSpecsPrompt = async () => {
+    try {
+      const prompt = buildLabSpecsPrompt({
+        title: formData.title?.trim() || resolvedLesson.title || '',
+        description:
+          formData.description?.trim() ||
+          resolvedLesson.description?.trim() ||
+          '',
+        labDescription: formData.lab_description,
+        labCategory: formData.lab_category,
+        labLearnTitle: formData.lab_learn_title,
+        labLearnBody: formData.lab_learn_body,
+        labDurationMinutes: formData.lab_duration_minutes,
+        courseTitle: breadcrumb?.courseTitle,
+        moduleTitle: breadcrumb?.moduleTitle,
+        groupTitle: breadcrumb?.groupTitle,
+      })
+      await navigator.clipboard.writeText(prompt)
+      toast.success('Prompt de specs do lab copiado')
+    } catch (error) {
+      console.error('Erro ao copiar prompt do lab:', error)
+      toast.error('Não foi possível copiar o prompt do lab')
+    }
+  }
+
   const handleSave = async () => {
     try {
       setLoading(true)
@@ -632,7 +658,9 @@ Vamos passar por cada linha juntos...`
                   try {
                     return JSON.parse(formData.lab_specs || '{}')
                   } catch {
-                    return {}
+                    throw new Error(
+                      'Specs do lab inválidas: JSON com erro de sintaxe. Em regex no testFile, escape barras: use \\\\. \\\\s \\\\( etc.',
+                    )
                   }
                 })(),
               }
@@ -1165,6 +1193,17 @@ Vamos passar por cada linha juntos...`
               </Button>
             )}
 
+            {formData.type === 'lab' && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyLabSpecsPrompt}
+              >
+                📋 Copiar prompt do lab
+              </Button>
+            )}
+
             {variant === 'modal' && (
               <Button
                 variant="ghost"
@@ -1536,6 +1575,23 @@ Vamos passar por cada linha juntos...`
                     placeholder={'Objects are passed by reference...\n\n```js\nconst x = {};\n```'}
                   />
                 </div>
+                <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-ch-border p-3">
+                  <div>
+                    <p className="text-sm font-medium">Gerar specs com IA</p>
+                    <p className="text-xs text-muted">
+                      Copia um prompt preenchido com os dados desta aula para gerar o JSON no formato correto.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyLabSpecsPrompt}
+                  >
+                    Copiar prompt do lab
+                  </Button>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="lab_specs">Specs do lab (JSON: files + steps)</Label>
                   <Textarea
@@ -1553,7 +1609,9 @@ Vamos passar por cada linha juntos...`
                   />
                   <p className="text-xs text-muted">
                     Inclua <code>files</code>, <code>template</code> e <code>steps[]</code> com
-                    id, title, hint e testFile/tests por passo.
+                    id, title, hint e testFile/tests por passo. Em regex no{' '}
+                    <code>testFile</code>, escape as barras no JSON:{' '}
+                    <code>\\\\.</code> <code>\\\\s</code> <code>\\\\(</code> (senão o save falha).
                   </p>
                   <Button
                     type="button"

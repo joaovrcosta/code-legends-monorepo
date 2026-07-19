@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { CaretDown } from '@phosphor-icons/react'
-import { CheckCircle } from '@phosphor-icons/react/dist/ssr'
 import type { LessonWithContent } from '@/types/roadmap'
 import { LabLearnPanel } from '@/components/classroom/lab/lab-learn-panel'
 import { LabInstructionsPanel } from '@/components/classroom/lab/lab-instructions-panel'
@@ -14,7 +13,6 @@ import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
 import { applyModuleCompletionStatsIfNeeded } from '@/lib/apply-module-completion-stats'
 import { useActiveCourseStore } from '@/stores/active-course-store'
 import { useCourseModalStore } from '@/stores/course-modal-store'
-import { CompleteLessonButton } from '@/components/classroom/complete-lesson-button'
 import {
   Accordion,
   AccordionContent,
@@ -53,7 +51,6 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
   const {
     currentStep,
     completedStepIds,
-    allStepsDone,
     completeStep,
   } = useLabStepProgress({
     lessonId: lesson.id,
@@ -65,9 +62,6 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_PX)
   const [isResizing, setIsResizing] = useState(false)
   const layoutRef = useRef<HTMLDivElement>(null)
-
-  const canMarkComplete =
-    steps.length === 0 || allStepsDone || lessonAlreadyDone
 
   const activeTests = useMemo(
     () => ({
@@ -111,7 +105,7 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
     [clampSidebarWidth],
   )
 
-  const handleMarkAsComplete = async () => {
+  const handleMarkAsComplete = useCallback(async () => {
     if (!currentLesson?.id || currentLesson.id !== lesson.id) return
     if (isMarking || isMarked) return
     try {
@@ -138,7 +132,30 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
     } finally {
       setIsMarking(false)
     }
-  }
+  }, [
+    currentLesson?.id,
+    lesson.id,
+    isMarking,
+    isMarked,
+    activeCourse?.id,
+    moduleTitle,
+    updateCurrentLessonStatus,
+    setLastModuleCompletion,
+    setShowModuleStatsOnce,
+    fetchActiveCourse,
+  ])
+
+  const handleStepCheckPass = useCallback(
+    (stepId: string) => {
+      const lastStepId = steps[steps.length - 1]?.id
+      const isLastStep = Boolean(lastStepId && stepId === lastStepId)
+      completeStep(stepId)
+      if (isLastStep && !lessonAlreadyDone) {
+        void handleMarkAsComplete()
+      }
+    },
+    [steps, completeStep, lessonAlreadyDone, handleMarkAsComplete],
+  )
 
   if (!lab) {
     return (
@@ -163,13 +180,13 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
       <div className="flex flex-col gap-6 p-4">
         <Accordion
           type="multiple"
-          defaultValue={['desafio']}
+          defaultValue={['descricao']}
           className="rounded-lg border border-[#25252A] bg-[#101012]"
         >
-          <AccordionItem value="desafio" className="border-none">
+          <AccordionItem value="descricao" className="border-none">
             <AccordionTrigger className={LAB_ACCORDION_TRIGGER}>
               <span className="text-sm font-semibold uppercase tracking-wide">
-                Desafio
+                Descrição
               </span>
               <CaretDown className="h-4 w-4 shrink-0 text-white/50 transition-transform duration-200" />
             </AccordionTrigger>
@@ -203,16 +220,16 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
         >
           <Accordion
             type="multiple"
-            defaultValue={['desafio', 'instrucoes']}
+            defaultValue={['descricao', 'instrucoes']}
             className="w-full"
           >
             <AccordionItem
-              value="desafio"
+              value="descricao"
               className="border-b border-[#25252A]"
             >
               <AccordionTrigger className={LAB_ACCORDION_TRIGGER}>
                 <span className="text-sm font-semibold uppercase tracking-wide">
-                  Desafio
+                  Descrição
                 </span>
                 <CaretDown className="h-4 w-4 shrink-0 text-white/50 transition-transform duration-200" />
               </AccordionTrigger>
@@ -274,40 +291,11 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
               template={lab.specs?.template ?? 'vanilla'}
               activeTests={activeTests}
               stepId={currentStep.id}
-              onStepCheckPass={completeStep}
+              onStepCheckPass={handleStepCheckPass}
               height="100%"
               className="min-h-[420px] flex-1"
             />
           ) : null}
-
-          <div className="rounded-lg border border-[#25252A] bg-[#101012] p-4">
-            {lessonAlreadyDone ? (
-              <div className="mb-4 flex items-center gap-2">
-                <CheckCircle
-                  className=" text-[#278b4d]"
-                  weight="fill"
-                  size={20}
-                />
-                <p className="text-sm text-white/70">Lab concluído.</p>
-              </div>
-            ) : !canMarkComplete ? (
-              <p className="mb-2 text-sm text-white/70">
-                Complete todas as instruções para desbloquear a conclusão.
-              </p>
-            ) : (
-              <p className="mb-2 text-sm text-white/70">
-                Todos os steps concluídos. Você já pode marcar a aula.
-              </p>
-            )}
-            <CompleteLessonButton
-              onClick={handleMarkAsComplete}
-              disabled={
-                isMarking || isMarked || !currentLesson || !canMarkComplete
-              }
-              isMarking={isMarking}
-              isMarked={isMarked}
-            />
-          </div>
         </div>
       </div>
     </div>
