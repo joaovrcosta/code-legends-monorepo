@@ -22,6 +22,7 @@ const DEFAULT_TEST_PATH = '/lab.step.test.js'
 const CHECK_TIMEOUT_MS = 30000
 const CLIENT_POLL_MS = 200
 const CLIENT_MAX_ATTEMPTS = 50
+const CHECK_START_DELAY_MS = 350
 
 type SpecsMap = Record<
   string,
@@ -261,6 +262,8 @@ function SyncStepTests({
  *
  * getClient/listen do Sandpack mudam de identidade a cada render; usamos
  * refs para não re-disparar effects (isso causava loop + erro de deps).
+ *
+ * Cada checkId é uma geração: total_test_end antigo é ignorado.
  */
 function LabJestRunner({
   checkId,
@@ -268,13 +271,16 @@ function LabJestRunner({
   onStatusChange,
 }: {
   checkId: number
-  onComplete: (specs: SpecsMap) => void
+  onComplete: (specs: SpecsMap, checkId: number) => void
   onStatusChange: (status: TestStatus, specs: SpecsMap) => void
 }) {
   const { getClient, iframe, listen } = useSandpackClient()
   const specsRef = useRef<SpecsMap>({})
   const jestReadyRef = useRef(false)
   const pendingCheckRef = useRef(false)
+  const activeCheckIdRef = useRef(0)
+  /** checkId da run que está em andamento (capturado no total_test_start). */
+  const runningCheckIdRef = useRef(0)
   const getClientRef = useRef(getClient)
   const listenRef = useRef(listen)
   const onCompleteRef = useRef(onComplete)
@@ -289,6 +295,7 @@ function LabJestRunner({
     const client = getClientRef.current()
     if (!client) return false
     specsRef.current = {}
+    runningCheckIdRef.current = activeCheckIdRef.current
     onStatusRef.current('running', {})
     client.dispatch({ type: 'run-all-tests' })
     return true
@@ -323,8 +330,12 @@ function LabJestRunner({
         return
       }
 
+      const activeId = activeCheckIdRef.current
+      if (activeId === 0) return
+
       if (event === 'total_test_start') {
         specsRef.current = {}
+        runningCheckIdRef.current = activeId
         onStatusRef.current('running', {})
         return
       }
@@ -357,9 +368,13 @@ function LabJestRunner({
       }
 
       if (event === 'total_test_end') {
+        const completedId = runningCheckIdRef.current
+        // Sem run marcada, ou run antiga depois de um novo Verificar.
+        if (!completedId || completedId !== activeId) return
+        runningCheckIdRef.current = 0
         const snapshot = { ...specsRef.current }
         onStatusRef.current('complete', snapshot)
-        onCompleteRef.current(snapshot)
+        onCompleteRef.current(snapshot, completedId)
       }
     })
   }, [dispatchRunAll])
@@ -367,33 +382,42 @@ function LabJestRunner({
   useEffect(() => {
     if (checkId === 0) return
 
+    activeCheckIdRef.current = checkId
     pendingCheckRef.current = true
+    runningCheckIdRef.current = 0
+    specsRef.current = {}
     onStatusRef.current('starting', {})
 
     let cancelled = false
     let attempts = 0
 
     const tryRun = () => {
-      if (cancelled) return
+      if (cancelled || activeCheckIdRef.current !== checkId) return
 
-      // Só dispara depois do Jest emitir initialize_tests.
-      if (!jestReadyRef.current || !getClientRef.current()) {
-        attempts += 1
-        if (attempts < CLIENT_MAX_ATTEMPTS) {
-          window.setTimeout(tryRun, CLIENT_POLL_MS)
-        }
+      const client = getClientRef.current()
+      // Pronto: dispara agora. Senão, continua pending — initialize_tests
+      // (após rebundle) chama dispatchRunAll.
+      if (jestReadyRef.current && client && dispatchRunAll()) {
+        pendingCheckRef.current = false
         return
       }
 
-      if (dispatchRunAll()) {
-        pendingCheckRef.current = false
+      attempts += 1
+      if (attempts < CLIENT_MAX_ATTEMPTS) {
+        window.setTimeout(tryRun, CLIENT_POLL_MS)
       }
+      // Esgotou o poll: NÃO falha aqui. Mantém pendingCheckRef=true para
+      // initialize_tests atrasado (comum ao trocar de step / injetar exports).
     }
 
     window.setTimeout(tryRun, 50)
 
     return () => {
       cancelled = true
+      // Invalida fim de run desta geração se um checkId novo começar.
+      if (activeCheckIdRef.current === checkId) {
+        runningCheckIdRef.current = 0
+      }
     }
   }, [checkId, dispatchRunAll])
 
@@ -501,6 +525,8 @@ function LabPlaygroundInner({
   const stepIdRef = useRef(stepId)
   const onPassRef = useRef(onStepCheckPass)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const startDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const expectedCheckIdRef = useRef(0)
   const retryUsedRef = useRef(false)
   const preCheckFilesRef = useRef<Record<string, string> | null>(null)
 
@@ -511,6 +537,13 @@ function LabPlaygroundInner({
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
       timeoutRef.current = null
+    }
+  }, [])
+
+  const clearStartDelay = useCallback(() => {
+    if (startDelayRef.current) {
+      clearTimeout(startDelayRef.current)
+      startDelayRef.current = null
     }
   }, [])
 
@@ -545,9 +578,18 @@ function LabPlaygroundInner({
     preCheckFilesRef.current = backup
   }, [])
 
+  const endChecking = useCallback(() => {
+    clearCheckTimeout()
+    clearStartDelay()
+    checkingRef.current = false
+    restoreStudentFiles()
+    setChecking(false)
+  }, [clearCheckTimeout, clearStartDelay, restoreStudentFiles])
+
   useEffect(() => {
     passCalledRef.current = false
     retryUsedRef.current = false
+    expectedCheckIdRef.current = 0
     setCheckError(null)
     setChecking(false)
     checkingRef.current = false
@@ -555,51 +597,69 @@ function LabPlaygroundInner({
     setLiveSpecs({})
     restoreStudentFiles()
     clearCheckTimeout()
-  }, [stepId, clearCheckTimeout, restoreStudentFiles])
+    clearStartDelay()
+  }, [stepId, clearCheckTimeout, clearStartDelay, restoreStudentFiles])
 
   useEffect(
     () => () => {
       clearCheckTimeout()
+      clearStartDelay()
       restoreStudentFiles()
     },
-    [clearCheckTimeout, restoreStudentFiles],
+    [clearCheckTimeout, clearStartDelay, restoreStudentFiles],
   )
 
   const scheduleCheckTimeout = useCallback(() => {
     clearCheckTimeout()
     timeoutRef.current = setTimeout(() => {
       if (!checkingRef.current) return
-      checkingRef.current = false
-      restoreStudentFiles()
-      setChecking(false)
+      endChecking()
       setCheckError(
         'Tempo esgotado. Espere o editor carregar e clique em Verificar de novo.',
       )
     }, CHECK_TIMEOUT_MS)
-  }, [clearCheckTimeout, restoreStudentFiles])
+  }, [clearCheckTimeout, endChecking])
 
-  const startCheckRun = useCallback(
-    (opts?: { isRetry?: boolean }) => {
-      setRightTab('tests')
-      setCheckError(null)
-      setChecking(true)
-      checkingRef.current = true
-      passCalledRef.current = false
-      if (!opts?.isRetry) retryUsedRef.current = false
-      prepareStudentFilesForCheck()
-      scheduleCheckTimeout()
-      // Pequeno delay para o bundler pegar o export injetado
-      window.setTimeout(() => {
-        if (!checkingRef.current) return
-        setCheckId((id) => id + 1)
-      }, 200)
-    },
-    [prepareStudentFilesForCheck, scheduleCheckTimeout],
-  )
+  const bumpCheckId = useCallback(() => {
+    setCheckId((id) => {
+      const next = id + 1
+      expectedCheckIdRef.current = next
+      return next
+    })
+  }, [])
+
+  const startCheckRun = useCallback(() => {
+    // Evita double-click: o disabled do botão só aplica no próximo render.
+    if (checkingRef.current) return
+    checkingRef.current = true
+
+    setRightTab('tests')
+    setCheckError(null)
+    setChecking(true)
+    passCalledRef.current = false
+    retryUsedRef.current = false
+    prepareStudentFilesForCheck()
+    scheduleCheckTimeout()
+
+    clearStartDelay()
+    // Pequeno delay para o bundler pegar o export injetado
+    startDelayRef.current = setTimeout(() => {
+      startDelayRef.current = null
+      if (!checkingRef.current) return
+      bumpCheckId()
+    }, CHECK_START_DELAY_MS)
+  }, [
+    prepareStudentFilesForCheck,
+    scheduleCheckTimeout,
+    clearStartDelay,
+    bumpCheckId,
+  ])
 
   const finishCheck = useCallback(
-    (specs: SpecsMap) => {
+    (specs: SpecsMap, completedCheckId: number) => {
       if (!checkingRef.current) return
+      // Ignora resultado de uma run antiga (clique duplo / retry sobreposto).
+      if (completedCheckId !== expectedCheckIdRef.current) return
 
       const fileError = getSpecFileError(specs)
       const transpilePending =
@@ -607,54 +667,51 @@ function LabPlaygroundInner({
 
       if (transpilePending && !retryUsedRef.current) {
         retryUsedRef.current = true
-        window.setTimeout(() => {
+        scheduleCheckTimeout()
+        clearStartDelay()
+        startDelayRef.current = setTimeout(() => {
+          startDelayRef.current = null
           if (!checkingRef.current) return
-          setCheckId((id) => id + 1)
+          bumpCheckId()
         }, 1200)
         return
       }
 
-      clearCheckTimeout()
-      checkingRef.current = false
-      restoreStudentFiles()
+      endChecking()
 
       const { passed, total, failed } = countSpecResults(specs)
       const passedAll = total > 0 && failed === 0 && passed === total
 
-      queueMicrotask(() => {
-        setChecking(false)
-        if (passedAll) {
-          if (!passCalledRef.current) {
-            passCalledRef.current = true
-            onPassRef.current(stepIdRef.current)
-          }
-          setCheckError(null)
-          return
+      if (passedAll) {
+        if (!passCalledRef.current) {
+          passCalledRef.current = true
+          onPassRef.current(stepIdRef.current)
         }
+        setCheckError(null)
+        return
+      }
 
-        if (fileError) {
-          setCheckError(
-            transpilePending
-              ? 'O código ainda estava compilando. Clique em Verificar de novo.'
-              : `Erro nos testes: ${fileError}`,
-          )
-          return
-        }
-
+      if (fileError) {
         setCheckError(
-          total === 0
-            ? 'Nenhum teste encontrado. Confira o arquivo *.test.js do step.'
-            : `Neste passo: ${passed} de ${total} testes passaram. Corrija e tente de novo.`,
+          transpilePending
+            ? 'O código ainda estava compilando. Clique em Verificar de novo.'
+            : `Erro nos testes: ${fileError}`,
         )
-      })
+        return
+      }
+
+      setCheckError(
+        total === 0
+          ? 'Nenhum teste encontrado. Confira o arquivo *.test.js do step.'
+          : `Neste passo: ${passed} de ${total} testes passaram. Corrija e tente de novo.`,
+      )
     },
-    [clearCheckTimeout, restoreStudentFiles],
+    [endChecking, scheduleCheckTimeout, clearStartDelay, bumpCheckId],
   )
 
   const handleTestsComplete = useCallback(
-    (specs: SpecsMap) => {
-      if (!checkingRef.current) return
-      finishCheck(specs)
+    (specs: SpecsMap, completedCheckId: number) => {
+      finishCheck(specs, completedCheckId)
     },
     [finishCheck],
   )
@@ -675,6 +732,7 @@ function LabPlaygroundInner({
   )
 
   const handleCheckWork = useCallback(() => {
+    if (checkingRef.current || checking) return
     if (!hasTests) {
       if (!passCalledRef.current) {
         passCalledRef.current = true
@@ -683,7 +741,7 @@ function LabPlaygroundInner({
       return
     }
     startCheckRun()
-  }, [hasTests, startCheckRun])
+  }, [hasTests, checking, startCheckRun])
 
   const sideTabs = (
     [
@@ -765,8 +823,10 @@ function LabPlaygroundInner({
         <button
           type="button"
           onClick={handleCheckWork}
+          onDoubleClick={(event) => event.preventDefault()}
           disabled={checking}
-          className="inline-flex items-center justify-center gap-2 rounded-[16px] bg-[#86efac] px-3 h-[42px] py-1.5 text-sm font-semibold text-black hover:bg-[#6ee7a0] disabled:opacity-60"
+          aria-busy={checking}
+          className="inline-flex items-center justify-center gap-2 rounded-[16px] bg-[#86efac] px-3 h-[42px] py-1.5 text-sm font-semibold text-black hover:bg-[#6ee7a0] disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-60"
         >
           {checking ? (
             <Loader2
@@ -774,7 +834,7 @@ function LabPlaygroundInner({
               aria-hidden
             />
           ) : null}
-          Verificar
+          {checking ? 'Verificando…' : 'Verificar'}
         </button>
         <div className="mx-1 h-6 w-px bg-white/15" />
         {sideTabs.map(([id, label]) => (

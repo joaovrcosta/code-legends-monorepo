@@ -38,7 +38,7 @@ export function buildLabSpecsPrompt(input: LabSpecsPromptInput): string {
   return `Você é um especialista em autoria de labs interativos de programação (estilo Codecademy / freeCodeCamp).
 
 Gere APENAS um único objeto JSON válido de lab_specs (parseável por JSON.parse).
-PROIBIDO: markdown, fences \`\`\`, comentários // fora de strings, texto antes/depois do JSON.
+PROIBIDO: markdown fences \`\`\`, comentários // fora de strings, texto antes/depois do JSON.
 
 ---
 
@@ -68,22 +68,36 @@ SCHEMA
   "steps": [
     {
       "id": "step-1",
-      "title": "Instrução do passo",
+      "title": "Instrução com highlight Markdown",
       "hint": "Dica curta",
       "testFile": "código Jest completo deste passo"
     }
   ]
 }
 
-Regras:
+Regras gerais:
 - template "react" + "/App.js" (padrão). Só use "vanilla" + "/index.js" se for JS puro sem React.
 - 2 a 5 steps progressivos; ids step-1, step-2, …
 - Aluno NÃO precisa de export (a plataforma injeta).
-- Quebras de linha DENTRO de strings JSON: use \\\\n (duas barras + n no texto que você escreve).
+- Quebras de linha DENTRO de strings JSON: use \\\\n.
 
 ---
 
-TESTES — USE SÓ HELPERS (obrigatório na maioria dos casos)
+TÍTULOS (highlight obrigatório)
+
+O frontend renderiza step.title com Markdown. Código e valores literais DEVEM ir entre crases para aparecerem em verde.
+
+CORRETO:
+"Na primeira linha, use \`console.log()\` para imprimir a string \`JavaScript\` no console."
+
+ERRADO (sem highlight):
+"Na primeira linha, use console.log() para imprimir a string JavaScript no console."
+
+Coloque entre crases: nomes de funções/API (\`console.log()\`), literais (\`JavaScript\`, \`2011\`), propriedades, keywords quando forem o foco do passo.
+
+---
+
+TESTES — HELPERS OFICIAIS
 
 import {
   readStudentCode,
@@ -98,33 +112,48 @@ import {
 | variável var/let/const | assertVarKeyword + assertBindingValue |
 | console.log(variavel) | assertConsoleLogArg(code, 'variavel') |
 | função + comportamento | softImportModule('/App.js') e chame a função |
-| console.log(5) ou texto literal | expect(code).toContain('console.log(5)') — SEM regex |
+| console.log(número) | expect(code).toContain('console.log(2011)') |
 
-PROIBIDO no testFile: eval, new Function, rewire, require de path do aluno.
-EVITE toMatch(/.../) e qualquer regex. Regex costuma gerar JSON inválido.
-
-Se for inevitável usar regex: no arquivo JSON, cada \\ do código Jest vira \\\\ .
-Ex.: no Jest o regex tem \\s e \\. ; no JSON isso aparece como \\\\s e \\\\.
-Mas prefira SEMPRE toContain ou helpers.
+PROIBIDO no testFile: eval, new Function, rewire, require de path do aluno, toMatch/regex.
 
 ---
 
-JSON VÁLIDO vs INVÁLIDO (leia com atenção)
+STRINGS EM console.log — NÃO SEJA RÍGIDO COM ASPAS
 
-INVÁLIDO (quebra o save):
-"expect(code).toMatch(/console\\.log\\s*/);"
+Em JavaScript, 'texto' e "texto" são equivalentes. O aluno pode usar qualquer uma.
+NUNCA faça só:
+expect(code).toContain("console.log('JavaScript')");  // falha se o aluno usar aspas duplas
 
-VÁLIDO (sem regex):
-"expect(code).toContain('console.log(5)');"
+SEMPRE aceite as duas formas (e ignore ; opcional se quiser):
 
-VÁLIDO (helpers):
-"assertConsoleLogArg(code, 'mensagem');"
+const ok =
+  code.includes("console.log('JavaScript')") ||
+  code.includes('console.log("JavaScript")');
+expect(ok).toBe(true);
 
-Antes de responder, simule mentalmente JSON.parse no seu output. Se houver escape inválido, corrija.
+O mesmo vale para frases longas:
+const ok =
+  code.includes("console.log('Woohoo! I love to code! #codecademy')") ||
+  code.includes('console.log("Woohoo! I love to code! #codecademy")');
+expect(ok).toBe(true);
+
+Para números (sem aspas), toContain simples basta:
+expect(code).toContain('console.log(2011)');
 
 ---
 
-EXEMPLO DE SAÍDA VÁLIDA (copie o estilo de escape deste exemplo)
+JSON VÁLIDO (crítico)
+
+- Aspas dentro de strings JSON: escape com \\"
+- Prefira aspas simples no código Jest quando possível, para o JSON ficar mais simples
+- INVÁLIDO: expect(code).toContain("console.log('x')");  dentro de "testFile": "..." sem escapar as aspas internas
+- VÁLIDO: usar includes com \\" escapado, ou misturar ' e " com cuidado
+
+Antes de responder, simule JSON.parse. Se quebrar, corrija.
+
+---
+
+EXEMPLO DE SAÍDA VÁLIDA (estilo de escape)
 
 ${LAB_SPECS_PLACEHOLDER}
 
@@ -132,7 +161,11 @@ ${LAB_SPECS_PLACEHOLDER}
 
 TAREFA
 
-Crie lab_specs coerente com os dados da aula: starter mínimo, steps claros, testFiles que validam cada step com helpers (ou toContain).
+Crie lab_specs coerente com os dados da aula:
+- starter mínimo
+- titles com \`código\` em highlight
+- testFiles flexíveis (aspas ' ou " quando for string)
+- helpers oficiais quando fizer sentido
 
 Responda SOMENTE com o JSON.`
 }
