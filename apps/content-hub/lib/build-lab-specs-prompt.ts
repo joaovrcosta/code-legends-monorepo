@@ -40,6 +40,12 @@ export function buildLabSpecsPrompt(input: LabSpecsPromptInput): string {
 Gere APENAS um único objeto JSON válido de lab_specs (parseável por JSON.parse).
 PROIBIDO: markdown fences \`\`\`, comentários // fora de strings, texto antes/depois do JSON.
 
+IDIOMA (obrigatório): TODO o conteúdo gerado no lab_specs deve estar em PORTUGUÊS DO BRASIL (pt-BR).
+Isso inclui: title e hint de cada step, comentários no starter (/App.js), nomes de test('...'), e qualquer instrução ao aluno.
+Use português natural do Brasil (você, não "tu"; "string", "número", etc. como no ensino de programação no BR).
+Literais de código que o aluno deve digitar (ex.: 'JavaScript', nomes de variáveis do exercício) permanecem em inglês quando fizerem parte do enunciado técnico.
+Não misture inglês em frases de instrução (exceto nomes de APIs como \`console.log()\`).
+
 ---
 
 DADOS DA AULA
@@ -162,6 +168,7 @@ ${LAB_SPECS_PLACEHOLDER}
 TAREFA
 
 Crie lab_specs coerente com os dados da aula:
+- TODO em português do Brasil (titles, hints, comments, test names)
 - starter mínimo
 - titles com \`código\` em highlight
 - testFiles flexíveis (aspas ' ou " quando for string)

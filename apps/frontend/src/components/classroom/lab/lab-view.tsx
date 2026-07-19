@@ -206,9 +206,8 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
     <div className="flex min-h-[70vh] flex-col gap-4 lg:h-[calc(100vh-12rem)]">
       <div
         ref={layoutRef}
-        className={`flex min-h-0 flex-1 flex-col lg:flex-row ${
-          isResizing ? 'select-none' : ''
-        }`}
+        className={`flex min-h-0 flex-1 flex-col lg:flex-row ${isResizing ? 'select-none' : ''
+          }`}
       >
         <aside
           className="min-h-0 w-full overflow-y-auto rounded-lg border border-[#25252A] bg-[#101012] lg:w-[var(--lab-sidebar-width)] lg:shrink-0"
@@ -276,9 +275,8 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
               setSidebarWidth((w) => clampSidebarWidth(w + 16))
             }
           }}
-          className={`relative hidden w-3 shrink-0 cursor-col-resize touch-none items-stretch justify-center lg:flex ${
-            isResizing ? 'bg-white/10' : 'hover:bg-white/5'
-          }`}
+          className={`relative hidden w-3 shrink-0 cursor-col-resize touch-none items-stretch justify-center lg:flex ${isResizing ? 'bg-white/10' : 'hover:bg-white/5'
+            }`}
         >
           <span className="my-auto h-10 w-1 rounded-full bg-white/25" />
         </div>
