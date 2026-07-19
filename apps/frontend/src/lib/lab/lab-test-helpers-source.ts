@@ -8,10 +8,14 @@ export const LAB_TEST_HELPERS_PATH = '/lab-test-helpers.js'
 export {
   MAX_STUDENT_CODE_BYTES,
   STUDENT_CODE_ALLOWLIST,
+  assertCodeContains,
   assertCodeSize,
+  compactCode,
   hasConsoleLogArg,
   hasKeywordBinding,
+  quoteVariants,
   resolveStudentCodePath,
+  sourceContainsLoose,
   stripStringsAndComments,
 } from './lab-test-helpers-core'
 export type { DeclKeyword } from './lab-test-helpers-core'
@@ -145,6 +149,32 @@ function hasConsoleLogArg(source, argName) {
   return re.test(cleaned);
 }
 
+function compactCode(source) {
+  return String(source).replace(/\\s+/g, "");
+}
+
+function quoteVariants(snippet) {
+  const s = String(snippet);
+  const set = {};
+  const add = (v) => {
+    set[v] = true;
+  };
+  add(s);
+  if (s.indexOf("'") !== -1) add(s.split("'").join('"'));
+  if (s.indexOf('"') !== -1) add(s.split('"').join("'"));
+  return Object.keys(set);
+}
+
+function sourceContainsLoose(source, needle) {
+  const hay = compactCode(source).split(";").join("");
+  const variants = quoteVariants(needle);
+  for (let i = 0; i < variants.length; i++) {
+    const n = compactCode(variants[i]).split(";").join("");
+    if (n.length > 0 && hay.indexOf(n) !== -1) return true;
+  }
+  return false;
+}
+
 export function readStudentCode(path) {
   const resolved = resolveStudentCodePath(path);
   const fs = require("fs");
@@ -189,6 +219,17 @@ export function assertVarKeyword(code, keyword, name) {
 export function assertConsoleLogArg(code, argName) {
   if (!hasConsoleLogArg(code, argName)) {
     throw new Error("Did you use console.log() to print \`" + argName + "\`?");
+  }
+}
+
+export function assertCodeContains(code, needle) {
+  if (!sourceContainsLoose(code, needle)) {
+    const display = String(needle).replace(/\\s+/g, " ").trim();
+    throw new Error(
+      "Did you include \`" +
+        display +
+        "\` in your code? (spaces and quote style do not matter)"
+    );
   }
 }
 

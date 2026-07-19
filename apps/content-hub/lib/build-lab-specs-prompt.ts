@@ -110,6 +110,7 @@ import {
   assertVarKeyword,
   assertBindingValue,
   assertConsoleLogArg,
+  assertCodeContains,
   softImportModule,
 } from '/lab-test-helpers.js'
 
@@ -118,44 +119,36 @@ import {
 | variável var/let/const | assertVarKeyword + assertBindingValue |
 | console.log(variavel) | assertConsoleLogArg(code, 'variavel') |
 | função + comportamento | softImportModule('/App.js') e chame a função |
-| console.log(número) | expect(code).toContain('console.log(2011)') |
+| trecho de código (expressão, literal, console.log(...)) | assertCodeContains(code, '...') |
 
-PROIBIDO no testFile: eval, new Function, rewire, require de path do aluno, toMatch/regex.
+PROIBIDO no testFile: eval, new Function, rewire, require de path do aluno, toContain/includes manuais, regex para “flexibilizar” espaços.
 
 ---
 
-STRINGS EM console.log — NÃO SEJA RÍGIDO COM ASPAS
+assertCodeContains — USE SEMPRE PARA TRECHOS DE CÓDIGO
 
-Em JavaScript, 'texto' e "texto" são equivalentes. O aluno pode usar qualquer uma.
-NUNCA faça só:
-expect(code).toContain("console.log('JavaScript')");  // falha se o aluno usar aspas duplas
+A plataforma já ignora espaços, ponto e vírgula e aspas ' vs " .
+NÃO reinvente compact/replace no testFile.
 
-SEMPRE aceite as duas formas (e ignore ; opcional se quiser):
+ERRADO:
+expect(code).toContain('console.log(3 + 4)');
 
-const ok =
-  code.includes("console.log('JavaScript')") ||
-  code.includes('console.log("JavaScript")');
-expect(ok).toBe(true);
+CERTO:
+assertCodeContains(code, 'console.log(3 + 4)');
+// passa com console.log(3+4) ou console.log(3 + 4);
 
-O mesmo vale para frases longas:
-const ok =
-  code.includes("console.log('Woohoo! I love to code! #codecademy')") ||
-  code.includes('console.log("Woohoo! I love to code! #codecademy")');
-expect(ok).toBe(true);
-
-Para números (sem aspas), toContain simples basta:
-expect(code).toContain('console.log(2011)');
+CERTO (string):
+assertCodeContains(code, "console.log('JavaScript')");
+// passa com 'JavaScript' ou "JavaScript"
 
 ---
 
 JSON VÁLIDO (crítico)
 
 - Aspas dentro de strings JSON: escape com \\"
-- Prefira aspas simples no código Jest quando possível, para o JSON ficar mais simples
-- INVÁLIDO: expect(code).toContain("console.log('x')");  dentro de "testFile": "..." sem escapar as aspas internas
-- VÁLIDO: usar includes com \\" escapado, ou misturar ' e " com cuidado
-
-Antes de responder, simule JSON.parse. Se quebrar, corrija.
+- Prefira aspas simples no código Jest quando possível
+- INVÁLIDO: assertCodeContains(code, "console.log('x')"); sem escapar aspas internas no JSON
+- Antes de responder, simule JSON.parse. Se quebrar, corrija.
 
 ---
 
@@ -171,8 +164,8 @@ Crie lab_specs coerente com os dados da aula:
 - TODO em português do Brasil (titles, hints, comments, test names)
 - starter mínimo
 - titles com \`código\` em highlight
-- testFiles flexíveis (aspas ' ou " quando for string)
-- helpers oficiais quando fizer sentido
+- para checar código digitado: SEMPRE assertCodeContains (nunca toContain cru)
+- helpers oficiais para o restante
 
 Responda SOMENTE com o JSON.`
 }

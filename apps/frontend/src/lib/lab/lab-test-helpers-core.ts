@@ -161,3 +161,40 @@ export function assertCodeSize(byteLength: number): void {
     )
   }
 }
+
+/** Remove espaços/newlines — para comparar código ignorando formatação. */
+export function compactCode(source: string): string {
+  return String(source).replace(/\s+/g, '')
+}
+
+/** Variantes com aspas simples ↔ duplas (quando houver). */
+export function quoteVariants(snippet: string): string[] {
+  const s = String(snippet)
+  const set = new Set<string>([s])
+  if (s.includes("'")) set.add(s.replace(/'/g, '"'))
+  if (s.includes('"')) set.add(s.replace(/"/g, "'"))
+  return [...set]
+}
+
+/**
+ * true se o fonte contém o trecho, ignorando espaços, `;` e aspas ' vs ".
+ * Ex.: `console.log(3+4)` casa `console.log(3 + 4);` e aspas equivalentes.
+ */
+export function sourceContainsLoose(source: string, needle: string): boolean {
+  const hay = compactCode(source).replace(/;/g, '')
+  for (const variant of quoteVariants(needle)) {
+    const n = compactCode(variant).replace(/;/g, '')
+    if (n.length > 0 && hay.includes(n)) return true
+  }
+  return false
+}
+
+/** Assert Jest-friendly: falha se o trecho não estiver no código (forma flexível). */
+export function assertCodeContains(source: string, needle: string): void {
+  if (!sourceContainsLoose(source, needle)) {
+    const display = String(needle).replace(/\s+/g, ' ').trim()
+    throw new Error(
+      `Did you include \`${display}\` in your code? (spaces and quote style do not matter)`,
+    )
+  }
+}

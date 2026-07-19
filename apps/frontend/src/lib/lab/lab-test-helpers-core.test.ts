@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   MAX_STUDENT_CODE_BYTES,
+  assertCodeContains,
   assertCodeSize,
+  compactCode,
   hasConsoleLogArg,
   hasKeywordBinding,
+  quoteVariants,
   resolveStudentCodePath,
+  sourceContainsLoose,
   stripStringsAndComments,
 } from './lab-test-helpers-core'
 
@@ -103,5 +107,42 @@ describe('hasConsoleLogArg', () => {
     expect(
       hasConsoleLogArg('// console.log(favoriteFood)\nvar x = 1;', 'favoriteFood'),
     ).toBe(false)
+  })
+})
+
+describe('sourceContainsLoose / assertCodeContains', () => {
+  it('ignora espaços em expressões', () => {
+    expect(sourceContainsLoose('console.log(3+4)', 'console.log(3 + 4)')).toBe(
+      true,
+    )
+    expect(sourceContainsLoose('console.log(3 + 4);', 'console.log(3+4)')).toBe(
+      true,
+    )
+  })
+
+  it('aceita aspas simples ou duplas', () => {
+    expect(
+      sourceContainsLoose('console.log("JavaScript")', "console.log('JavaScript')"),
+    ).toBe(true)
+    expect(
+      sourceContainsLoose("console.log('JavaScript');", 'console.log("JavaScript")'),
+    ).toBe(true)
+  })
+
+  it('ignora ponto e vírgula', () => {
+    expect(sourceContainsLoose('console.log(2011);', 'console.log(2011)')).toBe(
+      true,
+    )
+  })
+
+  it('assertCodeContains lança se faltar', () => {
+    expect(() =>
+      assertCodeContains('console.log(1)', 'console.log(3 + 4)'),
+    ).toThrow(/Did you include/)
+  })
+
+  it('compactCode e quoteVariants', () => {
+    expect(compactCode('a + b')).toBe('a+b')
+    expect(quoteVariants("console.log('x')")).toContain('console.log("x")')
   })
 })

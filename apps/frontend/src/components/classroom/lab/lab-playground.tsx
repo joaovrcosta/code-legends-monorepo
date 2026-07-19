@@ -869,6 +869,9 @@ export type LabPlaygroundProps = {
   height?: number | string
 }
 
+/** Invalida cache do SandpackProvider quando o bootstrap React muda. */
+const LAB_REACT_BOOTSTRAP_VERSION = 'rb3'
+
 const REACT_BOOTSTRAP: Record<string, string> = {
   '/App.js': `export default function App() {
   return <div>Lab</div>;
@@ -878,11 +881,18 @@ const REACT_BOOTSTRAP: Record<string, string> = {
 <head><title>Lab</title></head>
 <body><div id="root"></div></body>
 </html>`,
-  '/index.js': `import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import App from "./App";
+  '/index.js': `import { createRoot } from "react-dom/client";
+import * as AppModule from "./App";
+
+function EmptyLab() {
+  return null;
+}
+
 const root = createRoot(document.getElementById("root"));
-root.render(<StrictMode><App /></StrictMode>);`,
+const App =
+  typeof AppModule.default === "function" ? AppModule.default : EmptyLab;
+root.render(<App />);
+`,
 }
 
 function buildInitialFiles(
@@ -926,16 +936,21 @@ export function LabPlayground({
   const effectiveTemplate: 'vanilla' | 'react' =
     hasTests || template === 'react' ? 'react' : 'vanilla'
 
-  const initialFilesRef = useRef<Record<string, string> | null>(null)
-  if (initialFilesRef.current === null) {
-    initialFilesRef.current = buildInitialFiles(
-      effectiveTemplate,
-      files,
-      testFiles,
-    )
+  const initialFilesRef = useRef<{
+    version: string
+    files: Record<string, string>
+  } | null>(null)
+  if (
+    initialFilesRef.current === null ||
+    initialFilesRef.current.version !== LAB_REACT_BOOTSTRAP_VERSION
+  ) {
+    initialFilesRef.current = {
+      version: LAB_REACT_BOOTSTRAP_VERSION,
+      files: buildInitialFiles(effectiveTemplate, files, testFiles),
+    }
   }
 
-  const initialPlainFiles = initialFilesRef.current!
+  const initialPlainFiles = initialFilesRef.current.files
 
   const { entryFile, visibleFiles } = useMemo(
     () =>
@@ -965,7 +980,7 @@ export function LabPlayground({
         mesmo provider e é ortogonal à SyncStepTests.
       */}
       <SandpackProvider
-        key={lessonId}
+        key={`${lessonId}-${LAB_REACT_BOOTSTRAP_VERSION}`}
         template={effectiveTemplate}
         theme="dark"
         files={providerFiles}
