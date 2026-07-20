@@ -10,7 +10,9 @@ export {
   STUDENT_CODE_ALLOWLIST,
   assertCodeContains,
   assertCodeSize,
+  assertConsoleLogCount,
   compactCode,
+  countConsoleLogCalls,
   hasConsoleLogArg,
   hasKeywordBinding,
   quoteVariants,
@@ -149,6 +151,14 @@ function hasConsoleLogArg(source, argName) {
   return re.test(cleaned);
 }
 
+function countConsoleLogCalls(source) {
+  const cleaned = stripStringsAndComments(source);
+  const re = /\\bconsole\\s*\\.\\s*log\\s*\\(/g;
+  let n = 0;
+  while (re.exec(cleaned)) n += 1;
+  return n;
+}
+
 function compactCode(source) {
   return String(source).replace(/\\s+/g, "");
 }
@@ -221,6 +231,19 @@ export function assertConsoleLogArg(code, argName) {
     throw new Error("Did you use console.log() to print \`" + argName + "\`?");
   }
 }
+
+export function assertConsoleLogCount(code, min) {
+  const n = countConsoleLogCalls(code);
+  if (n < min) {
+    throw new Error(
+      min === 1
+        ? "Did you use console.log() at least once?"
+        : "Did you use console.log() at least " + min + " times? Found " + n + "."
+    );
+  }
+}
+
+export { stripStringsAndComments, countConsoleLogCalls };
 
 export function assertCodeContains(code, needle) {
   if (!sourceContainsLoose(code, needle)) {

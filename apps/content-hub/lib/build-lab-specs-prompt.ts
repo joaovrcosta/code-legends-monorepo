@@ -76,7 +76,7 @@ SCHEMA
       "id": "step-1",
       "title": "Instrução com highlight Markdown",
       "hint": "Dica curta",
-      "expected": "trecho de código que o aluno deveria ter escrito",
+      "expected": "você usou console.log() para imprimir o valor pedido?",
       "testFile": "código Jest completo deste passo"
     }
   ]
@@ -85,8 +85,12 @@ SCHEMA
 Regras gerais:
 - template "react" + "/App.js" (padrão). Só use "vanilla" + "/index.js" se for JS puro sem React.
 - 2 a 5 steps progressivos; ids step-1, step-2, …
-- Cada step DEVE ter "expected": o código/resposta correta daquele passo (ex.: "console.log(11 % 3)").
-  O frontend exibe expected quando o aluno falha o Verificar — deve bater com o que o testFile exige.
+- Cada step DEVE ter "expected": pergunta amigável (tom de carinha) que o aluno vê ao falhar o Verificar.
+  Estilo: frase curta em pt-BR, 2ª pessoa, termina com ? — NÃO cole só o código.
+  CERTO: "você usou console.log() para imprimir sua idade?"
+  CERTO: "você adicionou um segundo console.log() com outro número?"
+  ERRADO: "console.log(25)"
+  A pergunta deve lembrar o que o testFile exige, sem soar robótica.
 - Aluno NÃO precisa de export (a plataforma injeta).
 - Quebras de linha DENTRO de strings JSON: use \\\\n.
 
@@ -113,6 +117,7 @@ import {
   assertVarKeyword,
   assertBindingValue,
   assertConsoleLogArg,
+  assertConsoleLogCount,
   assertCodeContains,
   softImportModule,
 } from '/lab-test-helpers.js'
@@ -121,10 +126,25 @@ import {
 |------|-------------|
 | variável var/let/const | assertVarKeyword + assertBindingValue |
 | console.log(variavel) | assertConsoleLogArg(code, 'variavel') |
+| N chamadas a console.log() | assertConsoleLogCount(code, N) — ignora comentários |
 | função + comportamento | softImportModule('/App.js') e chame a função |
 | trecho de código (expressão, literal, console.log(...)) | assertCodeContains(code, '...') |
 
-PROIBIDO no testFile: eval, new Function, rewire, require de path do aluno, toContain/includes manuais, regex para “flexibilizar” espaços.
+PROIBIDO no testFile: eval, new Function, rewire, require de path do aluno, toContain/includes manuais, regex para “flexibilizar” espaços, code.split('console.log(') (conta comentários do starter!).
+
+---
+
+assertConsoleLogCount — CONTAGEM SEGURA
+
+O starter costuma citar console.log() nos comentários. NUNCA conte com split/toContain no fonte cru.
+
+ERRADO:
+const n = code.split('console.log(').length - 1;
+expect(n).toBeGreaterThanOrEqual(2);
+
+CERTO:
+assertConsoleLogCount(code, 2);
+// só conta console.log( reais, ignora // Write your console.log() below:
 
 ---
 
@@ -167,7 +187,7 @@ Crie lab_specs coerente com os dados da aula:
 - TODO em português do Brasil (titles, hints, comments, test names)
 - starter mínimo
 - titles com \`código\` em highlight
-- cada step com expected alinhado ao assert do testFile
+- cada step com expected em tom de pergunta amigável (ex.: "você usou…?")
 - para checar código digitado: SEMPRE assertCodeContains (nunca toContain cru)
 - helpers oficiais para o restante
 

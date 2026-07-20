@@ -1610,7 +1610,8 @@ Vamos passar por cada linha juntos...`
                   <p className="text-xs text-muted">
                     Inclua <code>files</code>, <code>template</code> e <code>steps[]</code> com
                     id, title, hint, expected e testFile/tests por passo. O{' '}
-                    <code>expected</code> é exibido quando o aluno falha o Verificar.
+                    <code>expected</code> é uma pergunta amigável (ex.: &quot;você usou
+                    console.log()…?&quot;) exibida quando o aluno falha o Verificar.
                     Em regex no <code>testFile</code>, escape as barras no JSON:{' '}
                     <code>\\\\.</code> <code>\\\\s</code> <code>\\\\(</code> (senão o save falha).
                   </p>

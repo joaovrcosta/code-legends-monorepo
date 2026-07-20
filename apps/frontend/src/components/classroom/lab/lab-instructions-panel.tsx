@@ -2,21 +2,25 @@
 
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { CaretDown, CheckSquare, Square } from '@phosphor-icons/react'
+import { CaretDown, CheckSquare, Square, XSquare } from '@phosphor-icons/react'
 import type { LabStep } from '@/types/roadmap'
 
 type LabInstructionsPanelProps = {
   steps: LabStep[]
   currentStepId: string | undefined
   completedStepIds: string[]
+  /** Step ativo que falhou no último Verificar. */
+  failedStepId?: string | null
+  alreadyDone?: boolean
 }
 
 export function LabInstructionsPanel({
   steps,
   currentStepId,
   completedStepIds,
+  failedStepId = null,
   alreadyDone = false,
-}: LabInstructionsPanelProps & { alreadyDone?: boolean }) {
+}: LabInstructionsPanelProps) {
   const [hintOpenFor, setHintOpenFor] = useState<string | null>(null)
 
   return (
@@ -25,6 +29,7 @@ export function LabInstructionsPanel({
         {steps.map((step, index) => {
           const done = completedStepIds.includes(step.id)
           const active = step.id === currentStepId && !done
+          const failed = active && failedStepId === step.id
           const locked = !done && !active
           const hintOpen = hintOpenFor === step.id
 
@@ -43,6 +48,11 @@ export function LabInstructionsPanel({
                   {done ? (
                     <CheckSquare
                       className="h-6 w-6 text-[#278b4d]"
+                      weight="fill"
+                    />
+                  ) : failed ? (
+                    <XSquare
+                      className="h-6 w-6 text-orange-400"
                       weight="fill"
                     />
                   ) : (

@@ -15,22 +15,24 @@ Contrato para autores no content-hub ao escrever steps de aulas **lab**.
 | `id` | sim | `step-1`, `step-2`, … |
 | `title` | sim | Instrução (Markdown; use `` `código` `` para highlight) |
 | `hint` | não | Dica sob demanda (“Stuck? Get a hint”) |
-| `expected` | recomendado | Código/resposta correta; **exibido no playground quando o Verificar falha** |
+| `expected` | recomendado | Pergunta amigável (tom de carinha); **exibida no playground quando o Verificar falha** |
 | `testFile` | sim* | Fonte Jest deste passo (*ou `tests`) |
 
 Exemplo:
 
 ```json
 {
-  "id": "step-3",
-  "title": "Use o operador de resto `%` em um `console.log()` para calcular `11 % 3`.",
-  "hint": "Um exemplo seria: console.log(11 % 3) — o operador % calcula o resto da divisão.",
-  "expected": "console.log(11 % 3)",
-  "testFile": "import { readStudentCode, assertCodeContains } from '/lab-test-helpers.js';\nconst code = readStudentCode('/App.js');\n\ntest('usa o operador de resto em uma expressão', () => {\n  assertCodeContains(code, 'console.log(11 % 3)');\n});\n"
+  "id": "step-1",
+  "title": "Use `console.log()` para imprimir sua idade no console.",
+  "hint": "Exemplo: console.log(25);",
+  "expected": "você usou console.log() para imprimir sua idade?",
+  "testFile": "import { readStudentCode } from '/lab-test-helpers.js';\n\nconst code = readStudentCode('/App.js');\n\ntest('usa console.log pelo menos uma vez', () => {\n  expect(code).toContain('console.log(');\n});\n"
 }
 ```
 
-O `expected` deve refletir o que o `testFile` exige (ex.: o mesmo trecho passado a `assertCodeContains`).
+O `expected` é uma pergunta curta em 2ª pessoa (não o código cru). Exemplos:
+- `"você usou console.log() para imprimir sua idade?"`
+- `"você adicionou um segundo console.log() com outro número?"`
 
 ## Entry do aluno
 
@@ -47,6 +49,7 @@ import {
   assertVarKeyword,
   assertBindingValue,
   assertConsoleLogArg,
+  assertConsoleLogCount,
   assertCodeContains,
   softImportModule,
 } from '/lab-test-helpers.js'
@@ -57,6 +60,7 @@ import {
 | `readStudentCode(path?)` | Lê fonte; **só** `/App.js` ou `/index.js` (allowlist hardcoded). Limite 512 KiB. |
 | `assertVarKeyword(code, keyword, name)` | Exige `var`/`let`/`const` + nome (ignora comentários/strings). |
 | `assertConsoleLogArg(code, name)` | Exige `console.log(name)` no código ativo. |
+| `assertConsoleLogCount(code, min)` | Conta `console.log(` reais (ignora strings/comentários). |
 | `assertCodeContains(code, trecho)` | Exige o trecho no fonte **ignorando espaços, `;` e aspas `'` vs `"`**. Use para `console.log(3+4)`, strings literais, etc. |
 | `softImportModule(path?)` | `import` com **cache-bust** (`?labCheck=…`) para cada Verificar. |
 | `assertBindingValue(name, expected, { path?, type? })` | Valor runtime após auto-export + cache-bust. |
@@ -103,6 +107,7 @@ test('numOfSlices é 8', async () => {
 
 - Preferir **só** os helpers oficiais.
 - Para checar trecho de código digitado, preferir **`assertCodeContains`** (não `toContain` cru).
+- Para contar `console.log`, preferir **`assertConsoleLogCount`** — **nunca** `code.split('console.log(')` (comentários do starter inflacionam a contagem).
 - **Proibido** no `testFile`: `eval`, `new Function`, `rewire`, `require` de path arbitrário do aluno, ler `/lab-test-helpers.js` ou `*.test.js`.
 - Um step = um `testFile`; nomes de `test(...)` claros.
 - Keyword checks: evite pedir `var` em declarações multi-var se o exercício for avançado demais — o helper cobre `var a = 1, x = 8`, mas AST completo não está na v1.

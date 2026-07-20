@@ -247,11 +247,13 @@ export function useLabStepProgress(options: {
       setCompletedStepIds((prev) =>
         prev.includes(stepId) ? prev : [...prev, stepId],
       )
-      const idx = steps.findIndex((s) => s.id === stepId)
-      const next = idx >= 0 ? steps[idx + 1] : undefined
-      if (next) {
-        setCurrentStepId(next.id)
-      }
+      // Só avança se o step concluído ainda é o atual (evita pass atrasado
+      // do step-1 empurrar progresso depois que o aluno já está no step-2).
+      setCurrentStepId((current) => {
+        if (current !== stepId) return current
+        const idx = steps.findIndex((s) => s.id === stepId)
+        return idx >= 0 ? (steps[idx + 1]?.id ?? current) : current
+      })
     },
     [steps],
   )

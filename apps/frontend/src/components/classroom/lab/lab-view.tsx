@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { CaretDown } from '@phosphor-icons/react'
 import type { LessonWithContent } from '@/types/roadmap'
 import { LabLearnPanel } from '@/components/classroom/lab/lab-learn-panel'
@@ -61,6 +61,7 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
   const [isMarking, setIsMarking] = useState(false)
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_PX)
   const [isResizing, setIsResizing] = useState(false)
+  const [failedStepId, setFailedStepId] = useState<string | null>(null)
   const layoutRef = useRef<HTMLDivElement>(null)
 
   const activeTests = useMemo(
@@ -70,6 +71,10 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
     }),
     [currentStep],
   )
+
+  useEffect(() => {
+    setFailedStepId(null)
+  }, [currentStep?.id])
 
   const clampSidebarWidth = useCallback((width: number) => {
     const layoutWidth = layoutRef.current?.clientWidth ?? 0
@@ -147,6 +152,7 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
 
   const handleStepCheckPass = useCallback(
     (stepId: string) => {
+      setFailedStepId(null)
       const lastStepId = steps[steps.length - 1]?.id
       const isLastStep = Boolean(lastStepId && stepId === lastStepId)
       completeStep(stepId)
@@ -156,6 +162,10 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
     },
     [steps, completeStep, lessonAlreadyDone, handleMarkAsComplete],
   )
+
+  const handleStepCheckFail = useCallback((stepId: string) => {
+    setFailedStepId(stepId)
+  }, [])
 
   if (!lab) {
     return (
@@ -249,6 +259,7 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
                   steps={steps}
                   currentStepId={currentStep?.id}
                   completedStepIds={completedStepIds}
+                  failedStepId={failedStepId}
                   alreadyDone={lessonAlreadyDone}
                 />
               </AccordionContent>
@@ -292,6 +303,7 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
               stepId={currentStep.id}
               expected={currentStep.expected}
               onStepCheckPass={handleStepCheckPass}
+              onStepCheckFail={handleStepCheckFail}
               height="100%"
               className="min-h-[420px] flex-1"
             />

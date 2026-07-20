@@ -154,6 +154,31 @@ export function hasConsoleLogArg(source: string, argName: string): boolean {
   return re.test(cleaned)
 }
 
+/**
+ * Conta `console.log(` no código ativo (ignora strings e comentários).
+ * Use isto em vez de `code.split('console.log(')` — o starter costuma citar
+ * console.log() nos comentários.
+ */
+export function countConsoleLogCalls(source: string): number {
+  const cleaned = stripStringsAndComments(source)
+  const re = /\bconsole\s*\.\s*log\s*\(/g
+  let n = 0
+  while (re.exec(cleaned)) n += 1
+  return n
+}
+
+/** Assert: exige pelo menos `min` chamadas reais a console.log(...). */
+export function assertConsoleLogCount(source: string, min: number): void {
+  const n = countConsoleLogCalls(source)
+  if (n < min) {
+    throw new Error(
+      min === 1
+        ? 'Did you use console.log() at least once?'
+        : `Did you use console.log() at least ${min} times? Found ${n}.`,
+    )
+  }
+}
+
 export function assertCodeSize(byteLength: number): void {
   if (byteLength > MAX_STUDENT_CODE_BYTES) {
     throw new Error(

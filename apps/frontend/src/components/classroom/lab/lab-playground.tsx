@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   SandpackProvider,
   SandpackLayout,
@@ -41,25 +41,42 @@ type TestStatus = 'idle' | 'starting' | 'running' | 'complete'
 
 type SandpackFileInput = string | { code: string; hidden?: boolean }
 
-function resolveTestFiles(activeTests: {
-  testFile?: string
-  tests?: Record<string, string>
-}): Record<string, string> {
+/** Path único por step — evita Jest/Sandpack reusar o testFile do passo anterior. */
+function stepTestPath(stepId: string): string {
+  const safe = String(stepId).replace(/[^a-zA-Z0-9_-]/g, '_') || 'step'
+  return `/lab.step.${safe}.test.js`
+}
+
+function isManagedLabStepTestPath(path: string): boolean {
+  return (
+    path === DEFAULT_TEST_PATH ||
+    /^\/lab\.step\.[^/]+\.test\.[tj]sx?$/i.test(path)
+  )
+}
+
+function resolveTestFiles(
+  activeTests: {
+    testFile?: string
+    tests?: Record<string, string>
+  },
+  stepId: string,
+): Record<string, string> {
   if (activeTests.tests && Object.keys(activeTests.tests).length > 0) {
     return activeTests.tests
   }
   if (typeof activeTests.testFile === 'string' && activeTests.testFile.trim()) {
-    return { [DEFAULT_TEST_PATH]: activeTests.testFile }
+    // Comentário de geração força rebundle se o conteúdo coincidir entre steps.
+    const body = `/* lab-step:${stepId} */\n${activeTests.testFile}`
+    return { [stepTestPath(stepId)]: body }
   }
   return {}
 }
 
 function isTestFilePath(path: string): boolean {
   return (
-    path === DEFAULT_TEST_PATH ||
+    isManagedLabStepTestPath(path) ||
     path === LAB_TEST_HELPERS_PATH ||
-    /\.(test|spec)\.[tj]sx?$/i.test(path) ||
-    /\/lab\.step\.test\.[tj]sx?$/i.test(path)
+    /\.(test|spec)\.[tj]sx?$/i.test(path)
   )
 }
 
@@ -179,24 +196,38 @@ function SyncStepTests({
   stepId: string
   testFiles: Record<string, string>
 }) {
-  // Troca só o arquivo de teste do step; ortogonal ao FileExplorer (visibleFiles
-  // filtrada). Se Plano C (dois providers) existir, manter SyncStepTests no
-  // provider ativo junto com filesOpen/activeFile.
+  // Troca o arquivo de teste do step e remove os dos steps anteriores.
+  // run-all-tests do Sandpack executa TODOS os *.test.js — sem delete, o
+  // step-1 continua passando junto com o step-2.
   const { sandpack } = useSandpack()
-  const prevStepRef = useRef<string | null>(null)
 
-  useEffect(() => {
-    if (prevStepRef.current === stepId) return
-    prevStepRef.current = stepId
+  useLayoutEffect(() => {
+    const keep = new Set(Object.keys(testFiles))
 
-    const entries = Object.entries(testFiles)
-    if (entries.length === 0) return
-
-    for (const [path, code] of entries) {
+    for (const [path, code] of Object.entries(testFiles)) {
       try {
         sandpack.updateFile(path, code)
       } catch {
         // ignore
+      }
+    }
+
+    for (const path of Object.keys(sandpack.files)) {
+      if (!isManagedLabStepTestPath(path)) continue
+      if (keep.has(path)) continue
+      try {
+        // Prefer delete; fallback esvazia o arquivo para o Jest não herdar testes velhos.
+        if (typeof sandpack.deleteFile === 'function') {
+          sandpack.deleteFile(path)
+        } else {
+          sandpack.updateFile(path, '/* inactive lab step */\n')
+        }
+      } catch {
+        try {
+          sandpack.updateFile(path, '/* inactive lab step */\n')
+        } catch {
+          // ignore
+        }
       }
     }
   }, [sandpack, stepId, testFiles])
@@ -648,14 +679,18 @@ function LabTestsPanel({
 function LabPlaygroundInner({
   stepId,
   onStepCheckPass,
+  onStepCheckFail,
   hasTests,
   expected,
+  testFiles,
 }: {
   stepId: string
   onStepCheckPass: (stepId: string) => void
+  onStepCheckFail?: (stepId: string) => void
   hasTests: boolean
-  /** Código esperado do step; mostrado no rodapé se o Verificar falhar. */
+  /** Pergunta amigável do step; mostrada no rodapé se o Verificar falhar. */
   expected?: string
+  testFiles: Record<string, string>
 }) {
   const { sandpack, dispatch: sandpackDispatch, listen } = useSandpack()
   const sandpackRef = useRef(sandpack)
@@ -685,6 +720,7 @@ function LabPlaygroundInner({
   const checkingRef = useRef(false)
   const stepIdRef = useRef(stepId)
   const onPassRef = useRef(onStepCheckPass)
+  const onFailRef = useRef(onStepCheckFail)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const startDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const consoleFreezeRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -696,6 +732,14 @@ function LabPlaygroundInner({
 
   stepIdRef.current = stepId
   onPassRef.current = onStepCheckPass
+  onFailRef.current = onStepCheckFail
+
+  const testFilesRef = useRef(testFiles)
+  testFilesRef.current = testFiles
+
+  const notifyFail = useCallback(() => {
+    onFailRef.current?.(stepIdRef.current)
+  }, [])
 
   const handleCaptureLogsChange = useCallback((logs: SandpackConsoleLog[]) => {
     verifyConsoleLogsRef.current = logs
@@ -756,6 +800,34 @@ function LabPlaygroundInner({
     }
     preCheckFilesRef.current = backup
   }, [])
+
+  /** Garante que só o testFile do step atual exista antes do Jest. */
+  const syncActiveTestFiles = useCallback(() => {
+    const keep = new Set(Object.keys(testFiles))
+    for (const [path, code] of Object.entries(testFiles)) {
+      try {
+        sandpackRef.current.updateFile(path, code)
+      } catch {
+        // ignore
+      }
+    }
+    for (const path of Object.keys(sandpackRef.current.files)) {
+      if (!isManagedLabStepTestPath(path) || keep.has(path)) continue
+      try {
+        if (typeof sandpackRef.current.deleteFile === 'function') {
+          sandpackRef.current.deleteFile(path)
+        } else {
+          sandpackRef.current.updateFile(path, '/* inactive lab step */\n')
+        }
+      } catch {
+        try {
+          sandpackRef.current.updateFile(path, '/* inactive lab step */\n')
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, [testFiles])
 
   const refreshPreview = useCallback(() => {
     try {
@@ -866,8 +938,9 @@ function LabPlaygroundInner({
       setCheckError(
         'Tempo esgotado. Espere o editor carregar e clique em Verificar de novo.',
       )
+      notifyFail()
     }, CHECK_TIMEOUT_MS)
-  }, [clearCheckTimeout, endChecking])
+  }, [clearCheckTimeout, endChecking, notifyFail])
 
   const bumpCheckId = useCallback(() => {
     setCheckId((id) => {
@@ -901,11 +974,13 @@ function LabPlaygroundInner({
     startDelayRef.current = setTimeout(() => {
       startDelayRef.current = null
       if (!checkingRef.current) return
+      syncActiveTestFiles()
       prepareStudentFilesForCheck()
       bumpCheckId()
     }, CHECK_START_DELAY_MS)
   }, [
     prepareStudentFilesForCheck,
+    syncActiveTestFiles,
     scheduleCheckTimeout,
     clearStartDelay,
     clearConsoleFreeze,
@@ -918,7 +993,27 @@ function LabPlaygroundInner({
       // Ignora resultado de uma run antiga (clique duplo / retry sobreposto).
       if (completedCheckId !== expectedCheckIdRef.current) return
 
-      const fileError = getSpecFileError(specs)
+      const activePaths = new Set(
+        Object.keys(testFilesRef.current).map((p) =>
+          p.startsWith('/') ? p : `/${p}`,
+        ),
+      )
+      // Só conta specs do step atual (run-all-tests pode ainda ver arquivo antigo).
+      const relevantSpecs =
+        activePaths.size === 0
+          ? specs
+          : Object.fromEntries(
+              Object.entries(specs).filter(([path]) => {
+                const normalized = path.startsWith('/') ? path : `/${path}`
+                return activePaths.has(normalized)
+              }),
+            )
+
+      const { passed, total, failed } = countSpecResults(relevantSpecs)
+      const passedAll = total > 0 && failed === 0 && passed === total
+      const hasExpected = Boolean(expected?.trim())
+      const passedStepId = stepIdRef.current
+      const fileError = getSpecFileError(relevantSpecs)
       const transpilePending =
         !!fileError && /hasn['’]t been transpiled yet/i.test(fileError)
 
@@ -931,32 +1026,26 @@ function LabPlaygroundInner({
         startDelayRef.current = setTimeout(() => {
           startDelayRef.current = null
           if (!checkingRef.current) return
+          syncActiveTestFiles()
           bumpCheckId()
         }, delayMs)
         return
       }
 
-      const { passed, total, failed } = countSpecResults(specs)
-      const passedAll = total > 0 && failed === 0 && passed === total
-      const hasExpected = Boolean(expected?.trim())
-
-      endChecking(
-        passedAll
-          ? {
-              onSettled: () => {
-                if (passCalledRef.current) return
-                passCalledRef.current = true
-                onPassRef.current(stepIdRef.current)
-              },
-            }
-          : undefined,
-      )
-
+      // Completa o step imediatamente (não espera o console) — senão o aluno
+      // clica Verificar de novo no mesmo step e/ou o Jest ainda vê o testFile antigo.
       if (passedAll) {
         setCheckError(null)
         setShowExpected(false)
+        endChecking()
+        if (!passCalledRef.current) {
+          passCalledRef.current = true
+          onPassRef.current(passedStepId)
+        }
         return
       }
+
+      endChecking()
 
       if (fileError) {
         setShowExpected(hasExpected)
@@ -965,6 +1054,7 @@ function LabPlaygroundInner({
             ? 'O código ainda estava compilando. Clique em Verificar de novo.'
             : `Erro nos testes: ${fileError}`,
         )
+        notifyFail()
         return
       }
 
@@ -973,13 +1063,23 @@ function LabPlaygroundInner({
         setCheckError(
           'Nenhum teste encontrado. Confira o arquivo *.test.js do step.',
         )
+        notifyFail()
         return
       }
 
       setShowExpected(hasExpected)
       setCheckError(hasExpected ? null : 'Resposta incorreta. Tente de novo.')
+      notifyFail()
     },
-    [endChecking, scheduleCheckTimeout, clearStartDelay, bumpCheckId, expected],
+    [
+      endChecking,
+      scheduleCheckTimeout,
+      clearStartDelay,
+      bumpCheckId,
+      syncActiveTestFiles,
+      expected,
+      notifyFail,
+    ],
   )
 
   const handleTestsComplete = useCallback(
@@ -1025,6 +1125,7 @@ function LabPlaygroundInner({
         if (consoleFailed || bundlerErrorRef.current) {
           setCheckError('Erro no código — corrija antes de continuar.')
           setShowExpected(Boolean(expected?.trim()))
+          notifyFail()
           return
         }
         if (!passCalledRef.current) {
@@ -1035,7 +1136,15 @@ function LabPlaygroundInner({
       return
     }
     startCheckRun()
-  }, [hasTests, checking, startCheckRun, clearConsoleFreeze, refreshPreview, expected])
+  }, [
+    hasTests,
+    checking,
+    startCheckRun,
+    clearConsoleFreeze,
+    refreshPreview,
+    expected,
+    notifyFail,
+  ])
 
   const sideTabs = (
     [
@@ -1186,11 +1295,8 @@ function LabPlaygroundInner({
           </button>
         ))}
         {showExpected && expected?.trim() ? (
-          <p className="min-w-0 flex-1 text-[11px] leading-snug text-amber-200/90">
-            <span className="text-white/50">Esperado: </span>
-            <code className="inline-block whitespace-pre-wrap rounded bg-black/30 px-1 py-0.5 font-mono text-amber-100">
-              {expected.trim()}
-            </code>
+          <p className="min-w-0 flex-1 text-xs leading-snug text-amber-200/90">
+            {expected.trim()}
           </p>
         ) : checkError ? (
           <p className="text-xs text-red-300">{checkError}</p>
@@ -1206,9 +1312,11 @@ export type LabPlaygroundProps = {
   template?: 'vanilla' | 'react'
   activeTests: { testFile?: string; tests?: Record<string, string> }
   stepId: string
-  /** Código esperado do step ativo; exibido se o Verificar falhar. */
+  /** Pergunta amigável do step ativo; exibida se o Verificar falhar. */
   expected?: string
   onStepCheckPass: (stepId: string) => void
+  /** Chamado quando o Verificar falha no step ativo. */
+  onStepCheckFail?: (stepId: string) => void
   className?: string
   height?: number | string
 }
@@ -1273,10 +1381,14 @@ export function LabPlayground({
   stepId,
   expected,
   onStepCheckPass,
+  onStepCheckFail,
   className = '',
   height = '100%',
 }: LabPlaygroundProps) {
-  const testFiles = useMemo(() => resolveTestFiles(activeTests), [activeTests])
+  const testFiles = useMemo(
+    () => resolveTestFiles(activeTests, stepId),
+    [activeTests, stepId],
+  )
   const hasTests = Object.keys(testFiles).length > 0
   const effectiveTemplate: 'vanilla' | 'react' =
     hasTests || template === 'react' ? 'react' : 'vanilla'
@@ -1359,8 +1471,10 @@ export function LabPlayground({
         <LabPlaygroundInner
           stepId={stepId}
           onStepCheckPass={onStepCheckPass}
+          onStepCheckFail={onStepCheckFail}
           hasTests={hasTests}
           expected={expected}
+          testFiles={testFiles}
         />
       </SandpackProvider>
     </div>

@@ -3,7 +3,9 @@ import {
   MAX_STUDENT_CODE_BYTES,
   assertCodeContains,
   assertCodeSize,
+  assertConsoleLogCount,
   compactCode,
+  countConsoleLogCalls,
   hasConsoleLogArg,
   hasKeywordBinding,
   quoteVariants,
@@ -107,6 +109,36 @@ describe('hasConsoleLogArg', () => {
     expect(
       hasConsoleLogArg('// console.log(favoriteFood)\nvar x = 1;', 'favoriteFood'),
     ).toBe(false)
+  })
+})
+
+describe('countConsoleLogCalls / assertConsoleLogCount', () => {
+  const starter = `// Pratique o uso de console.log().
+
+// Write your first console.log() below:
+
+
+// Write your second console.log() below:
+`
+
+  it('ignora console.log citado em comentários do starter', () => {
+    expect(countConsoleLogCalls(starter)).toBe(0)
+    expect(countConsoleLogCalls(`${starter}\nconsole.log(25);\n`)).toBe(1)
+    expect(
+      countConsoleLogCalls(`${starter}\nconsole.log(25);\nconsole.log(12);\n`),
+    ).toBe(2)
+  })
+
+  it('assertConsoleLogCount falha com 1 call quando min=2', () => {
+    expect(() =>
+      assertConsoleLogCount(`${starter}\nconsole.log(25);\n`, 2),
+    ).toThrow(/at least 2/)
+    expect(() =>
+      assertConsoleLogCount(
+        `${starter}\nconsole.log(25);\nconsole.log(12);\n`,
+        2,
+      ),
+    ).not.toThrow()
   })
 })
 
