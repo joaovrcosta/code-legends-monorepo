@@ -53,8 +53,12 @@ import {
   type LessonBreadcrumbContext,
   type VideoLessonNeighbor,
 } from '@/lib/course-structure'
-import { LAB_SPECS_PLACEHOLDER } from '@/lib/lab-specs-placeholder'
 import { buildLabSpecsPrompt } from '@/lib/build-lab-specs-prompt'
+import { validateLabSpecs } from '@/lib/validate-lab-specs'
+import {
+  LabSpecsField,
+  type LabSpecsFieldHandle,
+} from './lab-specs-field'
 import { LessonContextBreadcrumb } from './lesson-context-breadcrumb'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SegmentedControl } from '@/components/ui/segmented-control'
@@ -213,6 +217,8 @@ export function LessonEditView({
 
   const lessonRef = useRef(lesson)
   lessonRef.current = lesson
+
+  const labSpecsFieldRef = useRef<LabSpecsFieldHandle>(null)
 
   const onLessonContentLoadedRef = useRef(onLessonContentLoaded)
   onLessonContentLoadedRef.current = onLessonContentLoaded
@@ -629,6 +635,20 @@ Vamos passar por cada linha juntos...`
         order: formData.order,
       }
 
+      let labSpecsParsed: unknown = undefined
+      if (formData.type === 'lab') {
+        const labResult =
+          labSpecsFieldRef.current?.validate() ??
+          validateLabSpecs(formData.lab_specs)
+        if (!labResult.ok) {
+          toast.error(
+            labResult.errors[0] ?? 'Specs do lab inválidas',
+          )
+          return
+        }
+        labSpecsParsed = labResult.parsed
+      }
+
       const payload =
         formData.type === 'quiz' || formData.type === 'multi_quiz'
           ? { ...basePayload, quiz_content: quizContent }
@@ -654,15 +674,7 @@ Vamos passar por cada linha juntos...`
                   ? Number(formData.lab_duration_minutes)
                   : null,
                 lab_learn_body: formData.lab_learn_body || null,
-                lab_specs: (() => {
-                  try {
-                    return JSON.parse(formData.lab_specs || '{}')
-                  } catch {
-                    throw new Error(
-                      'Specs do lab inválidas: JSON com erro de sintaxe. Em regex no testFile, escape barras: use \\\\. \\\\s \\\\( etc.',
-                    )
-                  }
-                })(),
+                lab_specs: labSpecsParsed,
               }
             : formData.type === 'video'
               ? {
@@ -796,13 +808,7 @@ Vamos passar por cada linha juntos...`
                 ? Number(formData.lab_duration_minutes)
                 : null,
               learnBody: formData.lab_learn_body || null,
-              specs: (() => {
-                try {
-                  return JSON.parse(formData.lab_specs || '{}')
-                } catch {
-                  return {}
-                }
-              })(),
+              specs: (labSpecsParsed as Record<string, unknown>) ?? {},
             }
             : null,
         production: nextProduction,
@@ -1592,43 +1598,18 @@ Vamos passar por cada linha juntos...`
                   </Button>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="lab_specs">Specs do lab (JSON: files + steps)</Label>
-                  <Textarea
-                    id="lab_specs"
-                    value={formData.lab_specs}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        lab_specs: e.target.value,
-                      })
-                    }
-                    rows={16}
-                    className="font-mono text-sm"
-                    placeholder={LAB_SPECS_PLACEHOLDER}
-                  />
-                  <p className="text-xs text-muted">
-                    Inclua <code>files</code>, <code>template</code> e <code>steps[]</code> com
-                    id, title, hint, expected e testFile/tests por passo. O{' '}
-                    <code>expected</code> é uma pergunta amigável (ex.: &quot;você usou
-                    console.log()…?&quot;) exibida quando o aluno falha o Verificar.
-                    Em regex no <code>testFile</code>, escape as barras no JSON:{' '}
-                    <code>\\\\.</code> <code>\\\\s</code> <code>\\\\(</code> (senão o save falha).
-                  </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        lab_specs: LAB_SPECS_PLACEHOLDER,
-                      })
-                    }
-                  >
-                    Inserir exemplo de specs
-                  </Button>
-                </div>
+                <LabSpecsField
+                  ref={labSpecsFieldRef}
+                  value={formData.lab_specs}
+                  onChange={(lab_specs) =>
+                    setFormData({ ...formData, lab_specs })
+                  }
+                  learnBody={formData.lab_learn_body}
+                  learnTitle={formData.lab_learn_title}
+                  category={formData.lab_category}
+                  durationMinutes={formData.lab_duration_minutes}
+                  descriptionFallback={formData.lab_description}
+                />
               </div>
             )}
 
