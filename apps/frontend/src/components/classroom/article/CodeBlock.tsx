@@ -16,6 +16,32 @@ function getLanguageFromClassName(className?: string | null): string {
   return match ? match[1] : 'text'
 }
 
+/** Rótulo amigável na barra do bloco (ex.: javascript → Javascript). */
+function formatLanguageLabel(language: string): string {
+  const aliases: Record<string, string> = {
+    js: 'Javascript',
+    javascript: 'Javascript',
+    ts: 'Typescript',
+    typescript: 'Typescript',
+    jsx: 'JSX',
+    tsx: 'TSX',
+    html: 'HTML',
+    css: 'CSS',
+    json: 'JSON',
+    bash: 'Bash',
+    shell: 'Shell',
+    sh: 'Shell',
+    py: 'Python',
+    python: 'Python',
+    text: 'Text',
+    plaintext: 'Text',
+  }
+  const key = language.toLowerCase()
+  if (aliases[key]) return aliases[key]
+  return language.charAt(0).toUpperCase() + language.slice(1).toLowerCase()
+}
+
+
 function getCodeString(children: React.ReactNode): string {
   if (typeof children === 'string') return children
   return Array.isArray(children)
@@ -101,12 +127,15 @@ export function CodeBlockPre({ children }: CodeBlockPreProps) {
       role="region"
       aria-label="Bloco de código"
     >
-      <div className="flex items-center justify-end border-b border-[#25252A] bg-surface px-3 py-2">
+      <div className="flex items-center justify-between gap-2 border-b border-[#25252A] bg-surface px-3 py-2">
+        <span className="truncate text-xs font-medium tracking-wide text-white/45">
+          {formatLanguageLabel(language)}
+        </span>
         <button
           type="button"
           onClick={handleCopy}
           disabled={!code}
-          className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium text-[#a1a1aa] transition-colors hover:bg-white/5 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#00C8FF] focus:ring-offset-2 focus:ring-offset-[#0d0d0f] disabled:opacity-50"
+          className="flex shrink-0 items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium text-[#a1a1aa] transition-colors hover:bg-white/5 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#00C8FF] focus:ring-offset-2 focus:ring-offset-[#0d0d0f] disabled:opacity-50"
           aria-label={copied ? 'Copiado' : 'Copiar código'}
         >
           {copied ? (
