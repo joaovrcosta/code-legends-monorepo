@@ -284,6 +284,7 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
         <div className="mt-4 flex min-h-0 min-w-0 flex-1 flex-col gap-3 lg:mt-0">
           {currentStep ? (
             <LabPlayground
+              key={lesson.id}
               lessonId={lesson.id}
               files={lab.specs?.files}
               template={lab.specs?.template ?? 'vanilla'}

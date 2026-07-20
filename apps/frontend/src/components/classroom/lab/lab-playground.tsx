@@ -6,10 +6,10 @@ import {
   SandpackLayout,
   SandpackCodeEditor,
   SandpackPreview,
-  SandpackConsole,
   SandpackFileExplorer,
   useSandpack,
   useSandpackClient,
+  useSandpackConsole,
 } from '@codesandbox/sandpack-react'
 import { Folder, FolderOpen } from '@phosphor-icons/react'
 import { Loader2 } from 'lucide-react'
@@ -17,12 +17,15 @@ import {
   LAB_TEST_HELPERS_PATH,
   buildLabTestHelpersSource,
 } from '@/lib/lab/lab-test-helpers-source'
+import { withLabAutoExports } from '@/lib/lab/lab-auto-exports'
 
 const DEFAULT_TEST_PATH = '/lab.step.test.js'
 const CHECK_TIMEOUT_MS = 30000
 const CLIENT_POLL_MS = 200
 const CLIENT_MAX_ATTEMPTS = 50
 const CHECK_START_DELAY_MS = 350
+/** Tempo para a preview reexecutar e o console.log chegar após o Verificar. */
+const CONSOLE_CAPTURE_GRACE_MS = 700
 
 type SpecsMap = Record<
   string,
@@ -63,10 +66,6 @@ function getEntryFile(template: 'vanilla' | 'react'): string {
   return template === 'react' ? '/App.js' : '/index.js'
 }
 
-/**
- * Arquivos que o aluno pode ver/abrir. Independente de filesOpen.
- * Testes e bootstrap React ficam de fora (e marcados hidden no sandbox).
- */
 function getStudentVisibleFiles(
   template: 'vanilla' | 'react',
   contentFiles: Record<string, string> | undefined,
@@ -170,58 +169,7 @@ function countSpecResults(specs: SpecsMap): {
   return { passed, total, failed }
 }
 
-const LAB_AUTO_EXPORT_MARKER = '/* __lab_auto_exports__ */'
 const STUDENT_CODE_PATHS = ['/App.js', '/index.js'] as const
-
-/** Remove bloco de export injetado só para os testes. */
-function stripLabAutoExports(code: string): string {
-  const idx = code.indexOf(LAB_AUTO_EXPORT_MARKER)
-  if (idx === -1) return code
-  return code.slice(0, idx).replace(/\s+$/, '\n')
-}
-
-function listTopLevelBindings(code: string): string[] {
-  const names: string[] = []
-  const declRe =
-    /(?:^|[\n;])\s*(?:var|let|const)\s+([A-Za-z_$][\w$]*)\s*=/g
-  const fnRe = /(?:^|[\n;])\s*function\s+([A-Za-z_$][\w$]*)\s*\(/g
-  let match: RegExpExecArray | null
-  while ((match = declRe.exec(code))) names.push(match[1])
-  while ((match = fnRe.exec(code))) names.push(match[1])
-  return [...new Set(names)]
-}
-
-function listAlreadyExported(code: string): Set<string> {
-  const exported = new Set<string>()
-  for (const block of code.matchAll(/export\s*\{([^}]*)\}/g)) {
-    for (const part of block[1].split(',')) {
-      const raw = part.trim()
-      if (!raw) continue
-      const name = raw.split(/\s+as\s+/)[0]?.trim()
-      if (name) exported.add(name)
-    }
-  }
-  const named =
-    /export\s+(?:default\s+)?(?:async\s+)?(?:var|let|const|function|class)\s+([A-Za-z_$][\w$]*)/g
-  let match: RegExpExecArray | null
-  while ((match = named.exec(code))) exported.add(match[1])
-  return exported
-}
-
-/**
- * Labs estilo Codecademy não pedem export; os testes importam ./App.js.
- * Injetamos export temporário das bindings top-level e restauramos depois.
- */
-function withLabAutoExports(code: string): string {
-  const base = stripLabAutoExports(code)
-    .replace(/\nexport\s*\{\s*\}\s*;?\s*$/m, '\n')
-    .replace(/^\s*export\s*\{\s*\}\s*;?\s*$/m, '')
-  const declared = listTopLevelBindings(base)
-  const already = listAlreadyExported(base)
-  const missing = declared.filter((name) => !already.has(name))
-  if (missing.length === 0) return base
-  return `${base.trimEnd()}\n${LAB_AUTO_EXPORT_MARKER}\nexport { ${missing.join(', ')} };\n`
-}
 
 function SyncStepTests({
   stepId,
@@ -251,6 +199,188 @@ function SyncStepTests({
       }
     }
   }, [sandpack, stepId, testFiles])
+
+  return null
+}
+
+type SandpackConsoleLog = {
+  id: string
+  method: string
+  data?: Array<string | number | boolean | Record<string, unknown> | null>
+}
+
+function formatConsolePart(part: unknown): string {
+  if (part == null) return ''
+  if (
+    typeof part === 'string' ||
+    typeof part === 'number' ||
+    typeof part === 'boolean'
+  ) {
+    return String(part)
+  }
+  try {
+    return JSON.stringify(part)
+  } catch {
+    return String(part)
+  }
+}
+
+/**
+ * Console só exibe saída capturada no "Verificar" (ignora autorun ao digitar).
+ * Enquanto captura, renderiza `logs` direto (sem setState) para não loopar.
+ */
+function LabVerifyConsole({
+  sessionId,
+  capturing,
+  onCaptureLogsChange,
+}: {
+  sessionId: number
+  capturing: boolean
+  onCaptureLogsChange?: (logs: SandpackConsoleLog[]) => void
+}) {
+  const { logs, reset } = useSandpackConsole({
+    resetOnPreviewRestart: false,
+    showSyntaxError: false,
+  })
+  const [snapshot, setSnapshot] = useState<SandpackConsoleLog[]>([])
+  const wasCapturingRef = useRef(false)
+  const resetRef = useRef(reset)
+  const logsRef = useRef(logs)
+  const onLogsRef = useRef(onCaptureLogsChange)
+  resetRef.current = reset
+  logsRef.current = logs
+  onLogsRef.current = onCaptureLogsChange
+
+  useEffect(() => {
+    if (sessionId <= 0) {
+      wasCapturingRef.current = false
+      setSnapshot((prev) => (prev.length === 0 ? prev : []))
+      return
+    }
+
+    if (capturing && !wasCapturingRef.current) {
+      wasCapturingRef.current = true
+      resetRef.current()
+      setSnapshot([])
+      onLogsRef.current?.([])
+      return
+    }
+
+    if (!capturing && wasCapturingRef.current) {
+      wasCapturingRef.current = false
+      const frozen = logsRef.current as SandpackConsoleLog[]
+      setSnapshot(frozen)
+      onLogsRef.current?.(frozen)
+    }
+  }, [sessionId, capturing])
+
+  useEffect(() => {
+    if (sessionId <= 0 || !capturing) return
+    onLogsRef.current?.(logs as SandpackConsoleLog[])
+  }, [logs, capturing, sessionId])
+
+  const display: SandpackConsoleLog[] =
+    sessionId <= 0
+      ? []
+      : capturing
+        ? (logs as SandpackConsoleLog[])
+        : snapshot
+
+  return (
+    <div className="flex h-full min-h-0 flex-col bg-[#1A1A1A] text-xs text-white/90">
+      <div className="flex shrink-0 items-center justify-end border-b border-white/10 px-2 py-1">
+        <button
+          type="button"
+          onClick={() => {
+            resetRef.current()
+            setSnapshot([])
+          }}
+          className="rounded px-2 py-0.5 text-[11px] text-white/50 hover:bg-white/10 hover:text-white"
+        >
+          Limpar
+        </button>
+      </div>
+      <div className="min-h-0 flex-1 space-y-1 overflow-auto p-2 font-mono leading-relaxed">
+        {display.length === 0 ? (
+          <p className="text-white/35">
+            {sessionId > 0
+              ? capturing
+                ? 'Capturando saída…'
+                : 'Sem saída neste Verificar.'
+              : 'Clique em Verificar para ver a saída do console.'}
+          </p>
+        ) : (
+          display.map((log) => (
+            <div
+              key={log.id}
+              className={
+                log.method === 'error'
+                  ? 'text-red-300'
+                  : log.method === 'warn'
+                    ? 'text-amber-300'
+                    : 'text-white/85'
+              }
+            >
+              {(log.data ?? []).map((part, index) => (
+                <span key={`${log.id}-${index}`}>
+                  {formatConsolePart(part)}{' '}
+                </span>
+              ))}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** Erros de bundle/sintaxe (overlay Sandpack), além de console.error. */
+function LabSandpackBundlerErrorListener({
+  sessionId,
+  capturing,
+  onBundlerError,
+}: {
+  sessionId: number
+  capturing: boolean
+  onBundlerError: () => void
+}) {
+  const { listen } = useSandpackClient()
+  const listenRef = useRef(listen)
+  const onErrorRef = useRef(onBundlerError)
+  const gateRef = useRef(false)
+  listenRef.current = listen
+  onErrorRef.current = onBundlerError
+
+  useEffect(() => {
+    gateRef.current = sessionId > 0 && capturing
+  }, [sessionId, capturing])
+
+  useEffect(() => {
+    return listenRef.current((msg) => {
+      if (!gateRef.current) return
+      const data = msg as {
+        type?: string
+        action?: string
+        notificationType?: string
+        compilatonError?: boolean
+      }
+      if (data.type === 'action' && data.action === 'show-error') {
+        onErrorRef.current()
+        return
+      }
+      if (
+        data.type === 'action' &&
+        data.action === 'notification' &&
+        data.notificationType === 'error'
+      ) {
+        onErrorRef.current()
+        return
+      }
+      if (data.type === 'done' && data.compilatonError) {
+        onErrorRef.current()
+      }
+    })
+  }, [])
 
   return null
 }
@@ -322,7 +452,12 @@ function LabJestRunner({
 
       if (event === 'initialize_tests') {
         jestReadyRef.current = true
-        onStatusRef.current('idle', specsRef.current)
+        // Não volta para "Pronto" no meio de um Verificar (rebundle/initialize).
+        if (pendingCheckRef.current || activeCheckIdRef.current > 0) {
+          onStatusRef.current('starting', specsRef.current)
+        } else {
+          onStatusRef.current('idle', specsRef.current)
+        }
         if (pendingCheckRef.current) {
           pendingCheckRef.current = false
           dispatchRunAll()
@@ -505,9 +640,11 @@ function LabPlaygroundInner({
   onStepCheckPass: (stepId: string) => void
   hasTests: boolean
 }) {
-  const { sandpack } = useSandpack()
+  const { sandpack, dispatch: sandpackDispatch } = useSandpack()
   const sandpackRef = useRef(sandpack)
   sandpackRef.current = sandpack
+  const dispatchRef = useRef(sandpackDispatch)
+  dispatchRef.current = sandpackDispatch
 
   const [checking, setChecking] = useState(false)
   const [checkError, setCheckError] = useState<string | null>(null)
@@ -520,18 +657,32 @@ function LabPlaygroundInner({
   >(null)
   /** Pasta fechada por padrão; fechar NÃO reseta activeFile. */
   const [filesOpen, setFilesOpen] = useState(false)
+  /** Sessão do console: só captura logs durante Verificar. */
+  const [consoleSessionId, setConsoleSessionId] = useState(0)
+  const [consoleCapturing, setConsoleCapturing] = useState(false)
   const passCalledRef = useRef(false)
   const checkingRef = useRef(false)
   const stepIdRef = useRef(stepId)
   const onPassRef = useRef(onStepCheckPass)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const startDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const consoleFreezeRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const expectedCheckIdRef = useRef(0)
-  const retryUsedRef = useRef(false)
+  const transpileRetryCountRef = useRef(0)
   const preCheckFilesRef = useRef<Record<string, string> | null>(null)
+  const verifyConsoleLogsRef = useRef<SandpackConsoleLog[]>([])
+  const bundlerErrorRef = useRef(false)
 
   stepIdRef.current = stepId
   onPassRef.current = onStepCheckPass
+
+  const handleCaptureLogsChange = useCallback((logs: SandpackConsoleLog[]) => {
+    verifyConsoleLogsRef.current = logs
+  }, [])
+
+  const handleBundlerError = useCallback(() => {
+    bundlerErrorRef.current = true
+  }, [])
 
   const clearCheckTimeout = useCallback(() => {
     if (timeoutRef.current) {
@@ -544,6 +695,13 @@ function LabPlaygroundInner({
     if (startDelayRef.current) {
       clearTimeout(startDelayRef.current)
       startDelayRef.current = null
+    }
+  }, [])
+
+  const clearConsoleFreeze = useCallback(() => {
+    if (consoleFreezeRef.current) {
+      clearTimeout(consoleFreezeRef.current)
+      consoleFreezeRef.current = null
     }
   }, [])
 
@@ -578,35 +736,66 @@ function LabPlaygroundInner({
     preCheckFilesRef.current = backup
   }, [])
 
+  const refreshPreview = useCallback(() => {
+    try {
+      dispatchRef.current({ type: 'refresh' })
+    } catch {
+      // ignore
+    }
+  }, [])
+
   const endChecking = useCallback(() => {
     clearCheckTimeout()
     clearStartDelay()
     checkingRef.current = false
-    restoreStudentFiles()
     setChecking(false)
-  }, [clearCheckTimeout, clearStartDelay, restoreStudentFiles])
+    // Restaura o código do aluno (sem exports) e congela o console após um breve grace.
+    restoreStudentFiles()
+    clearConsoleFreeze()
+    consoleFreezeRef.current = setTimeout(() => {
+      consoleFreezeRef.current = null
+      setConsoleCapturing(false)
+    }, CONSOLE_CAPTURE_GRACE_MS)
+  }, [
+    clearCheckTimeout,
+    clearStartDelay,
+    clearConsoleFreeze,
+    restoreStudentFiles,
+  ])
 
   useEffect(() => {
     passCalledRef.current = false
-    retryUsedRef.current = false
+    transpileRetryCountRef.current = 0
     expectedCheckIdRef.current = 0
     setCheckError(null)
     setChecking(false)
     checkingRef.current = false
     setTestStatus('idle')
     setLiveSpecs({})
+    setConsoleSessionId(0)
+    setConsoleCapturing(false)
+    verifyConsoleLogsRef.current = []
+    bundlerErrorRef.current = false
+    clearConsoleFreeze()
     restoreStudentFiles()
     clearCheckTimeout()
     clearStartDelay()
-  }, [stepId, clearCheckTimeout, clearStartDelay, restoreStudentFiles])
+  }, [
+    stepId,
+    clearCheckTimeout,
+    clearStartDelay,
+    clearConsoleFreeze,
+    restoreStudentFiles,
+  ])
 
   useEffect(
     () => () => {
       clearCheckTimeout()
       clearStartDelay()
+      clearConsoleFreeze()
       restoreStudentFiles()
     },
-    [clearCheckTimeout, clearStartDelay, restoreStudentFiles],
+    [clearCheckTimeout, clearStartDelay, clearConsoleFreeze, restoreStudentFiles],
   )
 
   const scheduleCheckTimeout = useCallback(() => {
@@ -633,25 +822,32 @@ function LabPlaygroundInner({
     if (checkingRef.current) return
     checkingRef.current = true
 
+    clearConsoleFreeze()
+    setConsoleSessionId((id) => id + 1)
+    setConsoleCapturing(true)
     setRightTab('tests')
     setCheckError(null)
     setChecking(true)
     passCalledRef.current = false
-    retryUsedRef.current = false
-    prepareStudentFilesForCheck()
+    transpileRetryCountRef.current = 0
+    verifyConsoleLogsRef.current = []
+    bundlerErrorRef.current = false
     scheduleCheckTimeout()
 
     clearStartDelay()
-    // Pequeno delay para o bundler pegar o export injetado
+    // Injeta exports e dispara Jest. Sem refresh: refresh aborta o client e
+    // deixa "Verificando…" preso com o painel em Pronto.
     startDelayRef.current = setTimeout(() => {
       startDelayRef.current = null
       if (!checkingRef.current) return
+      prepareStudentFilesForCheck()
       bumpCheckId()
     }, CHECK_START_DELAY_MS)
   }, [
     prepareStudentFilesForCheck,
     scheduleCheckTimeout,
     clearStartDelay,
+    clearConsoleFreeze,
     bumpCheckId,
   ])
 
@@ -665,15 +861,17 @@ function LabPlaygroundInner({
       const transpilePending =
         !!fileError && /hasn['’]t been transpiled yet/i.test(fileError)
 
-      if (transpilePending && !retryUsedRef.current) {
-        retryUsedRef.current = true
+      if (transpilePending && transpileRetryCountRef.current < 2) {
+        transpileRetryCountRef.current += 1
+        const delayMs =
+          transpileRetryCountRef.current === 1 ? 1200 : 2000
         scheduleCheckTimeout()
         clearStartDelay()
         startDelayRef.current = setTimeout(() => {
           startDelayRef.current = null
           if (!checkingRef.current) return
           bumpCheckId()
-        }, 1200)
+        }, delayMs)
         return
       }
 
@@ -734,14 +932,33 @@ function LabPlaygroundInner({
   const handleCheckWork = useCallback(() => {
     if (checkingRef.current || checking) return
     if (!hasTests) {
-      if (!passCalledRef.current) {
-        passCalledRef.current = true
-        onPassRef.current(stepIdRef.current)
-      }
+      clearConsoleFreeze()
+      verifyConsoleLogsRef.current = []
+      bundlerErrorRef.current = false
+      setConsoleSessionId((id) => id + 1)
+      setConsoleCapturing(true)
+      setRightTab('console')
+      setCheckError(null)
+      refreshPreview()
+      consoleFreezeRef.current = setTimeout(() => {
+        consoleFreezeRef.current = null
+        setConsoleCapturing(false)
+        const consoleFailed = verifyConsoleLogsRef.current.some(
+          (log) => log.method === 'error',
+        )
+        if (consoleFailed || bundlerErrorRef.current) {
+          setCheckError('Erro no código — corrija antes de continuar.')
+          return
+        }
+        if (!passCalledRef.current) {
+          passCalledRef.current = true
+          onPassRef.current(stepIdRef.current)
+        }
+      }, CONSOLE_CAPTURE_GRACE_MS)
       return
     }
     startCheckRun()
-  }, [hasTests, checking, startCheckRun])
+  }, [hasTests, checking, startCheckRun, clearConsoleFreeze, refreshPreview])
 
   const sideTabs = (
     [
@@ -753,6 +970,11 @@ function LabPlaygroundInner({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
+      <LabSandpackBundlerErrorListener
+        sessionId={consoleSessionId}
+        capturing={consoleCapturing}
+        onBundlerError={handleBundlerError}
+      />
       {hasTests ? (
         <LabJestRunner
           checkId={checkId}
@@ -799,31 +1021,60 @@ function LabPlaygroundInner({
           showLineNumbers
           showTabs={filesOpen}
         />
-        {rightTab ? (
-          <div className="flex min-h-0 flex-1 flex-col border-l border-[#25252A]">
-            <div className="relative min-h-0 flex-1 bg-[#1A1A1A]">
-              {rightTab === 'preview' ? (
-                <SandpackPreview
-                  showNavigator={false}
-                  showRefreshButton={false}
-                />
-              ) : null}
-              {rightTab === 'console' ? (
-                <SandpackConsole showHeader={false} />
-              ) : null}
-              {hasTests && rightTab === 'tests' ? (
-                <LabTestsPanel status={testStatus} specs={liveSpecs} />
-              ) : null}
+        {/*
+          Painel direito: a Preview NÃO usa display:none — senão o bundle
+          não roda e console.log nunca aparece no Verificar.
+        */}
+        <div
+          className={
+            rightTab
+              ? 'relative flex min-h-0 flex-1 flex-col border-l border-[#25252A]'
+              : 'pointer-events-none fixed left-[-9999px] top-0 h-[280px] w-[360px] overflow-hidden opacity-0'
+          }
+          aria-hidden={rightTab == null ? true : undefined}
+        >
+          <div className="relative min-h-0 flex-1 bg-[#1A1A1A]">
+            <div
+              className={
+                rightTab === 'preview' || rightTab == null
+                  ? 'absolute inset-0'
+                  : 'pointer-events-none absolute inset-0 invisible'
+              }
+              aria-hidden={rightTab !== 'preview' && rightTab != null}
+            >
+              <SandpackPreview
+                showNavigator={false}
+                showRefreshButton={false}
+              />
             </div>
+            <div
+              className={
+                rightTab === 'console' ? 'absolute inset-0 z-[1]' : 'hidden'
+              }
+            >
+              <LabVerifyConsole
+                sessionId={consoleSessionId}
+                capturing={consoleCapturing}
+                onCaptureLogsChange={handleCaptureLogsChange}
+              />
+            </div>
+            {hasTests ? (
+              <div
+                className={
+                  rightTab === 'tests' ? 'absolute inset-0 z-[1]' : 'hidden'
+                }
+              >
+                <LabTestsPanel status={testStatus} specs={liveSpecs} />
+              </div>
+            ) : null}
           </div>
-        ) : null}
+        </div>
       </SandpackLayout>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-[#25252A] bg-[#373A3E] px-3 py-2">
         <button
           type="button"
           onClick={handleCheckWork}
-          onDoubleClick={(event) => event.preventDefault()}
           disabled={checking}
           aria-busy={checking}
           className="inline-flex items-center justify-center gap-2 rounded-[16px] bg-[#86efac] px-3 h-[42px] py-1.5 text-sm font-semibold text-black hover:bg-[#6ee7a0] disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-60"
@@ -937,15 +1188,26 @@ export function LabPlayground({
     hasTests || template === 'react' ? 'react' : 'vanilla'
 
   const initialFilesRef = useRef<{
+    lessonId: number
     version: string
+    template: 'vanilla' | 'react'
     files: Record<string, string>
   } | null>(null)
+
+  /*
+   * Defesa em profundidade: key={lesson.id} no call-site (lab-view) já remonta e
+   * zera este ref; invalidar por lessonId/template é backup se alguém remover o key.
+   */
   if (
     initialFilesRef.current === null ||
-    initialFilesRef.current.version !== LAB_REACT_BOOTSTRAP_VERSION
+    initialFilesRef.current.lessonId !== lessonId ||
+    initialFilesRef.current.version !== LAB_REACT_BOOTSTRAP_VERSION ||
+    initialFilesRef.current.template !== effectiveTemplate
   ) {
     initialFilesRef.current = {
+      lessonId,
       version: LAB_REACT_BOOTSTRAP_VERSION,
+      template: effectiveTemplate,
       files: buildInitialFiles(effectiveTemplate, files, testFiles),
     }
   }
@@ -959,6 +1221,7 @@ export function LabPlayground({
         files,
         Object.keys(initialPlainFiles),
       ),
+    // lessonId força recomputo ao trocar de lição (getStudentVisibleFiles não usa lessonId).
     [effectiveTemplate, files, initialPlainFiles, lessonId],
   )
 
