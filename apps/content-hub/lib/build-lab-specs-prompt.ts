@@ -41,7 +41,7 @@ Gere APENAS um único objeto JSON válido de lab_specs (parseável por JSON.pars
 PROIBIDO: markdown fences \`\`\`, comentários // fora de strings, texto antes/depois do JSON.
 
 IDIOMA (obrigatório): TODO o conteúdo gerado no lab_specs deve estar em PORTUGUÊS DO BRASIL (pt-BR).
-Isso inclui: title e hint de cada step, comentários no starter (/App.js), nomes de test('...'), e qualquer instrução ao aluno.
+Isso inclui: title, hint e expected de cada step, comentários no starter (/App.js), nomes de test('...'), e qualquer instrução ao aluno.
 Use português natural do Brasil (você, não "tu"; "string", "número", etc. como no ensino de programação no BR).
 Literais de código que o aluno deve digitar (ex.: 'JavaScript', nomes de variáveis do exercício) permanecem em inglês quando fizerem parte do enunciado técnico.
 Não misture inglês em frases de instrução (exceto nomes de APIs como \`console.log()\`).
@@ -76,6 +76,7 @@ SCHEMA
       "id": "step-1",
       "title": "Instrução com highlight Markdown",
       "hint": "Dica curta",
+      "expected": "trecho de código que o aluno deveria ter escrito",
       "testFile": "código Jest completo deste passo"
     }
   ]
@@ -84,6 +85,8 @@ SCHEMA
 Regras gerais:
 - template "react" + "/App.js" (padrão). Só use "vanilla" + "/index.js" se for JS puro sem React.
 - 2 a 5 steps progressivos; ids step-1, step-2, …
+- Cada step DEVE ter "expected": o código/resposta correta daquele passo (ex.: "console.log(11 % 3)").
+  O frontend exibe expected quando o aluno falha o Verificar — deve bater com o que o testFile exige.
 - Aluno NÃO precisa de export (a plataforma injeta).
 - Quebras de linha DENTRO de strings JSON: use \\\\n.
 
@@ -164,6 +167,7 @@ Crie lab_specs coerente com os dados da aula:
 - TODO em português do Brasil (titles, hints, comments, test names)
 - starter mínimo
 - titles com \`código\` em highlight
+- cada step com expected alinhado ao assert do testFile
 - para checar código digitado: SEMPRE assertCodeContains (nunca toContain cru)
 - helpers oficiais para o restante
 

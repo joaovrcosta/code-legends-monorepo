@@ -170,97 +170,6 @@ function countSpecResults(specs: SpecsMap): {
   return { passed, total, failed }
 }
 
-type FooterTestItem = {
-  name: string
-  status: 'pass' | 'fail' | 'idle'
-  /** Mensagem do assert (ex.: Did you include `console.log(...)` ...). */
-  message?: string
-}
-
-function extractErrorText(error: unknown): string | null {
-  if (error == null) return null
-  if (typeof error === 'string') {
-    const t = error.trim()
-    return t || null
-  }
-  if (typeof error === 'object') {
-    const e = error as {
-      message?: unknown
-      name?: unknown
-      stack?: unknown
-    }
-    if (typeof e.message === 'string' && e.message.trim()) {
-      return e.message.trim()
-    }
-    if (typeof e.stack === 'string' && e.stack.trim()) {
-      // Primeira linha útil do stack (sem "Error:" vazio).
-      const first = e.stack
-        .split('\n')
-        .map((l) => l.trim())
-        .find((l) => l && !/^at\s/.test(l))
-      return first ?? null
-    }
-  }
-  return null
-}
-
-/** Limpa ruído típico do Jest/Sandpack e devolve a dica do assert. */
-function cleanAssertionMessage(raw: string): string {
-  let text = raw
-    .replace(/^Error:\s*/i, '')
-    .replace(/^ExpectationError:\s*/i, '')
-    .trim()
-  // Remove prefixo genérico do Sandpack se vier colado.
-  text = text.replace(/^Something went wrong\.?\s*/i, '').trim()
-  return text
-}
-
-/** Achata tests/describes dos specs para o rodapé (✓/✗ + mensagem). */
-function listFooterTestItems(specs: SpecsMap): FooterTestItem[] {
-  const items: FooterTestItem[] = []
-
-  const walkTests = (
-    tests?: Record<string, { status?: string; errors?: unknown[] }>,
-  ) => {
-    if (!tests) return
-    for (const [name, t] of Object.entries(tests)) {
-      const status =
-        t.status === 'pass' || t.status === 'fail' ? t.status : 'idle'
-      let message: string | undefined
-      if (status === 'fail' && Array.isArray(t.errors)) {
-        for (const err of t.errors) {
-          const raw = extractErrorText(err)
-          if (!raw) continue
-          const cleaned = cleanAssertionMessage(raw)
-          if (cleaned) {
-            message = cleaned
-            break
-          }
-        }
-      }
-      items.push({ name, status, message })
-    }
-  }
-
-  const walkDescribes = (describes?: Record<string, unknown>) => {
-    if (!describes) return
-    for (const d of Object.values(describes) as Array<{
-      tests?: Record<string, { status?: string; errors?: unknown[] }>
-      describes?: Record<string, unknown>
-    }>) {
-      walkTests(d.tests)
-      walkDescribes(d.describes)
-    }
-  }
-
-  for (const spec of Object.values(specs ?? {})) {
-    walkTests(spec.tests)
-    walkDescribes(spec.describes as Record<string, unknown> | undefined)
-  }
-
-  return items
-}
-
 const STUDENT_CODE_PATHS = ['/App.js', '/index.js'] as const
 
 function SyncStepTests({
@@ -740,10 +649,13 @@ function LabPlaygroundInner({
   stepId,
   onStepCheckPass,
   hasTests,
+  expected,
 }: {
   stepId: string
   onStepCheckPass: (stepId: string) => void
   hasTests: boolean
+  /** Código esperado do step; mostrado no rodapé se o Verificar falhar. */
+  expected?: string
 }) {
   const { sandpack, dispatch: sandpackDispatch, listen } = useSandpack()
   const sandpackRef = useRef(sandpack)
@@ -755,7 +667,8 @@ function LabPlaygroundInner({
 
   const [checking, setChecking] = useState(false)
   const [checkError, setCheckError] = useState<string | null>(null)
-  const [footerTests, setFooterTests] = useState<FooterTestItem[]>([])
+  /** true após um Verificar que não passou (para exibir `expected`). */
+  const [showExpected, setShowExpected] = useState(false)
   const [checkId, setCheckId] = useState(0)
   const [testStatus, setTestStatus] = useState<TestStatus>('idle')
   const [liveSpecs, setLiveSpecs] = useState<SpecsMap>({})
@@ -920,7 +833,7 @@ function LabPlaygroundInner({
     checkingRef.current = false
     setTestStatus('idle')
     setLiveSpecs({})
-    setFooterTests([])
+    setShowExpected(false)
     verifyConsoleLogsRef.current = []
     bundlerErrorRef.current = false
     clearConsoleFreeze()
@@ -972,7 +885,7 @@ function LabPlaygroundInner({
     clearConsoleFreeze()
     setRightTab('console')
     setCheckError(null)
-    setFooterTests([])
+    setShowExpected(false)
     setChecking(true)
     passCalledRef.current = false
     transpileRetryCountRef.current = 0
@@ -1025,7 +938,7 @@ function LabPlaygroundInner({
 
       const { passed, total, failed } = countSpecResults(specs)
       const passedAll = total > 0 && failed === 0 && passed === total
-      const items = listFooterTestItems(specs)
+      const hasExpected = Boolean(expected?.trim())
 
       endChecking(
         passedAll
@@ -1041,12 +954,12 @@ function LabPlaygroundInner({
 
       if (passedAll) {
         setCheckError(null)
-        setFooterTests(items)
+        setShowExpected(false)
         return
       }
 
       if (fileError) {
-        setFooterTests([])
+        setShowExpected(hasExpected)
         setCheckError(
           transpilePending
             ? 'O código ainda estava compilando. Clique em Verificar de novo.'
@@ -1056,17 +969,17 @@ function LabPlaygroundInner({
       }
 
       if (total === 0) {
-        setFooterTests([])
+        setShowExpected(hasExpected)
         setCheckError(
           'Nenhum teste encontrado. Confira o arquivo *.test.js do step.',
         )
         return
       }
 
-      setCheckError(null)
-      setFooterTests(items)
+      setShowExpected(hasExpected)
+      setCheckError(hasExpected ? null : 'Resposta incorreta. Tente de novo.')
     },
-    [endChecking, scheduleCheckTimeout, clearStartDelay, bumpCheckId],
+    [endChecking, scheduleCheckTimeout, clearStartDelay, bumpCheckId, expected],
   )
 
   const handleTestsComplete = useCallback(
@@ -1101,6 +1014,7 @@ function LabPlaygroundInner({
       setConsoleCapturing(true)
       setRightTab('console')
       setCheckError(null)
+      setShowExpected(false)
       refreshPreview()
       consoleFreezeRef.current = setTimeout(() => {
         consoleFreezeRef.current = null
@@ -1110,6 +1024,7 @@ function LabPlaygroundInner({
         )
         if (consoleFailed || bundlerErrorRef.current) {
           setCheckError('Erro no código — corrija antes de continuar.')
+          setShowExpected(Boolean(expected?.trim()))
           return
         }
         if (!passCalledRef.current) {
@@ -1120,7 +1035,7 @@ function LabPlaygroundInner({
       return
     }
     startCheckRun()
-  }, [hasTests, checking, startCheckRun, clearConsoleFreeze, refreshPreview])
+  }, [hasTests, checking, startCheckRun, clearConsoleFreeze, refreshPreview, expected])
 
   const sideTabs = (
     [
@@ -1270,48 +1185,13 @@ function LabPlaygroundInner({
             {label}
           </button>
         ))}
-        {footerTests.length > 0 ? (
-          <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-0.5">
-            {footerTests.map((item) => (
-              <div key={item.name} className="min-w-0 space-y-0.5">
-                <div className="inline-flex max-w-full items-start gap-1.5 text-xs">
-                  <span
-                    className={
-                      item.status === 'pass'
-                        ? 'shrink-0 text-emerald-400'
-                        : item.status === 'fail'
-                          ? 'shrink-0 text-red-400'
-                          : 'shrink-0 text-white/40'
-                    }
-                  >
-                    {item.status === 'pass'
-                      ? '✓'
-                      : item.status === 'fail'
-                        ? '✗'
-                        : '·'}
-                  </span>
-                  <span
-                    className={
-                      item.status === 'fail'
-                        ? 'truncate text-red-300'
-                        : 'truncate text-white/75'
-                    }
-                    title={item.name}
-                  >
-                    {item.name}
-                  </span>
-                </div>
-                {item.status === 'fail' && item.message ? (
-                  <p
-                    className="pl-5 text-[11px] leading-snug text-red-200/90"
-                    title={item.message}
-                  >
-                    {item.message}
-                  </p>
-                ) : null}
-              </div>
-            ))}
-          </div>
+        {showExpected && expected?.trim() ? (
+          <p className="min-w-0 flex-1 text-[11px] leading-snug text-amber-200/90">
+            <span className="text-white/50">Esperado: </span>
+            <code className="inline-block whitespace-pre-wrap rounded bg-black/30 px-1 py-0.5 font-mono text-amber-100">
+              {expected.trim()}
+            </code>
+          </p>
         ) : checkError ? (
           <p className="text-xs text-red-300">{checkError}</p>
         ) : null}
@@ -1326,6 +1206,8 @@ export type LabPlaygroundProps = {
   template?: 'vanilla' | 'react'
   activeTests: { testFile?: string; tests?: Record<string, string> }
   stepId: string
+  /** Código esperado do step ativo; exibido se o Verificar falhar. */
+  expected?: string
   onStepCheckPass: (stepId: string) => void
   className?: string
   height?: number | string
@@ -1389,6 +1271,7 @@ export function LabPlayground({
   template = 'vanilla',
   activeTests,
   stepId,
+  expected,
   onStepCheckPass,
   className = '',
   height = '100%',
@@ -1477,6 +1360,7 @@ export function LabPlayground({
           stepId={stepId}
           onStepCheckPass={onStepCheckPass}
           hasTests={hasTests}
+          expected={expected}
         />
       </SandpackProvider>
     </div>

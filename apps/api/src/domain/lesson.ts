@@ -17,6 +17,8 @@ export interface LabStep {
   id: string;
   title: string;
   hint?: string;
+  /** Código/resposta esperada; exibido quando o aluno falha o step. */
+  expected?: string;
   testFile?: string;
   tests?: Record<string, string>;
 }

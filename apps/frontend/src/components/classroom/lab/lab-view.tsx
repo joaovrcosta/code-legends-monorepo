@@ -290,6 +290,7 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
               template={lab.specs?.template ?? 'vanilla'}
               activeTests={activeTests}
               stepId={currentStep.id}
+              expected={currentStep.expected}
               onStepCheckPass={handleStepCheckPass}
               height="100%"
               className="min-h-[420px] flex-1"

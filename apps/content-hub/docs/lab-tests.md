@@ -8,6 +8,30 @@ Contrato para autores no content-hub ao escrever steps de aulas **lab**.
 - O aluno **não** precisa usar `export`. No **Verificar**, a plataforma injeta exports temporários das bindings top-level e restaura o código depois.
 - Helpers oficiais ficam em `/lab-test-helpers.js` (oculto; fora da pasta do aluno).
 
+## Campos do step
+
+| Campo | Obrigatório | Uso |
+|-------|-------------|-----|
+| `id` | sim | `step-1`, `step-2`, … |
+| `title` | sim | Instrução (Markdown; use `` `código` `` para highlight) |
+| `hint` | não | Dica sob demanda (“Stuck? Get a hint”) |
+| `expected` | recomendado | Código/resposta correta; **exibido no playground quando o Verificar falha** |
+| `testFile` | sim* | Fonte Jest deste passo (*ou `tests`) |
+
+Exemplo:
+
+```json
+{
+  "id": "step-3",
+  "title": "Use o operador de resto `%` em um `console.log()` para calcular `11 % 3`.",
+  "hint": "Um exemplo seria: console.log(11 % 3) — o operador % calcula o resto da divisão.",
+  "expected": "console.log(11 % 3)",
+  "testFile": "import { readStudentCode, assertCodeContains } from '/lab-test-helpers.js';\nconst code = readStudentCode('/App.js');\n\ntest('usa o operador de resto em uma expressão', () => {\n  assertCodeContains(code, 'console.log(11 % 3)');\n});\n"
+}
+```
+
+O `expected` deve refletir o que o `testFile` exige (ex.: o mesmo trecho passado a `assertCodeContains`).
+
 ## Entry do aluno
 
 | Template | Arquivo |
