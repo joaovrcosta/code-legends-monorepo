@@ -69,7 +69,7 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
       testFile: currentStep?.testFile,
       tests: currentStep?.tests,
     }),
-    [currentStep],
+    [currentStep?.id, currentStep?.testFile, currentStep?.tests],
   )
 
   useEffect(() => {

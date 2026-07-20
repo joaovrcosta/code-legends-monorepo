@@ -199,38 +199,48 @@ function SyncStepTests({
   // Troca o arquivo de teste do step e remove os dos steps anteriores.
   // run-all-tests do Sandpack executa TODOS os *.test.js — sem delete, o
   // step-1 continua passando junto com o step-2.
+  //
+  // Importante: NÃO depender de `sandpack` no effect — a identidade muda após
+  // updateFile e gerava loop de rebundle (dezenas de postMessage/s idle).
   const { sandpack } = useSandpack()
+  const sandpackRef = useRef(sandpack)
+  sandpackRef.current = sandpack
 
   useLayoutEffect(() => {
+    const sp = sandpackRef.current
     const keep = new Set(Object.keys(testFiles))
 
     for (const [path, code] of Object.entries(testFiles)) {
+      if (sp.files[path]?.code === code) continue
       try {
-        sandpack.updateFile(path, code)
+        sp.updateFile(path, code)
       } catch {
         // ignore
       }
     }
 
-    for (const path of Object.keys(sandpack.files)) {
+    for (const path of Object.keys(sp.files)) {
       if (!isManagedLabStepTestPath(path)) continue
       if (keep.has(path)) continue
+      const inactive = '/* inactive lab step */\n'
       try {
         // Prefer delete; fallback esvazia o arquivo para o Jest não herdar testes velhos.
-        if (typeof sandpack.deleteFile === 'function') {
-          sandpack.deleteFile(path)
-        } else {
-          sandpack.updateFile(path, '/* inactive lab step */\n')
+        if (typeof sp.deleteFile === 'function') {
+          sp.deleteFile(path)
+        } else if (sp.files[path]?.code !== inactive) {
+          sp.updateFile(path, inactive)
         }
       } catch {
         try {
-          sandpack.updateFile(path, '/* inactive lab step */\n')
+          if (sp.files[path]?.code !== inactive) {
+            sp.updateFile(path, inactive)
+          }
         } catch {
           // ignore
         }
       }
     }
-  }, [sandpack, stepId, testFiles])
+  }, [stepId, testFiles])
 
   return null
 }
@@ -1437,6 +1447,24 @@ export function LabPlayground({
     [initialPlainFiles, visibleFiles],
   )
 
+  const sandpackOptions = useMemo(
+    () => ({
+      autorun: true,
+      recompileMode: 'delayed' as const,
+      recompileDelay: 500,
+      activeFile: entryFile,
+      visibleFiles,
+      classes: {
+        'sp-wrapper': '!h-full !min-h-0 !rounded-none !border-0 !bg-transparent',
+        'sp-layout': '!h-full !min-h-0 !flex !flex-row !border-0 !bg-[#1A1A1A]',
+        'sp-stack': '!h-full !w-full !bg-[#1A1A1A] !min-h-0',
+        'sp-code-editor': '!bg-[#1A1A1A]',
+        'sp-file-explorer': '!bg-[#1A1A1A] !border-0',
+      },
+    }),
+    [entryFile, visibleFiles],
+  )
+
   const heightValue = typeof height === 'number' ? `${height}px` : height
 
   return (
@@ -1454,19 +1482,7 @@ export function LabPlayground({
         template={effectiveTemplate}
         theme="dark"
         files={providerFiles}
-        options={{
-          autorun: true,
-          recompileMode: 'delayed',
-          activeFile: entryFile,
-          visibleFiles,
-          classes: {
-            'sp-wrapper': '!h-full !min-h-0 !rounded-none !border-0 !bg-transparent',
-            'sp-layout': '!h-full !min-h-0 !flex !flex-row !border-0 !bg-[#1A1A1A]',
-            'sp-stack': '!h-full !w-full !bg-[#1A1A1A] !min-h-0',
-            'sp-code-editor': '!bg-[#1A1A1A]',
-            'sp-file-explorer': '!bg-[#1A1A1A] !border-0',
-          },
-        }}
+        options={sandpackOptions}
       >
         <SyncStepTests stepId={stepId} testFiles={testFiles} />
         <LabPlaygroundInner
