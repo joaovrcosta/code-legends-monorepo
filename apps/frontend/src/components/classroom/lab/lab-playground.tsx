@@ -31,6 +31,8 @@ const CHECK_START_DELAY_MS = 350
 /** Tempo máx. para a preview reexecutar após o Verificar e enviar console.log. */
 const CONSOLE_CAPTURE_GRACE_MS = 2000
 const CONSOLE_CAPTURE_AFTER_DONE_MS = 250
+/** Ignora cliques repetidos no Verificar (leading-edge). */
+const VERIFY_CLICK_DEBOUNCE_MS = 1000
 /** Cold start do bundler Sandpack — clear de isWaking no done/success ou neste timeout. */
 const WAKING_TIMEOUT_MS = 8000
 /** Debounce hot → cold quando Result fechado e idle. */
@@ -774,12 +776,22 @@ function LabPlaygroundInner({
   const [consoleCapturing, setConsoleCapturing] = useState(false)
   const passCalledRef = useRef(false)
   const checkingRef = useRef(false)
+  /** Timestamp do último clique em Verificar (debounce de spam). */
+  const lastVerifyClickRef = useRef(0)
   const stepIdRef = useRef(stepId)
   const onPassRef = useRef(onStepCheckPass)
   const onFailRef = useRef(onStepCheckFail)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const startDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const consoleFreezeRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  /** Timeout de 200ms que inicia captura pós-Verificar (precisa cancelar em clique rápido). */
+  const consoleCaptureStartRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  /** Delay de 40ms do refresh pós-captura. */
+  const consoleRefreshDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  /** Unsubscribe do listen de endChecking — órfão causa refresh que aborta o Jest. */
+  const endCheckingUnsubRef = useRef<(() => void) | null>(null)
+  /** Geração do settle atual; invalida callbacks atrasados. */
+  const endCheckingGenRef = useRef(0)
   const expectedCheckIdRef = useRef(0)
   const transpileRetryCountRef = useRef(0)
   const preCheckFilesRef = useRef<Record<string, string> | null>(null)
@@ -819,10 +831,27 @@ function LabPlaygroundInner({
     }
   }, [])
 
+  /**
+   * Cancela timers/listen do pós-Verificar. Crítico: se o aluno clicar de novo
+   * antes do settle, um refresh atrasado aborta o Jest e trava em "Verificando…".
+   */
   const clearConsoleFreeze = useCallback(() => {
+    endCheckingGenRef.current += 1
     if (consoleFreezeRef.current) {
       clearTimeout(consoleFreezeRef.current)
       consoleFreezeRef.current = null
+    }
+    if (consoleCaptureStartRef.current) {
+      clearTimeout(consoleCaptureStartRef.current)
+      consoleCaptureStartRef.current = null
+    }
+    if (consoleRefreshDelayRef.current) {
+      clearTimeout(consoleRefreshDelayRef.current)
+      consoleRefreshDelayRef.current = null
+    }
+    if (endCheckingUnsubRef.current) {
+      endCheckingUnsubRef.current()
+      endCheckingUnsubRef.current = null
     }
   }, [])
 
@@ -909,7 +938,8 @@ function LabPlaygroundInner({
    * Acorda o bundler sob o gate (autorun:false).
    * Path com testes: run sem refresh (refresh aborta o Jest).
    * Path sem testes: refresh único.
-   * Cliques rápidos: isWaking evita wake/refresh duplicado.
+   * Cliques rápidos: se já está acordando, ainda enfileira a ação pedida
+   * (senão o Verificar sobe checking sem runSandpack e trava).
    */
   const wakeRuntime = useCallback(
     (mode: 'run' | 'refresh') => {
@@ -921,19 +951,7 @@ function LabPlaygroundInner({
         return
       }
 
-      if (isWakingRef.current) return
-      isWakingRef.current = true
-
-      wakingUnsubRef.current = listenRef.current((msg) => {
-        const data = msg as { type?: string }
-        if (data.type === 'done' || data.type === 'success') {
-          clearWaking()
-        }
-      })
-      wakingTimeoutRef.current = setTimeout(clearWaking, WAKING_TIMEOUT_MS)
-
-      // Espera o commit de autoReload:true antes de run/refresh.
-      window.setTimeout(() => {
+      const dispatchWakeAction = () => {
         if (mode === 'refresh') {
           refreshPreview()
           return
@@ -946,7 +964,24 @@ function LabPlaygroundInner({
         } catch {
           // ignore — pendingCheck do Jest espera initialize_tests
         }
-      }, 0)
+      }
+
+      if (isWakingRef.current) {
+        window.setTimeout(dispatchWakeAction, 0)
+        return
+      }
+      isWakingRef.current = true
+
+      wakingUnsubRef.current = listenRef.current((msg) => {
+        const data = msg as { type?: string }
+        if (data.type === 'done' || data.type === 'success') {
+          clearWaking()
+        }
+      })
+      wakingTimeoutRef.current = setTimeout(clearWaking, WAKING_TIMEOUT_MS)
+
+      // Espera o commit de autoReload:true antes de run/refresh.
+      window.setTimeout(dispatchWakeAction, 0)
     },
     [
       runtimeGateEnabled,
@@ -982,13 +1017,14 @@ function LabPlaygroundInner({
   const endChecking = useCallback((options?: { onSettled?: () => void }) => {
     clearCheckTimeout()
     clearStartDelay()
-    checkingRef.current = false
-    setChecking(false)
+    // Mantém checking=true até o settle — senão um clique rápido inicia outro
+    // Verificar enquanto o refresh atrasado do settle aborta o Jest (stuck).
+    clearConsoleFreeze()
+    const gen = endCheckingGenRef.current
 
     // Restore primeiro (pode rebundle). Só depois captura + 1 refresh —
     // senão o console mostra a saída 2× (restore + refresh).
     restoreStudentFiles()
-    clearConsoleFreeze()
     setRightTab('console')
     setConsoleCapturing(false)
 
@@ -996,13 +1032,26 @@ function LabPlaygroundInner({
     let captureStarted = false
     let refreshDispatched = false
     const settle = () => {
-      if (settled) return
+      if (settled || endCheckingGenRef.current !== gen) return
       settled = true
       if (consoleFreezeRef.current) {
         clearTimeout(consoleFreezeRef.current)
         consoleFreezeRef.current = null
       }
-      unsub?.()
+      if (consoleCaptureStartRef.current) {
+        clearTimeout(consoleCaptureStartRef.current)
+        consoleCaptureStartRef.current = null
+      }
+      if (consoleRefreshDelayRef.current) {
+        clearTimeout(consoleRefreshDelayRef.current)
+        consoleRefreshDelayRef.current = null
+      }
+      if (endCheckingUnsubRef.current) {
+        endCheckingUnsubRef.current()
+        endCheckingUnsubRef.current = null
+      }
+      checkingRef.current = false
+      setChecking(false)
       setConsoleCapturing(false)
       const after = options?.onSettled
       if (after) {
@@ -1011,17 +1060,20 @@ function LabPlaygroundInner({
     }
 
     const startConsoleCapture = () => {
-      if (captureStarted || settled) return
+      if (captureStarted || settled || endCheckingGenRef.current !== gen) return
       captureStarted = true
       setConsoleSessionId((id) => id + 1)
       setConsoleCapturing(true)
-      window.setTimeout(() => {
+      consoleRefreshDelayRef.current = setTimeout(() => {
+        consoleRefreshDelayRef.current = null
+        if (endCheckingGenRef.current !== gen || settled) return
         refreshDispatched = true
         refreshPreview()
       }, 40)
     }
 
-    const unsub = listenRef.current((msg) => {
+    endCheckingUnsubRef.current = listenRef.current((msg) => {
+      if (endCheckingGenRef.current !== gen || settled) return
       const data = msg as { type?: string }
       if (data.type !== 'done' && data.type !== 'success') return
       if (!captureStarted) {
@@ -1038,7 +1090,8 @@ function LabPlaygroundInner({
     })
 
     // Se restore não mudou arquivos (sem done), inicia captura mesmo assim.
-    window.setTimeout(() => {
+    consoleCaptureStartRef.current = setTimeout(() => {
+      consoleCaptureStartRef.current = null
       startConsoleCapture()
     }, 200)
 
@@ -1055,6 +1108,7 @@ function LabPlaygroundInner({
     passCalledRef.current = false
     transpileRetryCountRef.current = 0
     expectedCheckIdRef.current = 0
+    lastVerifyClickRef.current = 0
     setCheckError(null)
     setChecking(false)
     checkingRef.current = false
@@ -1110,6 +1164,7 @@ function LabPlaygroundInner({
     if (checkingRef.current) return
     checkingRef.current = true
 
+    // Cancela settle/refresh órfão de um Verificar anterior (trava o Jest).
     clearConsoleFreeze()
     setRightTab('console')
     setCheckError(null)
@@ -1272,9 +1327,15 @@ function LabPlaygroundInner({
   )
 
   const handleCheckWork = useCallback(() => {
+    const now = Date.now()
+    if (now - lastVerifyClickRef.current < VERIFY_CLICK_DEBOUNCE_MS) return
     if (checkingRef.current || checking) return
+    lastVerifyClickRef.current = now
+
     if (!hasTests) {
       // Sem testes: wake + refresh único (captura console)
+      checkingRef.current = true
+      setChecking(true)
       wakeRuntime('refresh')
       clearConsoleFreeze()
       verifyConsoleLogsRef.current = []
@@ -1287,6 +1348,8 @@ function LabPlaygroundInner({
       consoleFreezeRef.current = setTimeout(() => {
         consoleFreezeRef.current = null
         setConsoleCapturing(false)
+        checkingRef.current = false
+        setChecking(false)
         const consoleFailed = verifyConsoleLogsRef.current.some(
           (log) => log.method === 'error',
         )
