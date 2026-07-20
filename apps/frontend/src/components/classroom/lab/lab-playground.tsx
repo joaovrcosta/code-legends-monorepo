@@ -1206,6 +1206,7 @@ function LabPlaygroundInner({
           style={{ height: '100%', flex: 1 }}
           showLineNumbers
           showTabs={filesOpen}
+          initMode="immediate"
         />
         {/*
           Preview sempre montada e "visível" (sem visibility:hidden) — senão o
