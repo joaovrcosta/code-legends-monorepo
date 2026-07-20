@@ -293,6 +293,27 @@ function dedupeConsecutiveLogs(logs: SandpackConsoleLog[]): SandpackConsoleLog[]
 }
 
 /**
+ * Se a lista for exatamente duas execuções iguais (restore + refresh),
+ * mantém só a primeira metade.
+ */
+function collapseDuplicatedRun(logs: SandpackConsoleLog[]): SandpackConsoleLog[] {
+  const consecutive = dedupeConsecutiveLogs(logs)
+  const n = consecutive.length
+  if (n < 2 || n % 2 !== 0) return consecutive
+  const half = n / 2
+  const left = consecutive
+    .slice(0, half)
+    .map(logFingerprint)
+    .join('\u0001')
+  const right = consecutive
+    .slice(half)
+    .map(logFingerprint)
+    .join('\u0001')
+  if (left === right) return consecutive.slice(0, half)
+  return consecutive
+}
+
+/**
  * Console só exibe saída capturada no "Verificar" (ignora autorun ao digitar).
  * A captura começa no fim do check (após os testes), com um único refresh.
  */
@@ -336,7 +357,7 @@ function LabVerifyConsole({
 
   useEffect(() => {
     if (sessionId <= 0) return
-    const typed = dedupeConsecutiveLogs(logs as SandpackConsoleLog[])
+    const typed = collapseDuplicatedRun(logs as SandpackConsoleLog[])
     if (capturing) {
       onLogsRef.current?.(typed)
       return
@@ -358,7 +379,7 @@ function LabVerifyConsole({
     sessionId <= 0
       ? []
       : capturing
-        ? dedupeConsecutiveLogs(logs as SandpackConsoleLog[])
+        ? collapseDuplicatedRun(logs as SandpackConsoleLog[])
         : snapshot
 
   return (
@@ -964,15 +985,16 @@ function LabPlaygroundInner({
     checkingRef.current = false
     setChecking(false)
 
+    // Restore primeiro (pode rebundle). Só depois captura + 1 refresh —
+    // senão o console mostra a saída 2× (restore + refresh).
     restoreStudentFiles()
-
-    // Captura do console SÓ agora (depois do Jest), com um único refresh.
     clearConsoleFreeze()
-    setConsoleSessionId((id) => id + 1)
-    setConsoleCapturing(true)
     setRightTab('console')
+    setConsoleCapturing(false)
 
     let settled = false
+    let captureStarted = false
+    let refreshDispatched = false
     const settle = () => {
       if (settled) return
       settled = true
@@ -988,25 +1010,37 @@ function LabPlaygroundInner({
       }
     }
 
-    let sawDone = false
+    const startConsoleCapture = () => {
+      if (captureStarted || settled) return
+      captureStarted = true
+      setConsoleSessionId((id) => id + 1)
+      setConsoleCapturing(true)
+      window.setTimeout(() => {
+        refreshDispatched = true
+        refreshPreview()
+      }, 40)
+    }
+
     const unsub = listenRef.current((msg) => {
       const data = msg as { type?: string }
-      if (data.type === 'done' || data.type === 'success') {
-        // Ignora o "done" do restore; espera o do refresh.
-        if (!sawDone) {
-          sawDone = true
-          return
-        }
-        consoleFreezeRef.current = setTimeout(
-          settle,
-          CONSOLE_CAPTURE_AFTER_DONE_MS,
-        )
+      if (data.type !== 'done' && data.type !== 'success') return
+      if (!captureStarted) {
+        // Fim do rebundle do restore → agora captura só o refresh.
+        startConsoleCapture()
+        return
       }
+      // Ignora done atrasado do restore; só fecha após o refresh.
+      if (!refreshDispatched) return
+      consoleFreezeRef.current = setTimeout(
+        settle,
+        CONSOLE_CAPTURE_AFTER_DONE_MS,
+      )
     })
 
+    // Se restore não mudou arquivos (sem done), inicia captura mesmo assim.
     window.setTimeout(() => {
-      refreshPreview()
-    }, 80)
+      startConsoleCapture()
+    }, 200)
 
     consoleFreezeRef.current = setTimeout(settle, CONSOLE_CAPTURE_GRACE_MS)
   }, [
