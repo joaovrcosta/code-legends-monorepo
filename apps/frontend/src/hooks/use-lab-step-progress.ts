@@ -1,23 +1,23 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LabStep } from '@/types/roadmap'
+import {
+  getLabProgress,
+  saveLabProgress,
+  type LabProgressState,
+} from '@/actions/lesson/lab-progress'
 
-const STORAGE_PREFIX = 'lab-progress:'
+const LEGACY_STORAGE_PREFIX = 'lab-progress:'
 
-export type LabProgressState = {
-  completedStepIds: string[]
-  currentStepId: string
+function legacyStorageKey(lessonId: number) {
+  return `${LEGACY_STORAGE_PREFIX}${lessonId}`
 }
 
-function storageKey(lessonId: number) {
-  return `${STORAGE_PREFIX}${lessonId}`
-}
-
-function readProgress(lessonId: number): LabProgressState | null {
+function readLegacyProgress(lessonId: number): LabProgressState | null {
   if (typeof window === 'undefined') return null
   try {
-    const raw = localStorage.getItem(storageKey(lessonId))
+    const raw = localStorage.getItem(legacyStorageKey(lessonId))
     if (!raw) return null
     const parsed = JSON.parse(raw) as LabProgressState
     if (
@@ -33,36 +33,84 @@ function readProgress(lessonId: number): LabProgressState | null {
   }
 }
 
-function writeProgress(lessonId: number, state: LabProgressState) {
+function clearLegacyProgress(lessonId: number) {
   if (typeof window === 'undefined') return
   try {
-    localStorage.setItem(storageKey(lessonId), JSON.stringify(state))
-  } catch {
-    // ignore quota / private mode
-  }
-}
-
-export function clearLabProgress(lessonId: number) {
-  if (typeof window === 'undefined') return
-  try {
-    localStorage.removeItem(storageKey(lessonId))
+    localStorage.removeItem(legacyStorageKey(lessonId))
   } catch {
     // ignore
   }
 }
 
-/** Limpa todos os labs salvos no browser (ex.: após resetar o curso). */
+/** Mantido para reset de curso: limpa leftovers antigos do browser. */
 export function clearAllLabProgress() {
   if (typeof window === 'undefined') return
   try {
     const toRemove: string[] = []
     for (let i = 0; i < localStorage.length; i += 1) {
       const key = localStorage.key(i)
-      if (key?.startsWith(STORAGE_PREFIX)) toRemove.push(key)
+      if (key?.startsWith(LEGACY_STORAGE_PREFIX)) toRemove.push(key)
     }
     for (const key of toRemove) localStorage.removeItem(key)
   } catch {
     // ignore
+  }
+}
+
+export type { LabProgressState }
+
+/**
+ * Reconstrói progresso quando os ids dos steps mudaram (lab regenerado),
+ * usando índices/contagem salvos.
+ */
+function resolveProgressFromStore(
+  stored: LabProgressState,
+  allStepIds: string[],
+  firstStepId: string,
+  lastStepId: string,
+): LabProgressState {
+  const validIds = new Set(allStepIds)
+  let nextCompleted = stored.completedStepIds.filter((id) => validIds.has(id))
+  let nextCurrent = validIds.has(stored.currentStepId)
+    ? stored.currentStepId
+    : ''
+
+  const idsIntact =
+    nextCompleted.length === stored.completedStepIds.length &&
+    Boolean(nextCurrent)
+
+  if (!idsIntact && allStepIds.length > 0) {
+    const countFromStore =
+      typeof stored.completedCount === 'number'
+        ? stored.completedCount
+        : stored.completedStepIds.length
+    const n = Math.min(Math.max(0, countFromStore), allStepIds.length)
+    nextCompleted = allStepIds.slice(0, n)
+
+    if (
+      typeof stored.currentStepIndex === 'number' &&
+      stored.currentStepIndex >= 0
+    ) {
+      const idx = Math.min(stored.currentStepIndex, allStepIds.length - 1)
+      nextCurrent = allStepIds[idx] ?? firstStepId
+    } else {
+      nextCurrent = allStepIds[Math.min(n, allStepIds.length - 1)] ?? firstStepId
+    }
+  }
+
+  if (!nextCurrent) {
+    if (nextCompleted.length < allStepIds.length) {
+      nextCurrent = allStepIds[nextCompleted.length] ?? firstStepId
+    } else {
+      nextCurrent = nextCompleted.length > 0 ? lastStepId : firstStepId
+    }
+  }
+
+  return {
+    completedStepIds: nextCompleted,
+    currentStepId: nextCurrent,
+    completedCount: nextCompleted.length,
+    currentStepIndex: Math.max(0, allStepIds.indexOf(nextCurrent)),
   }
 }
 
@@ -83,46 +131,108 @@ export function useLabStepProgress(options: {
   const [completedStepIds, setCompletedStepIds] = useState<string[]>([])
   const [currentStepId, setCurrentStepId] = useState(firstStepId)
   const [hydrated, setHydrated] = useState(false)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const latestRef = useRef<LabProgressState | null>(null)
+
+  const persist = useCallback(
+    (state: LabProgressState) => {
+      latestRef.current = state
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      saveTimerRef.current = setTimeout(() => {
+        void saveLabProgress(lessonId, state)
+      }, 400)
+    },
+    [lessonId],
+  )
 
   useEffect(() => {
-    // Aula já concluída: mostra todos os steps feitos e mantém o save.
-    // Só apagamos no reset do curso (clearAllLabProgress).
-    if (lessonStatus === 'completed') {
-      const doneState: LabProgressState = {
-        completedStepIds: allStepIds,
-        currentStepId: lastStepId,
+    let cancelled = false
+
+    async function hydrate() {
+      if (lessonStatus === 'completed') {
+        const doneState: LabProgressState = {
+          completedStepIds: allStepIds,
+          currentStepId: lastStepId,
+          completedCount: allStepIds.length,
+          currentStepIndex: Math.max(0, allStepIds.length - 1),
+        }
+        if (!cancelled) {
+          setCompletedStepIds(allStepIds)
+          setCurrentStepId(lastStepId)
+          setHydrated(true)
+          void saveLabProgress(lessonId, doneState)
+        }
+        return
       }
-      writeProgress(lessonId, doneState)
-      setCompletedStepIds(allStepIds)
-      setCurrentStepId(lastStepId)
+
+      const fromApi = await getLabProgress(lessonId)
+      const legacy = !fromApi ? readLegacyProgress(lessonId) : null
+      const stored = fromApi ?? legacy
+
+      if (cancelled) return
+
+      if (!stored) {
+        setCompletedStepIds([])
+        setCurrentStepId(firstStepId)
+        setHydrated(true)
+        return
+      }
+
+      const resolved = resolveProgressFromStore(
+        stored,
+        allStepIds,
+        firstStepId,
+        lastStepId,
+      )
+      setCompletedStepIds(resolved.completedStepIds)
+      setCurrentStepId(resolved.currentStepId)
       setHydrated(true)
-      return
+
+      // Migra localStorage → API uma vez.
+      if (legacy && !fromApi) {
+        void saveLabProgress(lessonId, resolved).then(() => {
+          clearLegacyProgress(lessonId)
+        })
+      }
     }
 
-    const stored = readProgress(lessonId)
-    if (!stored) {
-      setCompletedStepIds([])
-      setCurrentStepId(firstStepId)
-      setHydrated(true)
-      return
+    void hydrate()
+    return () => {
+      cancelled = true
     }
-
-    const validIds = new Set(allStepIds)
-    const nextCompleted = stored.completedStepIds.filter((id) =>
-      validIds.has(id),
-    )
-    const nextCurrent = validIds.has(stored.currentStepId)
-      ? stored.currentStepId
-      : firstStepId
-    setCompletedStepIds(nextCompleted)
-    setCurrentStepId(nextCurrent)
-    setHydrated(true)
-  }, [lessonId, lessonStatus, firstStepId, lastStepId, allStepIds])
+  }, [
+    lessonId,
+    lessonStatus,
+    firstStepId,
+    lastStepId,
+    allStepIds,
+  ])
 
   useEffect(() => {
     if (!hydrated || !currentStepId) return
-    writeProgress(lessonId, { completedStepIds, currentStepId })
-  }, [lessonId, completedStepIds, currentStepId, hydrated])
+    persist({
+      completedStepIds,
+      currentStepId,
+      completedCount: completedStepIds.length,
+      currentStepIndex: Math.max(0, allStepIds.indexOf(currentStepId)),
+    })
+  }, [
+    lessonId,
+    completedStepIds,
+    currentStepId,
+    hydrated,
+    allStepIds,
+    persist,
+  ])
+
+  useEffect(
+    () => () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      const pending = latestRef.current
+      if (pending) void saveLabProgress(lessonId, pending)
+    },
+    [lessonId],
+  )
 
   const currentStepIndex = Math.max(
     0,
@@ -152,9 +262,15 @@ export function useLabStepProgress(options: {
   }, [completeStep, currentStep])
 
   const clearProgress = useCallback(() => {
-    clearLabProgress(lessonId)
+    clearLegacyProgress(lessonId)
     setCompletedStepIds([])
     setCurrentStepId(firstStepId)
+    void saveLabProgress(lessonId, {
+      completedStepIds: [],
+      currentStepId: firstStepId,
+      completedCount: 0,
+      currentStepIndex: 0,
+    })
   }, [lessonId, firstStepId])
 
   return {

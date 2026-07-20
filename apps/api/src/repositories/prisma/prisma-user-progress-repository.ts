@@ -146,4 +146,37 @@ export class PrismaUserProgressRepository implements IUserProgressRepository {
       },
     });
   }
+
+  async upsertLabProgress(data: {
+    userId: string;
+    taskId: number;
+    userCourseId: string;
+    labProgress: {
+      completedStepIds: string[];
+      currentStepId: string;
+      completedCount?: number;
+      currentStepIndex?: number;
+    };
+  }): Promise<UserProgress> {
+    const labProgressJson = data.labProgress as unknown as object;
+    return prisma.userProgress.upsert({
+      where: {
+        userId_taskId: {
+          userId: data.userId,
+          taskId: data.taskId,
+        },
+      },
+      create: {
+        userId: data.userId,
+        taskId: data.taskId,
+        userCourseId: data.userCourseId,
+        isCompleted: false,
+        labProgress: labProgressJson,
+        attempts: 0,
+      },
+      update: {
+        labProgress: labProgressJson,
+      },
+    });
+  }
 }

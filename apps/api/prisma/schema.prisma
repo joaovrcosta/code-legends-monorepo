@@ -674,6 +674,8 @@ model UserProgress {
   attempts     Int        @default(0)
   score        Float?
   notes        String?
+  /** Progresso parcial de lab: { completedStepIds, currentStepId, completedCount?, currentStepIndex? } */
+  labProgress  Json?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   task         Lesson     @relation(fields: [taskId], references: [id], onDelete: Cascade)

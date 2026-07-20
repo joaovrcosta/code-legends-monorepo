@@ -24,8 +24,9 @@ const CHECK_TIMEOUT_MS = 30000
 const CLIENT_POLL_MS = 200
 const CLIENT_MAX_ATTEMPTS = 50
 const CHECK_START_DELAY_MS = 350
-/** Tempo para a preview reexecutar e o console.log chegar após o Verificar. */
-const CONSOLE_CAPTURE_GRACE_MS = 700
+/** Tempo máx. para a preview reexecutar após o Verificar e enviar console.log. */
+const CONSOLE_CAPTURE_GRACE_MS = 2000
+const CONSOLE_CAPTURE_AFTER_DONE_MS = 250
 
 type SpecsMap = Record<
   string,
@@ -169,6 +170,97 @@ function countSpecResults(specs: SpecsMap): {
   return { passed, total, failed }
 }
 
+type FooterTestItem = {
+  name: string
+  status: 'pass' | 'fail' | 'idle'
+  /** Mensagem do assert (ex.: Did you include `console.log(...)` ...). */
+  message?: string
+}
+
+function extractErrorText(error: unknown): string | null {
+  if (error == null) return null
+  if (typeof error === 'string') {
+    const t = error.trim()
+    return t || null
+  }
+  if (typeof error === 'object') {
+    const e = error as {
+      message?: unknown
+      name?: unknown
+      stack?: unknown
+    }
+    if (typeof e.message === 'string' && e.message.trim()) {
+      return e.message.trim()
+    }
+    if (typeof e.stack === 'string' && e.stack.trim()) {
+      // Primeira linha útil do stack (sem "Error:" vazio).
+      const first = e.stack
+        .split('\n')
+        .map((l) => l.trim())
+        .find((l) => l && !/^at\s/.test(l))
+      return first ?? null
+    }
+  }
+  return null
+}
+
+/** Limpa ruído típico do Jest/Sandpack e devolve a dica do assert. */
+function cleanAssertionMessage(raw: string): string {
+  let text = raw
+    .replace(/^Error:\s*/i, '')
+    .replace(/^ExpectationError:\s*/i, '')
+    .trim()
+  // Remove prefixo genérico do Sandpack se vier colado.
+  text = text.replace(/^Something went wrong\.?\s*/i, '').trim()
+  return text
+}
+
+/** Achata tests/describes dos specs para o rodapé (✓/✗ + mensagem). */
+function listFooterTestItems(specs: SpecsMap): FooterTestItem[] {
+  const items: FooterTestItem[] = []
+
+  const walkTests = (
+    tests?: Record<string, { status?: string; errors?: unknown[] }>,
+  ) => {
+    if (!tests) return
+    for (const [name, t] of Object.entries(tests)) {
+      const status =
+        t.status === 'pass' || t.status === 'fail' ? t.status : 'idle'
+      let message: string | undefined
+      if (status === 'fail' && Array.isArray(t.errors)) {
+        for (const err of t.errors) {
+          const raw = extractErrorText(err)
+          if (!raw) continue
+          const cleaned = cleanAssertionMessage(raw)
+          if (cleaned) {
+            message = cleaned
+            break
+          }
+        }
+      }
+      items.push({ name, status, message })
+    }
+  }
+
+  const walkDescribes = (describes?: Record<string, unknown>) => {
+    if (!describes) return
+    for (const d of Object.values(describes) as Array<{
+      tests?: Record<string, { status?: string; errors?: unknown[] }>
+      describes?: Record<string, unknown>
+    }>) {
+      walkTests(d.tests)
+      walkDescribes(d.describes)
+    }
+  }
+
+  for (const spec of Object.values(specs ?? {})) {
+    walkTests(spec.tests)
+    walkDescribes(spec.describes as Record<string, unknown> | undefined)
+  }
+
+  return items
+}
+
 const STUDENT_CODE_PATHS = ['/App.js', '/index.js'] as const
 
 function SyncStepTests({
@@ -225,9 +317,26 @@ function formatConsolePart(part: unknown): string {
   }
 }
 
+function logFingerprint(log: SandpackConsoleLog): string {
+  return `${log.method}:${(log.data ?? []).map(formatConsolePart).join('\u0000')}`
+}
+
+/** Remove linhas consecutivas idênticas (Jest + preview costumam duplicar). */
+function dedupeConsecutiveLogs(logs: SandpackConsoleLog[]): SandpackConsoleLog[] {
+  const out: SandpackConsoleLog[] = []
+  let prev = ''
+  for (const log of logs) {
+    const fp = logFingerprint(log)
+    if (fp === prev) continue
+    prev = fp
+    out.push(log)
+  }
+  return out
+}
+
 /**
  * Console só exibe saída capturada no "Verificar" (ignora autorun ao digitar).
- * Enquanto captura, renderiza `logs` direto (sem setState) para não loopar.
+ * A captura começa no fim do check (após os testes), com um único refresh.
  */
 function LabVerifyConsole({
   sessionId,
@@ -244,73 +353,69 @@ function LabVerifyConsole({
   })
   const [snapshot, setSnapshot] = useState<SandpackConsoleLog[]>([])
   const wasCapturingRef = useRef(false)
+  const lateUntilRef = useRef(0)
   const resetRef = useRef(reset)
-  const logsRef = useRef(logs)
   const onLogsRef = useRef(onCaptureLogsChange)
   resetRef.current = reset
-  logsRef.current = logs
   onLogsRef.current = onCaptureLogsChange
 
   useEffect(() => {
     if (sessionId <= 0) {
       wasCapturingRef.current = false
+      lateUntilRef.current = 0
       setSnapshot((prev) => (prev.length === 0 ? prev : []))
       return
     }
 
     if (capturing && !wasCapturingRef.current) {
       wasCapturingRef.current = true
+      lateUntilRef.current = 0
       resetRef.current()
       setSnapshot([])
       onLogsRef.current?.([])
-      return
-    }
-
-    if (!capturing && wasCapturingRef.current) {
-      wasCapturingRef.current = false
-      const frozen = logsRef.current as SandpackConsoleLog[]
-      setSnapshot(frozen)
-      onLogsRef.current?.(frozen)
     }
   }, [sessionId, capturing])
 
   useEffect(() => {
-    if (sessionId <= 0 || !capturing) return
-    onLogsRef.current?.(logs as SandpackConsoleLog[])
+    if (sessionId <= 0) return
+    const typed = dedupeConsecutiveLogs(logs as SandpackConsoleLog[])
+    if (capturing) {
+      onLogsRef.current?.(typed)
+      return
+    }
+    if (wasCapturingRef.current) {
+      wasCapturingRef.current = false
+      lateUntilRef.current = Date.now() + 1500
+      setSnapshot(typed)
+      onLogsRef.current?.(typed)
+      return
+    }
+    if (Date.now() < lateUntilRef.current && typed.length > 0) {
+      setSnapshot(typed)
+      onLogsRef.current?.(typed)
+    }
   }, [logs, capturing, sessionId])
 
   const display: SandpackConsoleLog[] =
     sessionId <= 0
       ? []
       : capturing
-        ? (logs as SandpackConsoleLog[])
+        ? dedupeConsecutiveLogs(logs as SandpackConsoleLog[])
         : snapshot
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-[#1A1A1A] text-xs text-white/90">
-      <div className="flex shrink-0 items-center justify-end border-b border-white/10 px-2 py-1">
-        <button
-          type="button"
-          onClick={() => {
-            resetRef.current()
-            setSnapshot([])
-          }}
-          className="rounded px-2 py-0.5 text-[11px] text-white/50 hover:bg-white/10 hover:text-white"
-        >
-          Limpar
-        </button>
-      </div>
-      <div className="min-h-0 flex-1 space-y-1 overflow-auto p-2 font-mono leading-relaxed">
-        {display.length === 0 ? (
-          <p className="text-white/35">
-            {sessionId > 0
-              ? capturing
-                ? 'Capturando saída…'
-                : 'Sem saída neste Verificar.'
-              : 'Clique em Verificar para ver a saída do console.'}
-          </p>
-        ) : (
-          display.map((log) => (
+    <div className="h-full min-h-0 overflow-auto bg-[#1A1A1A] p-2 font-mono text-xs leading-relaxed text-white/90">
+      {display.length === 0 ? (
+        <p className="text-white/35">
+          {sessionId > 0
+            ? capturing
+              ? 'Capturando saída…'
+              : 'Sem saída neste Verificar.'
+            : 'Clique em Verificar para ver a saída do console.'}
+        </p>
+      ) : (
+        <div className="space-y-1">
+          {display.map((log) => (
             <div
               key={log.id}
               className={
@@ -327,9 +432,9 @@ function LabVerifyConsole({
                 </span>
               ))}
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -640,14 +745,17 @@ function LabPlaygroundInner({
   onStepCheckPass: (stepId: string) => void
   hasTests: boolean
 }) {
-  const { sandpack, dispatch: sandpackDispatch } = useSandpack()
+  const { sandpack, dispatch: sandpackDispatch, listen } = useSandpack()
   const sandpackRef = useRef(sandpack)
   sandpackRef.current = sandpack
   const dispatchRef = useRef(sandpackDispatch)
   dispatchRef.current = sandpackDispatch
+  const listenRef = useRef(listen)
+  listenRef.current = listen
 
   const [checking, setChecking] = useState(false)
   const [checkError, setCheckError] = useState<string | null>(null)
+  const [footerTests, setFooterTests] = useState<FooterTestItem[]>([])
   const [checkId, setCheckId] = useState(0)
   const [testStatus, setTestStatus] = useState<TestStatus>('idle')
   const [liveSpecs, setLiveSpecs] = useState<SpecsMap>({})
@@ -744,23 +852,63 @@ function LabPlaygroundInner({
     }
   }, [])
 
-  const endChecking = useCallback(() => {
+  const endChecking = useCallback((options?: { onSettled?: () => void }) => {
     clearCheckTimeout()
     clearStartDelay()
     checkingRef.current = false
     setChecking(false)
-    // Restaura o código do aluno (sem exports) e congela o console após um breve grace.
+
     restoreStudentFiles()
+
+    // Captura do console SÓ agora (depois do Jest), com um único refresh.
     clearConsoleFreeze()
-    consoleFreezeRef.current = setTimeout(() => {
-      consoleFreezeRef.current = null
+    setConsoleSessionId((id) => id + 1)
+    setConsoleCapturing(true)
+    setRightTab('console')
+
+    let settled = false
+    const settle = () => {
+      if (settled) return
+      settled = true
+      if (consoleFreezeRef.current) {
+        clearTimeout(consoleFreezeRef.current)
+        consoleFreezeRef.current = null
+      }
+      unsub?.()
       setConsoleCapturing(false)
-    }, CONSOLE_CAPTURE_GRACE_MS)
+      const after = options?.onSettled
+      if (after) {
+        window.setTimeout(after, 0)
+      }
+    }
+
+    let sawDone = false
+    const unsub = listenRef.current((msg) => {
+      const data = msg as { type?: string }
+      if (data.type === 'done' || data.type === 'success') {
+        // Ignora o "done" do restore; espera o do refresh.
+        if (!sawDone) {
+          sawDone = true
+          return
+        }
+        consoleFreezeRef.current = setTimeout(
+          settle,
+          CONSOLE_CAPTURE_AFTER_DONE_MS,
+        )
+      }
+    })
+
+    window.setTimeout(() => {
+      refreshPreview()
+    }, 80)
+
+    consoleFreezeRef.current = setTimeout(settle, CONSOLE_CAPTURE_GRACE_MS)
   }, [
     clearCheckTimeout,
     clearStartDelay,
     clearConsoleFreeze,
     restoreStudentFiles,
+    refreshPreview,
   ])
 
   useEffect(() => {
@@ -772,8 +920,7 @@ function LabPlaygroundInner({
     checkingRef.current = false
     setTestStatus('idle')
     setLiveSpecs({})
-    setConsoleSessionId(0)
-    setConsoleCapturing(false)
+    setFooterTests([])
     verifyConsoleLogsRef.current = []
     bundlerErrorRef.current = false
     clearConsoleFreeze()
@@ -823,15 +970,16 @@ function LabPlaygroundInner({
     checkingRef.current = true
 
     clearConsoleFreeze()
-    setConsoleSessionId((id) => id + 1)
-    setConsoleCapturing(true)
-    setRightTab('tests')
+    setRightTab('console')
     setCheckError(null)
+    setFooterTests([])
     setChecking(true)
     passCalledRef.current = false
     transpileRetryCountRef.current = 0
     verifyConsoleLogsRef.current = []
     bundlerErrorRef.current = false
+    // Console só captura depois dos testes (em endChecking).
+    setConsoleCapturing(false)
     scheduleCheckTimeout()
 
     clearStartDelay()
@@ -875,21 +1023,30 @@ function LabPlaygroundInner({
         return
       }
 
-      endChecking()
-
       const { passed, total, failed } = countSpecResults(specs)
       const passedAll = total > 0 && failed === 0 && passed === total
+      const items = listFooterTestItems(specs)
+
+      endChecking(
+        passedAll
+          ? {
+              onSettled: () => {
+                if (passCalledRef.current) return
+                passCalledRef.current = true
+                onPassRef.current(stepIdRef.current)
+              },
+            }
+          : undefined,
+      )
 
       if (passedAll) {
-        if (!passCalledRef.current) {
-          passCalledRef.current = true
-          onPassRef.current(stepIdRef.current)
-        }
         setCheckError(null)
+        setFooterTests(items)
         return
       }
 
       if (fileError) {
+        setFooterTests([])
         setCheckError(
           transpilePending
             ? 'O código ainda estava compilando. Clique em Verificar de novo.'
@@ -898,11 +1055,16 @@ function LabPlaygroundInner({
         return
       }
 
-      setCheckError(
-        total === 0
-          ? 'Nenhum teste encontrado. Confira o arquivo *.test.js do step.'
-          : `Neste passo: ${passed} de ${total} testes passaram. Corrija e tente de novo.`,
-      )
+      if (total === 0) {
+        setFooterTests([])
+        setCheckError(
+          'Nenhum teste encontrado. Confira o arquivo *.test.js do step.',
+        )
+        return
+      }
+
+      setCheckError(null)
+      setFooterTests(items)
     },
     [endChecking, scheduleCheckTimeout, clearStartDelay, bumpCheckId],
   )
@@ -1022,8 +1184,9 @@ function LabPlaygroundInner({
           showTabs={filesOpen}
         />
         {/*
-          Painel direito: a Preview NÃO usa display:none — senão o bundle
-          não roda e console.log nunca aparece no Verificar.
+          Preview sempre montada e "visível" (sem visibility:hidden) — senão o
+          iframe não executa e console.log some no Verificar. Console/Testes
+          cobrem com z-index + fundo.
         */}
         <div
           className={
@@ -1038,18 +1201,22 @@ function LabPlaygroundInner({
               className={
                 rightTab === 'preview' || rightTab == null
                   ? 'absolute inset-0'
-                  : 'pointer-events-none absolute inset-0 invisible'
+                  : 'pointer-events-none absolute inset-0 opacity-0'
               }
               aria-hidden={rightTab !== 'preview' && rightTab != null}
             >
               <SandpackPreview
                 showNavigator={false}
                 showRefreshButton={false}
+                showOpenInCodeSandbox={false}
+                showSandpackErrorOverlay={false}
               />
             </div>
             <div
               className={
-                rightTab === 'console' ? 'absolute inset-0 z-[1]' : 'hidden'
+                rightTab === 'console'
+                  ? 'absolute inset-0 z-[1] bg-[#1A1A1A]'
+                  : 'hidden'
               }
             >
               <LabVerifyConsole
@@ -1061,7 +1228,9 @@ function LabPlaygroundInner({
             {hasTests ? (
               <div
                 className={
-                  rightTab === 'tests' ? 'absolute inset-0 z-[1]' : 'hidden'
+                  rightTab === 'tests'
+                    ? 'absolute inset-0 z-[1] bg-[#1A1A1A]'
+                    : 'hidden'
                 }
               >
                 <LabTestsPanel status={testStatus} specs={liveSpecs} />
@@ -1101,7 +1270,49 @@ function LabPlaygroundInner({
             {label}
           </button>
         ))}
-        {checkError ? (
+        {footerTests.length > 0 ? (
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-0.5">
+            {footerTests.map((item) => (
+              <div key={item.name} className="min-w-0 space-y-0.5">
+                <div className="inline-flex max-w-full items-start gap-1.5 text-xs">
+                  <span
+                    className={
+                      item.status === 'pass'
+                        ? 'shrink-0 text-emerald-400'
+                        : item.status === 'fail'
+                          ? 'shrink-0 text-red-400'
+                          : 'shrink-0 text-white/40'
+                    }
+                  >
+                    {item.status === 'pass'
+                      ? '✓'
+                      : item.status === 'fail'
+                        ? '✗'
+                        : '·'}
+                  </span>
+                  <span
+                    className={
+                      item.status === 'fail'
+                        ? 'truncate text-red-300'
+                        : 'truncate text-white/75'
+                    }
+                    title={item.name}
+                  >
+                    {item.name}
+                  </span>
+                </div>
+                {item.status === 'fail' && item.message ? (
+                  <p
+                    className="pl-5 text-[11px] leading-snug text-red-200/90"
+                    title={item.message}
+                  >
+                    {item.message}
+                  </p>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : checkError ? (
           <p className="text-xs text-red-300">{checkError}</p>
         ) : null}
       </div>
