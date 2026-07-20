@@ -192,10 +192,30 @@ function sourceContainsLoose(source, needle) {
   return false;
 }
 
+function looksLikeReactBootstrap(code) {
+  return (
+    /createRoot\\s*\\(/.test(code) &&
+    /react-dom\\/client/.test(code)
+  );
+}
+
 export function readStudentCode(path) {
   const resolved = resolveStudentCodePath(path);
   const fs = require("fs");
-  const code = fs.readFileSync(resolved, "utf8");
+  let code = fs.readFileSync(resolved, "utf8");
+  // Labs vanilla costumam testar '/index.js'. Com template react (Jest),
+  // /index.js vira o bootstrap e o código do aluno fica em /App.js.
+  if (
+    resolved === "/index.js" &&
+    looksLikeReactBootstrap(code) &&
+    STUDENT_CODE_ALLOWLIST.includes("/App.js")
+  ) {
+    try {
+      code = fs.readFileSync("/App.js", "utf8");
+    } catch (_e) {
+      // mantém o /index.js se /App.js não existir
+    }
+  }
   const bytes =
     typeof TextEncoder !== "undefined"
       ? new TextEncoder().encode(code).length

@@ -1,6 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MutableRefObject,
+} from 'react'
 import {
   SandpackProvider,
   SandpackLayout,
@@ -19,7 +27,6 @@ import {
 } from '@/lib/lab/lab-test-helpers-source'
 import { withLabAutoExports } from '@/lib/lab/lab-auto-exports'
 import {
-  isLabRespectTemplateEnabled,
   isLabSandpackRuntimeGateEnabled,
 } from '@/lib/lab/lab-feature-flags'
 
@@ -295,23 +302,45 @@ function dedupeConsecutiveLogs(logs: SandpackConsoleLog[]): SandpackConsoleLog[]
 }
 
 /**
- * Se a lista for exatamente duas execuções iguais (restore + refresh),
- * mantém só a primeira metade.
+ * Se a lista for N execuções iguais (restore + refresh, ou 3×),
+ * ou uma execução + cauda parcial da mesma execução, mantém só um ciclo.
+ * Não colapsa padrões legítimos curtos (ex.: 1, 2, 1 do aluno).
  */
 function collapseDuplicatedRun(logs: SandpackConsoleLog[]): SandpackConsoleLog[] {
   const consecutive = dedupeConsecutiveLogs(logs)
   const n = consecutive.length
-  if (n < 2 || n % 2 !== 0) return consecutive
-  const half = n / 2
-  const left = consecutive
-    .slice(0, half)
-    .map(logFingerprint)
-    .join('\u0001')
-  const right = consecutive
-    .slice(half)
-    .map(logFingerprint)
-    .join('\u0001')
-  if (left === right) return consecutive.slice(0, half)
+  if (n < 2) return consecutive
+
+  const fps = consecutive.map(logFingerprint)
+
+  // Pelo menos 2 ciclos completos iguais (e o resto prefixo do ciclo).
+  for (let period = 1; period <= Math.floor(n / 2); period += 1) {
+    if (n < period * 2) continue
+    const first = fps.slice(0, period).join('\u0001')
+    const second = fps.slice(period, period * 2).join('\u0001')
+    if (first !== second) continue
+    let ok = true
+    for (let i = period * 2; i < n; i += 1) {
+      if (fps[i] !== fps[i % period]) {
+        ok = false
+        break
+      }
+    }
+    if (ok) return consecutive.slice(0, period)
+  }
+
+  // Uma execução + cauda parcial: [a,b,c, a,b].
+  // Exige cauda com ≥2 itens para não colapsar padrões legítimos (1, 2, 1).
+  for (let period = n - 1; period >= 2; period -= 1) {
+    const restLen = n - period
+    if (restLen < 2 || restLen >= period) continue
+    const first = fps.slice(0, period)
+    const rest = fps.slice(period)
+    if (rest.every((fp, i) => fp === first[i])) {
+      return consecutive.slice(0, period)
+    }
+  }
+
   return consecutive
 }
 
@@ -348,7 +377,9 @@ function LabVerifyConsole({
       return
     }
 
-    if (capturing && !wasCapturingRef.current) {
+    // Sempre limpa ao (re)iniciar captura nesta sessão — senão logs de um
+    // Verificar anterior vazam (ex.: "12" fantasma no step 2).
+    if (capturing) {
       wasCapturingRef.current = true
       lateUntilRef.current = 0
       resetRef.current()
@@ -366,13 +397,29 @@ function LabVerifyConsole({
     }
     if (wasCapturingRef.current) {
       wasCapturingRef.current = false
-      lateUntilRef.current = Date.now() + 1500
+      // Janela curta só para logs atrasados da MESMA execução — não para um 2º run.
+      lateUntilRef.current = Date.now() + 400
       setSnapshot(typed)
       onLogsRef.current?.(typed)
       return
     }
     if (Date.now() < lateUntilRef.current && typed.length > 0) {
-      setSnapshot(typed)
+      // Só atualiza se ainda for o mesmo ciclo (sem dobrar a saída).
+      setSnapshot((prev) => {
+        if (prev.length === 0) return typed
+        if (typed.length <= prev.length) return prev
+        const prevFp = prev.map(logFingerprint).join('\u0001')
+        const nextFp = typed.map(logFingerprint).join('\u0001')
+        if (nextFp.startsWith(prevFp) && nextFp.length > prevFp.length) {
+          // Cresceu com prefixo igual — se o extra for repetição do prev, ignora.
+          const extra = typed.slice(prev.length)
+          const extraFp = extra.map(logFingerprint)
+          const baseFp = prev.map(logFingerprint)
+          if (extraFp.every((fp, i) => fp === baseFp[i])) return prev
+          return typed
+        }
+        return prev
+      })
       onLogsRef.current?.(typed)
     }
   }, [logs, capturing, sessionId])
@@ -489,10 +536,13 @@ function LabJestRunner({
   checkId,
   onComplete,
   onStatusChange,
+  invalidateRef,
 }: {
   checkId: number
   onComplete: (specs: SpecsMap, checkId: number) => void
   onStatusChange: (status: TestStatus, specs: SpecsMap) => void
+  /** Chamar após refresh do console — marca Jest como não pronto. */
+  invalidateRef: MutableRefObject<(() => void) | null>
 }) {
   const { getClient, iframe, listen } = useSandpackClient()
   const specsRef = useRef<SpecsMap>({})
@@ -510,6 +560,15 @@ function LabJestRunner({
   listenRef.current = listen
   onCompleteRef.current = onComplete
   onStatusRef.current = onStatusChange
+
+  useEffect(() => {
+    invalidateRef.current = () => {
+      jestReadyRef.current = false
+    }
+    return () => {
+      invalidateRef.current = null
+    }
+  }, [invalidateRef])
 
   const dispatchRunAll = useCallback(() => {
     const client = getClientRef.current()
@@ -542,15 +601,14 @@ function LabJestRunner({
 
       if (event === 'initialize_tests') {
         jestReadyRef.current = true
-        // Não volta para "Pronto" no meio de um Verificar (rebundle/initialize).
-        if (pendingCheckRef.current || activeCheckIdRef.current > 0) {
-          onStatusRef.current('starting', specsRef.current)
-        } else {
-          onStatusRef.current('idle', specsRef.current)
-        }
+        // Só "Iniciando…" se ainda vamos disparar run-all-tests.
+        // Senão um initialize tardio (após complete) deixa o painel preso.
         if (pendingCheckRef.current) {
+          onStatusRef.current('starting', specsRef.current)
           pendingCheckRef.current = false
           dispatchRunAll()
+        } else if (activeCheckIdRef.current === 0) {
+          onStatusRef.current('idle', specsRef.current)
         }
         return
       }
@@ -597,6 +655,10 @@ function LabJestRunner({
         // Sem run marcada, ou run antiga depois de um novo Verificar.
         if (!completedId || completedId !== activeId) return
         runningCheckIdRef.current = 0
+        // Libera o status: initialize_tests tardio não deve voltar a "Iniciando…".
+        if (activeCheckIdRef.current === completedId) {
+          activeCheckIdRef.current = 0
+        }
         const snapshot = { ...specsRef.current }
         onStatusRef.current('complete', snapshot)
         onCompleteRef.current(snapshot, completedId)
@@ -752,6 +814,7 @@ function LabPlaygroundInner({
   dispatchRef.current = sandpackDispatch
   const listenRef = useRef(listen)
   listenRef.current = listen
+  const invalidateJestRef = useRef<(() => void) | null>(null)
   const runtimeHotRef = useRef(runtimeHot)
   runtimeHotRef.current = runtimeHot
   const isWakingRef = useRef(false)
@@ -886,12 +949,17 @@ function LabPlaygroundInner({
     preCheckFilesRef.current = backup
   }, [])
 
-  /** Garante que só o testFile do step atual exista antes do Jest. */
+  /**
+   * Garante que só o testFile do step atual exista antes do Jest.
+   * O stamp lab-check força re-transpile: specs com `const code = readStudentCode()`
+   * no topo do módulo senão ficam com o código do aluno da 1ª avaliação (cache Jest).
+   */
   const syncActiveTestFiles = useCallback(() => {
     const keep = new Set(Object.keys(testFiles))
+    const stamp = `/* lab-check:${Date.now()} */\n`
     for (const [path, code] of Object.entries(testFiles)) {
       try {
-        sandpackRef.current.updateFile(path, code)
+        sandpackRef.current.updateFile(path, stamp + code)
       } catch {
         // ignore
       }
@@ -1014,22 +1082,37 @@ function LabPlaygroundInner({
     [clearWaking],
   )
 
-  const endChecking = useCallback((options?: { onSettled?: () => void }) => {
+  const endChecking = useCallback(
+    (options?: {
+      onSettled?: () => void
+      /**
+       * Pass: segura o botão até a captura (e só então chama onSettled/onPass).
+       * Fail: libera na hora — senão "Verificando…" fica ~2s a mais à toa.
+       */
+      holdUntilSettled?: boolean
+    }) => {
     clearCheckTimeout()
     clearStartDelay()
-    // Mantém checking=true até o settle — senão um clique rápido inicia outro
-    // Verificar enquanto o refresh atrasado do settle aborta o Jest (stuck).
+    // Novo Verificar chama clearConsoleFreeze e aborta refresh órfão (evita stuck).
     clearConsoleFreeze()
     const gen = endCheckingGenRef.current
+    const holdUntilSettled = Boolean(options?.holdUntilSettled)
 
-    // Restore primeiro (pode rebundle). Só depois captura + 1 refresh —
-    // senão o console mostra a saída 2× (restore + refresh).
+    if (!holdUntilSettled) {
+      checkingRef.current = false
+      setChecking(false)
+    }
+
+    // Restore primeiro (pode rebundle). Depois espera esfriar, zera o console
+    // e dá UM refresh — evita juntar saída do restore com a do refresh.
     restoreStudentFiles()
     setRightTab('console')
-    setConsoleCapturing(false)
+    // Limpa saída antiga na hora (senão o aluno vê logs do Verificar anterior
+    // enquanto a captura nova ainda não começou).
+    setConsoleSessionId((id) => id + 1)
+    setConsoleCapturing(true)
 
     let settled = false
-    let captureStarted = false
     let refreshDispatched = false
     const settle = () => {
       if (settled || endCheckingGenRef.current !== gen) return
@@ -1050,8 +1133,10 @@ function LabPlaygroundInner({
         endCheckingUnsubRef.current()
         endCheckingUnsubRef.current = null
       }
-      checkingRef.current = false
-      setChecking(false)
+      if (holdUntilSettled) {
+        checkingRef.current = false
+        setChecking(false)
+      }
       setConsoleCapturing(false)
       const after = options?.onSettled
       if (after) {
@@ -1059,41 +1144,34 @@ function LabPlaygroundInner({
       }
     }
 
-    const startConsoleCapture = () => {
-      if (captureStarted || settled || endCheckingGenRef.current !== gen) return
-      captureStarted = true
-      setConsoleSessionId((id) => id + 1)
-      setConsoleCapturing(true)
-      consoleRefreshDelayRef.current = setTimeout(() => {
-        consoleRefreshDelayRef.current = null
-        if (endCheckingGenRef.current !== gen || settled) return
-        refreshDispatched = true
-        refreshPreview()
-      }, 40)
-    }
-
     endCheckingUnsubRef.current = listenRef.current((msg) => {
-      if (endCheckingGenRef.current !== gen || settled) return
-      const data = msg as { type?: string }
-      if (data.type !== 'done' && data.type !== 'success') return
-      if (!captureStarted) {
-        // Fim do rebundle do restore → agora captura só o refresh.
-        startConsoleCapture()
+      if (endCheckingGenRef.current !== gen || settled || !refreshDispatched) {
         return
       }
-      // Ignora done atrasado do restore; só fecha após o refresh.
-      if (!refreshDispatched) return
+      const data = msg as { type?: string }
+      if (data.type !== 'done' && data.type !== 'success') return
       consoleFreezeRef.current = setTimeout(
         settle,
         CONSOLE_CAPTURE_AFTER_DONE_MS,
       )
     })
 
-    // Se restore não mudou arquivos (sem done), inicia captura mesmo assim.
+    // Delay: deixa o rebundle do restore terminar; reset de novo + 1 refresh.
     consoleCaptureStartRef.current = setTimeout(() => {
       consoleCaptureStartRef.current = null
-      startConsoleCapture()
-    }, 200)
+      if (settled || endCheckingGenRef.current !== gen) return
+      // Novo bump força reset do LabVerifyConsole após logs do restore.
+      setConsoleSessionId((id) => id + 1)
+      setConsoleCapturing(true)
+      consoleRefreshDelayRef.current = setTimeout(() => {
+        consoleRefreshDelayRef.current = null
+        if (settled || endCheckingGenRef.current !== gen) return
+        refreshDispatched = true
+        refreshPreview()
+        // Refresh pode matar o client Jest — próximo Verificar espera initialize.
+        invalidateJestRef.current?.()
+      }, 50)
+    }, 350)
 
     consoleFreezeRef.current = setTimeout(settle, CONSOLE_CAPTURE_GRACE_MS)
   }, [
@@ -1242,16 +1320,21 @@ function LabPlaygroundInner({
         return
       }
 
-      // Completa o step imediatamente (não espera o console) — senão o aluno
-      // clica Verificar de novo no mesmo step e/ou o Jest ainda vê o testFile antigo.
+      // Pass: captura o console antes de avançar o step (senão clearConsoleFreeze
+      // no effect do stepId cancela a captura e o console fica vazio).
+      // Fail: endChecking libera o botão na hora (sem esperar ~2s de captura).
       if (passedAll) {
         setCheckError(null)
         setShowExpected(false)
-        endChecking()
-        if (!passCalledRef.current) {
-          passCalledRef.current = true
-          onPassRef.current(passedStepId)
-        }
+        endChecking({
+          holdUntilSettled: true,
+          onSettled: () => {
+            if (!passCalledRef.current) {
+              passCalledRef.current = true
+              onPassRef.current(passedStepId)
+            }
+          },
+        })
         return
       }
 
@@ -1399,6 +1482,7 @@ function LabPlaygroundInner({
           checkId={checkId}
           onComplete={handleTestsComplete}
           onStatusChange={handleStatusChange}
+          invalidateRef={invalidateJestRef}
         />
       ) : null}
 
@@ -1620,7 +1704,6 @@ export function LabPlayground({
   height = '100%',
 }: LabPlaygroundProps) {
   const runtimeGateEnabled = isLabSandpackRuntimeGateEnabled()
-  const respectTemplate = isLabRespectTemplateEnabled()
   const [runtimeHot, setRuntimeHot] = useState(() => !runtimeGateEnabled)
   const [wantsRuntimeHot, setWantsRuntimeHot] = useState(
     () => !runtimeGateEnabled,
@@ -1657,13 +1740,11 @@ export function LabPlayground({
     [activeTests, stepId],
   )
   const hasTests = Object.keys(testFiles).length > 0
-  const effectiveTemplate: 'vanilla' | 'react' = respectTemplate
-    ? template === 'react'
-      ? 'react'
-      : 'vanilla'
-    : hasTests || template === 'react'
-      ? 'react'
-      : 'vanilla'
+  // Jest do Sandpack é confiável no template react. Com testes, sempre
+  // forçamos react (código do aluno em /App.js; readStudentCode faz fallback
+  // se o teste ainda pedir /index.js).
+  const effectiveTemplate: 'vanilla' | 'react' =
+    hasTests || template === 'react' ? 'react' : 'vanilla'
 
   const initialFilesRef = useRef<{
     lessonId: number
@@ -1740,7 +1821,7 @@ export function LabPlayground({
         mesmo provider e é ortogonal à SyncStepTests.
       */}
       <SandpackProvider
-        key={`${lessonId}-${LAB_REACT_BOOTSTRAP_VERSION}`}
+        key={`${lessonId}-${effectiveTemplate}-${LAB_REACT_BOOTSTRAP_VERSION}`}
         template={effectiveTemplate}
         theme="dark"
         files={providerFiles}
