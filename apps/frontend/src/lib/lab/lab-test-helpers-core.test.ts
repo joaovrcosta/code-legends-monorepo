@@ -6,6 +6,7 @@ import {
   assertConsoleLogCount,
   compactCode,
   countConsoleLogCalls,
+  defaultStudentPath,
   hasConsoleLogArg,
   hasKeywordBinding,
   quoteVariants,
@@ -15,11 +16,17 @@ import {
 } from './lab-test-helpers-core'
 
 describe('resolveStudentCodePath', () => {
-  it('aceita allowlist e default /App.js', () => {
+  it('aceita allowlist e default /App.js (react)', () => {
     expect(resolveStudentCodePath()).toBe('/App.js')
+    expect(resolveStudentCodePath(null, 'react')).toBe('/App.js')
     expect(resolveStudentCodePath('/App.js')).toBe('/App.js')
     expect(resolveStudentCodePath('/index.js')).toBe('/index.js')
     expect(resolveStudentCodePath('App.js')).toBe('/App.js')
+  })
+
+  it('default /index.js para template vanilla', () => {
+    expect(resolveStudentCodePath(undefined, 'vanilla')).toBe('/index.js')
+    expect(resolveStudentCodePath(null, 'vanilla')).toBe('/index.js')
   })
 
   it('rejeita paths fora da allowlist (helpers, testes)', () => {
@@ -30,6 +37,14 @@ describe('resolveStudentCodePath', () => {
       /não permitido/,
     )
     expect(() => resolveStudentCodePath('/foo.js')).toThrow(/não permitido/)
+  })
+})
+
+describe('defaultStudentPath', () => {
+  it('mapeia template → entry', () => {
+    expect(defaultStudentPath('react')).toBe('/App.js')
+    expect(defaultStudentPath('vanilla')).toBe('/index.js')
+    expect(defaultStudentPath()).toBe('/App.js')
   })
 })
 

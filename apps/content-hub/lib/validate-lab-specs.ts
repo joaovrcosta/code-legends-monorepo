@@ -136,6 +136,15 @@ export function validateLabSpecs(raw: string): ValidateLabSpecsResult {
           `${label}: expected vazio — recomendado para feedback amigável no Verificar.`,
         )
       }
+
+      if (template === 'vanilla' && hasTestFile) {
+        const tf = String(step.testFile)
+        if (/['"`]\/App\.js['"`]/.test(tf)) {
+          warnings.push(
+            `${label}: testFile referencia /App.js com template vanilla — use /index.js (labRespectTemplate).`,
+          )
+        }
+      }
     })
   }
 

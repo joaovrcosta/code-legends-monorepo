@@ -12,7 +12,8 @@
     "prebuild": "pnpm run build:shared-types && pnpm run build:challenges && pnpm run build:video-providers && pnpm run build:plans",
     "build": "next build",
     "start": "next start -p 3001",
-    "lint": "eslint"
+    "lint": "eslint",
+    "audit:vanilla-labs": "node --experimental-strip-types scripts/audit-vanilla-labs-with-tests.mts"
   },
   "dependencies": {
     "@blocknote/code-block": "^0.47.1",

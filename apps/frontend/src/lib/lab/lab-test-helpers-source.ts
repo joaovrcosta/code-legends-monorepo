@@ -1,6 +1,8 @@
 import {
   MAX_STUDENT_CODE_BYTES,
   STUDENT_CODE_ALLOWLIST,
+  defaultStudentPath,
+  type LabTemplate,
 } from './lab-test-helpers-core'
 
 export const LAB_TEST_HELPERS_PATH = '/lab-test-helpers.js'
@@ -13,6 +15,7 @@ export {
   assertConsoleLogCount,
   compactCode,
   countConsoleLogCalls,
+  defaultStudentPath,
   hasConsoleLogArg,
   hasKeywordBinding,
   quoteVariants,
@@ -20,21 +23,25 @@ export {
   sourceContainsLoose,
   stripStringsAndComments,
 } from './lab-test-helpers-core'
-export type { DeclKeyword } from './lab-test-helpers-core'
+export type { DeclKeyword, LabTemplate } from './lab-test-helpers-core'
 
 /**
  * Conteúdo injetado no Sandpack (hidden).
  * Lógica de parse alinhada a lab-test-helpers-core (unit tests no core).
  */
-export function buildLabTestHelpersSource(): string {
+export function buildLabTestHelpersSource(
+  template: LabTemplate = 'react',
+): string {
   const allow = JSON.stringify([...STUDENT_CODE_ALLOWLIST])
+  const defaultPath = defaultStudentPath(template)
   return `
 /* Code Legends lab test helpers */
 const STUDENT_CODE_ALLOWLIST = ${allow};
 const MAX_STUDENT_CODE_BYTES = ${MAX_STUDENT_CODE_BYTES};
+const DEFAULT_STUDENT_PATH = ${JSON.stringify(defaultPath)};
 
 function resolveStudentCodePath(path) {
-  const normalized = (path == null || path === "" ? "/App.js" : String(path)).trim();
+  const normalized = (path == null || path === "" ? DEFAULT_STUDENT_PATH : String(path)).trim();
   const withSlash = normalized.startsWith("/") ? normalized : "/" + normalized;
   if (!STUDENT_CODE_ALLOWLIST.includes(withSlash)) {
     throw new Error("Path não permitido: \`" + withSlash + "\`. Use apenas /App.js ou /index.js.");
@@ -257,7 +264,7 @@ export function assertCodeContains(code, needle) {
 }
 
 export async function assertBindingValue(name, expected, options) {
-  const path = options && options.path ? options.path : "/App.js";
+  const path = options && options.path ? options.path : DEFAULT_STUDENT_PATH;
   const mod = await softImportModule(path);
   if (!(name in mod) || typeof mod[name] === "undefined") {
     throw new Error("Did you create a variable named \`" + name + "\`?");

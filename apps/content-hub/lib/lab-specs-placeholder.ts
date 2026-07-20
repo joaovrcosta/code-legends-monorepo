@@ -1,5 +1,5 @@
 /** Exemplo de specs para aulas do tipo lab (content-hub).
- * Com testes o playground usa template react + /App.js.
+ * Respeite o template: react → /App.js; JS puro → vanilla + /index.js.
  * Preferir helpers oficiais: ver apps/content-hub/docs/lab-tests.md
  */
 export const LAB_SPECS_PLACEHOLDER = `{

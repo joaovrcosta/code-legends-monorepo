@@ -10,6 +10,7 @@ import {
   useSandpack,
 } from '@codesandbox/sandpack-react'
 import { ArrowsClockwise, PencilSimple, SidebarSimple } from '@phosphor-icons/react'
+import { isLabRespectTemplateEnabled } from '@/lib/lab/lab-feature-flags'
 
 const DEFAULT_FILES = {
   '/index.html': `<!DOCTYPE html>
@@ -165,7 +166,7 @@ function PlaygroundContent({
 export interface CodePlaygroundProps {
   /** Arquivos iniciais (path -> conteúdo). Default: HTML + CSS com "Hello world!" e estilo coral. */
   files?: Record<string, string>
-  /** Template do Sandpack. Default: "vanilla". Com testes, usa "react". */
+  /** Template do Sandpack. Default: "vanilla". Com flag off e testes, força "react". */
   template?: 'vanilla' | 'react'
   /** Altura do bloco (ex.: 300 ou "400px"). */
   height?: number | string
@@ -211,7 +212,11 @@ export function CodePlayground({
   playgroundId,
 }: CodePlaygroundProps) {
   const hasTests = Boolean(testFile || (tests && Object.keys(tests).length > 0))
-  const effectiveTemplate = hasTests ? 'react' : template
+  const effectiveTemplate = isLabRespectTemplateEnabled()
+    ? template
+    : hasTests
+      ? 'react'
+      : template
   const baseFiles = effectiveTemplate === 'react' ? REACT_TEMPLATE_DEFAULT_FILES : (files ?? DEFAULT_FILES)
   const testFiles = testFile ? { '/App.test.js': testFile } : tests ?? {}
   const resolvedFiles = { ...baseFiles, ...(files ?? {}), ...testFiles }

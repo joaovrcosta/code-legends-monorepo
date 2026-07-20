@@ -36,10 +36,12 @@ O `expected` é uma pergunta curta em 2ª pessoa (não o código cru). Exemplos:
 
 ## Entry do aluno
 
-| Template | Arquivo |
-|----------|---------|
-| `react` (padrão com testes) | `/App.js` |
-| `vanilla` | `/index.js` |
+| Template | Arquivo | Default do helper sem path |
+|----------|---------|----------------------------|
+| `react` (padrão se omitido / React+JSX) | `/App.js` | `/App.js` |
+| `vanilla` (JS puro) | `/index.js` | `/index.js` |
+
+Com `labRespectTemplate` ligado, testes **não** forçam template react — o campo `template` do specs é a fonte da verdade.
 
 ## API oficial (`/lab-test-helpers.js`)
 

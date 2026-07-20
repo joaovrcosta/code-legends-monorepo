@@ -9,10 +9,20 @@ export const MAX_STUDENT_CODE_BYTES = 512 * 1024
 
 export type DeclKeyword = 'var' | 'let' | 'const'
 
+export type LabTemplate = 'vanilla' | 'react'
+
+/** Entry padrão do aluno conforme template (vanilla → /index.js, react → /App.js). */
+export function defaultStudentPath(
+  template: LabTemplate = 'react',
+): (typeof STUDENT_CODE_ALLOWLIST)[number] {
+  return template === 'vanilla' ? '/index.js' : '/App.js'
+}
+
 export function resolveStudentCodePath(
   path?: string | null,
+  template: LabTemplate = 'react',
 ): (typeof STUDENT_CODE_ALLOWLIST)[number] {
-  const normalized = (path ?? '/App.js').trim()
+  const normalized = (path ?? defaultStudentPath(template)).trim()
   const withSlash = normalized.startsWith('/')
     ? normalized
     : `/${normalized}`

@@ -83,7 +83,8 @@ SCHEMA
 }
 
 Regras gerais:
-- template "react" + "/App.js" (padrão). Só use "vanilla" + "/index.js" se for JS puro sem React.
+- template "react" + "/App.js" (padrão para labs com React/JSX). Para JS puro (sem React), use "vanilla" + "/index.js" e nos testes leia \`readStudentCode('/index.js')\` (ou omita o path — o default segue o template).
+- NÃO misture: template vanilla com testes que apontam para /App.js, nem JSX sem deps React.
 - 2 a 5 steps progressivos; ids step-1, step-2, …
 - Cada step DEVE ter "expected": pergunta amigável (tom de carinha) que o aluno vê ao falhar o Verificar.
   Estilo: frase curta em pt-BR, 2ª pessoa, termina com ? — NÃO cole só o código.

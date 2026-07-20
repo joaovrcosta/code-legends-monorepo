@@ -18,6 +18,10 @@ import {
   buildLabTestHelpersSource,
 } from '@/lib/lab/lab-test-helpers-source'
 import { withLabAutoExports } from '@/lib/lab/lab-auto-exports'
+import {
+  isLabRespectTemplateEnabled,
+  isLabSandpackRuntimeGateEnabled,
+} from '@/lib/lab/lab-feature-flags'
 
 const DEFAULT_TEST_PATH = '/lab.step.test.js'
 const CHECK_TIMEOUT_MS = 30000
@@ -27,6 +31,10 @@ const CHECK_START_DELAY_MS = 350
 /** Tempo máx. para a preview reexecutar após o Verificar e enviar console.log. */
 const CONSOLE_CAPTURE_GRACE_MS = 2000
 const CONSOLE_CAPTURE_AFTER_DONE_MS = 250
+/** Cold start do bundler Sandpack — clear de isWaking no done/success ou neste timeout. */
+const WAKING_TIMEOUT_MS = 8000
+/** Debounce hot → cold quando Result fechado e idle. */
+const RUNTIME_COLD_DEBOUNCE_MS = 400
 
 type SpecsMap = Record<
   string,
@@ -449,6 +457,10 @@ function LabSandpackBundlerErrorListener({
  * refs para não re-disparar effects (isso causava loop + erro de deps).
  *
  * Cada checkId é uma geração: total_test_end antigo é ignorado.
+ *
+ * Caso de teste (gate on): Verificar antes do bundler inicial terminar —
+ * pendingCheckRef permanece true até initialize_tests / client pronto;
+ * não fica stuck em "Verificando…" (CHECK_TIMEOUT_MS cobre falha).
  */
 function LabJestRunner({
   checkId,
@@ -693,6 +705,10 @@ function LabPlaygroundInner({
   hasTests,
   expected,
   testFiles,
+  runtimeGateEnabled,
+  runtimeHot,
+  setRuntimeHot,
+  setWantsRuntimeHot,
 }: {
   stepId: string
   onStepCheckPass: (stepId: string) => void
@@ -701,6 +717,10 @@ function LabPlaygroundInner({
   /** Pergunta amigável do step; mostrada no rodapé se o Verificar falhar. */
   expected?: string
   testFiles: Record<string, string>
+  runtimeGateEnabled: boolean
+  runtimeHot: boolean
+  setRuntimeHot: (hot: boolean) => void
+  setWantsRuntimeHot: (hot: boolean) => void
 }) {
   const { sandpack, dispatch: sandpackDispatch, listen } = useSandpack()
   const sandpackRef = useRef(sandpack)
@@ -709,6 +729,11 @@ function LabPlaygroundInner({
   dispatchRef.current = sandpackDispatch
   const listenRef = useRef(listen)
   listenRef.current = listen
+  const runtimeHotRef = useRef(runtimeHot)
+  runtimeHotRef.current = runtimeHot
+  const isWakingRef = useRef(false)
+  const wakingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const wakingUnsubRef = useRef<(() => void) | null>(null)
 
   const [checking, setChecking] = useState(false)
   const [checkError, setCheckError] = useState<string | null>(null)
@@ -846,6 +871,92 @@ function LabPlaygroundInner({
       // ignore
     }
   }, [])
+
+  const clearWaking = useCallback(() => {
+    isWakingRef.current = false
+    if (wakingTimeoutRef.current) {
+      clearTimeout(wakingTimeoutRef.current)
+      wakingTimeoutRef.current = null
+    }
+    if (wakingUnsubRef.current) {
+      wakingUnsubRef.current()
+      wakingUnsubRef.current = null
+    }
+  }, [])
+
+  /**
+   * Acorda o bundler sob o gate (autorun:false).
+   * Path com testes: run sem refresh (refresh aborta o Jest).
+   * Path sem testes: refresh único.
+   * Cliques rápidos: isWaking evita wake/refresh duplicado.
+   */
+  const wakeRuntime = useCallback(
+    (mode: 'run' | 'refresh') => {
+      setRuntimeHot(true)
+      setWantsRuntimeHot(true)
+
+      if (!runtimeGateEnabled) {
+        if (mode === 'refresh') refreshPreview()
+        return
+      }
+
+      if (isWakingRef.current) return
+      isWakingRef.current = true
+
+      wakingUnsubRef.current = listenRef.current((msg) => {
+        const data = msg as { type?: string }
+        if (data.type === 'done' || data.type === 'success') {
+          clearWaking()
+        }
+      })
+      wakingTimeoutRef.current = setTimeout(clearWaking, WAKING_TIMEOUT_MS)
+
+      // Espera o commit de autoReload:true antes de run/refresh.
+      window.setTimeout(() => {
+        if (mode === 'refresh') {
+          refreshPreview()
+          return
+        }
+        try {
+          const run = sandpackRef.current.runSandpack
+          if (typeof run === 'function') {
+            run.call(sandpackRef.current)
+          }
+        } catch {
+          // ignore — pendingCheck do Jest espera initialize_tests
+        }
+      }, 0)
+    },
+    [
+      runtimeGateEnabled,
+      setRuntimeHot,
+      setWantsRuntimeHot,
+      refreshPreview,
+      clearWaking,
+    ],
+  )
+
+  useEffect(() => {
+    const wantsHot =
+      !runtimeGateEnabled ||
+      rightTab === 'preview' ||
+      checking ||
+      consoleCapturing
+    setWantsRuntimeHot(wantsHot)
+  }, [
+    runtimeGateEnabled,
+    rightTab,
+    checking,
+    consoleCapturing,
+    setWantsRuntimeHot,
+  ])
+
+  useEffect(
+    () => () => {
+      clearWaking()
+    },
+    [clearWaking],
+  )
 
   const endChecking = useCallback((options?: { onSettled?: () => void }) => {
     clearCheckTimeout()
@@ -1109,14 +1220,28 @@ function LabPlaygroundInner({
 
   const toggleRightTab = useCallback(
     (tab: 'preview' | 'console' | 'tests') => {
-      setRightTab((current) => (current === tab ? null : tab))
+      setRightTab((current) => {
+        const next = current === tab ? null : tab
+        if (next === 'preview') {
+          if (runtimeGateEnabled && !runtimeHotRef.current) {
+            // Result frio → hot + refresh sob guarda isWaking
+            queueMicrotask(() => wakeRuntime('refresh'))
+          } else {
+            setRuntimeHot(true)
+            setWantsRuntimeHot(true)
+          }
+        }
+        return next
+      })
     },
-    [],
+    [runtimeGateEnabled, wakeRuntime, setRuntimeHot, setWantsRuntimeHot],
   )
 
   const handleCheckWork = useCallback(() => {
     if (checkingRef.current || checking) return
     if (!hasTests) {
+      // Sem testes: wake + refresh único (captura console)
+      wakeRuntime('refresh')
       clearConsoleFreeze()
       verifyConsoleLogsRef.current = []
       bundlerErrorRef.current = false
@@ -1125,7 +1250,6 @@ function LabPlaygroundInner({
       setRightTab('console')
       setCheckError(null)
       setShowExpected(false)
-      refreshPreview()
       consoleFreezeRef.current = setTimeout(() => {
         consoleFreezeRef.current = null
         setConsoleCapturing(false)
@@ -1145,15 +1269,17 @@ function LabPlaygroundInner({
       }, CONSOLE_CAPTURE_GRACE_MS)
       return
     }
+    // Com testes: wake sem refresh no meio do Jest (pendingCheck aguarda bundler)
+    wakeRuntime('run')
     startCheckRun()
   }, [
     hasTests,
     checking,
     startCheckRun,
     clearConsoleFreeze,
-    refreshPreview,
     expected,
     notifyFail,
+    wakeRuntime,
   ])
 
   const sideTabs = (
@@ -1364,7 +1490,7 @@ function buildInitialFiles(
   testFiles: Record<string, string>,
 ): Record<string, string> {
   const helpers: Record<string, string> = {
-    [LAB_TEST_HELPERS_PATH]: buildLabTestHelpersSource(),
+    [LAB_TEST_HELPERS_PATH]: buildLabTestHelpersSource(template),
   }
 
   if (template === 'react') {
@@ -1396,13 +1522,51 @@ export function LabPlayground({
   className = '',
   height = '100%',
 }: LabPlaygroundProps) {
+  const runtimeGateEnabled = isLabSandpackRuntimeGateEnabled()
+  const respectTemplate = isLabRespectTemplateEnabled()
+  const [runtimeHot, setRuntimeHot] = useState(() => !runtimeGateEnabled)
+  const [wantsRuntimeHot, setWantsRuntimeHot] = useState(
+    () => !runtimeGateEnabled,
+  )
+  const coldDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (!runtimeGateEnabled) {
+      setRuntimeHot(true)
+      return
+    }
+    if (wantsRuntimeHot) {
+      if (coldDebounceRef.current) {
+        clearTimeout(coldDebounceRef.current)
+        coldDebounceRef.current = null
+      }
+      setRuntimeHot(true)
+      return
+    }
+    coldDebounceRef.current = setTimeout(() => {
+      coldDebounceRef.current = null
+      setRuntimeHot(false)
+    }, RUNTIME_COLD_DEBOUNCE_MS)
+    return () => {
+      if (coldDebounceRef.current) {
+        clearTimeout(coldDebounceRef.current)
+        coldDebounceRef.current = null
+      }
+    }
+  }, [wantsRuntimeHot, runtimeGateEnabled])
+
   const testFiles = useMemo(
     () => resolveTestFiles(activeTests, stepId),
     [activeTests, stepId],
   )
   const hasTests = Object.keys(testFiles).length > 0
-  const effectiveTemplate: 'vanilla' | 'react' =
-    hasTests || template === 'react' ? 'react' : 'vanilla'
+  const effectiveTemplate: 'vanilla' | 'react' = respectTemplate
+    ? template === 'react'
+      ? 'react'
+      : 'vanilla'
+    : hasTests || template === 'react'
+      ? 'react'
+      : 'vanilla'
 
   const initialFilesRef = useRef<{
     lessonId: number
@@ -1449,7 +1613,8 @@ export function LabPlayground({
 
   const sandpackOptions = useMemo(
     () => ({
-      autorun: true,
+      autorun: !runtimeGateEnabled,
+      ...(runtimeGateEnabled ? { autoReload: runtimeHot } : {}),
       recompileMode: 'delayed' as const,
       recompileDelay: 500,
       activeFile: entryFile,
@@ -1462,7 +1627,7 @@ export function LabPlayground({
         'sp-file-explorer': '!bg-[#1A1A1A] !border-0',
       },
     }),
-    [entryFile, visibleFiles],
+    [runtimeGateEnabled, runtimeHot, entryFile, visibleFiles],
   )
 
   const heightValue = typeof height === 'number' ? `${height}px` : height
@@ -1492,6 +1657,10 @@ export function LabPlayground({
           hasTests={hasTests}
           expected={expected}
           testFiles={testFiles}
+          runtimeGateEnabled={runtimeGateEnabled}
+          runtimeHot={runtimeHot}
+          setRuntimeHot={setRuntimeHot}
+          setWantsRuntimeHot={setWantsRuntimeHot}
         />
       </SandpackProvider>
     </div>
