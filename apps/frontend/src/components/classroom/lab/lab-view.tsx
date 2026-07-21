@@ -1,6 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import {
+  SIDEBAR_MAX_PX,
+  SIDEBAR_MIN_PX,
+  useResizableSidebar,
+} from '@/components/classroom/lab/hooks/use-resizable-sidebar'
 import { CaretDown } from '@phosphor-icons/react'
 import type { LessonWithContent } from '@/types/roadmap'
 import { LabLearnPanel } from '@/components/classroom/lab/lab-learn-panel'
@@ -27,10 +32,6 @@ interface LabViewProps {
 
 const LAB_ACCORDION_TRIGGER =
   'px-4 py-3 hover:no-underline text-white [&[data-state=open]>svg]:rotate-180'
-
-const SIDEBAR_DEFAULT_PX = 360
-const SIDEBAR_MIN_PX = 240
-const SIDEBAR_MAX_PX = 720
 
 export function LabView({ lesson, moduleTitle }: LabViewProps) {
   const lab = lesson.lab
@@ -59,10 +60,15 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
   })
 
   const [isMarking, setIsMarking] = useState(false)
-  const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_PX)
-  const [isResizing, setIsResizing] = useState(false)
   const [failedStepId, setFailedStepId] = useState<string | null>(null)
   const layoutRef = useRef<HTMLDivElement>(null)
+  const {
+    sidebarWidth,
+    setSidebarWidth,
+    isResizing,
+    clampSidebarWidth,
+    handleResizeStart,
+  } = useResizableSidebar(layoutRef)
 
   const activeTests = useMemo(
     () => ({
@@ -75,40 +81,6 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
   useEffect(() => {
     setFailedStepId(null)
   }, [currentStep?.id])
-
-  const clampSidebarWidth = useCallback((width: number) => {
-    const layoutWidth = layoutRef.current?.clientWidth ?? 0
-    const maxFromLayout =
-      layoutWidth > 0
-        ? Math.min(SIDEBAR_MAX_PX, Math.floor(layoutWidth * 0.65))
-        : SIDEBAR_MAX_PX
-    return Math.min(maxFromLayout, Math.max(SIDEBAR_MIN_PX, width))
-  }, [])
-
-  const handleResizeStart = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      event.preventDefault()
-      const handle = event.currentTarget
-      handle.setPointerCapture(event.pointerId)
-      setIsResizing(true)
-
-      const onPointerMove = (moveEvent: PointerEvent) => {
-        const left = layoutRef.current?.getBoundingClientRect().left ?? 0
-        setSidebarWidth(clampSidebarWidth(moveEvent.clientX - left))
-      }
-
-      const onPointerUp = (upEvent: PointerEvent) => {
-        handle.releasePointerCapture(upEvent.pointerId)
-        handle.removeEventListener('pointermove', onPointerMove)
-        handle.removeEventListener('pointerup', onPointerUp)
-        setIsResizing(false)
-      }
-
-      handle.addEventListener('pointermove', onPointerMove)
-      handle.addEventListener('pointerup', onPointerUp)
-    },
-    [clampSidebarWidth],
-  )
 
   const handleMarkAsComplete = useCallback(async () => {
     if (!currentLesson?.id || currentLesson.id !== lesson.id) return

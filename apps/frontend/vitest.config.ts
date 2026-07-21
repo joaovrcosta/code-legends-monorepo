@@ -2,7 +2,10 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
-    dir: 'src/lib',
+    include: [
+      'src/lib/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+      'src/components/classroom/lab/lab-playground/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+    ],
     environment: 'node',
   },
 })

@@ -13,8 +13,8 @@
     "start": "next start -p 3000",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "test": "vitest run --dir src/lib",
-    "test:watch": "vitest --dir src/lib",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "analyze": "cross-env ANALYZE=true next build",
     "server": "json-server --watch db.json --port 3001",
     "prepare": "husky"

@@ -11,15 +11,10 @@ import {
 } from 'react'
 
 interface ArticlePlaygroundContextValue {
-  /** Regista um playground que exige testes. Retorna o id a usar (ou gera um se não passado). */
   registerPlayground: (playgroundId: string | undefined, hasTests: boolean) => string
-  /** Ids dos playgrounds que já passaram nos testes. */
   completedIds: Set<string>
-  /** Marca o playground como concluído (testes passaram). */
   reportTestsPassed: (playgroundId: string) => void
-  /** True se não há playgrounds com testes ou se todos já passaram. */
   allPlaygroundsPassed: boolean
-  /** True se existe pelo menos um playground no artigo que exige testes. */
   hasRequiredPlaygrounds: boolean
 }
 

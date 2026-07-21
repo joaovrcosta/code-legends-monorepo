@@ -23,10 +23,6 @@ function bindingNameFromDeclaratorId(id: AcornNode): string | null {
   return null
 }
 
-/**
- * Nomes declarados no corpo do programa (depth 0). Fail-closed: null se parse falhar
- * ou se houver declaração com destructuring (não inferimos exports com segurança).
- */
 export function listTopLevelBindings(code: string): string[] | null {
   let ast: Program
   try {
@@ -67,7 +63,6 @@ function addExportName(set: Set<string>, name: string | undefined | null) {
   if (name) set.add(name)
 }
 
-/** Bindings já exportados no source (para não duplicar export { }). */
 export function listAlreadyExported(code: string): Set<string> | null {
   let ast: Program
   try {
