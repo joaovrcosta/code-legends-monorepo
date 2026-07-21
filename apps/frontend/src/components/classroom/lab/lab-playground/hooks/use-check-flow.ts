@@ -18,6 +18,7 @@ import {
   CONSOLE_CAPTURE_GRACE_MS,
   CONSOLE_REFRESH_DELAY_MS,
   RESTORE_SETTLE_DELAY_MS,
+  SETTLE_HARD_STOP_MS,
   STUDENT_CODE_PATHS,
   TRANSPILE_RETRY_DELAY_MS,
   VERIFY_CLICK_DEBOUNCE_MS,
@@ -148,6 +149,8 @@ export function useCheckFlow({
   const onFailRef = useRef(onStepCheckFail)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const startDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  /** Hard-stop do settle (holdUntilSettled) — força release se timers forem clobberizados. */
+  const hardStopRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const expectedCheckIdRef = useRef(0)
   const transpileRetryCountRef = useRef(0)
   const preCheckFilesRef = useRef<Record<string, string> | null>(null)
@@ -198,6 +201,13 @@ export function useCheckFlow({
     if (startDelayRef.current) {
       clearTimeout(startDelayRef.current)
       startDelayRef.current = null
+    }
+  }, [])
+
+  const clearHardStop = useCallback(() => {
+    if (hardStopRef.current) {
+      clearTimeout(hardStopRef.current)
+      hardStopRef.current = null
     }
   }, [])
 
@@ -287,14 +297,17 @@ export function useCheckFlow({
        */
       holdUntilSettled?: boolean
     }) => {
-      clearCheckTimeout()
       clearStartDelay()
       // Novo Verificar chama clearConsoleFreeze e aborta refresh órfão (evita stuck).
       clearConsoleFreeze()
       const gen = endCheckingGenRef.current
       const holdUntilSettled = Boolean(options?.holdUntilSettled)
 
+      // NÃO limpar o watchdog aqui quando holdUntilSettled: ele é o backstop
+      // que garante o release do botão se settle() nunca rodar (timers
+      // clobberizados por um ciclo novo). Só é limpo dentro de settle().
       if (!holdUntilSettled) {
+        clearCheckTimeout()
         checkingRef.current = false
         dispatchCheck({ type: 'RELEASE_CHECKING' })
       } else {
@@ -314,8 +327,14 @@ export function useCheckFlow({
       let refreshDispatched = false
 
       const settle = () => {
+        // Guard primeiro: ciclo morto / double-call não mexe em nada
         if (settled || endCheckingGenRef.current !== gen) return
         settled = true
+        // Limpa hard-stop (também quando settle veio pelo próprio hard-stop)
+        if (hardStopRef.current) {
+          clearTimeout(hardStopRef.current)
+          hardStopRef.current = null
+        }
         if (consoleFreezeRef.current) {
           clearTimeout(consoleFreezeRef.current)
           consoleFreezeRef.current = null
@@ -332,6 +351,7 @@ export function useCheckFlow({
           endCheckingUnsubRef.current()
           endCheckingUnsubRef.current = null
         }
+        clearCheckTimeout()
         if (holdUntilSettled) {
           checkingRef.current = false
           dispatchCheck({ type: 'RELEASE_CHECKING' })
@@ -344,6 +364,10 @@ export function useCheckFlow({
       }
 
       const scheduleSettle = (delayMs: number) => {
+        if (consoleFreezeRef.current) {
+          clearTimeout(consoleFreezeRef.current)
+          consoleFreezeRef.current = null
+        }
         consoleFreezeRef.current = setTimeout(settle, delayMs)
       }
 
@@ -378,6 +402,17 @@ export function useCheckFlow({
       }, RESTORE_SETTLE_DELAY_MS)
 
       scheduleSettle(CONSOLE_CAPTURE_GRACE_MS)
+
+      // Hard-stop: força settle se timers internos forem clobberizados.
+      if (hardStopRef.current) {
+        clearTimeout(hardStopRef.current)
+        hardStopRef.current = null
+      }
+      hardStopRef.current = setTimeout(() => {
+        hardStopRef.current = null
+        if (endCheckingGenRef.current !== gen) return
+        settle()
+      }, SETTLE_HARD_STOP_MS)
     },
     [
       clearCheckTimeout,
@@ -413,10 +448,12 @@ export function useCheckFlow({
     restoreStudentFiles()
     clearCheckTimeout()
     clearStartDelay()
+    clearHardStop()
   }, [
     stepId,
     clearCheckTimeout,
     clearStartDelay,
+    clearHardStop,
     clearConsoleFreeze,
     restoreStudentFiles,
     verifyConsoleLogsRef,
@@ -426,10 +463,17 @@ export function useCheckFlow({
     () => () => {
       clearCheckTimeout()
       clearStartDelay()
+      clearHardStop()
       clearConsoleFreeze()
       restoreStudentFiles()
     },
-    [clearCheckTimeout, clearStartDelay, clearConsoleFreeze, restoreStudentFiles],
+    [
+      clearCheckTimeout,
+      clearStartDelay,
+      clearHardStop,
+      clearConsoleFreeze,
+      restoreStudentFiles,
+    ],
   )
 
   const scheduleCheckTimeout = useCallback(() => {

@@ -17,6 +17,16 @@ export const RUNTIME_COLD_DEBOUNCE_MS = 400
 export const RESTORE_SETTLE_DELAY_MS = 350
 /** Delay entre reset do console e o refresh único de captura. */
 export const CONSOLE_REFRESH_DELAY_MS = 50
+/**
+ * Hard-stop do settle pós-Verificar (holdUntilSettled).
+ * Deve ser < CHECK_TIMEOUT_MS — força settle se timers internos forem clobberizados.
+ */
+export const SETTLE_HARD_STOP_MS =
+  CONSOLE_CAPTURE_GRACE_MS +
+  CONSOLE_CAPTURE_AFTER_DONE_MS +
+  CONSOLE_REFRESH_DELAY_MS +
+  RESTORE_SETTLE_DELAY_MS +
+  500
 /** Primeiro poll do LabJestRunner após bumpCheckId. */
 export const JEST_TRY_RUN_INITIAL_DELAY_MS = 50
 /** Janela curta para logs atrasados da mesma execução no console. */
