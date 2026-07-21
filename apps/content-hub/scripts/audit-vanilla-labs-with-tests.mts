@@ -16,7 +16,7 @@ import {
   auditVanillaLabRespectTemplate,
   summarizeVanillaLabAudits,
   type VanillaLabAuditResult,
-} from '../lib/audit-vanilla-lab-respect-template.ts'
+} from '../lib/audit-vanilla-lab-respect-template'
 
 function hasTests(specs: unknown): boolean {
   if (!specs || typeof specs !== 'object' || Array.isArray(specs)) return false

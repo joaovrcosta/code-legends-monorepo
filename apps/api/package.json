@@ -23,7 +23,7 @@
     "backfill:xp-cache": "tsx prisma/backfill-xp-cache.ts",
     "seed": "tsx prisma/seed.ts",
     "seed:payment-providers": "tsx prisma/scripts/seed-payment-providers.ts",
-    "postinstall": "pnpm exec prisma generate || npx prisma generate || true"
+    "postinstall": "prisma generate || node -e \"process.exit(0)\""
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
