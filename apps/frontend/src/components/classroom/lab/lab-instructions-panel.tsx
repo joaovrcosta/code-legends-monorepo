@@ -1,0 +1,106 @@
+'use client'
+
+import { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import { CaretDown, CheckSquare, Square, XSquare } from '@phosphor-icons/react'
+import type { LabStep } from '@/types/roadmap'
+
+type LabInstructionsPanelProps = {
+  steps: LabStep[]
+  currentStepId: string | undefined
+  completedStepIds: string[]
+  /** Step ativo que falhou no último Verificar. */
+  failedStepId?: string | null
+  alreadyDone?: boolean
+}
+
+export function LabInstructionsPanel({
+  steps,
+  currentStepId,
+  completedStepIds,
+  failedStepId = null,
+  alreadyDone = false,
+}: LabInstructionsPanelProps) {
+  const [hintOpenFor, setHintOpenFor] = useState<string | null>(null)
+
+  return (
+    <section className="space-y-3">
+      <ol className="space-y-3">
+        {steps.map((step, index) => {
+          const done = completedStepIds.includes(step.id)
+          const active = step.id === currentStepId && !done
+          const failed = active && failedStepId === step.id
+          const locked = !done && !active
+          const hintOpen = hintOpenFor === step.id
+
+          return (
+            <li
+              key={step.id}
+              className={`px-3 py-8 transition ${active
+                ? 'border-white/25 bg-white/5 text-white'
+                : locked
+                  ? 'border-transparent text-white/35'
+                  : ' bg-emerald-500/5 text-white/80'
+                }`}
+            >
+              <div className="flex gap-3">
+                <span className="mt-0.5 shrink-0">
+                  {done ? (
+                    <CheckSquare
+                      className="h-6 w-6 text-[#278b4d]"
+                      weight="fill"
+                    />
+                  ) : failed ? (
+                    <XSquare
+                      className="h-6 w-6 text-orange-400"
+                      weight="fill"
+                    />
+                  ) : (
+                    <Square
+                      className={`h-6 w-6 ${active ? 'text-white' : 'text-white/30'}`}
+                    />
+                  )}
+                </span>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <span className="text-sm font-semibold tabular-nums">
+                      {index + 1}.
+                    </span>
+                    <div
+                      className={`prose prose-invert prose-sm max-w-none prose-p:my-0 prose-code:text-[#86efac] prose-code:bg-transparent prose-code:px-0 prose-code:before:content-none prose-code:after:content-none ${locked ? 'opacity-60' : ''
+                        }`}
+                    >
+                      <ReactMarkdown>{step.title}</ReactMarkdown>
+                    </div>
+                  </div>
+
+                  {active && step.hint ? (
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHintOpenFor(hintOpen ? null : step.id)
+                        }
+                        className="inline-flex items-center gap-1 text-xs text-white/70 hover:text-white"
+                      >
+                        Stuck? Get a hint
+                        <CaretDown
+                          className={`h-3 w-3 transition ${hintOpen ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                      {hintOpen ? (
+                        <p className="mt-2 rounded-md bg-black/30 px-3 py-2 text-xs text-white/75">
+                          {step.hint}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+    </section>
+  )
+}

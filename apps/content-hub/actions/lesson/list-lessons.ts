@@ -27,6 +27,14 @@ export interface Lesson {
   article?: { body: string } | null;
   quiz?: { content: Challenge[] } | null;
   project?: { description: string; specs?: Record<string, unknown> | null } | null;
+  lab?: {
+    description: string;
+    category?: string | null;
+    learnTitle?: string | null;
+    durationMinutes?: number | null;
+    learnBody?: string | null;
+    specs?: Record<string, unknown> | null;
+  } | null;
   locked: boolean;
   order?: number | null;
   submoduleId: number;

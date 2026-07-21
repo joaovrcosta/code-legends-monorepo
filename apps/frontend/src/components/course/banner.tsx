@@ -226,6 +226,9 @@ export function CourseBanner({ course, userProgress }: CourseBannerProps) {
       if (result.success) {
         setShowResetModal(false)
         useCourseModalStore.getState().setLastModuleCompletion(null)
+        const { clearAllLabProgress } =
+          await import('@/hooks/use-lab-step-progress')
+        clearAllLabProgress()
         await refreshEnrolledCourses()
         router.refresh()
       } else {

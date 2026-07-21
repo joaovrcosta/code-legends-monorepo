@@ -45,6 +45,8 @@ export function LessonFileIcon({ type }: { type: string }) {
       return <ListChecks className={className} aria-hidden />
     case 'project':
       return <Hammer className={className} aria-hidden />
+    case 'lab':
+      return <ListChecks className={`${className} text-cyan-500`} aria-hidden />
     default:
       return <File className={className} aria-hidden />
   }

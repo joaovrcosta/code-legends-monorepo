@@ -45,8 +45,10 @@ export const learningCardsListClassName =
 
 function mapLessonTypeLabel(lesson: Lesson): string {
   if (lesson.type === 'video') return 'Vídeo'
-  if (lesson.type === 'quiz') return 'Quiz'
-  if (lesson.type === 'article') return 'Leitura'
+  if (lesson.type === 'quiz' || lesson.type === 'multi_quiz') return 'Quiz'
+  if (lesson.type === 'article' || lesson.type === 'text') return 'Leitura'
+  if (lesson.type === 'project') return 'Projeto'
+  if (lesson.type === 'lab') return 'Lab'
   return 'Conteúdo'
 }
 

@@ -1,0 +1,31 @@
+{
+  "title": "Pass By Reference Lab",
+  "description": "Pratique passagem por referência em objetos JavaScript.",
+  "type": "lab",
+  "slug": "pass-by-reference-lab",
+  "lab_description": "Pratique passagem por referência em objetos JavaScript.",
+  "lab_category": "OBJECTS",
+  "lab_learn_title": "Pass By Reference",
+  "lab_duration_minutes": 15,
+  "lab_learn_body": "Objects are passed by reference. This means when we pass a variable assigned to an object into a function as an argument, the computer interprets the parameter name as pointing to the space in memory holding that object.\n\n```js\nconst spaceship = {\n  homePlanet: 'Earth',\n  color: 'silver'\n};\n\nlet paintIt = obj => {\n  obj.color = 'glorious gold'\n};\n\npaintIt(spaceship);\n\nspaceship.color // Returns 'glorious gold'\n```\n\nOur function `paintIt()` permanently changed the color of our `spaceship` object.",
+  "lab_specs": {
+    "template": "vanilla",
+    "files": {
+      "/index.js": "const spaceship = {\n  'Fuel Type': 'diesel',\n  disabled: false\n};\n\n// escreva suas funções aqui e exporte-as\n\nmodule.exports = { spaceship };\n"
+    },
+    "steps": [
+      {
+        "id": "step-1",
+        "title": "Write a function `greenEnergy()` that has an object as a parameter and sets that object's `'Fuel Type'` property to `'avocado oil'`.",
+        "hint": "Use bracket notation: object['Fuel Type'] = 'avocado oil'",
+        "testFile": "test('greenEnergy sets Fuel Type', () => {\n  const mod = require('./index.js');\n  expect(typeof mod.greenEnergy).toBe('function');\n  const obj = { 'Fuel Type': 'diesel' };\n  mod.greenEnergy(obj);\n  expect(obj['Fuel Type']).toBe('avocado oil');\n});\n"
+      },
+      {
+        "id": "step-2",
+        "title": "Write a function `remotelyDisable()` that takes an object as a parameter and sets that object's `disabled` property to `true`.",
+        "hint": "obj.disabled = true",
+        "testFile": "test('remotelyDisable sets disabled', () => {\n  const mod = require('./index.js');\n  expect(typeof mod.remotelyDisable).toBe('function');\n  const obj = { disabled: false };\n  mod.remotelyDisable(obj);\n  expect(obj.disabled).toBe(true);\n});\n"
+      }
+    ]
+  }
+}

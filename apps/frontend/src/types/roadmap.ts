@@ -1,7 +1,3 @@
-export type LessonStatus = "completed" | "unlocked" | "locked";
-
-export type LessonType = "video" | "article" | "text" | "quiz" | "multi_quiz" | "project";
-
 import type {
   ChallengeType,
   Challenge,
@@ -9,6 +5,10 @@ import type {
 } from '@code-legends/challenges'
 
 export type { ChallengeType, Challenge, ParsonsPiece }
+
+export type LessonStatus = "completed" | "unlocked" | "locked";
+
+export type LessonType = "video" | "article" | "text" | "quiz" | "multi_quiz" | "project" | "lab";
 
 /** Bloco de Code Playground no Markdown (```playground + JSON). */
 export interface PlaygroundBlock {
@@ -18,6 +18,31 @@ export interface PlaygroundBlock {
   tests?: Record<string, string>;
   /** Id único para rastrear conclusão (obrigatório se houver testFile). */
   playgroundId?: string;
+}
+
+export interface LabStep {
+  id: string;
+  title: string;
+  hint?: string;
+  /** Pergunta amigável; exibida quando o aluno falha o step. */
+  expected?: string;
+  testFile?: string;
+  tests?: Record<string, string>;
+}
+
+export interface LabSpecs {
+  files?: Record<string, string>;
+  template?: 'vanilla' | 'react';
+  steps?: LabStep[];
+}
+
+export interface LabContent {
+  description: string;
+  category?: string | null;
+  learnTitle?: string | null;
+  durationMinutes?: number | null;
+  learnBody?: string | null;
+  specs?: LabSpecs | null;
 }
 
 /**
@@ -59,6 +84,7 @@ export type LessonWithContent = RoadmapLesson & {
   article?: { body: string } | null;
   quiz?: { content: Challenge[] } | null;
   project?: { description: string; specs?: PlaygroundBlock | null } | null;
+  lab?: LabContent | null;
 };
 
 /** @deprecated Prefer RoadmapLesson (lista) ou LessonWithContent (detalhe). */

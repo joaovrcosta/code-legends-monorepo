@@ -70,6 +70,12 @@ interface ImportLessonData {
   quiz_content?: unknown[];
   project_description?: string;
   project_specs?: unknown;
+  lab_description?: string;
+  lab_category?: string | null;
+  lab_learn_title?: string | null;
+  lab_duration_minutes?: number | null;
+  lab_learn_body?: string | null;
+  lab_specs?: unknown;
   production_status?: string;
   production_priority?: string;
   production_notes?: string | null;
@@ -510,6 +516,25 @@ export function CourseBuilder({
                   base.project_specs = lesson.project.specs;
                 }
               }
+              if (t === "lab" && lesson.lab) {
+                const desc = lesson.lab.description?.trim();
+                if (desc) base.lab_description = lesson.lab.description;
+                if (lesson.lab.category != null) {
+                  base.lab_category = lesson.lab.category;
+                }
+                if (lesson.lab.learnTitle != null) {
+                  base.lab_learn_title = lesson.lab.learnTitle;
+                }
+                if (lesson.lab.durationMinutes != null) {
+                  base.lab_duration_minutes = lesson.lab.durationMinutes;
+                }
+                if (lesson.lab.learnBody != null) {
+                  base.lab_learn_body = lesson.lab.learnBody;
+                }
+                if (lesson.lab.specs != null) {
+                  base.lab_specs = lesson.lab.specs;
+                }
+              }
             }
             if (includeKanban) {
               base.production_status = normalizeLessonProductionStatus(
@@ -727,6 +752,7 @@ export function CourseBuilder({
                     "quiz",
                     "multi_quiz",
                     "project",
+                    "lab",
                   ];
                   const normalizedType = allowedTypes.includes(rawType)
                     ? rawType
@@ -763,6 +789,33 @@ export function CourseBuilder({
                     }
                     if (lesson.project_specs !== undefined) {
                       lessonData.project_specs = lesson.project_specs;
+                    }
+                  }
+                  if (normalizedType === "lab") {
+                    if (typeof lesson.lab_description === "string") {
+                      lessonData.lab_description = lesson.lab_description;
+                    }
+                    if (lesson.lab_category !== undefined) {
+                      lessonData.lab_category = lesson.lab_category as
+                        | string
+                        | null;
+                    }
+                    if (lesson.lab_learn_title !== undefined) {
+                      lessonData.lab_learn_title = lesson.lab_learn_title as
+                        | string
+                        | null;
+                    }
+                    if (lesson.lab_duration_minutes !== undefined) {
+                      lessonData.lab_duration_minutes =
+                        lesson.lab_duration_minutes as number | null;
+                    }
+                    if (lesson.lab_learn_body !== undefined) {
+                      lessonData.lab_learn_body = lesson.lab_learn_body as
+                        | string
+                        | null;
+                    }
+                    if (lesson.lab_specs !== undefined) {
+                      lessonData.lab_specs = lesson.lab_specs;
                     }
                   }
 
@@ -907,6 +960,7 @@ export function CourseBuilder({
       quiz: 0,
       multi_quiz: 0,
       project: 0,
+      lab: 0,
       text: 0,
       other: 0,
     };
@@ -920,6 +974,7 @@ export function CourseBuilder({
           else if (t === "quiz") counts.quiz += 1;
           else if (t === "multi_quiz") counts.multi_quiz += 1;
           else if (t === "project") counts.project += 1;
+          else if (t === "lab") counts.lab += 1;
           else if (t === "text") counts.text += 1;
           else counts.other += 1;
         }
@@ -976,6 +1031,9 @@ export function CourseBuilder({
             </span>
             <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-2 py-0.5 text-orange-700 dark:text-orange-300">
               Projetos: {typeCounts.project}
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
+              Labs: {typeCounts.lab}
             </span>
             {typeCounts.text > 0 && (
               <span className="rounded-full border border-zinc-500/30 bg-zinc-500/10 px-2 py-0.5 text-zinc-700 dark:text-zinc-300">

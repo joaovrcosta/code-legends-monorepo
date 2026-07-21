@@ -7,6 +7,10 @@ import { update } from "./update.controller";
 import { remove } from "./delete.controller";
 import { complete } from "./complete.controller";
 import { awardChallengeXp } from "./award-challenge-xp.controller";
+import {
+  getLabProgress,
+  upsertLabProgress,
+} from "./lab-progress.controller";
 import { getLessonLikes } from "./get-likes.controller";
 import { addLessonLike } from "./add-like.controller";
 import { removeLessonLike } from "./remove-like.controller";
@@ -74,6 +78,28 @@ export async function lessonRoutes(app: FastifyInstance) {
       ],
     },
     complete
+  );
+
+  app.get(
+    "/lessons/:id/lab-progress",
+    {
+      onRequest: [
+        verifyJWT,
+        verifyLessonAccess({ lessonIdParam: "id", allowInstructors: false }),
+      ],
+    },
+    getLabProgress,
+  );
+
+  app.put(
+    "/lessons/:id/lab-progress",
+    {
+      onRequest: [
+        verifyJWT,
+        verifyLessonAccess({ lessonIdParam: "id", allowInstructors: false }),
+      ],
+    },
+    upsertLabProgress,
   );
 
   app.post(

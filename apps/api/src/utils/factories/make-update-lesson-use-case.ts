@@ -4,6 +4,7 @@ import { PrismaVideoProviderRepository } from "../../repositories/prisma/prisma-
 import { PrismaArticleRepository } from "../../repositories/prisma/prisma-article-repository";
 import { PrismaQuizRepository } from "../../repositories/prisma/prisma-quiz-repository";
 import { PrismaProjectRepository } from "../../repositories/prisma/prisma-project-repository";
+import { PrismaLabRepository } from "../../repositories/prisma/prisma-lab-repository";
 import { UpdateLessonUseCase } from "../../use-cases/entities/Lesson/update";
 
 export function makeUpdateLessonUseCase() {
@@ -13,13 +14,15 @@ export function makeUpdateLessonUseCase() {
   const articleRepository = new PrismaArticleRepository();
   const quizRepository = new PrismaQuizRepository();
   const projectRepository = new PrismaProjectRepository();
+  const labRepository = new PrismaLabRepository();
   const updateLessonUseCase = new UpdateLessonUseCase(
     lessonRepository,
     videoRepository,
     videoProviderRepository,
     articleRepository,
     quizRepository,
-    projectRepository
+    projectRepository,
+    labRepository
   );
 
   return updateLessonUseCase;

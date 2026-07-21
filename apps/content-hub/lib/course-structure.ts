@@ -207,7 +207,7 @@ export function mergeProductionIntoModules(
 }
 
 export function lessonNeedsContentLoad(
-  lesson: Pick<LessonWithStructure, "type" | "article" | "quiz" | "project">,
+  lesson: Pick<LessonWithStructure, "type" | "article" | "quiz" | "project" | "lab">,
 ): boolean {
   const lessonType = (lesson.type ?? "").trim().toLowerCase();
 
@@ -221,6 +221,10 @@ export function lessonNeedsContentLoad(
 
   if (lessonType === "project") {
     return !lesson.project;
+  }
+
+  if (lessonType === "lab") {
+    return !lesson.lab;
   }
 
   return false;
@@ -251,6 +255,7 @@ export function mergeLessonDetailIntoLesson(
     article: detail.article ?? lesson.article ?? null,
     quiz: detail.quiz ?? lesson.quiz ?? null,
     project: detail.project ?? lesson.project ?? null,
+    lab: detail.lab ?? lesson.lab ?? null,
     locked: detail.locked ?? lesson.locked,
     order: detail.order ?? lesson.order,
     submoduleId: detail.submoduleId ?? lesson.submoduleId,

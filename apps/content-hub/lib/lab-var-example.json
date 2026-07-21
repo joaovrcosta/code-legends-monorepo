@@ -1,0 +1,26 @@
+{
+  "template": "react",
+  "files": {
+    "/App.js": "// Create a favoriteFood variable below:\n\n\n// Create a numOfSlices variable below:\n\n\n// Use console.log() to print the value of favoriteFood below:\n\n\n// Use console.log() to print the value of numOfSlices below:\n"
+  },
+  "steps": [
+    {
+      "id": "step-1",
+      "title": "Declare a variable named `favoriteFood` using the `var` keyword and assign to it the string `'pizza'`.",
+      "hint": "var favoriteFood = 'pizza';",
+      "testFile": "import {\n  readStudentCode,\n  assertVarKeyword,\n  assertBindingValue,\n} from '/lab-test-helpers.js';\n\nconst code = readStudentCode('/App.js');\n\ntest('declara favoriteFood com var', () => {\n  assertVarKeyword(code, 'var', 'favoriteFood');\n});\n\ntest('favoriteFood é pizza', async () => {\n  await assertBindingValue('favoriteFood', 'pizza', { type: 'string' });\n});\n"
+    },
+    {
+      "id": "step-2",
+      "title": "Declare a variable named `numOfSlices` using the `var` keyword and assign to it the number `8`.",
+      "hint": "var numOfSlices = 8;",
+      "testFile": "import {\n  readStudentCode,\n  assertVarKeyword,\n  assertBindingValue,\n} from '/lab-test-helpers.js';\n\nconst code = readStudentCode('/App.js');\n\ntest('declara numOfSlices com var', () => {\n  assertVarKeyword(code, 'var', 'numOfSlices');\n});\n\ntest('numOfSlices é 8', async () => {\n  await assertBindingValue('numOfSlices', 8, { type: 'number' });\n});\n"
+    },
+    {
+      "id": "step-3",
+      "title": "Under the `numOfSlices` variable, use `console.log()` to print the value saved to `favoriteFood`.\\n\\nOn the following line, use `console.log()` to print the value saved to `numOfSlices`.",
+      "hint": "console.log(favoriteFood);\\nconsole.log(numOfSlices);",
+      "testFile": "import {\n  readStudentCode,\n  assertConsoleLogArg,\n} from '/lab-test-helpers.js';\n\nconst code = readStudentCode('/App.js');\n\ntest('faz console.log de favoriteFood', () => {\n  assertConsoleLogArg(code, 'favoriteFood');\n});\n\ntest('faz console.log de numOfSlices', () => {\n  assertConsoleLogArg(code, 'numOfSlices');\n});\n"
+    }
+  ]
+}

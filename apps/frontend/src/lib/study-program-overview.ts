@@ -26,6 +26,7 @@ export function formatModuleContentBreakdown(types: LessonType[]): string {
   let quiz = 0
   let multi_quiz = 0
   let project = 0
+  let lab = 0
 
   for (const t of types) {
     switch (t) {
@@ -46,6 +47,9 @@ export function formatModuleContentBreakdown(types: LessonType[]): string {
         break
       case 'project':
         project++
+        break
+      case 'lab':
+        lab++
         break
       default:
         break
@@ -72,6 +76,9 @@ export function formatModuleContentBreakdown(types: LessonType[]): string {
   }
   if (project > 0) {
     parts.push(project === 1 ? '1 projeto' : `${project} projetos`)
+  }
+  if (lab > 0) {
+    parts.push(lab === 1 ? '1 lab' : `${lab} labs`)
   }
 
   return parts.length > 0 ? parts.join(' · ') : 'Sem conteúdo'

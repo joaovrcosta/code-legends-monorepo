@@ -274,6 +274,7 @@ async function main() {
     text: LessonType.TEXT,
     quiz: LessonType.QUIZ,
     project: LessonType.PROJECT,
+    lab: LessonType.LAB,
   }
 
   const modulesData = [

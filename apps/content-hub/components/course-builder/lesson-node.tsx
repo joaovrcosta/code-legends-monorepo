@@ -41,6 +41,8 @@ function lessonTypeLabel(type: string): string {
       return "Multi quiz";
     case "project":
       return "Projeto";
+    case "lab":
+      return "Lab";
     default:
       if (!key) return "Aula";
       return key
@@ -63,6 +65,8 @@ function lessonTypeBadgeClass(type: string): string {
       return "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300";
     case "project":
       return "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300";
+    case "lab":
+      return "border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300";
     case "text":
       return "border-zinc-500/30 bg-zinc-500/10 text-zinc-700 dark:text-zinc-300";
     default:

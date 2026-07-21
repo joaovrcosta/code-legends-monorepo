@@ -31,4 +31,15 @@ export interface IUserProgressRepository {
   findSlimByUserCourse(
     userCourseId: string,
   ): Promise<Array<{ taskId: number; isCompleted: boolean }>>;
+  upsertLabProgress(data: {
+    userId: string;
+    taskId: number;
+    userCourseId: string;
+    labProgress: {
+      completedStepIds: string[];
+      currentStepId: string;
+      completedCount?: number;
+      currentStepIndex?: number;
+    };
+  }): Promise<UserProgress>;
 }
