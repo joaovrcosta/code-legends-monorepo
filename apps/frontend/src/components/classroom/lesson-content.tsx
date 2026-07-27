@@ -22,6 +22,78 @@ function LessonTypeSkeleton() {
   )
 }
 
+function LabBone({ className = '' }: { className?: string }) {
+  return (
+    <div className={`animate-pulse rounded-md bg-white/[0.06] ${className}`} />
+  )
+}
+
+/** Espelha o layout do LabView: sidebar (descrição/instruções) + playground. */
+function LabLoading() {
+  return (
+    <div
+      className="flex min-h-[70vh] w-full flex-col gap-4 lg:h-[calc(100vh-12rem)]"
+      aria-busy
+      aria-label="Carregando lab"
+    >
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <aside className="min-h-0 w-full overflow-hidden rounded-lg border border-[#25252A] bg-[#101012] lg:w-[320px] lg:shrink-0">
+          <div className="border-b border-[#25252A] px-4 py-3">
+            <LabBone className="h-3 w-24" />
+          </div>
+          <div className="space-y-3 px-4 py-4">
+            <LabBone className="h-3 w-2/3" />
+            <LabBone className="h-3 w-full" />
+            <LabBone className="h-3 w-[90%]" />
+            <LabBone className="h-3 w-4/5" />
+          </div>
+          <div className="border-t border-[#25252A] px-4 py-3">
+            <LabBone className="h-3 w-28" />
+          </div>
+          <div className="space-y-2.5 px-4 py-4">
+            <LabBone className="h-8 w-full rounded-lg" />
+            <LabBone className="h-8 w-full rounded-lg" />
+            <LabBone className="h-8 w-full rounded-lg" />
+            <LabBone className="h-8 w-[85%] rounded-lg" />
+          </div>
+        </aside>
+
+        <div className="relative hidden w-3 shrink-0 items-stretch justify-center lg:flex">
+          <span className="my-auto h-10 w-1 rounded-full bg-white/15" />
+        </div>
+
+        <div className="mt-4 flex min-h-0 min-w-0 flex-1 flex-col lg:mt-0">
+          <div className="flex min-h-[420px] flex-1 flex-col overflow-hidden rounded-lg border border-[#25252A] bg-[#1A1A1A]">
+            <div className="flex items-center gap-2 border-b border-[#25252A] bg-[#2a2d31] px-2 py-2">
+              <LabBone className="h-6 w-20" />
+            </div>
+            <div className="flex min-h-0 flex-1">
+              <div className="min-w-0 flex-1 space-y-2.5 p-4">
+                <LabBone className="h-3 w-[40%]" />
+                <LabBone className="h-3 w-[72%]" />
+                <LabBone className="h-3 w-[55%]" />
+                <LabBone className="h-3 w-[88%]" />
+                <LabBone className="h-3 w-[63%]" />
+                <LabBone className="h-3 w-[78%]" />
+                <LabBone className="h-3 w-[45%]" />
+                <LabBone className="h-3 w-[70%]" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 border-t border-[#25252A] bg-[#373A3E] px-3 py-2.5">
+              <LabBone className="h-[42px] w-[110px] rounded-[16px]" />
+              <LabBone className="h-[42px] w-[42px] rounded-[16px]" />
+              <div className="mx-1 h-6 w-px bg-white/10" />
+              <LabBone className="h-6 w-14" />
+              <LabBone className="h-6 w-16" />
+              <LabBone className="h-6 w-14" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** SSR explícito — não copiar ssr:false do Lab (first paint / SEO). */
 const VideoComponent = dynamic(() => import('@/components/classroom/video'), {
   ssr: true,
@@ -62,7 +134,7 @@ const LabView = dynamic(
   () => import('@/components/classroom/lab/lab-view').then((m) => m.LabView),
   {
     ssr: false,
-    loading: () => <LessonTypeSkeleton />,
+    loading: () => <LabLoading />,
   },
 )
 
