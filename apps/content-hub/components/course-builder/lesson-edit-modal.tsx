@@ -51,9 +51,13 @@ import {
   lessonNeedsContentLoad,
   mergeLessonDetailIntoLesson,
   type LessonBreadcrumbContext,
-  type VideoLessonNeighbor,
 } from '@/lib/course-structure'
 import { buildLabSpecsPrompt } from '@/lib/build-lab-specs-prompt'
+import {
+  VIDEO_SCRIPT_STYLES,
+  buildVideoScriptPrompt,
+  type VideoScriptStyleId,
+} from '@/lib/build-video-script-prompt'
 import { validateLabSpecs } from '@/lib/validate-lab-specs'
 import {
   LabSpecsField,
@@ -111,24 +115,6 @@ function mergeLessonPropPreservingContent(
   }
 }
 
-function formatVideoNeighborBlock(
-  label: string,
-  neighbor: VideoLessonNeighbor,
-): string {
-  const duration =
-    neighbor.lesson.video_duration?.trim() ||
-    neighbor.lesson.video?.duration?.trim() ||
-    'não informada'
-  const objective =
-    neighbor.lesson.description?.trim() || 'não informado'
-
-  return `${label}:
-- Título: ${neighbor.lesson.title}
-- Objetivo: ${objective}
-- Duração: ${duration}
-- Local: ${neighbor.moduleTitle} → ${neighbor.groupTitle}`
-}
-
 export function LessonEditView({
   lesson,
   courseSkillIds,
@@ -147,6 +133,8 @@ export function LessonEditView({
   const [metadadosOpen, setMetadadosOpen] = useState(false)
   const [quizMode, setQuizMode] = useState<'editor' | 'json'>('editor')
   const [quizJson, setQuizJson] = useState('')
+  const [videoScriptStyle, setVideoScriptStyle] =
+    useState<VideoScriptStyleId>('sequenced')
   const [lessonTab, setLessonTab] = useState<'desafios' | 'informacoes'>('desafios')
   const [availableSkills, setAvailableSkills] = useState<
     Array<{ id: string; name: string; slug: string }>
@@ -382,184 +370,27 @@ export function LessonEditView({
     }
   }, [formData.title, slugManuallyEdited])
 
-  const buildVideoScriptPrompt = () => {
-    const title = formData.title?.trim() || resolvedLesson.title || 'Tema da aula'
-    const description =
-      formData.description?.trim() ||
-      resolvedLesson.description?.trim() ||
-      'Explique o conceito principal desta aula de forma clara e prática.'
-    const duration = '5–10 minutos'
-
-    const contextParts = [
-      breadcrumb?.courseTitle ? `Curso: ${breadcrumb.courseTitle}` : null,
-      breadcrumb?.moduleTitle ? `Módulo: ${breadcrumb.moduleTitle}` : null,
-      breadcrumb?.groupTitle ? `Submódulo: ${breadcrumb.groupTitle}` : null,
-    ].filter(Boolean)
-
-    const adjacentVideoLessons = modules
-      ? findAdjacentVideoLessons(modules, resolvedLesson.id)
-      : null
-
-    const videoNeighborsBlock = adjacentVideoLessons
-      ? `
-VIDEOAULAS VIZINHAS
-
-${adjacentVideoLessons.previous
-        ? formatVideoNeighborBlock('Videoaula anterior', adjacentVideoLessons.previous)
-        : 'Videoaula anterior: não há videoaula anterior neste curso.'}
-
-${adjacentVideoLessons.next
-        ? formatVideoNeighborBlock('Próxima videoaula', adjacentVideoLessons.next)
-        : 'Próxima videoaula: não há próxima videoaula neste curso.'}
-`
-      : ''
-
-    return `Você é um especialista em ensino de programação e criação de roteiros para videoaulas educacionais, inspirado no estilo de explicação clara, fluida e envolvente (como “The Joy of React”, mas adaptado para vídeo).
-
-Crie um roteiro de videoaula com linguagem natural, didática e fácil de acompanhar ouvindo.
-
-### 💡 DIRETRIZES DE ESTILO E ENGAJAMENTO
-
-- **Analogias Poderosas:** Use metáforas do mundo real para explicar conceitos abstratos de código. A analogia deve enriquecer a explicação técnica de forma sutil, sem desviar do foco principal.
-- **Ritmo Confortável:** Escreva exatamente como uma pessoa fala naturalmente. Alterne frases curtas; use "..." dentro de [FALA] para pausas retóricas. Use [PAUSA] só para silêncio real na gravação.
-- **Abordagem Visual:** Em vez de apenas listar o código, descreva o que está acontecendo conceitualmente na tela enquanto o código aparece.
-
----
-
-Tema da aula:
-${title}
-
-Objetivo da aula:
-${description}
-
-Duração estimada:
-${duration}
-${contextParts.length ? `
-Contexto da aula:
-${contextParts.join('\n')}
-` : ''}${videoNeighborsBlock}
----
-
-ESTRUTURA DO ROTEIRO
-
-1. Abertura (hook)
-   - Comece com uma pergunta, situação ou observação curiosa
-   - Deve prender atenção nos primeiros segundos
-   - Evite histórias longas
-
-2. Contextualização rápida
-   - Explique por que isso importa
-   - Mostre onde o conceito aparece na prática
-
-3. Explicação principal (progressiva)
-   - Vá do simples ao mais técnico
-   - Use linguagem clara e ritmo de fala natural
-   - Quebre ideias em blocos curtos (como alguém explicando oralmente)
-
-4. Demonstração / exemplo
-   - Use código quando fizer sentido
-   - Explique enquanto “mostra”
-   - Evite apenas ler código
-
-5. Insight importante
-   - Destaque um erro comum ou confusão frequente
-   - Mostre o “pulo do gato”
-
-6. Recap rápido
-   - Reforce o que foi aprendido
-
-7. Encerramento
-   - Conecte com a próxima videoaula quando ela existir
-   - Não explique conteúdos que pertencem à próxima videoaula; apenas crie uma transição natural
-
----
-
-IMPORTANTE
-
-- Considere a sequência do curso ao escrever o roteiro
-- Conecte a abertura com a videoaula anterior (se existir)
-- Use o submódulo como contexto para manter a aula alinhada com a jornada do aluno
-- Ao finalizar, crie uma ponte natural para a próxima videoaula (se existir)
-- Ignore quizzes, artigos e projetos entre as videoaulas
-- Não invente conteúdo além do informado acima
-- Não mencione informações ausentes no contexto
-
----
-
-REGRAS DAS TAGS (obrigatório)
-
-- [FALA]: TODO texto que será falado em voz alta. Nenhuma frase falada pode ficar fora de [FALA].
-- [PAUSA]: APENAS silêncio na gravação. Conteúdo permitido: linha vazia, "..." ou no máximo "(respira)" / "(pausa curta)".
-  - PROIBIDO: colocar frases, explicações ou parágrafos depois de [PAUSA].
-- [CÓDIGO NA TELA]: somente o que aparece na tela (listas, pseudocódigo, etc.).
-
-Se houver mais fala depois de uma pausa, SEMPRE reabra com [FALA]:
-
-Correto:
-[FALA]
-Primeira parte...
-
-[PAUSA]
-
-[FALA]
-Segunda parte...
-
-Incorreto:
-[FALA]
-Primeira parte...
-
-[PAUSA]
-
-Segunda parte sem tag...
-
-Outras regras:
-- Pausas retóricas no meio da fala → use "..." dentro do mesmo [FALA], não crie [PAUSA].
-- Use [PAUSA] no máximo 1 vez a cada 3–5 blocos [FALA], só em transições fortes na gravação.
-- Não use "---" ou linhas separadoras; mude de assunto com parágrafo em branco dentro de [FALA] ou com [PAUSA] + novo [FALA].
-
-Antes de entregar, verifique:
-1. Toda linha com texto falado está dentro de um bloco [FALA]?
-2. Nenhum bloco [PAUSA] tem parágrafos de fala?
-3. Depois de cada [PAUSA] vem imediatamente [FALA] ou [CÓDIGO NA TELA] se houver mais conteúdo?
-
----
-
-FORMATO DO ROTEIRO
-
-- Escreva como fala natural (não como texto formal)
-- Use frases curtas e médias (fáceis de falar em voz alta)
-- Separe o roteiro em blocos [FALA], [PAUSA] e [CÓDIGO NA TELA]
-- Gere apenas o roteiro da videoaula, sem explicar o processo
-
-Exemplo de formatação:
-
-[FALA]
-Na aula passada a gente viu o conceito... e hoje vamos praticar.
-
-[PAUSA]
-
-[FALA]
-Então agora a gente faz isso de verdade. Você vai criar o seu primeiro algoritmo.
-
-[PAUSA]
-
-[FALA]
-Antes de começar, preciso te dizer uma coisa importante...
-
-[CÓDIGO NA TELA]
-\`\`\`
-1. Receber um número
-2. Dividir esse número por 2
-\`\`\`
-
-[FALA]
-Vamos passar por cada linha juntos...`
-  }
-
   const handleCopyVideoScriptPrompt = async () => {
     try {
-      await navigator.clipboard.writeText(buildVideoScriptPrompt())
-      toast.success('Prompt do roteiro copiado')
+      const adjacent = modules
+        ? findAdjacentVideoLessons(modules, resolvedLesson.id)
+        : null
+      const prompt = buildVideoScriptPrompt(videoScriptStyle, {
+        title: formData.title?.trim() || resolvedLesson.title || '',
+        description:
+          formData.description?.trim() ||
+          resolvedLesson.description?.trim() ||
+          '',
+        courseTitle: breadcrumb?.courseTitle,
+        moduleTitle: breadcrumb?.moduleTitle,
+        groupTitle: breadcrumb?.groupTitle,
+        adjacent,
+      })
+      await navigator.clipboard.writeText(prompt)
+      const styleLabel =
+        VIDEO_SCRIPT_STYLES.find((s) => s.id === videoScriptStyle)?.label ??
+        videoScriptStyle
+      toast.success(`Prompt do roteiro copiado (${styleLabel})`)
     } catch (error) {
       console.error('Erro ao copiar prompt do roteiro:', error)
       toast.error('Não foi possível copiar o prompt do roteiro')
@@ -1189,14 +1020,30 @@ Vamos passar por cada linha juntos...`
 
           <div className="flex items-center gap-2">
             {formData.type === 'video' && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleCopyVideoScriptPrompt}
-              >
-                📋 Copiar roteiro
-              </Button>
+              <>
+                <Select
+                  value={videoScriptStyle}
+                  onChange={(e) =>
+                    setVideoScriptStyle(e.target.value as VideoScriptStyleId)
+                  }
+                  className="h-8 w-[160px] text-xs"
+                  aria-label="Estilo do prompt de roteiro"
+                >
+                  {VIDEO_SCRIPT_STYLES.map((style) => (
+                    <option key={style.id} value={style.id}>
+                      {style.label}
+                    </option>
+                  ))}
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyVideoScriptPrompt}
+                >
+                  📋 Copiar roteiro
+                </Button>
+              </>
             )}
 
             {formData.type === 'lab' && (
@@ -1380,17 +1227,38 @@ Vamos passar por cada linha juntos...`
                   <div>
                     <p className="text-sm font-medium">Roteiro da videoaula</p>
                     <p className="text-xs text-muted">
-                      Copia um prompt preenchido com os dados desta aula para gerar o roteiro.
+                      {
+                        VIDEO_SCRIPT_STYLES.find((s) => s.id === videoScriptStyle)
+                          ?.description
+                      }
                     </p>
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopyVideoScriptPrompt}
-                  >
-                    Copiar roteiro
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Select
+                      value={videoScriptStyle}
+                      onChange={(e) =>
+                        setVideoScriptStyle(
+                          e.target.value as VideoScriptStyleId,
+                        )
+                      }
+                      className="h-8 w-[160px] text-xs"
+                      aria-label="Estilo do prompt de roteiro"
+                    >
+                      {VIDEO_SCRIPT_STYLES.map((style) => (
+                        <option key={style.id} value={style.id}>
+                          {style.label}
+                        </option>
+                      ))}
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyVideoScriptPrompt}
+                    >
+                      Copiar roteiro
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
