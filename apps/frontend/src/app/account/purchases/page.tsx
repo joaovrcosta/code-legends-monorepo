@@ -69,57 +69,57 @@ export default async function AccountPurchasesPage() {
             </h2>
 
             {hasActiveSubscription && planInfo ? (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-[#25252a] bg-surface-2/50">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#25252a]">
-                    <Image
-                      src={planInfo.icon}
-                      alt={planInfo.title}
-                      width={32}
-                      height={32}
-                    />
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span
-                        className="font-semibold"
-                        style={{ color: displayColorHex }}
-                      >
-                        {planInfo.title}
-                      </span>
-
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-[#25252a] text-muted">
-                        Ativo
-                      </span>
+              <div className="flex flex-col gap-4 p-5 rounded-2xl border border-[#25252a] bg-surface-2/50">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#25252a]">
+                      <Image
+                        src={planInfo.icon}
+                        alt={planInfo.title}
+                        width={32}
+                        height={32}
+                      />
                     </div>
 
-                    <p className="text-sm text-muted mt-1">
-                      {planInfo.description}
-                    </p>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className="font-semibold"
+                          style={{ color: displayColorHex }}
+                        >
+                          {planInfo.title}
+                        </span>
+
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-[#25252a] text-muted">
+                          Ativo
+                        </span>
+                      </div>
+
+                      <p className="text-sm text-muted mt-1">
+                        {planInfo.description}
+                      </p>
+                    </div>
                   </div>
+
+                  {nextRenewalDate && (
+                    <div className="flex items-center gap-2 text-sm text-muted shrink-0">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                        Próxima renovação:{' '}
+                        {new Date(nextRenewalDate).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                {nextRenewalDate && (
-                  <div className="flex items-center gap-2 text-sm text-muted shrink-0">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                      Próxima renovação:{' '}
-                      {new Date(nextRenewalDate).toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
-                )}
-
                 {!isHighestPlan && (
-                  <div className="shrink-0">
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="h-[52px] rounded-full border-[#25252a] text-muted hover:text-[#00c8ff] hover:border-[#00c8ff]/30 px-6"
-                    >
-                      <Link href="/plans">Alterar plano</Link>
-                    </Button>
-                  </div>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-[52px] w-full rounded-full border-[#25252A] bg-transparent text-white shadow-none hover:bg-[#25252A] hover:text-[#00c8ff] hover:border-[#00c8ff]/30"
+                  >
+                    <Link href="/plans">Alterar plano</Link>
+                  </Button>
                 )}
               </div>
             ) : (

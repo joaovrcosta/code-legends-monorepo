@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { PlansGrid } from "@/components/plans/plans-grid";
+import { PlansBackButton } from "@/components/plans/plans-back-button";
 import { listPlans } from "@/actions/plan/list-plans";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,9 @@ export default async function PlansPage() {
         <div className="absolute top-20 left-1/4 w-[400px] h-[400px] rounded-full bg-blue-500/15 blur-[120px]" />
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-20">
+        <PlansBackButton />
+
         {/* Header: título à esquerda, pergunta + botão à direita */}
         <header className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-14 lg:mb-20">
           <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-white tracking-tight">

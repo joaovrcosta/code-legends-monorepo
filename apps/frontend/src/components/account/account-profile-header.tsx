@@ -23,25 +23,20 @@ export function AccountProfileHeader({ user }: AccountProfileHeaderProps) {
 
   return (
     <div className="flex w-full flex-col items-center gap-3 text-center">
-      <AccountPlanAvatar
-        avatarSrc={user.avatar}
-        avatarFallback={user.name?.charAt(0).toUpperCase() || 'U'}
-        fallbackPlan={user.plan}
-      />
-
-      <div className="space-y-1">
-        <div className="flex flex-col items-center gap-2">
+      <div className="relative mb-1">
+        <AccountPlanAvatar
+          avatarSrc={user.avatar}
+          avatarFallback={user.name?.charAt(0).toUpperCase() || 'U'}
+          fallbackPlan={user.plan}
+        />
+        <div className="absolute bottom-0 left-1/2 z-10 -translate-x-1/2 translate-y-[20%]">
           <AccountPlanBadge />
-          <h1 className="text-xl font-semibold text-white">{user.name}</h1>
         </div>
+      </div>
+
+      <div className="mt-3 space-y-1">
+        <h1 className="text-xl font-semibold text-white">{user.name}</h1>
         <p className="text-sm text-muted">{user.email}</p>
-        {/* <p className="text-sm text-muted">
-          Membro desde{' '}
-          {new Date(user.createdAt).toLocaleDateString('pt-BR', {
-            year: 'numeric',
-            month: 'long',
-          })}
-        </p> */}
       </div>
 
       {careerLabel && (
