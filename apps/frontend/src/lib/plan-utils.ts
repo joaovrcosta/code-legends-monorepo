@@ -86,3 +86,11 @@ export function isOnHighestPaidPlan(
   if (!highest) return false;
   return highest.slug.toLowerCase() === currentSlug.toLowerCase();
 }
+
+/** True when the user can still upgrade (not already on the highest paid plan). */
+export function canUserUpgrade(
+  currentSlug: string | null | undefined,
+  plans: PlanFromAPI[],
+): boolean {
+  return !isOnHighestPaidPlan(currentSlug, plans);
+}

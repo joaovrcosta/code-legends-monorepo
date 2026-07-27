@@ -8,24 +8,26 @@ import {
   AvatarImage,
 } from '../ui/plan-avatar-ring'
 import { getCurrentUser } from '@/actions/user/get-current-user'
-import { getUserFromAPI, getResolvedUserPlan } from '@/actions/user/get-user-from-api'
+import { getUserFromAPI } from '@/actions/user/get-user-from-api'
 import { getMySkills } from '@/actions/user/get-my-skills'
 import { getLessonActivity } from '@/actions/user/get-lesson-activity'
 import { getStreak } from '@/actions/user/get-streak'
-import { hasPaidPlan } from '@/lib/user-plan'
 import { CompactNumber } from '@/components/ui/compact-number'
-import { CtaFacaUpgradeCard } from '@/components/cta'
+import { CtaFacaUpgradeCard, UpgradeGate } from '@/components/cta'
+import { getUpgradeEligibility } from '@/lib/upgrade-eligibility'
 import { UserPlanSubscriberBadge } from '@/components/ui/subscriber-badge'
 import Image from 'next/image'
 
 export async function UserProfiler() {
-  const [user, userFromAPI, userPlan, { skills }, lessonActivity, streak] = await Promise.all([
+  // Prefetch eligibility in the same Promise.all so UpgradeGate (React.cache)
+  // resolves without a post-paint pop of the upgrade card.
+  const [user, userFromAPI, { skills }, lessonActivity, streak] = await Promise.all([
     getCurrentUser(),
     getUserFromAPI(),
-    getResolvedUserPlan(),
     getMySkills(),
     getLessonActivity({ days: 98 }),
     getStreak(),
+    getUpgradeEligibility(),
   ])
   const firstName = user?.name?.split(' ')[0] || 'Usuário'
 
@@ -128,7 +130,9 @@ export async function UserProfiler() {
           </div>
         </div>
       </div>
-      {!hasPaidPlan(userPlan) && <CtaFacaUpgradeCard />}
+      <UpgradeGate>
+        <CtaFacaUpgradeCard />
+      </UpgradeGate>
       <div className="bg-surface-2 border border-[#25252A] rounded-[20px] w-full p-6">
         <div className="flex items-center gap-2 mb-2">
           <Flame size={24} weight="fill" className="text-[#FF6200]" />
