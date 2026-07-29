@@ -152,12 +152,12 @@ export class GetRoadmapUseCase {
             },
           },
           orderBy: {
-            id: 'asc',
+            orderIndex: 'asc',
           },
         },
       },
       orderBy: {
-        id: 'asc',
+        orderIndex: 'asc',
       },
     })
 

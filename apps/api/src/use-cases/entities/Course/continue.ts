@@ -137,12 +137,12 @@ export class ContinueCourseUseCase {
             },
           },
           orderBy: {
-            id: 'asc',
+            orderIndex: 'asc',
           },
         },
       },
       orderBy: {
-        id: 'asc',
+        orderIndex: 'asc',
       },
     })
 

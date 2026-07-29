@@ -68,12 +68,12 @@ export class StartCourseUseCase {
         include: {
           modules: {
             orderBy: {
-              id: 'asc',
+              orderIndex: 'asc',
             },
             include: {
               submodules: {
                 orderBy: {
-                  id: 'asc',
+                  orderIndex: 'asc',
                 },
                 include: {
                   lessons: {

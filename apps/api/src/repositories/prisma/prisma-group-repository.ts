@@ -62,7 +62,7 @@ export class PrismaGroupRepository implements IGroupRepository {
         },
       },
       orderBy: {
-        id: "asc",
+        orderIndex: "asc",
       },
     });
 

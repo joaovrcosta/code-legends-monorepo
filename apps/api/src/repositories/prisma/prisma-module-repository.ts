@@ -65,7 +65,7 @@ export class PrismaModuleRepository implements IModuleRepository {
         },
       },
       orderBy: {
-        id: "asc",
+        orderIndex: "asc",
       },
     });
 

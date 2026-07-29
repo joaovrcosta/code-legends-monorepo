@@ -100,6 +100,9 @@ export class GetCourseProgressUseCase {
       where: { courseId: finalCourseId },
       include: {
         submodules: {
+          orderBy: {
+            orderIndex: "asc",
+          },
           include: {
             lessons: {
               select: {
@@ -110,7 +113,7 @@ export class GetCourseProgressUseCase {
         },
       },
       orderBy: {
-        id: "asc",
+        orderIndex: "asc",
       },
     });
 

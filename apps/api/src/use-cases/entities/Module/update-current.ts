@@ -64,6 +64,9 @@ export class UpdateCurrentModuleUseCase {
       where: { courseId },
       include: {
         submodules: {
+          orderBy: {
+            orderIndex: "asc",
+          },
           include: {
             lessons: {
               select: {
@@ -74,7 +77,7 @@ export class UpdateCurrentModuleUseCase {
         },
       },
       orderBy: {
-        id: "asc",
+        orderIndex: "asc",
       },
     });
 
@@ -108,7 +111,7 @@ export class UpdateCurrentModuleUseCase {
       include: {
         submodules: {
           orderBy: {
-            id: "asc",
+            orderIndex: "asc",
           },
           include: {
             lessons: {

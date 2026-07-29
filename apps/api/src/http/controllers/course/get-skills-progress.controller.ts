@@ -83,7 +83,7 @@ export async function getSkillsProgress(
                 },
               },
             },
-            orderBy: { id: 'asc' },
+            orderBy: { orderIndex: 'asc' },
           },
         },
       })

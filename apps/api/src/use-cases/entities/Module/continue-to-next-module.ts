@@ -54,7 +54,7 @@ export class ContinueToNextModuleUseCase {
       include: {
         submodules: {
           orderBy: {
-            id: "asc",
+            orderIndex: "asc",
           },
           include: {
             lessons: {
@@ -69,7 +69,7 @@ export class ContinueToNextModuleUseCase {
         },
       },
       orderBy: {
-        id: "asc",
+        orderIndex: "asc",
       },
     });
 

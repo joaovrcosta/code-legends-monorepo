@@ -35,10 +35,10 @@ async function main() {
               orderBy: { order: "asc" },
             },
           },
-          orderBy: { id: "asc" },
+          orderBy: { orderIndex: "asc" },
         },
       },
-      orderBy: { id: "asc" },
+      orderBy: { orderIndex: "asc" },
     });
 
     const lessonsViaStructure: Array<{ id: number; type: string; title: string }> = [];
