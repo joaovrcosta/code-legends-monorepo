@@ -65,7 +65,7 @@ import {
 | `assertConsoleLogCount(code, min)` | Conta `console.log(` reais (ignora strings/comentários). |
 | `assertCodeContains(code, trecho)` | Exige o trecho no fonte **ignorando espaços, `;` e aspas `'` vs `"`**. Use para `console.log(3+4)`, strings literais, etc. |
 | `softImportModule(path?)` | `import` com **cache-bust** (`?labCheck=…`) para cada Verificar. |
-| `assertBindingValue(name, expected, { path?, type? })` | Valor runtime após auto-export + cache-bust. |
+| `await assertBindingValue(name, expected, { path?, type? })` | Valor runtime após auto-export + cache-bust. **Sempre** `async` + `await`. 1º arg = nome da variável, **nunca** `code`. |
 
 ### Exemplo (expressão / literal flexível)
 
@@ -104,6 +104,8 @@ test('numOfSlices é 8', async () => {
   await assertBindingValue('numOfSlices', 8, { type: 'number' })
 })
 ```
+
+**Errado (não gerar):** `assertBindingValue(code, 'numOfSlices', 8)` — o 1º argumento é o nome, não o fonte. Sem `await`, o Jest pode marcar o teste como passou sem checar.
 
 ## Regras
 

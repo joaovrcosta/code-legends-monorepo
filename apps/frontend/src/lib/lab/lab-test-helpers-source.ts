@@ -10,6 +10,7 @@ export const LAB_TEST_HELPERS_PATH = '/lab-test-helpers.js'
 export {
   MAX_STUDENT_CODE_BYTES,
   STUDENT_CODE_ALLOWLIST,
+  assertBindingAssignedInSource,
   assertCodeContains,
   assertCodeSize,
   assertConsoleLogCount,
@@ -18,6 +19,10 @@ export {
   defaultStudentPath,
   hasConsoleLogArg,
   hasKeywordBinding,
+  isBindingIdent,
+  isLikelySourceCode,
+  isMistakenAssertBindingValueCall,
+  isPrimitiveExpected,
   quoteVariants,
   resolveStudentCodePath,
   sourceContainsLoose,
@@ -229,7 +234,22 @@ export function readStudentCode(path) {
 }
 
 export async function softImportModule(path) {
-  const resolved = resolveStudentCodePath(path);
+  let resolved = resolveStudentCodePath(path);
+  const fs = require("fs");
+  // Mesmo remap de readStudentCode: bootstrap React em /index.js → /App.js
+  if (
+    resolved === "/index.js" &&
+    STUDENT_CODE_ALLOWLIST.includes("/App.js")
+  ) {
+    try {
+      const indexCode = fs.readFileSync("/index.js", "utf8");
+      if (looksLikeReactBootstrap(indexCode)) {
+        resolved = "/App.js";
+      }
+    } catch (_e) {
+      // mantém /index.js
+    }
+  }
   const bust = Date.now() + "-" + Math.random().toString(36).slice(2);
   try {
     return await import(resolved + "?labCheck=" + bust);
@@ -283,7 +303,65 @@ export function assertCodeContains(code, needle) {
   }
 }
 
-export async function assertBindingValue(name, expected, options) {
+function isLikelySourceCode(value) {
+  if (typeof value !== "string") return false;
+  if (value.length > 80 || value.indexOf("\\n") !== -1) return true;
+  return /(?:^|\\n)\\s*(?:var|let|const|function|import|export)\\b/.test(value);
+}
+
+function isBindingIdent(value) {
+  return typeof value === "string" && /^[A-Za-z_$][\\w$]*$/.test(value);
+}
+
+function isPrimitiveExpected(value) {
+  const t = typeof value;
+  return value === null || t === "string" || t === "number" || t === "boolean";
+}
+
+function assertBindingAssignedInSource(code, name, expected) {
+  const hasBinding =
+    hasKeywordBinding(code, "var", name) ||
+    hasKeywordBinding(code, "let", name) ||
+    hasKeywordBinding(code, "const", name);
+  if (!hasBinding) {
+    throw new Error("Did you create a variable named \`" + name + "\`?");
+  }
+  if (typeof expected === "string") {
+    if (
+      !sourceContainsLoose(code, name + " = '" + expected + "'") &&
+      !sourceContainsLoose(code, name + ' = "' + expected + '"') &&
+      !sourceContainsLoose(code, name + " = \`" + expected + "\`")
+    ) {
+      throw new Error(
+        "\`" +
+          name +
+          "\` should have a value of \`" +
+          expected +
+          "\`. Expected \`" +
+          name +
+          "\` to equal \`" +
+          expected +
+          "\`."
+      );
+    }
+    return;
+  }
+  if (!sourceContainsLoose(code, name + " = " + String(expected))) {
+    throw new Error(
+      "\`" +
+        name +
+        "\` should have a value of \`" +
+        String(expected) +
+        "\`. Expected \`" +
+        name +
+        "\` to equal \`" +
+        String(expected) +
+        "\`."
+    );
+  }
+}
+
+async function assertBindingValueRuntime(name, expected, options) {
   const path = options && options.path ? options.path : DEFAULT_STUDENT_PATH;
   const mod = await softImportModule(path);
   if (!(name in mod) || typeof mod[name] === "undefined") {
@@ -319,6 +397,29 @@ export async function assertBindingValue(name, expected, options) {
     );
   }
   return value;
+}
+
+/**
+ * API correta: await assertBindingValue('nome', 'Ana', { type?: 'string' })
+ * Compat: assertBindingValue(code, 'nome', 'Ana') — checa o fonte de forma
+ * síncrona (falha no Jest mesmo sem await) e segue com checagem runtime.
+ */
+export function assertBindingValue(a, b, c) {
+  if (
+    arguments.length >= 3 &&
+    isLikelySourceCode(a) &&
+    isBindingIdent(b) &&
+    isPrimitiveExpected(c)
+  ) {
+    assertBindingAssignedInSource(a, b, c);
+    return assertBindingValueRuntime(b, c, undefined);
+  }
+  if (typeof a !== "string" || !isBindingIdent(a)) {
+    throw new Error(
+      "assertBindingValue(name, expected, options?). Do NOT pass student code as the first argument. Correct: await assertBindingValue('nome', 'Ana')"
+    );
+  }
+  return assertBindingValueRuntime(a, b, c);
 }
 `.trimStart()
 }

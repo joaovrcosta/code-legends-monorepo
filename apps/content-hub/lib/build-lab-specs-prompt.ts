@@ -139,13 +139,44 @@ import {
 
 | Caso | Como testar |
 |------|-------------|
-| variável var/let/const | assertVarKeyword + assertBindingValue |
+| variável var/let/const | assertVarKeyword + await assertBindingValue |
 | console.log(variavel) | assertConsoleLogArg(code, 'variavel') |
 | N chamadas a console.log() | assertConsoleLogCount(code, N) — ignora comentários |
 | função + comportamento | softImportModule('/App.js') e chame a função |
 | trecho de código (expressão, literal, console.log(...)) | assertCodeContains(code, '...') |
 
 PROIBIDO no testFile: eval, new Function, rewire, require de path do aluno, toContain/includes manuais, regex para “flexibilizar” espaços, code.split('console.log(') (conta comentários do starter!).
+
+---
+
+assertBindingValue — API OBRIGATÓRIA (async)
+
+Assinatura: await assertBindingValue(name, expected, options?)
+- 1º argumento = NOME da variável (string curta), NUNCA o code
+- Sempre use async no test() e await no helper
+- options opcional: { type: 'string' | 'number' | 'boolean', path?: '/App.js' | '/index.js' }
+
+CERTO:
+const code = readStudentCode('/index.js'); // ou '/App.js' no template react
+
+test('declara idade com var', () => {
+  assertVarKeyword(code, 'var', 'idade');
+});
+
+test('idade é 25', async () => {
+  await assertBindingValue('idade', 25, { type: 'number' });
+});
+
+test('nome é Ana', async () => {
+  await assertBindingValue('nome', 'Ana', { type: 'string' });
+});
+
+ERRADO (NÃO faça — 1º arg não é code; sem await vira falso positivo):
+assertBindingValue(code, 'nome', 'Ana');
+assertBindingValue(code, 'idade', 25);
+assertBindingValue('idade', 25); // falta await / async no test
+
+Steps cumulativos: o código do aluno acumula variáveis; cada step testa só o que aquele passo pediu, sem apagar declarações anteriores.
 
 ---
 

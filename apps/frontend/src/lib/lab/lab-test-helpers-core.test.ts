@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   MAX_STUDENT_CODE_BYTES,
+  assertBindingAssignedInSource,
   assertCodeContains,
   assertCodeSize,
   assertConsoleLogCount,
@@ -9,6 +10,8 @@ import {
   defaultStudentPath,
   hasConsoleLogArg,
   hasKeywordBinding,
+  isLikelySourceCode,
+  isMistakenAssertBindingValueCall,
   quoteVariants,
   resolveStudentCodePath,
   sourceContainsLoose,
@@ -191,5 +194,41 @@ describe('sourceContainsLoose / assertCodeContains', () => {
   it('compactCode e quoteVariants', () => {
     expect(compactCode('a + b')).toBe('a+b')
     expect(quoteVariants("console.log('x')")).toContain('console.log("x")')
+  })
+})
+
+describe('assertBindingValue arg normalization', () => {
+  it('detecta fonte do aluno vs nome curto', () => {
+    expect(isLikelySourceCode("var nome = 'Ana';")).toBe(true)
+    expect(isLikelySourceCode('nome')).toBe(false)
+    expect(
+      isMistakenAssertBindingValueCall(
+        "// starter\nvar nome = 'Ana';\n",
+        'nome',
+        'Ana',
+        3,
+      ),
+    ).toBe(true)
+    expect(isMistakenAssertBindingValueCall('nome', 'Ana', undefined, 2)).toBe(
+      false,
+    )
+    expect(
+      isMistakenAssertBindingValueCall('nome', 'Ana', { type: 'string' }, 3),
+    ).toBe(false)
+  })
+
+  it('assertBindingAssignedInSource passa com valor certo e falha com vazio/errado', () => {
+    expect(() =>
+      assertBindingAssignedInSource("var idade = 25;", 'idade', 25),
+    ).not.toThrow()
+    expect(() =>
+      assertBindingAssignedInSource("var nome = 'Ana';", 'nome', 'Ana'),
+    ).not.toThrow()
+    expect(() =>
+      assertBindingAssignedInSource('// empty\n', 'idade', 25),
+    ).toThrow(/variable named/)
+    expect(() =>
+      assertBindingAssignedInSource("var idade = 10;", 'idade', 25),
+    ).toThrow(/should have a value/)
   })
 })

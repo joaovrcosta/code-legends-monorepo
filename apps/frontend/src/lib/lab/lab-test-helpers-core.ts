@@ -233,3 +233,73 @@ export function assertCodeContains(source: string, needle: string): void {
     )
   }
 }
+
+/** Heurística: 1º arg parece fonte do aluno (erro comum da IA). */
+export function isLikelySourceCode(value: unknown): boolean {
+  if (typeof value !== 'string') return false
+  if (value.length > 80 || value.includes('\n')) return true
+  return /(?:^|\n)\s*(?:var|let|const|function|import|export)\b/.test(value)
+}
+
+export function isBindingIdent(value: unknown): boolean {
+  return typeof value === 'string' && /^[A-Za-z_$][\w$]*$/.test(value)
+}
+
+export function isPrimitiveExpected(value: unknown): boolean {
+  const t = typeof value
+  return value === null || t === 'string' || t === 'number' || t === 'boolean'
+}
+
+/**
+ * Detecta a assinatura errada gerada por IA:
+ * `assertBindingValue(code, 'nome', 'Ana')` em vez de
+ * `await assertBindingValue('nome', 'Ana')`.
+ */
+export function isMistakenAssertBindingValueCall(
+  a: unknown,
+  b: unknown,
+  c: unknown,
+  arity: number,
+): boolean {
+  return (
+    arity >= 3 &&
+    isLikelySourceCode(a) &&
+    isBindingIdent(b) &&
+    isPrimitiveExpected(c)
+  )
+}
+
+/**
+ * Checagem síncrona de `name = expected` no fonte (var/let/const).
+ * Usada para falhar no Jest mesmo quando o testFile esquece `await`.
+ */
+export function assertBindingAssignedInSource(
+  code: string,
+  name: string,
+  expected: string | number | boolean | null,
+): void {
+  const hasBinding =
+    hasKeywordBinding(code, 'var', name) ||
+    hasKeywordBinding(code, 'let', name) ||
+    hasKeywordBinding(code, 'const', name)
+  if (!hasBinding) {
+    throw new Error(`Did you create a variable named \`${name}\`?`)
+  }
+  if (typeof expected === 'string') {
+    const ok =
+      sourceContainsLoose(code, `${name} = '${expected}'`) ||
+      sourceContainsLoose(code, `${name} = "${expected}"`) ||
+      sourceContainsLoose(code, `${name} = \`${expected}\``)
+    if (!ok) {
+      throw new Error(
+        `\`${name}\` should have a value of \`${expected}\`. Expected \`${name}\` to equal \`${expected}\`.`,
+      )
+    }
+    return
+  }
+  if (!sourceContainsLoose(code, `${name} = ${String(expected)}`)) {
+    throw new Error(
+      `\`${name}\` should have a value of \`${String(expected)}\`. Expected \`${name}\` to equal \`${String(expected)}\`.`,
+    )
+  }
+}
