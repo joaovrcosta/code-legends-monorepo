@@ -27,6 +27,8 @@ export type LabPlaygroundProps = {
   onStepCheckPass: (stepId: string) => void
   /** Chamado quando o Verificar falha no step ativo. */
   onStepCheckFail?: (stepId: string) => void
+  /** Reset de progresso/instruções ao confirmar Restaurar. */
+  onRestoreLab?: () => void
   className?: string
   height?: number | string
 }
@@ -89,6 +91,7 @@ export function LabPlayground({
   expected,
   onStepCheckPass,
   onStepCheckFail,
+  onRestoreLab,
   className = '',
   height = '100%',
 }: LabPlaygroundProps) {
@@ -231,6 +234,7 @@ export function LabPlayground({
           stepId={stepId}
           onStepCheckPass={onStepCheckPass}
           onStepCheckFail={onStepCheckFail}
+          onRestoreLab={onRestoreLab}
           hasTests={hasTests}
           expected={expected}
           testFiles={testFiles}

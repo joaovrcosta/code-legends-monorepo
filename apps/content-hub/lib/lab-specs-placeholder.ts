@@ -10,15 +10,15 @@ export const LAB_SPECS_PLACEHOLDER = `{
   "steps": [
     {
       "id": "step-1",
-      "title": "Use \`console.log()\` para imprimir sua idade no console.",
-      "hint": "Exemplo: console.log(25);",
-      "expected": "você usou console.log() para imprimir sua idade?",
+      "title": "Use \`console.log()\` para imprimir o número \`25\` no console.",
+      "hint": "Exemplo: \`console.log(25);\`",
+      "expected": "você usou console.log() para imprimir o número 25?",
       "testFile": "import { readStudentCode, assertConsoleLogCount, stripStringsAndComments } from '/lab-test-helpers.js';\\n\\nconst code = readStudentCode('/App.js');\\n\\ntest('usa console.log pelo menos uma vez', () => {\\n  assertConsoleLogCount(code, 1);\\n});\\n\\ntest('o console.log imprime um número', () => {\\n  const active = stripStringsAndComments(code);\\n  expect(/console\\\\.log\\\\(\\\\s*\\\\d+\\\\s*\\\\)/.test(active)).toBe(true);\\n});\\n"
     },
     {
       "id": "step-2",
-      "title": "Na linha seguinte, use outro \`console.log()\` para imprimir um número representando há quantas semanas você programa.",
-      "hint": "Adicione um segundo console.log() com outro número, por exemplo: console.log(12);",
+      "title": "Na linha seguinte, use outro \`console.log()\` para imprimir o número \`12\`.",
+      "hint": "Adicione um segundo \`console.log()\` com outro número, por exemplo: \`console.log(12);\`",
       "expected": "você adicionou um segundo console.log() com outro número?",
       "testFile": "import { readStudentCode, assertConsoleLogCount } from '/lab-test-helpers.js';\\n\\nconst code = readStudentCode('/App.js');\\n\\ntest('usa console.log duas vezes', () => {\\n  assertConsoleLogCount(code, 2);\\n});\\n"
     }

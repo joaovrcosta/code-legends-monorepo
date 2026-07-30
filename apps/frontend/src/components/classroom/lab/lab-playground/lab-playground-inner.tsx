@@ -10,6 +10,14 @@ import {
 } from '@codesandbox/sandpack-react'
 import { Folder, FolderOpen } from '@phosphor-icons/react'
 import { Loader2, RotateCcw } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { LabSandpackBundlerErrorListener } from './lab-sandpack-bundler-error-listener'
 import { LabJestRunner } from './lab-jest-runner'
 import { LabVerifyConsole } from './lab-verify-console'
@@ -22,6 +30,7 @@ export function LabPlaygroundInner({
   stepId,
   onStepCheckPass,
   onStepCheckFail,
+  onRestoreLab,
   hasTests,
   expected,
   testFiles,
@@ -34,6 +43,7 @@ export function LabPlaygroundInner({
   stepId: string
   onStepCheckPass: (stepId: string) => void
   onStepCheckFail?: (stepId: string) => void
+  onRestoreLab?: () => void
   hasTests: boolean
   /** Pergunta amigável do step; mostrada no rodapé se o Verificar falhar. */
   expected?: string
@@ -63,6 +73,7 @@ export function LabPlaygroundInner({
   /** Pasta fechada por padrão; fechar NÃO reseta activeFile. */
   const [filesOpen, setFilesOpen] = useState(false)
   const [restoreSpinning, setRestoreSpinning] = useState(false)
+  const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false)
 
   const refreshPreview = useCallback(() => {
     try {
@@ -153,6 +164,7 @@ export function LabPlaygroundInner({
     const entries = Object.entries(starterStudentFiles)
     if (entries.length === 0) return
 
+    setRestoreConfirmOpen(false)
     setRestoreSpinning(true)
     window.setTimeout(() => setRestoreSpinning(false), 500)
 
@@ -164,6 +176,7 @@ export function LabPlaygroundInner({
       }
     }
     clearCheckResult()
+    onRestoreLab?.()
     // Atualiza preview/console com o código restaurado.
     wakeRuntime('refresh')
   }, [
@@ -171,8 +184,15 @@ export function LabPlaygroundInner({
     restoreSpinning,
     starterStudentFiles,
     clearCheckResult,
+    onRestoreLab,
     wakeRuntime,
   ])
+
+  const requestRestoreStarter = useCallback(() => {
+    if (checking || restoreSpinning) return
+    if (Object.keys(starterStudentFiles).length === 0) return
+    setRestoreConfirmOpen(true)
+  }, [checking, restoreSpinning, starterStudentFiles])
 
   const sideTabs = (
     [
@@ -183,6 +203,7 @@ export function LabPlaygroundInner({
   )
 
   return (
+    <>
     <div className="flex h-full min-h-0 flex-col">
       <LabSandpackBundlerErrorListener
         sessionId={consoleSessionId}
@@ -312,14 +333,14 @@ export function LabPlaygroundInner({
         </button>
         <button
           type="button"
-          onClick={handleRestoreStarter}
+          onClick={requestRestoreStarter}
           disabled={
             checking ||
             restoreSpinning ||
             Object.keys(starterStudentFiles).length === 0
           }
-          title="Restaura o código inicial do lab"
-          aria-label="Restaurar código inicial"
+          title="Restaurar lab ao estado inicial"
+          aria-label="Restaurar lab ao estado inicial"
           className="inline-flex items-center justify-center gap-1.5 rounded-[16px] border border-white/20 px-3 h-[42px] py-1.5 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-50"
         >
           <RotateCcw
@@ -353,5 +374,34 @@ export function LabPlaygroundInner({
         ) : null}
       </div>
     </div>
+
+    <Dialog open={restoreConfirmOpen} onOpenChange={setRestoreConfirmOpen}>
+      <DialogContent className="max-w-md border-[#25252A] bg-[#101012] text-white sm:rounded-[20px]">
+        <DialogHeader>
+          <DialogTitle className="text-white">Restaurar lab?</DialogTitle>
+          <DialogDescription className="pt-2 text-sm text-white/60">
+            Isso vai voltar o código e as instruções para o estado inicial.
+            Seu progresso neste lab será perdido.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="mt-6 gap-2">
+          <button
+            type="button"
+            onClick={() => setRestoreConfirmOpen(false)}
+            className="rounded-[16px] border border-white/20 px-4 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleRestoreStarter}
+            className="rounded-[16px] bg-[#86efac] px-4 py-2 text-sm font-semibold text-black hover:bg-[#6ee7a0]"
+          >
+            Sim, restaurar
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }

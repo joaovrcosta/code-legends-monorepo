@@ -265,14 +265,17 @@ export function useLabStepProgress(options: {
 
   const clearProgress = useCallback(() => {
     clearLegacyProgress(lessonId)
-    setCompletedStepIds([])
-    setCurrentStepId(firstStepId)
-    void saveLabProgress(lessonId, {
+    const next: LabProgressState = {
       completedStepIds: [],
       currentStepId: firstStepId,
       completedCount: 0,
       currentStepIndex: 0,
-    })
+    }
+    latestRef.current = next
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    setCompletedStepIds([])
+    setCurrentStepId(firstStepId)
+    void saveLabProgress(lessonId, next)
   }, [lessonId, firstStepId])
 
   return {

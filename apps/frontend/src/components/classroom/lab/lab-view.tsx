@@ -53,6 +53,7 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
     currentStep,
     completedStepIds,
     completeStep,
+    clearProgress,
   } = useLabStepProgress({
     lessonId: lesson.id,
     steps,
@@ -138,6 +139,11 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
   const handleStepCheckFail = useCallback((stepId: string) => {
     setFailedStepId(stepId)
   }, [])
+
+  const handleRestoreLab = useCallback(() => {
+    clearProgress()
+    setFailedStepId(null)
+  }, [clearProgress])
 
   if (!lab) {
     return (
@@ -276,6 +282,7 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
               expected={currentStep.expected}
               onStepCheckPass={handleStepCheckPass}
               onStepCheckFail={handleStepCheckFail}
+              onRestoreLab={handleRestoreLab}
               height="100%"
               className="min-h-[420px] flex-1"
             />

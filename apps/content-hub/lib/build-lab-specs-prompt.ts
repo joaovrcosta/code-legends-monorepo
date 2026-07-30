@@ -97,17 +97,31 @@ Regras gerais:
 
 ---
 
-TÍTULOS (highlight obrigatório)
+TÍTULOS E HINTS (highlight obrigatório)
 
-O frontend renderiza step.title com Markdown. Código e valores literais DEVEM ir entre crases para aparecerem em verde.
+O frontend renderiza step.title com Markdown. Código, nomes de variáveis e valores literais DEVEM ir entre crases (\`...\`) para aparecerem em verde.
 
-CORRETO:
+Obrigatório colocar entre crases:
+- keywords do passo (\`var\`, \`let\`, \`const\`)
+- nomes de variáveis/identificadores (\`idade\`, \`nome\`, \`ativo\`)
+- valores literais (\`25\`, \`'Ana'\`, \`true\`, \`false\`)
+- funções/APIs (\`console.log()\`)
+- propriedades e trechos de código citáveis
+
+Também aplique o mesmo highlight em hint (e em expected, quando citar código/variável/valor).
+
+CORRETO (declaração de variável):
+"Use \`var\` para declarar uma variável chamada \`idade\` com o valor \`25\`."
+hint: "Escreva: \`var idade = 25;\`"
+
+CORRETO (API + literal):
 "Na primeira linha, use \`console.log()\` para imprimir a string \`JavaScript\` no console."
 
-ERRADO (sem highlight):
+ERRADO (sem highlight — NÃO faça isso):
+"Use var para declarar uma variável chamada idade com o valor 25."
 "Na primeira linha, use console.log() para imprimir a string JavaScript no console."
 
-Coloque entre crases: nomes de funções/API (\`console.log()\`), literais (\`JavaScript\`, \`2011\`), propriedades, keywords quando forem o foco do passo.
+Checklist antes de entregar: em CADA title/hint, todo nome de variável e todo valor literal que o aluno deve digitar está entre crases?
 
 ---
 
@@ -187,7 +201,7 @@ TAREFA
 Crie lab_specs coerente com os dados da aula:
 - TODO em português do Brasil (titles, hints, comments, test names)
 - starter mínimo
-- titles com \`código\` em highlight
+- titles E hints com highlight Markdown: keywords (\`var\`), variáveis (\`idade\`) e valores (\`25\`, \`'Ana'\`, \`true\`) SEMPRE entre crases
 - cada step com expected em tom de pergunta amigável (ex.: "você usou…?")
 - para checar código digitado: SEMPRE assertCodeContains (nunca toContain cru)
 - helpers oficiais para o restante
