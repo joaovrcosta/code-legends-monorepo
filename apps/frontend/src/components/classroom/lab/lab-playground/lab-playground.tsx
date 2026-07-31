@@ -79,7 +79,9 @@ function buildInitialFiles(
   if (template === 'react') {
     const studentIndex = files?.['/index.js']
     const merged = { ...REACT_BOOTSTRAP, ...(files ?? {}) }
-    if (studentIndex && !files?.['/App.js']) {
+    // Só remapeia starter legado /index.js → /App.js quando App está ausente.
+    // `''` (aluno apagou o código) é valor válido — não usar truthiness.
+    if (studentIndex != null && files?.['/App.js'] == null) {
       merged['/App.js'] = studentIndex
     }
     merged['/index.js'] = REACT_BOOTSTRAP['/index.js']
