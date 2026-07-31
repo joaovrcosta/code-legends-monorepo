@@ -140,7 +140,13 @@ function escapeRegExp(value) {
 function hasKeywordBinding(source, keyword, name) {
   if (!/^[A-Za-z_$][\\w$]*$/.test(name)) return false;
   const cleaned = stripStringsAndComments(source);
-  const declRe = new RegExp("\\\\b" + keyword + "\\\\b\\\\s+([^;]+)", "g");
+  // Para no ; OU na próxima keyword — ASI / sem ponto e vírgula entre decls.
+  const nextStmt =
+    "(?=\\\\s*(?:;|$|\\\\b(?:var|let|const|function|class|if|for|while|switch|return|export|import)\\\\b))";
+  const declRe = new RegExp(
+    "\\\\b" + keyword + "\\\\b\\\\s+([\\\\s\\\\S]*?)" + nextStmt,
+    "g"
+  );
   let match;
   while ((match = declRe.exec(cleaned))) {
     const parts = match[1].split(",");
@@ -363,40 +369,72 @@ function assertBindingAssignedInSource(code, name, expected) {
 
 async function assertBindingValueRuntime(name, expected, options) {
   const path = options && options.path ? options.path : DEFAULT_STUDENT_PATH;
-  const mod = await softImportModule(path);
-  if (!(name in mod) || typeof mod[name] === "undefined") {
-    throw new Error("Did you create a variable named \`" + name + "\`?");
+
+  let mod = null;
+  let importError = null;
+  try {
+    mod = await softImportModule(path);
+  } catch (e) {
+    importError = e;
   }
-  const value = mod[name];
-  if (options && options.type) {
-    if (typeof value !== options.type) {
+
+  const hasRuntimeBinding =
+    mod != null && name in mod && typeof mod[name] !== "undefined";
+
+  if (hasRuntimeBinding) {
+    const value = mod[name];
+    if (options && options.type) {
+      if (typeof value !== options.type) {
+        throw new Error(
+          "Expected \`" +
+            name +
+            "\` to be a " +
+            options.type +
+            " but found it to be: \`" +
+            typeof value +
+            "\`."
+        );
+      }
+    }
+    if (value !== expected) {
+      throw new Error(
+        "\`" +
+          name +
+          "\` should have a value of \`" +
+          String(expected) +
+          "\`. Expected \`" +
+          name +
+          "\` to equal \`" +
+          String(expected) +
+          "\` but found it to equal \`" +
+          String(value) +
+          "\`."
+      );
+    }
+    return value;
+  }
+
+  // Fallback: o Verificar injeta export { nome } temporário, mas o Jest às
+  // vezes importa o módulo antes do rebundle. Para literais, valida no fonte.
+  if (isPrimitiveExpected(expected)) {
+    const code = readStudentCode(path);
+    assertBindingAssignedInSource(code, name, expected);
+    if (options && options.type && typeof expected !== options.type) {
       throw new Error(
         "Expected \`" +
           name +
           "\` to be a " +
           options.type +
           " but found it to be: \`" +
-          typeof value +
+          typeof expected +
           "\`."
       );
     }
+    return expected;
   }
-  if (value !== expected) {
-    throw new Error(
-      "\`" +
-        name +
-        "\` should have a value of \`" +
-        String(expected) +
-        "\`. Expected \`" +
-        name +
-        "\` to equal \`" +
-        String(expected) +
-        "\` but found it to equal \`" +
-        String(value) +
-        "\`."
-    );
-  }
-  return value;
+
+  if (importError) throw importError;
+  throw new Error("Did you create a variable named \`" + name + "\`?");
 }
 
 /**

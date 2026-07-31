@@ -142,6 +142,8 @@ export function useCheckFlow({
   const [liveSpecs, setLiveSpecs] = useState<SpecsMap>({})
 
   const checkingRef = useRef(false)
+  const checkPhaseRef = useRef(checkState.phase)
+  checkPhaseRef.current = checkState.phase
   const passCalledRef = useRef(false)
   const lastVerifyClickRef = useRef(0)
   const stepIdRef = useRef(stepId)
@@ -480,6 +482,8 @@ export function useCheckFlow({
     clearCheckTimeout()
     timeoutRef.current = setTimeout(() => {
       if (!checkingRef.current) return
+      // Não sobrescrever pass já em settle (holdUntilSettled).
+      if (checkPhaseRef.current === 'settling') return
       endChecking()
       dispatchCheck({
         type: 'DONE',
@@ -519,13 +523,13 @@ export function useCheckFlow({
     scheduleCheckTimeout()
 
     clearStartDelay()
-    // Injeta exports e dispara Jest. Sem refresh: refresh aborta o client e
-    // deixa "Verificando…" preso com o painel em Pronto.
+    // Injeta exports e dispara Jest. Sem refresh: refresh aborta o client.
+    // assertBindingValue tem fallback no fonte se o export ainda não entrou.
     startDelayRef.current = setTimeout(() => {
       startDelayRef.current = null
       if (!checkingRef.current) return
-      syncActiveTestFiles()
       prepareStudentFilesForCheck()
+      syncActiveTestFiles()
       bumpCheckId()
     }, CHECK_START_DELAY_MS)
   }, [
@@ -545,6 +549,9 @@ export function useCheckFlow({
       if (!checkingRef.current) return
       // Ignora resultado de uma run antiga (clique duplo / retry sobreposto).
       if (completedCheckId !== expectedCheckIdRef.current) return
+
+      // Testes terminaram — não deixar o watchdog marcar timeout no settle.
+      clearCheckTimeout()
 
       const activePaths = new Set(
         Object.keys(testFilesRef.current).map((p) =>
@@ -580,6 +587,7 @@ export function useCheckFlow({
         startDelayRef.current = setTimeout(() => {
           startDelayRef.current = null
           if (!checkingRef.current) return
+          prepareStudentFilesForCheck()
           syncActiveTestFiles()
           bumpCheckId()
         }, delayMs)
@@ -636,8 +644,10 @@ export function useCheckFlow({
       endChecking,
       scheduleCheckTimeout,
       clearStartDelay,
+      clearCheckTimeout,
       bumpCheckId,
       syncActiveTestFiles,
+      prepareStudentFilesForCheck,
       expected,
       failCheck,
     ],

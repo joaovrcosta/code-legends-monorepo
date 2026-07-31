@@ -156,8 +156,8 @@ Assinatura: await assertBindingValue(name, expected, options?)
 - Sempre use async no test() e await no helper
 - options opcional: { type: 'string' | 'number' | 'boolean', path?: '/App.js' | '/index.js' }
 
-CERTO:
-const code = readStudentCode('/index.js'); // ou '/App.js' no template react
+CERTO (um step que pede só a variável idade):
+const code = readStudentCode('/App.js'); // ou '/index.js' no vanilla
 
 test('declara idade com var', () => {
   assertVarKeyword(code, 'var', 'idade');
@@ -167,16 +167,47 @@ test('idade é 25', async () => {
   await assertBindingValue('idade', 25, { type: 'number' });
 });
 
-test('nome é Ana', async () => {
-  await assertBindingValue('nome', 'Ana', { type: 'string' });
-});
-
 ERRADO (NÃO faça — 1º arg não é code; sem await vira falso positivo):
 assertBindingValue(code, 'nome', 'Ana');
 assertBindingValue(code, 'idade', 25);
 assertBindingValue('idade', 25); // falta await / async no test
 
-Steps cumulativos: o código do aluno acumula variáveis; cada step testa só o que aquele passo pediu, sem apagar declarações anteriores.
+---
+
+testFile POR STEP — DEPENDÊNCIA SÓ SE NECESSÁRIO
+
+Padrão: cada testFile testa APENAS o requisito NOVO daquele passo.
+O código do aluno continua cumulativo no editor (ele mantém o que já escreveu),
+mas o Verificar do step NÃO retesta o que já passou — a menos que o passo novo
+PRECISE do resultado anterior para fazer sentido.
+
+Independente (padrão — NÃO reteste o anterior):
+- step-1: declarar \`nome\` → só asserta \`nome\`
+- step-2: declarar \`idade\` → só asserta \`idade\`
+- step-3: declarar \`ativo\` → só asserta \`ativo\`
+
+Dependente (SÓ quando o novo requisito usa o anterior):
+- step-1: criar \`favoriteFood\`
+- step-2: criar \`numOfSlices\`
+- step-3: \`console.log(favoriteFood)\` e \`console.log(numOfSlices)\`
+  → aí o testFile do step-3 PODE (e deve) checar os console.log das variáveis
+    anteriores; sem elas o passo não tem sentido.
+- Outros casos: chamar função criada antes, usar variável em expressão/condição,
+  contar N console.log quando os anteriores fazem parte da contagem pedida.
+
+ERRADO (dependência gratuita — retestar só por acumulação):
+// no step-2 que só pede idade:
+assertVarKeyword(code, 'var', 'nome');
+await assertBindingValue('nome', 'Ana', { type: 'string' });
+assertVarKeyword(code, 'var', 'idade');
+
+CERTO (step-2 independente):
+assertVarKeyword(code, 'var', 'idade');
+await assertBindingValue('idade', 25, { type: 'number' });
+
+Pergunta-guia antes de retestar algo antigo no testFile:
+"Se o aluno apagasse o código do passo anterior, este passo novo ainda faria
+sentido sozinho?" Se SIM → não reteste. Se NÃO → pode incluir o necessário.
 
 ---
 
@@ -234,6 +265,7 @@ Crie lab_specs coerente com os dados da aula:
 - starter mínimo
 - titles E hints com highlight Markdown: keywords (\`var\`), variáveis (\`idade\`) e valores (\`25\`, \`'Ana'\`, \`true\`) SEMPRE entre crases
 - cada step com expected em tom de pergunta amigável (ex.: "você usou…?")
+- cada testFile testa o requisito novo; só reteste passos anteriores se o novo passo depender deles (ex.: console.log de variável criada antes)
 - para checar código digitado: SEMPRE assertCodeContains (nunca toContain cru)
 - helpers oficiais para o restante
 

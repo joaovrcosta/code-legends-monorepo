@@ -105,6 +105,12 @@ describe('hasKeywordBinding', () => {
       ),
     ).toBe(false)
   })
+
+  it('não engole a próxima declaração quando falta ponto e vírgula (ASI)', () => {
+    const code = "var nome = 'Ana'\nvar idade = 25;"
+    expect(hasKeywordBinding(code, 'var', 'nome')).toBe(true)
+    expect(hasKeywordBinding(code, 'var', 'idade')).toBe(true)
+  })
 })
 
 describe('hasConsoleLogArg', () => {
@@ -230,5 +236,11 @@ describe('assertBindingValue arg normalization', () => {
     expect(() =>
       assertBindingAssignedInSource("var idade = 10;", 'idade', 25),
     ).toThrow(/should have a value/)
+  })
+
+  it('aceita aspas simples ou duplas no valor', () => {
+    expect(() =>
+      assertBindingAssignedInSource('var nome = "Ana";', 'nome', 'Ana'),
+    ).not.toThrow()
   })
 })

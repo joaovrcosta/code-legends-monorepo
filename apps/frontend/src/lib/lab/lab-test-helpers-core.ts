@@ -134,6 +134,7 @@ function escapeRegExp(value: string): string {
 /**
  * Verifica se `name` é declarado com a keyword dada (inclui multi-decl:
  * `var a = 1, numOfSlices = 8`).
+ * Não exige `;` entre declarações (ASI / aluno esquece ponto e vírgula).
  */
 export function hasKeywordBinding(
   source: string,
@@ -142,7 +143,14 @@ export function hasKeywordBinding(
 ): boolean {
   if (!/^[A-Za-z_$][\w$]*$/.test(name)) return false
   const cleaned = stripStringsAndComments(source)
-  const declRe = new RegExp(`\\b${keyword}\\b\\s+([^;]+)`, 'g')
+  // Para no `;` OU na próxima keyword de declaração/statement — senão
+  // `var nome = 'Ana'\nvar idade = 25` engole o segundo `var` no [^;]+.
+  const nextStmt =
+    '(?=\\s*(?:;|$|\\b(?:var|let|const|function|class|if|for|while|switch|return|export|import)\\b))'
+  const declRe = new RegExp(
+    `\\b${keyword}\\b\\s+([\\s\\S]*?)${nextStmt}`,
+    'g',
+  )
   let match: RegExpExecArray | null
   while ((match = declRe.exec(cleaned))) {
     const parts = match[1].split(',')

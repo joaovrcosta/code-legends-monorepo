@@ -114,6 +114,7 @@ test('numOfSlices é 8', async () => {
 - Para contar `console.log`, preferir **`assertConsoleLogCount`** — **nunca** `code.split('console.log(')` (comentários do starter inflacionam a contagem).
 - **Proibido** no `testFile`: `eval`, `new Function`, `rewire`, `require` de path arbitrário do aluno, ler `/lab-test-helpers.js` ou `*.test.js`.
 - Um step = um `testFile`; nomes de `test(...)` claros.
+- O `testFile` de cada step testa o requisito **novo**; só reteste steps anteriores se o passo novo **depender** deles (ex.: `console.log(favoriteFood)`). Declarações independentes (`nome`, depois `idade`) não se retestam.
 - Keyword checks: evite pedir `var` em declarações multi-var se o exercício for avançado demais — o helper cobre `var a = 1, x = 8`, mas AST completo não está na v1.
 
 ## Deploy / migrate
