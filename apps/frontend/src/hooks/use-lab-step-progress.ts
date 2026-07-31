@@ -138,6 +138,7 @@ export function useLabStepProgress(options: {
   const [hydrated, setHydrated] = useState(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const latestRef = useRef<LabProgressState | null>(null)
+  const hydratedRef = useRef(false)
   const completedStepIdsRef = useRef(completedStepIds)
   completedStepIdsRef.current = completedStepIds
   const currentStepIdRef = useRef(currentStepId)
@@ -176,6 +177,20 @@ export function useLabStepProgress(options: {
 
     async function hydrate() {
       if (lessonStatus === 'completed') {
+        // Completou no meio da sessão: não mexer em workspaceFiles — isso
+        // muda props do Sandpack e reseta o editor para o starter (o código
+        // atual só está no Sandpack + latestRef / API do Verificar).
+        if (hydratedRef.current) {
+          if (cancelled) return
+          setCompletedStepIds(allStepIds)
+          setCurrentStepId(lastStepId)
+          const files = latestRef.current?.files
+          const doneState = buildState(allStepIds, lastStepId, files)
+          latestRef.current = doneState
+          void saveLabProgress(lessonId, doneState)
+          return
+        }
+
         const fromApi = await getLabProgress(lessonId)
         const doneState: LabProgressState = {
           completedStepIds: allStepIds,
@@ -190,6 +205,7 @@ export function useLabStepProgress(options: {
           setCurrentStepId(lastStepId)
           setWorkspaceFiles(fromApi?.files)
           latestRef.current = doneState
+          hydratedRef.current = true
           setHydrated(true)
           void saveLabProgress(lessonId, doneState)
         }
@@ -206,6 +222,7 @@ export function useLabStepProgress(options: {
         setCompletedStepIds([])
         setCurrentStepId(firstStepId)
         setWorkspaceFiles(undefined)
+        hydratedRef.current = true
         setHydrated(true)
         return
       }
@@ -220,6 +237,7 @@ export function useLabStepProgress(options: {
       setCurrentStepId(resolved.currentStepId)
       setWorkspaceFiles(resolved.files)
       latestRef.current = resolved
+      hydratedRef.current = true
       setHydrated(true)
 
       if (legacy && !fromApi) {
@@ -239,7 +257,15 @@ export function useLabStepProgress(options: {
     firstStepId,
     lastStepId,
     allStepIds,
+    buildState,
   ])
+
+  // Troca de aula: permite hydrate completo de novo.
+  useEffect(() => {
+    hydratedRef.current = false
+    setHydrated(false)
+    latestRef.current = null
+  }, [lessonId])
 
   useEffect(() => {
     if (!hydrated || !currentStepId) return

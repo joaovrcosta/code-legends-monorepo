@@ -181,15 +181,17 @@ export function LabPlayground({
 
   const initialPlainFiles = initialFilesRef.current.files
 
+  // visibleFiles/providerFiles NÃO podem depender de `files` (workspace merge):
+  // após completar a aula, getLessonBySlug renova a referência de specs.files e
+  // o Sandpack reinicializa com o conteúdo do mount (starter) — apaga o editor.
   const { entryFile, visibleFiles } = useMemo(
     () =>
       getStudentVisibleFiles(
         effectiveTemplate,
-        files,
+        initialPlainFiles,
         Object.keys(initialPlainFiles),
       ),
-    // lessonId força recomputo ao trocar de lição (getStudentVisibleFiles não usa lessonId).
-    [effectiveTemplate, files, initialPlainFiles, lessonId],
+    [effectiveTemplate, initialPlainFiles, lessonId],
   )
 
   const providerFiles = useMemo(
@@ -199,14 +201,14 @@ export function LabPlayground({
 
   /** Só arquivos visíveis do starter editorial — Restaurar não usa workspace. */
   const starterStudentFiles = useMemo(() => {
-    const source = starterFiles ?? files
+    const source = starterFiles ?? initialPlainFiles
     const out: Record<string, string> = {}
     for (const path of visibleFiles) {
       const code = source?.[path] ?? initialPlainFiles[path]
       if (typeof code === 'string') out[path] = code
     }
     return out
-  }, [visibleFiles, starterFiles, files, initialPlainFiles])
+  }, [visibleFiles, starterFiles, initialPlainFiles])
 
   const sandpackOptions = useMemo(
     () => ({
