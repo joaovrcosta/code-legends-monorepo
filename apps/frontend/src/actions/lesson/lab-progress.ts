@@ -7,6 +7,8 @@ export type LabProgressState = {
   currentStepId: string
   completedCount?: number
   currentStepIndex?: number
+  files?: Record<string, string>
+  filesUpdatedAt?: string
 }
 
 export async function getLabProgress(
@@ -59,6 +61,7 @@ export async function saveLabProgress(
   )
 
   if (!response.ok) {
+    if (response.status === 429) return null
     console.error('Erro ao salvar lab progress', await response.text())
     return null
   }

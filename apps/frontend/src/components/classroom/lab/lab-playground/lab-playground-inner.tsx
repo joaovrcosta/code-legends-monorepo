@@ -31,6 +31,7 @@ export function LabPlaygroundInner({
   onStepCheckPass,
   onStepCheckFail,
   onRestoreLab,
+  onVerifyAttempt,
   hasTests,
   expected,
   testFiles,
@@ -44,6 +45,11 @@ export function LabPlaygroundInner({
   onStepCheckPass: (stepId: string) => void
   onStepCheckFail?: (stepId: string) => void
   onRestoreLab?: () => void
+  onVerifyAttempt?: (payload: {
+    stepId: string
+    result: 'pass' | 'fail' | 'timeout' | 'error'
+    files: Record<string, string>
+  }) => void
   hasTests: boolean
   /** Pergunta amigável do step; mostrada no rodapé se o Verificar falhar. */
   expected?: string
@@ -116,6 +122,7 @@ export function LabPlaygroundInner({
     testFiles,
     onStepCheckPass,
     onStepCheckFail,
+    onVerifyAttempt,
     sandpackRef,
     listenRef,
     refreshPreview,
@@ -380,8 +387,8 @@ export function LabPlaygroundInner({
         <DialogHeader>
           <DialogTitle className="text-white">Restaurar lab?</DialogTitle>
           <DialogDescription className="pt-2 text-sm text-white/60">
-            Isso vai voltar o código e as instruções para o estado inicial.
-            Seu progresso neste lab será perdido.
+            Volta o editor e os passos ao início. Seu progresso neste lab será
+            reiniciado. Seu histórico de tentativas continua disponível.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-6 gap-2">

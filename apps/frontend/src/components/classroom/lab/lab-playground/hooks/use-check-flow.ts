@@ -14,6 +14,7 @@ import {
   labRuntimeMirrorPath,
   withLabAutoExports,
 } from '@/lib/lab/lab-auto-exports'
+import { pickStudentWorkspaceFiles } from '@/lib/lab/lab-workspace-files'
 import {
   CHECK_START_DELAY_MS,
   CHECK_TIMEOUT_MS,
@@ -38,11 +39,11 @@ export type CheckState =
   | { phase: 'checking'; startedAt: number }
   | { phase: 'settling' }
   | {
-      phase: 'done'
-      result: 'pass' | 'fail'
-      error?: string
-      showExpected: boolean
-    }
+    phase: 'done'
+    result: 'pass' | 'fail'
+    error?: string
+    showExpected: boolean
+  }
 
 type CheckAction =
   | { type: 'RESET' }
@@ -50,11 +51,11 @@ type CheckAction =
   | { type: 'ENTER_SETTLING' }
   | { type: 'RELEASE_CHECKING' }
   | {
-      type: 'DONE'
-      result: 'pass' | 'fail'
-      error?: string
-      showExpected: boolean
-    }
+    type: 'DONE'
+    result: 'pass' | 'fail'
+    error?: string
+    showExpected: boolean
+  }
   | { type: 'CLEAR_RESULT' }
 
 function checkReducer(state: CheckState, action: CheckAction): CheckState {
@@ -111,6 +112,7 @@ export function useCheckFlow({
   wakeRuntime,
   setRightTab,
   consoleCapture,
+  onVerifyAttempt,
 }: {
   stepId: string
   expected?: string
@@ -129,6 +131,11 @@ export function useCheckFlow({
   consoleCapture: ReturnType<
     typeof import('./use-verify-console-capture').useVerifyConsoleCapture
   >
+  onVerifyAttempt?: (payload: {
+    stepId: string
+    result: 'pass' | 'fail' | 'timeout' | 'error'
+    files: Record<string, string>
+  }) => void
 }) {
   const [checkState, dispatchCheck] = useReducer(checkReducer, {
     phase: 'idle',
@@ -152,6 +159,7 @@ export function useCheckFlow({
   const stepIdRef = useRef(stepId)
   const onPassRef = useRef(onStepCheckPass)
   const onFailRef = useRef(onStepCheckFail)
+  const onVerifyAttemptRef = useRef(onVerifyAttempt)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const startDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   /** Hard-stop do settle (holdUntilSettled) — força release se timers forem clobberizados. */
@@ -183,6 +191,28 @@ export function useCheckFlow({
   stepIdRef.current = stepId
   onPassRef.current = onStepCheckPass
   onFailRef.current = onStepCheckFail
+  onVerifyAttemptRef.current = onVerifyAttempt
+
+  const emitVerifyAttempt = useCallback(
+    (result: 'pass' | 'fail' | 'timeout' | 'error') => {
+      try {
+        const files = pickStudentWorkspaceFiles(
+          sandpackRef.current.files as Record<
+            string,
+            { code?: string } | undefined
+          >,
+        )
+        onVerifyAttemptRef.current?.({
+          stepId: stepIdRef.current,
+          result,
+          files,
+        })
+      } catch {
+        // best-effort
+      }
+    },
+    [sandpackRef],
+  )
 
   useEffect(() => {
     checkingRef.current = checking
@@ -511,9 +541,10 @@ export function useCheckFlow({
           'Tempo esgotado. Espere o editor carregar e clique em Verificar de novo.',
         showExpected: false,
       })
+      emitVerifyAttempt('timeout')
       notifyFail()
     }, CHECK_TIMEOUT_MS)
-  }, [clearCheckTimeout, endChecking, notifyFail])
+  }, [clearCheckTimeout, endChecking, notifyFail, emitVerifyAttempt])
 
   const bumpCheckId = useCallback(() => {
     setCheckId((id) => {
@@ -581,11 +612,11 @@ export function useCheckFlow({
         activePaths.size === 0
           ? specs
           : Object.fromEntries(
-              Object.entries(specs).filter(([path]) => {
-                const normalized = path.startsWith('/') ? path : `/${path}`
-                return activePaths.has(normalized)
-              }),
-            )
+            Object.entries(specs).filter(([path]) => {
+              const normalized = path.startsWith('/') ? path : `/${path}`
+              return activePaths.has(normalized)
+            }),
+          )
 
       const { passed, total, failed } = countSpecResults(relevantSpecs)
       const passedAll = total > 0 && failed === 0 && passed === total
@@ -616,6 +647,7 @@ export function useCheckFlow({
       // no effect do stepId cancela a captura e o console fica vazio).
       // Fail: endChecking libera o botão na hora (sem esperar ~2s de captura).
       if (passedAll) {
+        emitVerifyAttempt('pass')
         endChecking({
           holdUntilSettled: true,
           onSettled: () => {
@@ -633,6 +665,7 @@ export function useCheckFlow({
         return
       }
 
+      emitVerifyAttempt('fail')
       endChecking()
 
       if (fileError) {
@@ -668,6 +701,7 @@ export function useCheckFlow({
       prepareStudentFilesForCheck,
       expected,
       failCheck,
+      emitVerifyAttempt,
     ],
   )
 

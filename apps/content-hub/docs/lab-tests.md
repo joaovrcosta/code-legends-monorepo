@@ -5,7 +5,7 @@ Contrato para autores no content-hub ao escrever steps de aulas **lab**.
 ## Modelo de execução
 
 - Testes rodam no **Jest do Sandpack** (iframe), não no servidor Next/API.
-- O aluno **não** precisa usar `export`. No **Verificar**, a plataforma injeta exports temporários das bindings top-level e restaura o código depois.
+- O aluno **não** precisa usar `export`. No **Verificar**, a plataforma usa um espelho oculto com auto-exports para o Jest; o editor do aluno não muda.
 - Helpers oficiais ficam em `/lab-test-helpers.js` (oculto; fora da pasta do aluno).
 
 ## Campos do step
@@ -106,6 +106,20 @@ test('numOfSlices é 8', async () => {
 ```
 
 **Errado (não gerar):** `assertBindingValue(code, 'numOfSlices', 8)` — o 1º argumento é o nome, não o fonte. Sem `await`, o Jest pode marcar o teste como passou sem checar.
+
+## Histórico de código do aluno (API)
+
+O playground persiste:
+
+1. **Workspace** (`PUT /lessons/:id/lab-progress` → `labProgress.files`) — último código allowlist para resume; gravado **só no Verificar** (sem autosave na digitação).
+2. **Tentativas** (`POST /lessons/:id/lab-attempts`) — snapshot no **Verificar**.
+
+Importante sobre `LabCodeAttempt.result` (`pass` | `fail` | `timeout` | `error`):
+
+- É **auto-relatado pelo client** (Jest roda no iframe Sandpack). A API **não** reexecuta os testes.
+- Serve só para **histórico / pedagogia / telemetria**.
+- **Proibido** usar esse campo para liberar certificado, XP, desbloqueio de módulo, nota oficial ou qualquer gate que exija prova de correção.
+- Progresso “oficial” continua sendo `labProgress` (steps) + `POST /lessons/:id/complete`.
 
 ## Regras
 

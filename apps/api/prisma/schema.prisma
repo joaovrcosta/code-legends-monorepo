@@ -14,23 +14,23 @@ enum CourseKind {
 }
 
 model Course {
-  id            String       @id @default(cuid())
-  title         String
-  slug          String       @unique
-  active        Boolean      @default(true)
-  thumbnail     String?
-  colorHex      String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  releaseAt     DateTime?    @default(now())
-  isFree        Boolean      @default(false)
-  subscriptions Int          @default(0)
-  level         String
-  icon          String?
-  description   String
-  status        CourseStatus @default(DRAFT)
-  publishedAt   DateTime?
-  kind          CourseKind   @default(CATALOG)
+  id                String       @id @default(cuid())
+  title             String
+  slug              String       @unique
+  active            Boolean      @default(true)
+  thumbnail         String?
+  colorHex          String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  releaseAt         DateTime?    @default(now())
+  isFree            Boolean      @default(false)
+  subscriptions     Int          @default(0)
+  level             String
+  icon              String?
+  description       String
+  status            CourseStatus @default(DRAFT)
+  publishedAt       DateTime?
+  kind              CourseKind   @default(CATALOG)
   exclusiveCareerId String?
 
   instructorId String
@@ -47,8 +47,8 @@ model Course {
   userCourses     UserCourse[]
   Certificate     Certificate[]
   favoriteCourses FavoriteCourse[]
-  courseLikes      CourseLike[]
-  courseDislikes   CourseDislike[]
+  courseLikes     CourseLike[]
+  courseDislikes  CourseDislike[]
   activeUsers     User[]           @relation("ActiveCourse")
   skills          CourseSkill[]
 
@@ -59,23 +59,23 @@ model Course {
 }
 
 model Career {
-  id               String   @id @default(cuid())
-  slug             String   @unique
-  title            String
-  description      String?
-  longDescription  String?  @db.Text
-  thumbnail        String?
-  icon             String?
-  colorHex         String?
-  active           Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  title           String
+  description     String?
+  longDescription String?  @db.Text
+  thumbnail       String?
+  icon            String?
+  colorHex        String?
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  modules      CareerModule[]
-  exams        CareerExam[]
-  userCareers  UserCareer[]
-  certificates Certificate[]
-  exclusiveCourses Course[] @relation("CareerExclusiveCourses")
+  modules          CareerModule[]
+  exams            CareerExam[]
+  userCareers      UserCareer[]
+  certificates     Certificate[]
+  exclusiveCourses Course[]       @relation("CareerExclusiveCourses")
 }
 
 model CareerModule {
@@ -288,9 +288,9 @@ model User {
   lessonLikes              LessonLike[]
   lessonDislikes           LessonDislike[]
   activeCourseId           String?
-  activeCourse             Course?               @relation("ActiveCourse", fields: [activeCourseId], references: [id])
-  coursesAsInstructor      Course[]              @relation("CourseInstructor")
-  lessonsAsAuthor          Lesson[]              @relation("LessonAuthor")
+  activeCourse             Course?                 @relation("ActiveCourse", fields: [activeCourseId], references: [id])
+  coursesAsInstructor      Course[]                @relation("CourseInstructor")
+  lessonsAsAuthor          Lesson[]                @relation("LessonAuthor")
   xpHistory                UserXpHistory[]
   skillXp                  UserSkillXp[]
   skillXpHistory           UserSkillXpHistory[]
@@ -300,14 +300,15 @@ model User {
   notifications            Notification[]
   payments                 Payment[]
   subscriptions            Subscription[]
-  lessonProductionsUpdated LessonProduction[]    @relation("LessonProductionUpdatedBy")
-  lessonProductionLogs     LessonProductionLog[] @relation("LessonProductionLogActor")
-  videoProvidersCreated    VideoProvider[]       @relation("VideoProviderCreator")
+  lessonProductionsUpdated LessonProduction[]      @relation("LessonProductionUpdatedBy")
+  lessonProductionLogs     LessonProductionLog[]   @relation("LessonProductionLogActor")
+  videoProvidersCreated    VideoProvider[]         @relation("VideoProviderCreator")
   videoProviderAuditLogs   VideoProviderAuditLog[] @relation("VideoProviderAuditActor")
 
   userCareers        UserCareer[]
   careerExamAttempts UserCareerExamAttempt[]
   careerModuleStatus UserCareerModuleStatus[]
+  labCodeAttempts    LabCodeAttempt[]
 
   @@index([planId])
 }
@@ -383,16 +384,17 @@ model Lesson {
   userCourses    UserCourse[]
   userProgress   UserProgress[]
 
-  video          Video?
-  article        Article?
-  quiz           Quiz?
-  project        Project?
-  lab            Lab?
-  skills         LessonSkill[]
-  production     LessonProduction?
-  productionLogs LessonProductionLog[]
-  lessonLikes    LessonLike[]
-  lessonDislikes LessonDislike[]
+  video           Video?
+  article         Article?
+  quiz            Quiz?
+  project         Project?
+  lab             Lab?
+  skills          LessonSkill[]
+  production      LessonProduction?
+  productionLogs  LessonProductionLog[]
+  lessonLikes     LessonLike[]
+  lessonDislikes  LessonDislike[]
+  labCodeAttempts LabCodeAttempt[]
 
   @@unique([slug, submoduleId])
 }
@@ -470,23 +472,23 @@ enum VideoProviderAuditAction {
 }
 
 model VideoProvider {
-  id               String              @id @default(cuid())
+  id               String                  @id @default(cuid())
   name             String
-  slug             String              @unique
-  status           VideoProviderStatus @default(ACTIVE)
-  isDefault        Boolean             @default(false)
-  isBuiltin        Boolean             @default(false)
+  slug             String                  @unique
+  status           VideoProviderStatus     @default(ACTIVE)
+  isDefault        Boolean                 @default(false)
+  isBuiltin        Boolean                 @default(false)
   handlerKey       String
-  urlPlaceholder   String              @default("")
+  urlPlaceholder   String                  @default("")
   helpText         String?
-  allowedDomains   Json                @default("[]")
-  allowedProtocols Json                @default("[\"https\"]")
-  maxUrlLength     Int                 @default(2048)
-  sortOrder        Int                 @default(0)
+  allowedDomains   Json                    @default("[]")
+  allowedProtocols Json                    @default("[\"https\"]")
+  maxUrlLength     Int                     @default(2048)
+  sortOrder        Int                     @default(0)
   createdById      String?
-  createdBy        User?               @relation("VideoProviderCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
+  createdBy        User?                   @relation("VideoProviderCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
   videos           Video[]
   auditLogs        VideoProviderAuditLog[]
 
@@ -674,7 +676,9 @@ model UserProgress {
   attempts     Int        @default(0)
   score        Float?
   notes        String?
-  /** Progresso parcial de lab: { completedStepIds, currentStepId, completedCount?, currentStepIndex? } */
+  /**
+   * Progresso parcial de lab: steps + workspace files (ver LabProgressPayload).
+   */
   labProgress  Json?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -686,6 +690,27 @@ model UserProgress {
   @@index([taskId, completedAt])
   @@index([taskId, updatedAt])
   @@index([userCourseId, completedAt])
+}
+
+/**
+ * Snapshot de código no Verificar (histórico pedagógico).
+ * `result` é auto-relatado pelo client (Jest no iframe) — NÃO usar para
+ * certificado, XP, desbloqueio ou qualquer gate de integridade.
+ */
+model LabCodeAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  lessonId  Int
+  stepId    String
+  files     Json
+  result    String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([userId, lessonId, createdAt(sort: Desc)])
+  @@index([userId, lessonId, stepId, createdAt(sort: Desc)])
 }
 
 model UserModuleProgress {
@@ -953,19 +978,19 @@ enum PaymentProviderMethod {
 }
 
 model PaymentProvider {
-  id               String                   @id @default(cuid())
+  id               String                    @id @default(cuid())
   name             String
-  slug             String                   @unique
+  slug             String                    @unique
   handlerKey       String
-  gatewayCode      String                   @unique
-  status           PaymentProviderStatus    @default(ACTIVE)
-  isDefault        Boolean                  @default(false)
-  isBuiltin        Boolean                  @default(false)
-  supportedMethods PaymentProviderMethod[]  @default([CARD])
-  sortOrder        Int                      @default(0)
+  gatewayCode      String                    @unique
+  status           PaymentProviderStatus     @default(ACTIVE)
+  isDefault        Boolean                   @default(false)
+  isBuiltin        Boolean                   @default(false)
+  supportedMethods PaymentProviderMethod[]   @default([CARD])
+  sortOrder        Int                       @default(0)
   helpText         String?
-  createdAt        DateTime                 @default(now())
-  updatedAt        DateTime                 @updatedAt
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
   payments         Payment[]
   auditLogs        PaymentProviderAuditLog[]
 
@@ -992,16 +1017,16 @@ model Payment {
   providerId       String?
   provider         PaymentProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
   amountCents      Int
-  currency         String        @default("BRL")
-  status           PaymentStatus @default(PENDING)
+  currency         String           @default("BRL")
+  status           PaymentStatus    @default(PENDING)
   planId           String
-  planRecord       Plan          @relation(fields: [planId], references: [id])
+  planRecord       Plan             @relation(fields: [planId], references: [id])
   gateway          String
   gatewayPaymentId String?
   metadata         Json?
   paidAt           DateTime?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   @@index([userId])
   @@index([status])

@@ -40,6 +40,8 @@ export interface IUserProgressRepository {
       currentStepId: string;
       completedCount?: number;
       currentStepIndex?: number;
+      files?: Record<string, string>;
+      filesUpdatedAt?: string;
     };
   }): Promise<UserProgress>;
 }

@@ -1,0 +1,17 @@
+name: Prune lab code attempts
+
+on:
+  schedule:
+    - cron: '30 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  prune-lab-code-attempts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call prune-lab-code-attempts job
+        run: |
+          curl -sf -X POST \
+            --max-time 120 \
+            -H "Authorization: Bearer ${{ secrets.JOBS_SECRET }}" \
+            "${{ vars.API_URL }}/internal/jobs/prune-lab-code-attempts"

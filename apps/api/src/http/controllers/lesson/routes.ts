@@ -11,6 +11,10 @@ import {
   getLabProgress,
   upsertLabProgress,
 } from "./lab-progress.controller";
+import {
+  createLabCodeAttempt,
+  listLabCodeAttempts,
+} from "./lab-code-attempts.controller";
 import { getLessonLikes } from "./get-likes.controller";
 import { addLessonLike } from "./add-like.controller";
 import { removeLessonLike } from "./remove-like.controller";
@@ -98,8 +102,42 @@ export async function lessonRoutes(app: FastifyInstance) {
         verifyJWT,
         verifyLessonAccess({ lessonIdParam: "id", allowInstructors: false }),
       ],
+      config: {
+        rateLimit: {
+          max: 60,
+          timeWindow: "1 minute",
+        },
+      },
     },
     upsertLabProgress,
+  );
+
+  app.get(
+    "/lessons/:id/lab-attempts",
+    {
+      onRequest: [
+        verifyJWT,
+        verifyLessonAccess({ lessonIdParam: "id", allowInstructors: false }),
+      ],
+    },
+    listLabCodeAttempts,
+  );
+
+  app.post(
+    "/lessons/:id/lab-attempts",
+    {
+      onRequest: [
+        verifyJWT,
+        verifyLessonAccess({ lessonIdParam: "id", allowInstructors: false }),
+      ],
+      config: {
+        rateLimit: {
+          max: 20,
+          timeWindow: "1 minute",
+        },
+      },
+    },
+    createLabCodeAttempt,
   );
 
   app.post(

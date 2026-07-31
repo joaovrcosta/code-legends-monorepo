@@ -156,6 +156,8 @@ export class PrismaUserProgressRepository implements IUserProgressRepository {
       currentStepId: string;
       completedCount?: number;
       currentStepIndex?: number;
+      files?: Record<string, string>;
+      filesUpdatedAt?: string;
     };
   }): Promise<UserProgress> {
     const labProgressJson = data.labProgress as unknown as object;

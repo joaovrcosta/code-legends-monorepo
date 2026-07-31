@@ -11,7 +11,10 @@ import type { LessonWithContent } from '@/types/roadmap'
 import { LabLearnPanel } from '@/components/classroom/lab/lab-learn-panel'
 import { LabInstructionsPanel } from '@/components/classroom/lab/lab-instructions-panel'
 import { LabPlayground } from '@/components/classroom/lab/lab-playground'
+import { LabAttemptsPanel } from '@/components/classroom/lab/lab-attempts-panel'
 import { useLabStepProgress } from '@/hooks/use-lab-step-progress'
+import { createLabCodeAttempt } from '@/actions/lesson/lab-code-attempts'
+import { mergeLabStarterWithWorkspace } from '@/lib/lab/lab-workspace-files'
 import { continueCourse } from '@/actions/course'
 import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
 import { maybeShowStreakCongrats } from '@/lib/maybe-show-streak-congrats'
@@ -54,6 +57,9 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
     completedStepIds,
     completeStep,
     clearProgress,
+    hydrated,
+    workspaceFiles,
+    updateWorkspaceFiles,
   } = useLabStepProgress({
     lessonId: lesson.id,
     steps,
@@ -62,6 +68,8 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
 
   const [isMarking, setIsMarking] = useState(false)
   const [failedStepId, setFailedStepId] = useState<string | null>(null)
+  const [attemptsRefreshKey, setAttemptsRefreshKey] = useState(0)
+  const [playgroundEpoch, setPlaygroundEpoch] = useState(0)
   const layoutRef = useRef<HTMLDivElement>(null)
   const {
     sidebarWidth,
@@ -143,7 +151,36 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
   const handleRestoreLab = useCallback(() => {
     clearProgress()
     setFailedStepId(null)
+    setPlaygroundEpoch((n) => n + 1)
   }, [clearProgress])
+
+  const handleVerifyAttempt = useCallback(
+    (payload: {
+      stepId: string
+      result: 'pass' | 'fail' | 'timeout' | 'error'
+      files: Record<string, string>
+    }) => {
+      // Workspace + histórico só no Verificar (sem autosave na digitação).
+      updateWorkspaceFiles(payload.files)
+      void createLabCodeAttempt(lesson.id, payload).then((ok) => {
+        if (ok) setAttemptsRefreshKey((k) => k + 1)
+      })
+    },
+    [lesson.id, updateWorkspaceFiles],
+  )
+
+  const handleRestoreAttemptCode = useCallback(
+    (files: Record<string, string>) => {
+      updateWorkspaceFiles(files, { applyToState: true })
+      setPlaygroundEpoch((n) => n + 1)
+    },
+    [updateWorkspaceFiles],
+  )
+
+  const playgroundFiles = useMemo(
+    () => mergeLabStarterWithWorkspace(lab?.specs?.files, workspaceFiles),
+    [lab?.specs?.files, workspaceFiles],
+  )
 
   if (!lab) {
     return (
@@ -242,6 +279,26 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
                 />
               </AccordionContent>
             </AccordionItem>
+
+            <AccordionItem
+              value="historico"
+              className="border-t border-[#25252A]"
+            >
+              <AccordionTrigger className={LAB_ACCORDION_TRIGGER}>
+                <span className="text-sm font-semibold uppercase tracking-wide">
+                  Histórico
+                </span>
+                <CaretDown className="h-4 w-4 shrink-0 text-white/50 transition-transform duration-200" />
+              </AccordionTrigger>
+              <AccordionContent className="pb-2">
+                <LabAttemptsPanel
+                  lessonId={lesson.id}
+                  stepId={currentStep?.id}
+                  refreshKey={attemptsRefreshKey}
+                  onRestoreCode={handleRestoreAttemptCode}
+                />
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
         </aside>
 
@@ -271,11 +328,12 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
         </div>
 
         <div className="mt-4 flex min-h-0 min-w-0 flex-1 flex-col gap-3 lg:mt-0">
-          {currentStep ? (
+          {currentStep && hydrated ? (
             <LabPlayground
-              key={lesson.id}
+              key={`${lesson.id}-${playgroundEpoch}`}
               lessonId={lesson.id}
-              files={lab.specs?.files}
+              files={playgroundFiles}
+              starterFiles={lab.specs?.files}
               template={lab.specs?.template ?? 'vanilla'}
               activeTests={activeTests}
               stepId={currentStep.id}
@@ -283,10 +341,15 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
               onStepCheckPass={handleStepCheckPass}
               onStepCheckFail={handleStepCheckFail}
               onRestoreLab={handleRestoreLab}
+              onVerifyAttempt={handleVerifyAttempt}
               height="100%"
               className="min-h-[420px] flex-1"
             />
-          ) : null}
+          ) : (
+            <div className="flex min-h-[420px] flex-1 items-center justify-center rounded-lg border border-[#25252A] bg-[#1A1A1A] text-sm text-white/40">
+              Carregando lab…
+            </div>
+          )}
         </div>
       </div>
     </div>

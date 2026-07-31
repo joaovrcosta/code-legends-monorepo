@@ -18,7 +18,10 @@ import {
 
 export type LabPlaygroundProps = {
   lessonId: number
+  /** Arquivos iniciais do Sandpack (starter + workspace mergeado). */
   files?: Record<string, string>
+  /** Starter editorial puro — usado pelo botão Restaurar. */
+  starterFiles?: Record<string, string>
   template?: 'vanilla' | 'react'
   activeTests: { testFile?: string; tests?: Record<string, string> }
   stepId: string
@@ -29,6 +32,12 @@ export type LabPlaygroundProps = {
   onStepCheckFail?: (stepId: string) => void
   /** Reset de progresso/instruções ao confirmar Restaurar. */
   onRestoreLab?: () => void
+  /** Snapshot best-effort após Verificar (histórico + workspace). */
+  onVerifyAttempt?: (payload: {
+    stepId: string
+    result: 'pass' | 'fail' | 'timeout' | 'error'
+    files: Record<string, string>
+  }) => void
   className?: string
   height?: number | string
 }
@@ -85,6 +94,7 @@ function buildInitialFiles(
 export function LabPlayground({
   lessonId,
   files,
+  starterFiles,
   template = 'vanilla',
   activeTests,
   stepId,
@@ -92,6 +102,7 @@ export function LabPlayground({
   onStepCheckPass,
   onStepCheckFail,
   onRestoreLab,
+  onVerifyAttempt,
   className = '',
   height = '100%',
 }: LabPlaygroundProps) {
@@ -181,15 +192,16 @@ export function LabPlayground({
     [initialPlainFiles, visibleFiles],
   )
 
-  /** Só arquivos visíveis do aluno — Restaurar não mexe em testes/helpers. */
+  /** Só arquivos visíveis do starter editorial — Restaurar não usa workspace. */
   const starterStudentFiles = useMemo(() => {
+    const source = starterFiles ?? files
     const out: Record<string, string> = {}
     for (const path of visibleFiles) {
-      const code = initialPlainFiles[path]
+      const code = source?.[path] ?? initialPlainFiles[path]
       if (typeof code === 'string') out[path] = code
     }
     return out
-  }, [visibleFiles, initialPlainFiles])
+  }, [visibleFiles, starterFiles, files, initialPlainFiles])
 
   const sandpackOptions = useMemo(
     () => ({
@@ -235,6 +247,7 @@ export function LabPlayground({
           onStepCheckPass={onStepCheckPass}
           onStepCheckFail={onStepCheckFail}
           onRestoreLab={onRestoreLab}
+          onVerifyAttempt={onVerifyAttempt}
           hasTests={hasTests}
           expected={expected}
           testFiles={testFiles}

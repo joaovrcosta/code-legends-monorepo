@@ -111,6 +111,8 @@ function resolveProgressFromStore(
     currentStepId: nextCurrent,
     completedCount: nextCompleted.length,
     currentStepIndex: Math.max(0, allStepIds.indexOf(nextCurrent)),
+    files: stored.files,
+    filesUpdatedAt: stored.filesUpdatedAt,
   }
 }
 
@@ -130,17 +132,41 @@ export function useLabStepProgress(options: {
 
   const [completedStepIds, setCompletedStepIds] = useState<string[]>([])
   const [currentStepId, setCurrentStepId] = useState(firstStepId)
+  const [workspaceFiles, setWorkspaceFiles] = useState<
+    Record<string, string> | undefined
+  >(undefined)
   const [hydrated, setHydrated] = useState(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const latestRef = useRef<LabProgressState | null>(null)
+  const completedStepIdsRef = useRef(completedStepIds)
+  completedStepIdsRef.current = completedStepIds
+  const currentStepIdRef = useRef(currentStepId)
+  currentStepIdRef.current = currentStepId
+
+  const buildState = useCallback(
+    (
+      completed: string[],
+      current: string,
+      files: Record<string, string> | undefined,
+    ): LabProgressState => ({
+      completedStepIds: completed,
+      currentStepId: current,
+      completedCount: completed.length,
+      currentStepIndex: Math.max(0, allStepIds.indexOf(current)),
+      ...(files !== undefined
+        ? { files, filesUpdatedAt: new Date().toISOString() }
+        : {}),
+    }),
+    [allStepIds],
+  )
 
   const persist = useCallback(
-    (state: LabProgressState) => {
+    (state: LabProgressState, debounceMs = 400) => {
       latestRef.current = state
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
       saveTimerRef.current = setTimeout(() => {
         void saveLabProgress(lessonId, state)
-      }, 400)
+      }, debounceMs)
     },
     [lessonId],
   )
@@ -150,15 +176,20 @@ export function useLabStepProgress(options: {
 
     async function hydrate() {
       if (lessonStatus === 'completed') {
+        const fromApi = await getLabProgress(lessonId)
         const doneState: LabProgressState = {
           completedStepIds: allStepIds,
           currentStepId: lastStepId,
           completedCount: allStepIds.length,
           currentStepIndex: Math.max(0, allStepIds.length - 1),
+          files: fromApi?.files,
+          filesUpdatedAt: fromApi?.filesUpdatedAt,
         }
         if (!cancelled) {
           setCompletedStepIds(allStepIds)
           setCurrentStepId(lastStepId)
+          setWorkspaceFiles(fromApi?.files)
+          latestRef.current = doneState
           setHydrated(true)
           void saveLabProgress(lessonId, doneState)
         }
@@ -174,6 +205,7 @@ export function useLabStepProgress(options: {
       if (!stored) {
         setCompletedStepIds([])
         setCurrentStepId(firstStepId)
+        setWorkspaceFiles(undefined)
         setHydrated(true)
         return
       }
@@ -186,9 +218,10 @@ export function useLabStepProgress(options: {
       )
       setCompletedStepIds(resolved.completedStepIds)
       setCurrentStepId(resolved.currentStepId)
+      setWorkspaceFiles(resolved.files)
+      latestRef.current = resolved
       setHydrated(true)
 
-      // Migra localStorage → API uma vez.
       if (legacy && !fromApi) {
         void saveLabProgress(lessonId, resolved).then(() => {
           clearLegacyProgress(lessonId)
@@ -210,19 +243,18 @@ export function useLabStepProgress(options: {
 
   useEffect(() => {
     if (!hydrated || !currentStepId) return
-    persist({
-      completedStepIds,
-      currentStepId,
-      completedCount: completedStepIds.length,
-      currentStepIndex: Math.max(0, allStepIds.indexOf(currentStepId)),
-    })
+    const files = latestRef.current?.files ?? workspaceFiles
+    const state = buildState(completedStepIds, currentStepId, files)
+    latestRef.current = state
+    persist(state, 400)
   }, [
     lessonId,
     completedStepIds,
     currentStepId,
     hydrated,
-    allStepIds,
+    buildState,
     persist,
+    // workspaceFiles intencionalmente omitido — autosave próprio
   ])
 
   useEffect(
@@ -247,8 +279,6 @@ export function useLabStepProgress(options: {
       setCompletedStepIds((prev) =>
         prev.includes(stepId) ? prev : [...prev, stepId],
       )
-      // Só avança se o step concluído ainda é o atual (evita pass atrasado
-      // do step-1 empurrar progresso depois que o aluno já está no step-2).
       setCurrentStepId((current) => {
         if (current !== stepId) return current
         const idx = steps.findIndex((s) => s.id === stepId)
@@ -263,6 +293,31 @@ export function useLabStepProgress(options: {
     completeStep(currentStep.id)
   }, [completeStep, currentStep])
 
+  /**
+   * Persiste workspace no lab-progress.
+   * Usado no Verificar e no restore de tentativa — não na digitação.
+   */
+  const updateWorkspaceFiles = useCallback(
+    (
+      files: Record<string, string>,
+      options?: { applyToState?: boolean },
+    ) => {
+      if (options?.applyToState) {
+        setWorkspaceFiles(files)
+      }
+
+      const base = latestRef.current
+      const state = buildState(
+        base?.completedStepIds ?? completedStepIdsRef.current,
+        base?.currentStepId ?? currentStepIdRef.current,
+        files,
+      )
+      latestRef.current = state
+      void saveLabProgress(lessonId, state)
+    },
+    [buildState, lessonId],
+  )
+
   const clearProgress = useCallback(() => {
     clearLegacyProgress(lessonId)
     const next: LabProgressState = {
@@ -270,11 +325,14 @@ export function useLabStepProgress(options: {
       currentStepId: firstStepId,
       completedCount: 0,
       currentStepIndex: 0,
+      files: {},
+      filesUpdatedAt: new Date().toISOString(),
     }
     latestRef.current = next
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     setCompletedStepIds([])
     setCurrentStepId(firstStepId)
+    setWorkspaceFiles({})
     void saveLabProgress(lessonId, next)
   }, [lessonId, firstStepId])
 
@@ -287,5 +345,8 @@ export function useLabStepProgress(options: {
     completeStep,
     completeCurrentStep,
     clearProgress,
+    hydrated,
+    workspaceFiles,
+    updateWorkspaceFiles,
   }
 }
