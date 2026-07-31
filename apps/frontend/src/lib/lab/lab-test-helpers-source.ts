@@ -256,9 +256,19 @@ export async function softImportModule(path) {
       // mantém /index.js
     }
   }
+  // Espelho oculto com auto-export (escrito no Verificar; editor não muda).
+  // Mesma pasta do aluno: /App.js → /App.__lab_check.js (imports relativos ok).
+  const mirror = resolved.replace(/(\\.[^./]+)?$/, ".__lab_check.js");
+  let importPath = resolved;
+  try {
+    fs.readFileSync(mirror, "utf8");
+    importPath = mirror;
+  } catch (_e) {
+    // sem espelho: importa o arquivo do aluno
+  }
   const bust = Date.now() + "-" + Math.random().toString(36).slice(2);
   try {
-    return await import(resolved + "?labCheck=" + bust);
+    return await import(importPath + "?labCheck=" + bust);
   } catch (e) {
     const msg = e && e.message ? String(e.message) : String(e);
     throw new Error(

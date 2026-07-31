@@ -28,4 +28,10 @@ describe('buildLabTestHelpersSource literal boundaries', () => {
       assertBindingAssignedInSource('var idade = 250;', 'idade', 25),
     ).toThrow(/should have a value/)
   })
+
+  it('softImportModule consulta espelho .__lab_check.js', () => {
+    const src = buildLabTestHelpersSource('react')
+    expect(src).toContain('.__lab_check.js')
+    expect(src).toMatch(/resolved\.replace/)
+  })
 })

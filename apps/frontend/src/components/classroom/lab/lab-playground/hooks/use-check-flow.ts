@@ -10,7 +10,10 @@ import {
   type MutableRefObject,
   type SetStateAction,
 } from 'react'
-import { withLabAutoExports } from '@/lib/lab/lab-auto-exports'
+import {
+  labRuntimeMirrorPath,
+  withLabAutoExports,
+} from '@/lib/lab/lab-auto-exports'
 import {
   CHECK_START_DELAY_MS,
   CHECK_TIMEOUT_MS,
@@ -155,7 +158,8 @@ export function useCheckFlow({
   const hardStopRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const expectedCheckIdRef = useRef(0)
   const transpileRetryCountRef = useRef(0)
-  const preCheckFilesRef = useRef<Record<string, string> | null>(null)
+  /** Paths dos espelhos `*.__lab_check.js` criados no Verificar (não o App.js). */
+  const preCheckMirrorsRef = useRef<string[] | null>(null)
   const bundlerErrorRef = useRef(false)
 
   const testFilesRef = useRef(testFiles)
@@ -214,34 +218,49 @@ export function useCheckFlow({
   }, [])
 
   const restoreStudentFiles = useCallback(() => {
-    const backup = preCheckFilesRef.current
-    if (!backup) return
-    for (const [path, code] of Object.entries(backup)) {
+    const mirrors = preCheckMirrorsRef.current
+    if (!mirrors?.length) return
+    for (const path of mirrors) {
       try {
-        sandpackRef.current.updateFile(path, code)
+        if (typeof sandpackRef.current.deleteFile === 'function') {
+          sandpackRef.current.deleteFile(path)
+        } else {
+          sandpackRef.current.updateFile(path, '/* lab runtime mirror cleared */\n')
+        }
       } catch {
-        // ignore
-      }
-    }
-    preCheckFilesRef.current = null
-  }, [sandpackRef])
-
-  const prepareStudentFilesForCheck = useCallback(() => {
-    const backup: Record<string, string> = {}
-    for (const path of STUDENT_CODE_PATHS) {
-      const file = sandpackRef.current.files[path]
-      if (!file?.code) continue
-      backup[path] = file.code
-      const next = withLabAutoExports(file.code)
-      if (next !== file.code) {
         try {
-          sandpackRef.current.updateFile(path, next)
+          sandpackRef.current.updateFile(
+            path,
+            '/* lab runtime mirror cleared */\n',
+          )
         } catch {
           // ignore
         }
       }
     }
-    preCheckFilesRef.current = backup
+    preCheckMirrorsRef.current = null
+  }, [sandpackRef])
+
+  /**
+   * Escreve auto-export num espelho oculto (`/App.__lab_check.js`).
+   * Não altera o arquivo visível — evita a piscada do `export { ... }` no editor.
+   */
+  const prepareStudentFilesForCheck = useCallback(() => {
+    const mirrors: string[] = []
+    for (const path of STUDENT_CODE_PATHS) {
+      const file = sandpackRef.current.files[path]
+      if (!file?.code) continue
+      const next = withLabAutoExports(file.code)
+      if (next === file.code) continue
+      const mirror = labRuntimeMirrorPath(path)
+      try {
+        sandpackRef.current.updateFile(mirror, next)
+        mirrors.push(mirror)
+      } catch {
+        // ignore
+      }
+    }
+    preCheckMirrorsRef.current = mirrors
   }, [sandpackRef])
 
   /**
@@ -523,8 +542,7 @@ export function useCheckFlow({
     scheduleCheckTimeout()
 
     clearStartDelay()
-    // Injeta exports e dispara Jest. Sem refresh: refresh aborta o client.
-    // assertBindingValue tem fallback no fonte se o export ainda não entrou.
+    // Espelho oculto com auto-export + Jest. O App.js visível não muda.
     startDelayRef.current = setTimeout(() => {
       startDelayRef.current = null
       if (!checkingRef.current) return

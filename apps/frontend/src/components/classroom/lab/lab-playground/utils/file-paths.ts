@@ -37,6 +37,7 @@ export function isTestFilePath(path: string): boolean {
   return (
     isManagedLabStepTestPath(path) ||
     path === LAB_TEST_HELPERS_PATH ||
+    path.endsWith('.__lab_check.js') ||
     /\.(test|spec)\.[tj]sx?$/i.test(path)
   )
 }

@@ -9,6 +9,25 @@ const parser = Parser.extend(jsx())
 
 export const LAB_AUTO_EXPORT_MARKER = '/* __lab_auto_exports__ */'
 
+/** Sufixo do espelho oculto usado no Verificar (mesma pasta do arquivo do aluno). */
+export const LAB_RUNTIME_MIRROR_SUFFIX = '.__lab_check.js'
+
+/**
+ * Path do espelho com auto-export: `/App.js` → `/App.__lab_check.js`.
+ * Mesma pasta para não quebrar `import './x'`; o editor (visibleFiles) não mostra.
+ */
+export function labRuntimeMirrorPath(studentPath: string): string {
+  const normalized = studentPath.startsWith('/')
+    ? studentPath
+    : `/${studentPath}`
+  // /App.js → /App.__lab_check.js ; /index.js → /index.__lab_check.js
+  return normalized.replace(/(\.[^./]+)?$/, LAB_RUNTIME_MIRROR_SUFFIX)
+}
+
+export function isLabRuntimeMirrorPath(path: string): boolean {
+  return path.endsWith(LAB_RUNTIME_MIRROR_SUFFIX)
+}
+
 type AcornNode = { type: string; name?: string; id?: AcornNode | null }
 
 /** Remove bloco de export injetado só para os testes. */

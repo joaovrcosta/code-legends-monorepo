@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  isLabRuntimeMirrorPath,
+  labRuntimeMirrorPath,
   listTopLevelBindings,
   withLabAutoExports,
 } from './lab-auto-exports'
@@ -56,5 +58,14 @@ console.log("hi");`
   it('fail-closed se parse inválido', () => {
     const code = 'let a = ;'
     expect(withLabAutoExports(code)).toBe(code)
+  })
+})
+
+describe('labRuntimeMirrorPath', () => {
+  it('mapeia path do aluno para espelho na mesma pasta', () => {
+    expect(labRuntimeMirrorPath('/App.js')).toBe('/App.__lab_check.js')
+    expect(labRuntimeMirrorPath('index.js')).toBe('/index.__lab_check.js')
+    expect(isLabRuntimeMirrorPath('/App.__lab_check.js')).toBe(true)
+    expect(isLabRuntimeMirrorPath('/App.js')).toBe(false)
   })
 })
