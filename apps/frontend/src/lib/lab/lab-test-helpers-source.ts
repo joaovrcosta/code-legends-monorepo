@@ -324,6 +324,27 @@ function isPrimitiveExpected(value) {
   return value === null || t === "string" || t === "number" || t === "boolean";
 }
 
+function hasBindingLiteralAssignment(code, name, expected) {
+  if (typeof expected === "string") {
+    return (
+      sourceContainsLoose(code, name + " = '" + expected + "'") ||
+      sourceContainsLoose(code, name + ' = "' + expected + '"') ||
+      sourceContainsLoose(code, name + " = \`" + expected + "\`")
+    );
+  }
+  const hay = stripStringsAndComments(code);
+  const escName = escapeRegExp(name);
+  const lit =
+    typeof expected === "number"
+      ? String(expected).replace(/\\./g, "\\\\.")
+      : String(expected);
+  const boundary =
+    typeof expected === "number" ? "(?![\\\\d.eE])" : "(?![\\\\w$])";
+  return new RegExp(
+    "\\\\b" + escName + "\\\\s*=\\\\s*" + lit + boundary
+  ).test(hay);
+}
+
 function assertBindingAssignedInSource(code, name, expected) {
   const hasBinding =
     hasKeywordBinding(code, "var", name) ||
@@ -332,27 +353,7 @@ function assertBindingAssignedInSource(code, name, expected) {
   if (!hasBinding) {
     throw new Error("Did you create a variable named \`" + name + "\`?");
   }
-  if (typeof expected === "string") {
-    if (
-      !sourceContainsLoose(code, name + " = '" + expected + "'") &&
-      !sourceContainsLoose(code, name + ' = "' + expected + '"') &&
-      !sourceContainsLoose(code, name + " = \`" + expected + "\`")
-    ) {
-      throw new Error(
-        "\`" +
-          name +
-          "\` should have a value of \`" +
-          expected +
-          "\`. Expected \`" +
-          name +
-          "\` to equal \`" +
-          expected +
-          "\`."
-      );
-    }
-    return;
-  }
-  if (!sourceContainsLoose(code, name + " = " + String(expected))) {
+  if (!hasBindingLiteralAssignment(code, name, expected)) {
     throw new Error(
       "\`" +
         name +

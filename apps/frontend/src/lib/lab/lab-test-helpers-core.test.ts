@@ -243,4 +243,22 @@ describe('assertBindingValue arg normalization', () => {
       assertBindingAssignedInSource('var nome = "Ana";', 'nome', 'Ana'),
     ).not.toThrow()
   })
+
+  it('rejeita truee / 250 (substring de true / 25)', () => {
+    expect(() =>
+      assertBindingAssignedInSource('var ativo = true;', 'ativo', true),
+    ).not.toThrow()
+    expect(() =>
+      assertBindingAssignedInSource('var ativo = truee;', 'ativo', true),
+    ).toThrow(/should have a value/)
+    expect(() =>
+      assertBindingAssignedInSource('var ativo = false;', 'ativo', false),
+    ).not.toThrow()
+    expect(() =>
+      assertBindingAssignedInSource('var ativo = falsee;', 'ativo', false),
+    ).toThrow(/should have a value/)
+    expect(() =>
+      assertBindingAssignedInSource('var idade = 250;', 'idade', 25),
+    ).toThrow(/should have a value/)
+  })
 })

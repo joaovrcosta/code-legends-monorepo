@@ -278,6 +278,37 @@ export function isMistakenAssertBindingValueCall(
 }
 
 /**
+ * true se o fonte atribui o literal `expected` a `name`.
+ * Literais sem aspas (true/false/null/números) usam boundary de token —
+ * evita falso positivo de substring (`ativo = truee` ≠ `true`, `idade = 250` ≠ `25`).
+ */
+export function hasBindingLiteralAssignment(
+  code: string,
+  name: string,
+  expected: string | number | boolean | null,
+): boolean {
+  if (typeof expected === 'string') {
+    return (
+      sourceContainsLoose(code, `${name} = '${expected}'`) ||
+      sourceContainsLoose(code, `${name} = "${expected}"`) ||
+      sourceContainsLoose(code, `${name} = \`${expected}\``)
+    )
+  }
+
+  // Não compactar: `varidade=25` perde o \\b entre keyword e nome.
+  const hay = stripStringsAndComments(code)
+  const escName = escapeRegExp(name)
+  const lit =
+    typeof expected === 'number'
+      ? String(expected).replace(/\./g, '\\.')
+      : String(expected)
+  // número: não continuar com dígito/ponto/expoente; bool/null: não continuar identificador
+  const boundary =
+    typeof expected === 'number' ? '(?![\\d.eE])' : '(?![\\w$])'
+  return new RegExp(`\\b${escName}\\s*=\\s*${lit}${boundary}`).test(hay)
+}
+
+/**
  * Checagem síncrona de `name = expected` no fonte (var/let/const).
  * Usada para falhar no Jest mesmo quando o testFile esquece `await`.
  */
@@ -293,19 +324,7 @@ export function assertBindingAssignedInSource(
   if (!hasBinding) {
     throw new Error(`Did you create a variable named \`${name}\`?`)
   }
-  if (typeof expected === 'string') {
-    const ok =
-      sourceContainsLoose(code, `${name} = '${expected}'`) ||
-      sourceContainsLoose(code, `${name} = "${expected}"`) ||
-      sourceContainsLoose(code, `${name} = \`${expected}\``)
-    if (!ok) {
-      throw new Error(
-        `\`${name}\` should have a value of \`${expected}\`. Expected \`${name}\` to equal \`${expected}\`.`,
-      )
-    }
-    return
-  }
-  if (!sourceContainsLoose(code, `${name} = ${String(expected)}`)) {
+  if (!hasBindingLiteralAssignment(code, name, expected)) {
     throw new Error(
       `\`${name}\` should have a value of \`${String(expected)}\`. Expected \`${name}\` to equal \`${String(expected)}\`.`,
     )
