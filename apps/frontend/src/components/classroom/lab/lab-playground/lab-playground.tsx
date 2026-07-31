@@ -34,7 +34,7 @@ export type LabPlaygroundProps = {
   onStepCheckFail?: (stepId: string) => void
   /** Reset de progresso/instruções ao confirmar Restaurar. */
   onRestoreLab?: () => void
-  /** Snapshot best-effort após Verificar (histórico + workspace). */
+  /** Snapshot best-effort após Verificar (workspace). */
   onVerifyAttempt?: (payload: {
     stepId: string
     result: 'pass' | 'fail' | 'timeout' | 'error'

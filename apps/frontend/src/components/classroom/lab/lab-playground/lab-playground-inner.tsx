@@ -391,7 +391,7 @@ export function LabPlaygroundInner({
           <DialogTitle className="text-white">Restaurar lab?</DialogTitle>
           <DialogDescription className="pt-2 text-sm text-white/60">
             Volta o editor e os passos ao início. Seu progresso neste lab será
-            reiniciado. Seu histórico de tentativas continua disponível.
+            reiniciado.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-6 gap-2">

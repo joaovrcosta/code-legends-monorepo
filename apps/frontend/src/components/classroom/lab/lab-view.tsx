@@ -11,9 +11,7 @@ import type { LessonWithContent } from '@/types/roadmap'
 import { LabLearnPanel } from '@/components/classroom/lab/lab-learn-panel'
 import { LabInstructionsPanel } from '@/components/classroom/lab/lab-instructions-panel'
 import { LabPlayground } from '@/components/classroom/lab/lab-playground'
-import { LabAttemptsPanel } from '@/components/classroom/lab/lab-attempts-panel'
 import { useLabStepProgress } from '@/hooks/use-lab-step-progress'
-import { createLabCodeAttempt } from '@/actions/lesson/lab-code-attempts'
 import { mergeLabStarterWithWorkspace } from '@/lib/lab/lab-workspace-files'
 import { continueCourse } from '@/actions/course'
 import { showLessonXpToast } from '@/lib/show-lesson-xp-toast'
@@ -68,7 +66,6 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
 
   const [isMarking, setIsMarking] = useState(false)
   const [failedStepId, setFailedStepId] = useState<string | null>(null)
-  const [attemptsRefreshKey, setAttemptsRefreshKey] = useState(0)
   const [playgroundEpoch, setPlaygroundEpoch] = useState(0)
   const layoutRef = useRef<HTMLDivElement>(null)
   const {
@@ -163,19 +160,8 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
       result: 'pass' | 'fail' | 'timeout' | 'error'
       files: Record<string, string>
     }) => {
-      // Workspace + histórico só no Verificar (sem autosave na digitação).
+      // Workspace só no Verificar (sem autosave na digitação).
       updateWorkspaceFiles(payload.files)
-      void createLabCodeAttempt(lesson.id, payload).then((ok) => {
-        if (ok) setAttemptsRefreshKey((k) => k + 1)
-      })
-    },
-    [lesson.id, updateWorkspaceFiles],
-  )
-
-  const handleRestoreAttemptCode = useCallback(
-    (files: Record<string, string>) => {
-      updateWorkspaceFiles(files, { applyToState: true })
-      setPlaygroundEpoch((n) => n + 1)
     },
     [updateWorkspaceFiles],
   )
@@ -279,26 +265,6 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
                   completedStepIds={completedStepIds}
                   failedStepId={failedStepId}
                   alreadyDone={lessonAlreadyDone}
-                />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem
-              value="historico"
-              className="border-t border-[#25252A]"
-            >
-              <AccordionTrigger className={LAB_ACCORDION_TRIGGER}>
-                <span className="text-sm font-semibold uppercase tracking-wide">
-                  Histórico
-                </span>
-                <CaretDown className="h-4 w-4 shrink-0 text-white/50 transition-transform duration-200" />
-              </AccordionTrigger>
-              <AccordionContent className="pb-2">
-                <LabAttemptsPanel
-                  lessonId={lesson.id}
-                  stepId={currentStep?.id}
-                  refreshKey={attemptsRefreshKey}
-                  onRestoreCode={handleRestoreAttemptCode}
                 />
               </AccordionContent>
             </AccordionItem>
