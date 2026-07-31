@@ -110,7 +110,10 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
         moduleTitle,
       )
       updateCurrentLessonStatus('completed')
-      await fetchActiveCourse()
+      // continueCourse + status local já bastam para UX / "próxima aula".
+      // fetchActiveCourse só sincroniza o store global (sidebar etc.) — não
+      // bloquear a percepção de concluído; erros vão para console.error no store.
+      void fetchActiveCourse()
     } catch (error) {
       console.error('Erro ao marcar lab como concluído:', error)
       const msg = error instanceof Error ? error.message : 'Erro desconhecido'
@@ -337,6 +340,9 @@ export function LabView({ lesson, moduleTitle }: LabViewProps) {
               template={lab.specs?.template ?? 'vanilla'}
               activeTests={activeTests}
               stepId={currentStep.id}
+              isLastStep={
+                currentStep.id === steps[steps.length - 1]?.id
+              }
               expected={currentStep.expected}
               onStepCheckPass={handleStepCheckPass}
               onStepCheckFail={handleStepCheckFail}

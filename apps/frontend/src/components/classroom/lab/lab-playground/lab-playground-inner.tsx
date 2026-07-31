@@ -28,6 +28,7 @@ import { useCheckFlow } from './hooks/use-check-flow'
 
 export function LabPlaygroundInner({
   stepId,
+  isLastStep = false,
   onStepCheckPass,
   onStepCheckFail,
   onRestoreLab,
@@ -42,6 +43,7 @@ export function LabPlaygroundInner({
   setWantsRuntimeHot,
 }: {
   stepId: string
+  isLastStep?: boolean
   onStepCheckPass: (stepId: string) => void
   onStepCheckFail?: (stepId: string) => void
   onRestoreLab?: () => void
@@ -117,6 +119,7 @@ export function LabPlaygroundInner({
     handleStatusChange,
   } = useCheckFlow({
     stepId,
+    isLastStep,
     expected,
     hasTests,
     testFiles,

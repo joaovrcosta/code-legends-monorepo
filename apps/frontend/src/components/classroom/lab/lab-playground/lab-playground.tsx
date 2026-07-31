@@ -25,6 +25,8 @@ export type LabPlaygroundProps = {
   template?: 'vanilla' | 'react'
   activeTests: { testFile?: string; tests?: Record<string, string> }
   stepId: string
+  /** Último step: libera onPass sem esperar settle do console. */
+  isLastStep?: boolean
   /** Pergunta amigável do step ativo; exibida se o Verificar falhar. */
   expected?: string
   onStepCheckPass: (stepId: string) => void
@@ -98,6 +100,7 @@ export function LabPlayground({
   template = 'vanilla',
   activeTests,
   stepId,
+  isLastStep = false,
   expected,
   onStepCheckPass,
   onStepCheckFail,
@@ -244,6 +247,7 @@ export function LabPlayground({
         <SyncStepTests stepId={stepId} testFiles={testFiles} />
         <LabPlaygroundInner
           stepId={stepId}
+          isLastStep={isLastStep}
           onStepCheckPass={onStepCheckPass}
           onStepCheckFail={onStepCheckFail}
           onRestoreLab={onRestoreLab}

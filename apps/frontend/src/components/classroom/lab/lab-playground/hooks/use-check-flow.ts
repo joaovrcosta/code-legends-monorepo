@@ -100,6 +100,7 @@ type SandpackLike = {
 
 export function useCheckFlow({
   stepId,
+  isLastStep = false,
   expected,
   hasTests,
   testFiles,
@@ -115,6 +116,8 @@ export function useCheckFlow({
   onVerifyAttempt,
 }: {
   stepId: string
+  /** Último step: onPass imediato sem holdUntilSettled. */
+  isLastStep?: boolean
   expected?: string
   hasTests: boolean
   testFiles: Record<string, string>
@@ -157,6 +160,7 @@ export function useCheckFlow({
   const passCalledRef = useRef(false)
   const lastVerifyClickRef = useRef(0)
   const stepIdRef = useRef(stepId)
+  const isLastStepRef = useRef(isLastStep)
   const onPassRef = useRef(onStepCheckPass)
   const onFailRef = useRef(onStepCheckFail)
   const onVerifyAttemptRef = useRef(onVerifyAttempt)
@@ -189,6 +193,7 @@ export function useCheckFlow({
   } = consoleCapture
 
   stepIdRef.current = stepId
+  isLastStepRef.current = isLastStep
   onPassRef.current = onStepCheckPass
   onFailRef.current = onStepCheckFail
   onVerifyAttemptRef.current = onVerifyAttempt
@@ -646,8 +651,24 @@ export function useCheckFlow({
       // Pass: captura o console antes de avançar o step (senão clearConsoleFreeze
       // no effect do stepId cancela a captura e o console fica vazio).
       // Fail: endChecking libera o botão na hora (sem esperar ~2s de captura).
+      // Último step: stepId não muda no onPass — libera botão + completeLesson já;
+      // captura segue em background (resultado órfão é aceitável).
       if (passedAll) {
         emitVerifyAttempt('pass')
+        if (isLastStepRef.current) {
+          if (!passCalledRef.current) {
+            passCalledRef.current = true
+            onPassRef.current(passedStepId)
+          }
+          // DONE antes do RELEASE: reducer ignora RELEASE quando já está em done.
+          dispatchCheck({
+            type: 'DONE',
+            result: 'pass',
+            showExpected: false,
+          })
+          endChecking({ holdUntilSettled: false })
+          return
+        }
         endChecking({
           holdUntilSettled: true,
           onSettled: () => {
