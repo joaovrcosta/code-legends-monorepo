@@ -10,7 +10,7 @@ export type PlatformFeature = {
 export const platformSection = {
   id: "plataforma",
   eyebrow: "Plataforma",
-  title: "Transforme seu ensino em um caminho guiado com nossa plataformaa",
+  title: "Transforme seu ensino em um caminho guiado com nossa plataforma",
   description:
     "Dashboard, progresso, gamificação e ferramentas pensadas para manter você no ritmo certo.",
 } as const;
