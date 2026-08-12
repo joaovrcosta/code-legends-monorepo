@@ -16,6 +16,7 @@ import { certificateRoutes } from './http/controllers/certificate/routes'
 import { tagRoutes } from './http/controllers/tag/routes'
 import { skillRoutes } from './http/controllers/skill/routes'
 import { requestRoutes } from './http/controllers/request/routes'
+import { forumRoutes } from './http/controllers/forum/routes'
 import { notificationRoutes } from './http/controllers/notification/routes'
 import { planRoutes } from './http/controllers/plan/routes'
 import { dashboardRoutes } from './http/controllers/dashboard/routes'
@@ -169,6 +170,7 @@ app.register(certificateRoutes)
 app.register(tagRoutes)
 app.register(skillRoutes)
 app.register(requestRoutes)
+app.register(forumRoutes)
 app.register(notificationRoutes)
 app.register(planRoutes)
 app.register(dashboardRoutes)

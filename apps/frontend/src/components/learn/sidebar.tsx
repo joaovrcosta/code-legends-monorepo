@@ -13,6 +13,7 @@ import {
   House,
   RocketLaunchIcon,
   Briefcase,
+  Lifebuoy,
 } from "@phosphor-icons/react/dist/ssr";
 
 const links = [
@@ -27,6 +28,7 @@ const links = [
   },
   { name: "Meu Progresso", path: "/learn/tracking", icon: RocketLaunchIcon },
   { name: "Projetos", path: "/learn/projects", icon: PuzzlePiece },
+  { name: "Dúvidas", path: "/learn/forum", icon: Question },
   { name: "Eventos", path: "/learn/badges", icon: CalendarDotsIcon },
 ];
 
@@ -37,7 +39,7 @@ const utilLinks = [
     icon: DiscordLogo,
     external: true,
   },
-  { name: "Ajuda", url: "/help", icon: Question },
+  { name: "Ajuda", url: "/help", icon: Lifebuoy },
 ];
 
 const Sidebar = () => {

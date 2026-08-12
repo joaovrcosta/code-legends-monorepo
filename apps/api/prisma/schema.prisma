@@ -53,6 +53,7 @@ model Course {
   skills          CourseSkill[]
 
   careerModuleCourses CareerModuleCourse[]
+  forumQuestions      ForumQuestion[]
 
   @@index([kind])
   @@index([exclusiveCareerId])
@@ -309,6 +310,8 @@ model User {
   careerExamAttempts UserCareerExamAttempt[]
   careerModuleStatus UserCareerModuleStatus[]
   labCodeAttempts    LabCodeAttempt[]
+  forumQuestions     ForumQuestion[]
+  forumAnswers       ForumAnswer[]
 
   @@index([planId])
 }
@@ -395,6 +398,7 @@ model Lesson {
   lessonLikes     LessonLike[]
   lessonDislikes  LessonDislike[]
   labCodeAttempts LabCodeAttempt[]
+  forumQuestions  ForumQuestion[]
 
   @@unique([slug, submoduleId])
 }
@@ -891,6 +895,47 @@ model Request {
   @@index([userId])
   @@index([userId, status])
   @@index([status])
+}
+
+enum ForumQuestionStatus {
+  WAITING_ANSWER
+  ANSWERED
+}
+
+model ForumQuestion {
+  id        String              @id @default(cuid())
+  authorId  String
+  author    User                @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  courseId  String?
+  course    Course?             @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  lessonId  Int?
+  lesson    Lesson?             @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  body      String              @db.Text
+  status    ForumQuestionStatus @default(WAITING_ANSWER)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  answers   ForumAnswer[]
+
+  @@index([authorId])
+  @@index([courseId])
+  @@index([lessonId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ForumAnswer {
+  id         String        @id @default(cuid())
+  questionId String
+  question   ForumQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body       String        @db.Text
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([questionId])
+  @@index([authorId])
+  @@index([createdAt])
 }
 
 enum MaritalStatus {
